@@ -142,3 +142,7 @@ GitHub 저장소: https://github.com/KyungHoon416/streamlab-ios
 
 이 변경의 설정·XML 정적 검사는 수행했지만, Xcode 빌드와 Simulator 실행은 이 Linux 환경에서 **NOT TESTED**입니다. 실제 실행 성공을 의미하지 않습니다.
 
+
+### Profiles 식별자 조회 크래시 수정 (2026-10-11)
+
+`Profile.storyboard` 로딩 중 `doesn't contain a view controller with identifier 'Profiles'`가 발생한 실행 로그를 확인했습니다. 네 Storyboard의 누락된 `sceneMemberID="viewController"` 속성을 추가하고 정적 검사를 보강했습니다. 업데이트 후 Xcode의 **Product > Clean Build Folder**를 실행하고 다시 Run하여 Storyboard 리소스를 재컴파일하세요. 수정 후 Simulator 실행은 아직 NOT TESTED입니다.

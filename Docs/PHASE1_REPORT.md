@@ -48,3 +48,11 @@ OSLog category Startup records: application launched; requested scene configurat
 Added cold launch / relaunch UI coverage (UI suite now 5 tests). Static plist/wiring checks: PASS. Xcode build, five UI tests, and resolution on the user's simulator: NOT TESTED. No claim that the screenshot's root cause has been reproduced or the black screen resolved.
 
 After pulling the fix, quit and relaunch the app. If the old scene configuration is restored, delete only the StreamLab demo app from the simulator and run again (deletes its local demo state). If still black, collect all Startup messages and the first runtime exception from Xcode's debug console.
+
+## Storyboard controller lookup crash — 2026-10-11
+
+FAIL (user Simulator log): application and scene callbacks run, then Profile.storyboard lookup raises NSInvalidArgumentException: no controller with identifier Profiles. This supersedes the earlier unconfirmed scene-registration hypothesis for this observed crash.
+
+The source has the matching storyboardIdentifier, but all four scene controllers omit sceneMemberID="viewController". Added this scene membership to Profile, Home, Search and Detail without changing controller identifiers, modules or outlets. Strengthened structural checks for scene membership and initial controller identity. The previous structural checks missed this omission.
+
+PASS: corrected XML and structural checks; regression check rejects each original missing-membership storyboard. NOT TESTED: ibtool compilation, iOS build, five UI tests and post-fix Simulator launch. The XML defect is corrected; runtime resolution still requires Mac verification. Rebuild with Product > Clean Build Folder before running to recompile Storyboard resources.

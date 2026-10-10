@@ -23,6 +23,8 @@ for name, (identifier, module) in expected.items():
     controllers = storyboard.findall('.//viewController')
     assert len(controllers) == 1
     controller = controllers[0]
+    assert controller.get('sceneMemberID') == 'viewController', f'{name}: missing scene controller membership'
+    assert storyboard.get('initialViewController') == controller.get('id')
     assert controller.get('storyboardIdentifier') == identifier
     assert controller.get('customModule') == module
     cls = controller.get('customClass')

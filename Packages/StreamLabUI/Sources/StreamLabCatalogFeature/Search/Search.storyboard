@@ -9,7 +9,7 @@
     <scenes>
         <scene sceneID="scene-Search">
             <objects>
-                <viewController storyboardIdentifier="Search" id="vc-Search" customClass="SearchViewController" customModule="StreamLabCatalogFeature">
+                <viewController sceneMemberID="viewController" storyboardIdentifier="Search" id="vc-Search" customClass="SearchViewController" customModule="StreamLabCatalogFeature">
                     <view key="view" contentMode="scaleToFill" id="root-Search">
                         <rect key="frame" x="0" y="0" width="393" height="852" />
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES" />
