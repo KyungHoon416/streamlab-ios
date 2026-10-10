@@ -17,6 +17,7 @@ public final class CatalogStore {
     private var task: Task<Void, Never>?
     private var generation: UInt64 = 0
     private var consumedCursors: Set<String> = []
+    private var suspendedRequest: Request?
     private var lastRequest: Request?
 
     private enum Request: Sendable {
@@ -38,7 +39,23 @@ public final class CatalogStore {
         self.profile = profile
         onChange?()
     }
+    /// Stop offscreen work while retaining this profile's loaded pages and cursor.
+    public func suspend() {
+        if loading { suspendedRequest = lastRequest }
+        generation &+= 1
+        task?.cancel()
+        task = nil
+        loading = false
+    }
+
+    @discardableResult public func resume() -> Task<Void, Never>? {
+        guard let request = suspendedRequest else { return nil }
+        suspendedRequest = nil
+        return begin(request)
+    }
+
     public func invalidate() {
+        suspendedRequest = nil
         generation &+= 1
         task?.cancel()
         task = nil
@@ -83,6 +100,7 @@ public final class CatalogStore {
         let ticket = generation
         let requestedProfile = profile
         let repository = repository
+        suspendedRequest = nil
         lastRequest = request
         loading = true
         errorMessage = nil

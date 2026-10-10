@@ -64,6 +64,27 @@ import XCTest
             XCTAssertFalse(cell.label.contains("12+"))
         }
     }
+    func testSearchPagesSurviveDetailAndTabNavigation() {
+        let app = launch()
+        choose("adult-a", in: app)
+        app.tabBars.buttons["검색"].tap()
+        let table = app.tables["search-results"]
+        XCTAssertTrue(table.cells.firstMatch.waitForExistence(timeout: 5))
+        app.buttons["load-more"].tap()
+        expectation(for: NSPredicate(format: "count == 48"), evaluatedWith: table.cells)
+        waitForExpectations(timeout: 5)
+        let firstID = table.cells.firstMatch.identifier
+        table.cells.firstMatch.tap()
+        XCTAssertTrue(app.buttons["phase2-playback"].waitForExistence(timeout: 5))
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(table.waitForExistence(timeout: 5))
+        XCTAssertEqual(table.cells.count, 48)
+        XCTAssertEqual(table.cells.firstMatch.identifier, firstID)
+        app.tabBars.buttons["홈"].tap()
+        app.tabBars.buttons["검색"].tap()
+        XCTAssertEqual(table.cells.count, 48)
+    }
+
     func testRapidDetailEntryExit() {
         let app = launch()
         choose("adult-a", in: app)

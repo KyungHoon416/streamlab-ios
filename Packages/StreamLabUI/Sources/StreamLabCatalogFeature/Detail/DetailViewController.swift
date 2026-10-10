@@ -34,14 +34,16 @@ import StreamLabDesignSystem
     }
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        reload()
+        if store.resume() != nil { return }
+        if store.detail == nil { reload() }
     }
     public override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        store.invalidate()
+        store.suspend()
     }
     @objc private func reload() { store.loadDetail(id: titleID) }
     private func render() {
+        navigationItem.rightBarButtonItem?.isEnabled = !store.loading
         playbackButton.isHidden = store.detail == nil
         titleLabel.text = store.detail?.name ?? (store.loading ? "불러오는 중…" : "콘텐츠를 열 수 없습니다")
         if let title = store.detail {

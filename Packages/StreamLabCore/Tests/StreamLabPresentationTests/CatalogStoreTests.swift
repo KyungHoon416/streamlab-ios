@@ -57,6 +57,46 @@ private actor ControlledRepository: CatalogRepository {
     private func titles() async throws -> [CatalogTitle] {
         try await MockCatalogRepository(responseDelay: .zero).browse(profile: adult, after: nil, limit: 4).items
     }
+    @Test func suspendedPaginationRetainsPagesAndRejectsLateCompletion() async throws {
+        let titles = try await titles()
+        let repository = ControlledRepository()
+        let store = CatalogStore(profile: adult, repository: repository)
+        let first = store.search("keep", debounce: .zero)
+        await repository.wait("adult-a/keep/first")
+        await repository.finish("adult-a/keep/first", page: .init(items: [titles[0]], nextCursor: "next"))
+        await first.value
+        let next = try #require(store.loadNext())
+        await repository.wait("adult-a/keep/next")
+        store.suspend()
+        await repository.finish("adult-a/keep/next", page: .init(items: [titles[1]], nextCursor: nil))
+        await next.value
+        #expect(store.items == [titles[0]])
+        #expect(store.query == "keep")
+        #expect(store.nextCursor == "next")
+        #expect(!store.loading)
+        store.select(kids)
+        #expect(store.items.isEmpty)
+        #expect(store.resume() == nil)
+    }
+
+    @Test func resumePaginationContinuesWithoutResettingLoadedPages() async throws {
+        let store = CatalogStore(profile: adult, repository: MockCatalogRepository(responseDelay: .zero))
+        await store.search("", debounce: .zero).value
+        let firstIDs = store.items.map(\.id)
+        #expect(firstIDs.count == 24)
+        let cancelled = try #require(store.loadNext())
+        // No await between starting and suspending: work cannot finish first.
+        store.suspend()
+        await cancelled.value
+        let resumed = try #require(store.resume())
+        await resumed.value
+        #expect(store.items.count == 48)
+        #expect(Array(store.items.prefix(24).map(\.id)) == firstIDs)
+        #expect(Set(store.items.map(\.id)).count == 48)
+        store.suspend()
+        #expect(store.resume() == nil)
+    }
+
     @Test func reversedSearchResponseCannotOverwriteLatest() async throws {
         let titles = try await titles()
         let repository = ControlledRepository()

@@ -56,3 +56,11 @@ FAIL (user Simulator log): application and scene callbacks run, then Profile.sto
 The source has the matching storyboardIdentifier, but all four scene controllers omit sceneMemberID="viewController". Added this scene membership to Profile, Home, Search and Detail without changing controller identifiers, modules or outlets. Strengthened structural checks for scene membership and initial controller identity. The previous structural checks missed this omission.
 
 PASS: corrected XML and structural checks; regression check rejects each original missing-membership storyboard. NOT TESTED: ibtool compilation, iOS build, five UI tests and post-fix Simulator launch. The XML defect is corrected; runtime resolution still requires Mac verification. Rebuild with Product > Clean Build Folder before running to recompile Storyboard resources.
+
+## Phase 1 navigation follow-up — 2026-10-11
+
+PASS (user-supplied evidence, not agent-run): after d9d1dc2, iPhone 18 Pro / iOS 27.0 screenshot shows Alex, Jamie and Kids. Startup logs reach profile root installed and window is visible with no supplied Storyboard exception. This verifies the observed first-screen launch only, not all flows or warning-free compilation.
+
+Home/Search/Detail now suspend offscreen requests with cancellation and generation invalidation while retaining loaded data. Returning resumes an interrupted request; completed search pages, cursor and query remain intact across detail navigation and tab changes. Profile switching and scene teardown still call invalidate to clear data and pending resumption. Detail retry is disabled while loading.
+
+Added two Core lifecycle tests (Core total: 17) and a search-navigation UI regression (UI total: 6). Swift and Xcode executables are unavailable here: all new Swift tests, Simulator navigation, accessibility and compiler warnings remain NOT TESTED. Existing structural checks PASS. Phase 2 remains out of scope.

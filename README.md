@@ -14,7 +14,7 @@ This repository is a **Swift 6 / iOS 18+** UIKit + Storyboard streaming app with
 - Search debouncing, cancellation and generation checks for out-of-order results.
 - Offline poster artwork rendered via UIKit (no unauthorized image downloads).
 - Accessible buttons, labels, dynamic text; dark mode first.
-- Core Swift Testing suite: seven repository tests and eight state/race tests; five UI tests (execution status: `Docs/PHASE1_REPORT.md`).
+- Core Swift Testing suite: seven repository tests and ten state/race tests; six UI tests (execution status: `Docs/PHASE1_REPORT.md`).
 
 ## Requirements
 
@@ -146,3 +146,9 @@ GitHub 저장소: https://github.com/KyungHoon416/streamlab-ios
 ### Profiles 식별자 조회 크래시 수정 (2026-10-11)
 
 `Profile.storyboard` 로딩 중 `doesn't contain a view controller with identifier 'Profiles'`가 발생한 실행 로그를 확인했습니다. 네 Storyboard의 누락된 `sceneMemberID="viewController"` 속성을 추가하고 정적 검사를 보강했습니다. 업데이트 후 Xcode의 **Product > Clean Build Folder**를 실행하고 다시 Run하여 Storyboard 리소스를 재컴파일하세요. 수정 후 Simulator 실행은 아직 NOT TESTED입니다.
+
+### 탐색 상태 유지
+
+같은 프로필에서 상세 화면을 다녀오거나 홈/검색 탭을 전환해도 완료된 검색 결과와 페이지 수를 유지합니다. 화면 이탈 시 진행 중 요청은 취소하고, 복귀 시 중단된 요청을 재개합니다. 프로필 변경 시에는 이전 프로필 데이터와 재개할 요청을 모두 비웁니다.
+
+2026-10-11 사용자 Simulator 캡처·로그로 프로필 첫 화면 표시를 확인했습니다. 홈·검색·상세 전환과 자동 테스트는 별도 실행 검증이 필요합니다.

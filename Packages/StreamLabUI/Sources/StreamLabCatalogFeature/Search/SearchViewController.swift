@@ -13,6 +13,7 @@ import StreamLabDesignSystem
     @IBOutlet private weak var statusLabel: UILabel!
     @IBOutlet private weak var moreButton: UIButton!
     public var store: CatalogStore!
+    private var hasAppeared = false
     public var onSelect: ((String) -> Void)?
     public override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,11 +38,15 @@ import StreamLabDesignSystem
     }
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        store.search(searchBar.text ?? "", debounce: .zero)
+        if store.resume() != nil { return }
+        if !hasAppeared {
+            hasAppeared = true
+            store.search(searchBar.text ?? "", debounce: .zero)
+        }
     }
     public override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        store.invalidate()
+        store.suspend()
     }
     public func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) { store.search(searchText) }
     public func searchBarSearchButtonClicked(_ searchBar: UISearchBar) { searchBar.resignFirstResponder() }

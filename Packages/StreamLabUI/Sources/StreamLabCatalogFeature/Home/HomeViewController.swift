@@ -36,11 +36,12 @@ import StreamLabDesignSystem
     }
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        store.loadHome()
+        if store.resume() != nil { return }
+        if store.home == nil { store.loadHome() }
     }
     public override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        store.invalidate()
+        store.suspend()
     }
     @objc private func reload() { store.loadHome() }
     private static func layout() -> UICollectionViewLayout {
