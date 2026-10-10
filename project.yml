@@ -12,13 +12,9 @@ settings:
     GENERATE_INFOPLIST_FILE: YES
     INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
     INFOPLIST_KEY_UILaunchScreen_Generation: YES
-    ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
-    DEVELOPMENT_TEAM: ""
 packages:
   StreamLabCore:
     path: Packages/StreamLabCore
-  StreamLabUI:
-    path: Packages/StreamLabUI
 targets:
   StreamLab:
     type: application
@@ -26,6 +22,7 @@ targets:
     deploymentTarget: "18.0"
     sources:
       - path: App
+      - path: Resources/Main.storyboard
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.streamlab.demo
@@ -36,12 +33,6 @@ targets:
         product: StreamLabDomain
       - package: StreamLabCore
         product: StreamLabCatalogData
-      - package: StreamLabUI
-        product: StreamLabDesignSystem
-      - package: StreamLabUI
-        product: StreamLabProfileFeature
-      - package: StreamLabUI
-        product: StreamLabCatalogFeature
 schemes:
   StreamLab:
     build:

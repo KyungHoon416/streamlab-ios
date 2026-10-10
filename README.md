@@ -1,35 +1,29 @@
-# StreamLab — Phase 1 iOS Starter
+# StreamLab — UIKit + Storyboard Phase 1
 
-> Unofficial portfolio project. Not affiliated with Netflix or its recruitment process.
+> Unofficial iOS engineering practice project, not affiliated with Netflix.
 
-Swift 6, iOS 18+, SwiftUI, SwiftPM and XcodeGen. Phase 1 is a profile-aware catalog mock, not yet a streaming player.
+**UI migration:** UIKit and Main.storyboard replace the original SwiftUI interface. This intentionally **deviates from the challenge document**, which specifies SwiftUI + AVFoundation. Swift 6 and iOS 18+ remain.
 
-## Run on Mac
-```bash
+## Features
+- Four Storyboard scenes: Profile, Home, Search, Detail (each builds its contents in UIKit code)
+- Three Mock profiles (Alex, Jamie, Kids)
+- 2,000 local catalog entries, five curated rails and per-profile continue watching
+- Repository-level kids access checks, cursor pagination, async cancellation and stale-response fencing
+- HLS playback and downloads are not implemented (future phases)
+
+## Setup on Mac
+```sh
 brew install xcodegen
 ./scripts/bootstrap-mac.sh
 open StreamLab.xcodeproj
-
-# Or build without signing
 xcodebuild -project StreamLab.xcodeproj -scheme StreamLab -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+cd Packages/StreamLabCore && swift test
 ```
 
-## Tests
-```bash
-cd Packages/StreamLabCore
-swift test
-```
+Swift 8.0 is **not assumed to be available**. Verify the compiler installed with Xcode via `swift --version`. This repository retains Swift 6 language settings.
 
-## Current Phase 1
-- 3 profiles: Alex, Jamie and Kids
-- 2,000 generated Mock content records, 5 recommendation rails
-- Kids entitlement filtering at repository boundary, including details
-- Cursor pagination, search cancellation, stale response fencing
-- SwiftUI Home, Search and Detail. Playback button clearly says Phase 2.
-- Three ADRs and testable domain boundaries
+## Validation
+Changes were committed through GitHub without direct Mac/Xcode access; Xcode build and UI runtime remain **NOT TESTED**. Run on a simulator and report errors before Phase 2. The project keeps prior Core unit tests.
 
-The bundled media metadata is fabricated and artwork uses SF Symbols and gradients. No Netflix videos or APIs are included. Native iOS simulator validation remains required after XcodeGen generation.
-
-**Important:** The repository was initialized remotely with the Phase 1 starter snapshot. Local edits to StreamLabApp.swift (such as the blue test screen) are not automatically synchronized. To bring them back, commit on your Mac and push to this repository.
-
-See Docs/PHASE1_SPEC.md and Docs/PHASE1_REPORT.md.
+## Technical design
+Main.storyboard owns ViewController scene definitions and identifiers. AppDelegate/SceneDelegate own app/session navigation. UIKit ViewControllers build layouts and render models, while the SwiftPM StreamLabCore maintains independent models and a Mock repository. UI no longer depends on StreamLabUI Swift Package.
