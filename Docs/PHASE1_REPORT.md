@@ -36,3 +36,15 @@ Update this report with the real Xcode version, simulator device, build result a
 사용자 요청에 따라 AppDelegate/SceneDelegate, Home/Search/Detail 컨트롤러, Theme/PosterCell/RailHeader를 개별 파일과 폴더로 분리했습니다. 프로필/홈/검색/상세 Storyboard도 네 파일로 분리해 각 화면 컨트롤러 옆에 배치했습니다. SwiftPM resources 선언과 Bundle.module 로딩, Xcode 소스 참조, 구조 검사 스크립트를 함께 갱신했습니다.
 
 폴더 분리 후 Fixture 및 정적 구조 검사는 PASS입니다. 기존 및 추가 Swift 테스트 소스는 변경하지 않았습니다. 실제 Xcode/Swift 테스트와 Storyboard 리소스 컴파일은 NOT TESTED이며, 기존 Phase 1 검증 보류 상태는 유지합니다.
+
+## Black-screen startup investigation — 2026-10-10
+
+User reports a black Simulator screen with Xcode 27.0 (27A266a), Apple Swift 6.4, iPhone 18 Pro / iOS 27.0. This is a user-reported runtime failure, not a verified successful launch. The exact cause cannot be established from a screenshot without startup logs.
+
+Startup previously relied on generated scene metadata. Added an explicit App/Configuration/Info.plist with a named UIWindowScene configuration and module-qualified SceneDelegate; disabled automatic Info.plist generation for the app in both project.yml and the checked-in project. The scene now explicitly sizes and retains its window, eagerly loads the profile root and restores a missing root upon scene reconnection. Normal foregrounding preserves navigation.
+
+OSLog category Startup records: application launched; requested scene configuration; scene will connect; loading Profile.storyboard; profile root installed; window is visible. No profile identifiers or content history are logged. These markers distinguish scene registration from Storyboard loading failures.
+
+Added cold launch / relaunch UI coverage (UI suite now 5 tests). Static plist/wiring checks: PASS. Xcode build, five UI tests, and resolution on the user's simulator: NOT TESTED. No claim that the screenshot's root cause has been reproduced or the black screen resolved.
+
+After pulling the fix, quit and relaunch the app. If the old scene configuration is restored, delete only the StreamLab demo app from the simulator and run again (deletes its local demo state). If still black, collect all Startup messages and the first runtime exception from Xcode's debug console.

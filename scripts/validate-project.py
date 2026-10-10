@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Structural checks only. This is NOT a Swift compiler or Interface Builder."""
 import re
+import plistlib
 import xml.etree.ElementTree as ET
 from pathlib import Path
 root = Path(__file__).resolve().parent.parent
@@ -49,3 +50,15 @@ for name in expected:
 ET.parse(root / 'StreamLab.xcodeproj/xcshareddata/xcschemes/StreamLab.xcscheme')
 print('PASS: 4 separate feature Storyboards, sibling controllers, outlets/modules, package resource declarations, bundle-scoped factories, project paths, scheme XML, no SwiftUI')
 print('NOT TESTED: Swift type checking, ibtool compilation, Auto Layout runtime, UIKit linking and execution')
+
+info = plistlib.loads((root / 'App/Configuration/Info.plist').read_bytes())
+config = info['UIApplicationSceneManifest']['UISceneConfigurations']['UIWindowSceneSessionRoleApplication'][0]
+assert config['UISceneConfigurationName'] == 'StreamLab'
+assert config['UISceneClassName'] == 'UIWindowScene'
+assert config['UISceneDelegateClassName'] == '$(PRODUCT_MODULE_NAME).SceneDelegate'
+assert 'UIMainStoryboardFile' not in info
+assert 'UISceneStoryboardFile' not in config
+assert project.count('"INFOPLIST_FILE" = "App/Configuration/Info.plist";') == 2
+assert 'INFOPLIST_KEY_UIApplicationSceneManifest_Generation' not in project
+assert 'INFOPLIST_FILE: App/Configuration/Info.plist' in (root / 'project.yml').read_text()
+print('PASS: explicit scene manifest and Debug/Release Info.plist references')

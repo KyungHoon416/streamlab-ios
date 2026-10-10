@@ -13,6 +13,19 @@ import XCTest
         profile.tap()
         XCTAssertTrue(app.collectionViews["home-catalog"].cells.firstMatch.waitForExistence(timeout: 5))
     }
+    func testColdLaunchAndRelaunchShowProfiles() {
+        let app = XCUIApplication()
+        for _ in 0..<2 {
+            app.launch()
+            for id in ["adult-a", "adult-b", "kids-a"] {
+                let button = app.buttons["profile-\(id)"]
+                XCTAssertTrue(button.waitForExistence(timeout: 10), "Profile root must be installed after launch")
+                XCTAssertTrue(button.isHittable, "Profile button must be visible and tappable")
+            }
+            app.terminate()
+        }
+    }
+
     func testStoryboardScenesAndPhase2Notice() {
         let app = launch()
         choose("adult-a", in: app)

@@ -5,6 +5,18 @@
 	};
 	"objectVersion" = 56;
 	"objects" = {
+        "86EF547D08855FE7037029F2" = {
+            "isa" = "PBXFileReference";
+            "lastKnownFileType" = "text.plist.xml";
+            "path" = "App/Configuration/Info.plist";
+            "sourceTree" = "SOURCE_ROOT";
+        };
+        "9C52E24AA094ABF1594E31EF" = {
+            "isa" = "PBXGroup";
+            "children" = ("86EF547D08855FE7037029F2");
+            "name" = "Configuration";
+            "sourceTree" = "<group>";
+        };
 		"B2BA7E2A08905F9BDADF970B" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -57,7 +69,7 @@
 		};
 		"69F8D45498D7E20DA99BB780" = {
 			"isa" = "PBXGroup";
-			"children" = ("0DDBDE4DF972F4626CC81015", "C3963989B7405766AC8A6CBC");
+			"children" = ("0DDBDE4DF972F4626CC81015", "C3963989B7405766AC8A6CBC", "9C52E24AA094ABF1594E31EF");
 			"name" = "App";
 			"sourceTree" = "<group>";
 		};
@@ -228,8 +240,8 @@
 			"buildSettings" = {
 				"PRODUCT_BUNDLE_IDENTIFIER" = "com.example.streamlab.demo";
 				"PRODUCT_NAME" = "StreamLab";
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation" = "YES";
-				"INFOPLIST_KEY_UILaunchScreen_Generation" = "YES";
+				"GENERATE_INFOPLIST_FILE" = "NO";
+				"INFOPLIST_FILE" = "App/Configuration/Info.plist";
 				"INFOPLIST_KEY_UISupportedInterfaceOrientations" = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				"INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad" = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				"SUPPORTED_PLATFORMS" = "iphoneos iphonesimulator";
@@ -246,8 +258,8 @@
 			"buildSettings" = {
 				"PRODUCT_BUNDLE_IDENTIFIER" = "com.example.streamlab.demo";
 				"PRODUCT_NAME" = "StreamLab";
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation" = "YES";
-				"INFOPLIST_KEY_UILaunchScreen_Generation" = "YES";
+				"GENERATE_INFOPLIST_FILE" = "NO";
+				"INFOPLIST_FILE" = "App/Configuration/Info.plist";
 				"INFOPLIST_KEY_UISupportedInterfaceOrientations" = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				"INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad" = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				"SUPPORTED_PLATFORMS" = "iphoneos iphonesimulator";

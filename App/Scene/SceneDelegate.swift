@@ -1,4 +1,5 @@
 import UIKit
+import OSLog
 import StreamLabDomain
 import StreamLabCatalogData
 import StreamLabPresentation
@@ -8,29 +9,52 @@ import StreamLabCatalogFeature
 
 @MainActor final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
+    private let startupLog = Logger(subsystem: "com.example.streamlab.demo", category: "Startup")
     private let repository = MockCatalogRepository()
     private var stores: [CatalogStore] = []
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        guard let windowScene = scene as? UIWindowScene else { return }
-        let window = UIWindow(windowScene: windowScene)
-        window.overrideUserInterfaceStyle = .dark
-        window.tintColor = StreamLabTheme.accent
-        self.window = window
-        showProfiles()
-        window.makeKeyAndVisible()
+        startupLog.notice("[Startup] scene will connect")
+        guard let windowScene = scene as? UIWindowScene else {
+            startupLog.error("[Startup] expected UIWindowScene")
+            return
+        }
+        connectWindow(to: windowScene)
     }
+
+    private func connectWindow(to windowScene: UIWindowScene) {
+        let appWindow = window ?? UIWindow(windowScene: windowScene)
+        appWindow.frame = windowScene.coordinateSpace.bounds
+        appWindow.overrideUserInterfaceStyle = .dark
+        appWindow.tintColor = StreamLabTheme.accent
+        window = appWindow
+        if appWindow.rootViewController == nil { showProfiles() }
+        appWindow.makeKeyAndVisible()
+        startupLog.notice("[Startup] window is visible")
+    }
+
+    func sceneWillEnterForeground(_ scene: UIScene) {
+        // Recreate only a missing root; preserve navigation on normal foregrounding.
+        guard window?.rootViewController == nil, let windowScene = scene as? UIWindowScene else { return }
+        startupLog.notice("[Startup] reconnecting scene window")
+        connectWindow(to: windowScene)
+    }
+
     func sceneDidDisconnect(_ scene: UIScene) {
-        stores.forEach { $0.invalidate() }
+        stores.forEach { $0.invalidate(); $0.onChange = nil }
         window?.rootViewController = nil
+        window = nil
         stores = []
     }
     private func showProfiles() {
         stores.forEach { $0.invalidate(); $0.onChange = nil }
         stores = []
+        startupLog.notice("[Startup] loading Profile.storyboard")
         let controller = ProfileViewController.instantiate()
         controller.onSelect = { [weak self] in self?.showCatalog(profile: $0) }
+        controller.loadViewIfNeeded()
         window?.rootViewController = controller
+        startupLog.notice("[Startup] profile root installed")
     }
     private func showCatalog(profile: ViewerProfile) {
         let home = HomeViewController.instantiate()

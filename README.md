@@ -2,7 +2,7 @@
 
 > Unofficial learning/portfolio project. Not a Netflix recruiting task, product, API client, or affiliated project.
 
-This repository is a **Swift 6 / iOS 18+** SwiftUI streaming UI starter with a portable, fully offline fixture repository. It implements **Phase 1 only** (profiles + catalog + discovery). It does **not** stream actual video yet.
+This repository is a **Swift 6 / iOS 18+** UIKit + Storyboard streaming app with a portable, fully offline fixture repository. It implements **Phase 1 only** (profiles + catalog + discovery). It does **not** stream actual video yet.
 
 ## What works in Phase 1
 
@@ -12,9 +12,9 @@ This repository is a **Swift 6 / iOS 18+** SwiftUI streaming UI starter with a p
 - Kids entitlement filter enforced at **repository** boundary, including direct `detail()` lookup.
 - Cursor paging with no duplicated IDs, strict page-size validation and invalid cursor rejection.
 - Search debouncing, cancellation and generation checks for out-of-order results.
-- Offline poster artwork rendered via SwiftUI (no unauthorized image downloads).
+- Offline poster artwork rendered via UIKit (no unauthorized image downloads).
 - Accessible buttons, labels, dynamic text; dark mode first.
-- Core Swift Testing suite: seven tests.
+- Core Swift Testing suite: seven repository tests and eight state/race tests; five UI tests (execution status: `Docs/PHASE1_REPORT.md`).
 
 ## Requirements
 
@@ -62,7 +62,7 @@ The `StreamLabCore` package uses only Foundation and Swift Testing, allowing its
 ## Module boundaries
 
 ```text
-App (SwiftUI, XcodeGen)
+App (UIKit + Storyboard, XcodeGen)
   |-- StreamLabProfileFeature --> StreamLabDesignSystem --> StreamLabDomain
   |-- StreamLabCatalogFeature --> StreamLabDesignSystem --> StreamLabDomain
   |-- StreamLabCatalogData -------------------------------> StreamLabDomain
@@ -73,7 +73,7 @@ App (SwiftUI, XcodeGen)
 - `StreamLabDesignSystem`: static gradients/poster illustrations, reusable poster cards.
 - `StreamLabProfileFeature`: select Adult A / Adult B / Kids.
 - `StreamLabCatalogFeature`: Home, Search and Detail with cancellation-sensitive state.
-- `App`: SwiftUI app, dependency composition and profile session.
+- `App`: UIKit app, explicit scene registration, dependency composition and profile session.
 
 No external packages are used in SwiftPM; `XcodeGen` is a Mac-side **project generator**, not a runtime dependency.
 
@@ -114,6 +114,7 @@ The content titles/metadata are programmatically fabricated and posters are loca
 | 폴더 | 내용 |
 |---|---|
 | App/Application | AppDelegate.swift |
+| App/Configuration | Info.plist — 명시적 SceneDelegate 등록 |
 | App/Scene | SceneDelegate.swift — 프로필 세션·화면 전환 |
 | Packages/StreamLabUI/Sources/StreamLabProfileFeature/Profile | ProfileViewController.swift + Profile.storyboard |
 | Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Home | HomeViewController.swift + Home.storyboard |
@@ -134,3 +135,10 @@ The content titles/metadata are programmatically fabricated and posters are loca
 Xcode의 Package Dependencies에서 로컬 패키지를 펼치면 화면 폴더를 확인할 수 있습니다. Finder의 실제 디렉터리도 동일하게 분리했습니다. 폴더 재구성 후의 SwiftPM 리소스 컴파일/Storyboard 로딩은 아직 Mac에서 검증하지 않았습니다.
 
 GitHub 저장소: https://github.com/KyungHoon416/streamlab-ios
+
+## 검은 시작 화면 진단
+
+`App/Configuration/Info.plist`가 SceneDelegate를 명시적으로 등록합니다. 업데이트 후 `./scripts/bootstrap-mac.sh`로 프로젝트를 생성하고 Xcode에서 실행을 중지한 뒤 다시 실행하세요. 계속 검은 화면이면 Debug Console의 `[Startup]` 로그와 첫 예외 메시지를 공유해 주세요. 로그는 앱 시작 → Scene 연결 → Profile.storyboard 로드 → 루트 화면 설치 → 창 표시 순서입니다.
+
+이 변경의 설정·XML 정적 검사는 수행했지만, Xcode 빌드와 Simulator 실행은 이 Linux 환경에서 **NOT TESTED**입니다. 실제 실행 성공을 의미하지 않습니다.
+

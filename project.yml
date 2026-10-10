@@ -11,8 +11,6 @@ settings:
     IPHONEOS_DEPLOYMENT_TARGET: "18.0"
     TARGETED_DEVICE_FAMILY: "1,2"
     GENERATE_INFOPLIST_FILE: YES
-    INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
-    INFOPLIST_KEY_UILaunchScreen_Generation: YES
     ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
     DEVELOPMENT_TEAM: ""
 packages:
@@ -27,10 +25,14 @@ targets:
     deploymentTarget: "18.0"
     sources:
       - path: App
+        excludes:
+          - Configuration/Info.plist
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.streamlab.demo
         PRODUCT_NAME: StreamLab
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: App/Configuration/Info.plist
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - package: StreamLabCore
