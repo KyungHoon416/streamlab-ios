@@ -1,373 +1,511 @@
 // !$*UTF8*$!
 {
-	"archiveVersion" = 1;
-	"classes" = {
+	archiveVersion = 1;
+	classes = {
 	};
-	"objectVersion" = 56;
-	"objects" = {
-        "86EF547D08855FE7037029F2" = {
-            "isa" = "PBXFileReference";
-            "lastKnownFileType" = "text.plist.xml";
-            "path" = "App/Configuration/Info.plist";
-            "sourceTree" = "SOURCE_ROOT";
-        };
-        "9C52E24AA094ABF1594E31EF" = {
-            "isa" = "PBXGroup";
-            "children" = ("86EF547D08855FE7037029F2");
-            "name" = "Configuration";
-            "sourceTree" = "<group>";
-        };
-		"B2BA7E2A08905F9BDADF970B" = {
-			"isa" = "PBXFileReference";
-			"lastKnownFileType" = "sourcecode.swift";
-			"path" = "App/Application/AppDelegate.swift";
-			"sourceTree" = "SOURCE_ROOT";
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		069D1EAEC26202E60CE15C80 /* StreamLabDomain in Frameworks */ = {isa = PBXBuildFile; productRef = E77B5C661164E8E7C4394798 /* StreamLabDomain */; };
+		218FFEE2BAB1D76DCC3D47C6 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C26F560D8C6E0C38AEFF7027 /* SceneDelegate.swift */; };
+		80F675330AB8C9B9F10FE6F9 /* StreamLabProfileFeature in Frameworks */ = {isa = PBXBuildFile; productRef = 1CCFABA9B43D4A7323857A95 /* StreamLabProfileFeature */; };
+		8F436144D70ED78BF8DDE537 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161DB8386F214B36BD748D66 /* AppDelegate.swift */; };
+		9892F4E31989988DC0AEBDE9 /* StreamLabUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC8FEFBB930225363D0C8467 /* StreamLabUITests.swift */; };
+		B21BC2F436843290D640AAC8 /* StreamLabCatalogFeature in Frameworks */ = {isa = PBXBuildFile; productRef = D323E527722314FA5E5D065D /* StreamLabCatalogFeature */; };
+		B9757C00A8A9BA32EC04A7C4 /* StreamLabDesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = DA01CAD0AA7973F7AD540599 /* StreamLabDesignSystem */; };
+		E601F6C78FD8837598658520 /* StreamLabCatalogData in Frameworks */ = {isa = PBXBuildFile; productRef = B4300D9402C5CDC9FE938481 /* StreamLabCatalogData */; };
+		F2AC05FA1E38359C48130107 /* StreamLabPresentation in Frameworks */ = {isa = PBXBuildFile; productRef = ADC06589EDA71067BB97B4F3 /* StreamLabPresentation */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		5052179E776A80832C1C1267 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 34B05C044115730ACE201B7A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 63B506BC28006E936F56EE21;
+			remoteInfo = StreamLab;
 		};
-		"18480F3CBFD6964B3512B82E" = {
-			"isa" = "PBXFileReference";
-			"lastKnownFileType" = "sourcecode.swift";
-			"path" = "App/Scene/SceneDelegate.swift";
-			"sourceTree" = "SOURCE_ROOT";
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0342499ED593A75B97807CD5 /* StreamLabUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = StreamLabUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		161DB8386F214B36BD748D66 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		4F79476C73D40D90A44DA382 /* StreamLabCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = StreamLabCore; path = Packages/StreamLabCore; sourceTree = SOURCE_ROOT; };
+		91458C39EBEA7B65430B7D4B /* StreamLab.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = StreamLab.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C26F560D8C6E0C38AEFF7027 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		C4E40045C4CE9128FF8AE398 /* StreamLabUI */ = {isa = PBXFileReference; lastKnownFileType = folder; name = StreamLabUI; path = Packages/StreamLabUI; sourceTree = SOURCE_ROOT; };
+		FC8FEFBB930225363D0C8467 /* StreamLabUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamLabUITests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		6FFBBA4B6E83928A1D5EEDF4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F2AC05FA1E38359C48130107 /* StreamLabPresentation in Frameworks */,
+				069D1EAEC26202E60CE15C80 /* StreamLabDomain in Frameworks */,
+				E601F6C78FD8837598658520 /* StreamLabCatalogData in Frameworks */,
+				B9757C00A8A9BA32EC04A7C4 /* StreamLabDesignSystem in Frameworks */,
+				80F675330AB8C9B9F10FE6F9 /* StreamLabProfileFeature in Frameworks */,
+				B21BC2F436843290D640AAC8 /* StreamLabCatalogFeature in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
-		"E3E6760CB1C8F8FB0E9E5833" = {
-			"isa" = "PBXFileReference";
-			"lastKnownFileType" = "sourcecode.swift";
-			"path" = "Tests/StreamLabUITests/StreamLabUITests.swift";
-			"sourceTree" = "SOURCE_ROOT";
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		03D967E68A86908B018B92FC /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				4F79476C73D40D90A44DA382 /* StreamLabCore */,
+				C4E40045C4CE9128FF8AE398 /* StreamLabUI */,
+			);
+			path = Packages;
+			sourceTree = "<group>";
 		};
-		"8BCD5BC4CDFDF0918087C782" = {
-			"isa" = "PBXFileReference";
-			"explicitFileType" = "wrapper.application";
-			"path" = "StreamLab.app";
-			"sourceTree" = "BUILT_PRODUCTS_DIR";
-			"includeInIndex" = 0;
+		40AC6A47CA48C82CC044E2BD /* StreamLabUITests */ = {
+			isa = PBXGroup;
+			children = (
+				FC8FEFBB930225363D0C8467 /* StreamLabUITests.swift */,
+			);
+			name = StreamLabUITests;
+			path = Tests/StreamLabUITests;
+			sourceTree = "<group>";
 		};
-		"F219C0274590DA45E4BEF1EA" = {
-			"isa" = "PBXFileReference";
-			"explicitFileType" = "wrapper.cfbundle";
-			"path" = "StreamLabUITests.xctest";
-			"sourceTree" = "BUILT_PRODUCTS_DIR";
-			"includeInIndex" = 0;
+		449C3D4E9EF0B41343065CCB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				91458C39EBEA7B65430B7D4B /* StreamLab.app */,
+				0342499ED593A75B97807CD5 /* StreamLabUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
 		};
-		"FBDC4F23F93125BBEEAE800C" = {
-			"isa" = "PBXGroup";
-			"children" = ("8BCD5BC4CDFDF0918087C782", "F219C0274590DA45E4BEF1EA");
-			"name" = "Products";
-			"sourceTree" = "<group>";
+		82BA6D44F0933994BB68030A /* App */ = {
+			isa = PBXGroup;
+			children = (
+				8705C18CA4C748C78A01F1F0 /* Application */,
+				B2EC88EBC1D1C3A956879175 /* Scene */,
+			);
+			path = App;
+			sourceTree = "<group>";
 		};
-		"0DDBDE4DF972F4626CC81015" = {
-			"isa" = "PBXGroup";
-			"children" = ("B2BA7E2A08905F9BDADF970B");
-			"name" = "Application";
-			"sourceTree" = "<group>";
+		8705C18CA4C748C78A01F1F0 /* Application */ = {
+			isa = PBXGroup;
+			children = (
+				161DB8386F214B36BD748D66 /* AppDelegate.swift */,
+			);
+			path = Application;
+			sourceTree = "<group>";
 		};
-		"C3963989B7405766AC8A6CBC" = {
-			"isa" = "PBXGroup";
-			"children" = ("18480F3CBFD6964B3512B82E");
-			"name" = "Scene";
-			"sourceTree" = "<group>";
+		B2EC88EBC1D1C3A956879175 /* Scene */ = {
+			isa = PBXGroup;
+			children = (
+				C26F560D8C6E0C38AEFF7027 /* SceneDelegate.swift */,
+			);
+			path = Scene;
+			sourceTree = "<group>";
 		};
-		"69F8D45498D7E20DA99BB780" = {
-			"isa" = "PBXGroup";
-			"children" = ("0DDBDE4DF972F4626CC81015", "C3963989B7405766AC8A6CBC", "9C52E24AA094ABF1594E31EF");
-			"name" = "App";
-			"sourceTree" = "<group>";
+		D030EBBCD6810C6C806ABAA3 = {
+			isa = PBXGroup;
+			children = (
+				82BA6D44F0933994BB68030A /* App */,
+				03D967E68A86908B018B92FC /* Packages */,
+				40AC6A47CA48C82CC044E2BD /* StreamLabUITests */,
+				449C3D4E9EF0B41343065CCB /* Products */,
+			);
+			sourceTree = "<group>";
 		};
-		"68DE481A39400A49757EB7B7" = {
-			"isa" = "PBXGroup";
-			"children" = ("E3E6760CB1C8F8FB0E9E5833");
-			"name" = "Tests";
-			"sourceTree" = "<group>";
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		63B506BC28006E936F56EE21 /* StreamLab */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 79C180286E2676B7BF8A0D12 /* Build configuration list for PBXNativeTarget "StreamLab" */;
+			buildPhases = (
+				1BF833E5113FF758B3A5140B /* Sources */,
+				6FFBBA4B6E83928A1D5EEDF4 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = StreamLab;
+			packageProductDependencies = (
+				ADC06589EDA71067BB97B4F3 /* StreamLabPresentation */,
+				E77B5C661164E8E7C4394798 /* StreamLabDomain */,
+				B4300D9402C5CDC9FE938481 /* StreamLabCatalogData */,
+				DA01CAD0AA7973F7AD540599 /* StreamLabDesignSystem */,
+				1CCFABA9B43D4A7323857A95 /* StreamLabProfileFeature */,
+				D323E527722314FA5E5D065D /* StreamLabCatalogFeature */,
+			);
+			productName = StreamLab;
+			productReference = 91458C39EBEA7B65430B7D4B /* StreamLab.app */;
+			productType = "com.apple.product-type.application";
 		};
-		"64292B1C2B2E13EAD8788FC8" = {
-			"isa" = "PBXGroup";
-			"children" = ("69F8D45498D7E20DA99BB780", "68DE481A39400A49757EB7B7", "FBDC4F23F93125BBEEAE800C");
-			"sourceTree" = "<group>";
+		CFBC1E00C936A35D454498FA /* StreamLabUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CAF8D552ACDDE2C27980E976 /* Build configuration list for PBXNativeTarget "StreamLabUITests" */;
+			buildPhases = (
+				DE4FD43D45122A4EFA879ADD /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0D77FC74D749D83C0F5878F0 /* PBXTargetDependency */,
+			);
+			name = StreamLabUITests;
+			packageProductDependencies = (
+			);
+			productName = StreamLabUITests;
+			productReference = 0342499ED593A75B97807CD5 /* StreamLabUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
-		"94A0426E8D3203DA5468CCF0" = {
-			"isa" = "XCLocalSwiftPackageReference";
-			"relativePath" = "Packages/StreamLabCore";
-		};
-		"636117B25F17DA7E91194E09" = {
-			"isa" = "XCLocalSwiftPackageReference";
-			"relativePath" = "Packages/StreamLabUI";
-		};
-		"1ECE475196505E25AC58B422" = {
-			"isa" = "XCSwiftPackageProductDependency";
-			"package" = "94A0426E8D3203DA5468CCF0";
-			"productName" = "StreamLabDomain";
-		};
-		"F3B574ACE4CD5787FBB6F3DA" = {
-			"isa" = "PBXBuildFile";
-			"productRef" = "1ECE475196505E25AC58B422";
-		};
-		"670E79DD01CFFEAE5110B594" = {
-			"isa" = "XCSwiftPackageProductDependency";
-			"package" = "94A0426E8D3203DA5468CCF0";
-			"productName" = "StreamLabCatalogData";
-		};
-		"99BB5197934D6C426ABB9D9C" = {
-			"isa" = "PBXBuildFile";
-			"productRef" = "670E79DD01CFFEAE5110B594";
-		};
-		"12514E481CA95FC12BE6BA3C" = {
-			"isa" = "XCSwiftPackageProductDependency";
-			"package" = "94A0426E8D3203DA5468CCF0";
-			"productName" = "StreamLabPresentation";
-		};
-		"A3E6312343806C54D890ECA7" = {
-			"isa" = "PBXBuildFile";
-			"productRef" = "12514E481CA95FC12BE6BA3C";
-		};
-		"1357686EA3757D56453D4C36" = {
-			"isa" = "XCSwiftPackageProductDependency";
-			"package" = "636117B25F17DA7E91194E09";
-			"productName" = "StreamLabDesignSystem";
-		};
-		"B71E3D0C46A34131020AF54C" = {
-			"isa" = "PBXBuildFile";
-			"productRef" = "1357686EA3757D56453D4C36";
-		};
-		"0A9558D121481BAD7F6E6413" = {
-			"isa" = "XCSwiftPackageProductDependency";
-			"package" = "636117B25F17DA7E91194E09";
-			"productName" = "StreamLabProfileFeature";
-		};
-		"612E2D59036D1FA1262C4006" = {
-			"isa" = "PBXBuildFile";
-			"productRef" = "0A9558D121481BAD7F6E6413";
-		};
-		"23DE317B1D71CF89826A5396" = {
-			"isa" = "XCSwiftPackageProductDependency";
-			"package" = "636117B25F17DA7E91194E09";
-			"productName" = "StreamLabCatalogFeature";
-		};
-		"C10E4B35F273B3EC98E5E6D1" = {
-			"isa" = "PBXBuildFile";
-			"productRef" = "23DE317B1D71CF89826A5396";
-		};
-		"8919F66F0992DE2AC46E5935" = {
-			"isa" = "PBXBuildFile";
-			"fileRef" = "B2BA7E2A08905F9BDADF970B";
-		};
-		"8BE82828BBD853C26CE9CCB6" = {
-			"isa" = "PBXBuildFile";
-			"fileRef" = "18480F3CBFD6964B3512B82E";
-		};
-		"905DB04043B7311D06A28734" = {
-			"isa" = "PBXSourcesBuildPhase";
-			"buildActionMask" = 2147483647;
-			"files" = ("8919F66F0992DE2AC46E5935", "8BE82828BBD853C26CE9CCB6");
-			"runOnlyForDeploymentPostprocessing" = 0;
-		};
-		"0189424A5A60FED329FA868E" = {
-			"isa" = "PBXResourcesBuildPhase";
-			"buildActionMask" = 2147483647;
-			"files" = ();
-			"runOnlyForDeploymentPostprocessing" = 0;
-		};
-		"7561BFB015D8F536760CB671" = {
-			"isa" = "PBXFrameworksBuildPhase";
-			"buildActionMask" = 2147483647;
-			"files" = ("F3B574ACE4CD5787FBB6F3DA", "99BB5197934D6C426ABB9D9C", "A3E6312343806C54D890ECA7", "B71E3D0C46A34131020AF54C", "612E2D59036D1FA1262C4006", "C10E4B35F273B3EC98E5E6D1");
-			"runOnlyForDeploymentPostprocessing" = 0;
-		};
-		"44267D617ABD76CCA6056D2B" = {
-			"isa" = "PBXBuildFile";
-			"fileRef" = "E3E6760CB1C8F8FB0E9E5833";
-		};
-		"7CB9C5DBBDFFE89694C24C30" = {
-			"isa" = "PBXSourcesBuildPhase";
-			"buildActionMask" = 2147483647;
-			"files" = ("44267D617ABD76CCA6056D2B");
-			"runOnlyForDeploymentPostprocessing" = 0;
-		};
-		"FE5A98EB24D93616679DF2C5" = {
-			"isa" = "PBXFrameworksBuildPhase";
-			"buildActionMask" = 2147483647;
-			"files" = ();
-			"runOnlyForDeploymentPostprocessing" = 0;
-		};
-		"89E1FD6268CC0F221A2BE178" = {
-			"isa" = "XCBuildConfiguration";
-			"name" = "Debug";
-			"buildSettings" = {
-				"SWIFT_VERSION" = "6.0";
-				"SWIFT_STRICT_CONCURRENCY" = "complete";
-				"SWIFT_TREAT_WARNINGS_AS_ERRORS" = "YES";
-				"IPHONEOS_DEPLOYMENT_TARGET" = "18.0";
-				"SDKROOT" = "iphoneos";
-				"TARGETED_DEVICE_FAMILY" = "1,2";
-				"CLANG_ENABLE_MODULES" = "YES";
-				"GENERATE_INFOPLIST_FILE" = "YES";
-				"CODE_SIGN_STYLE" = "Automatic";
-				"DEVELOPMENT_TEAM" = "";
-				"SWIFT_EMIT_LOC_STRINGS" = "YES";
-				"SWIFT_OPTIMIZATION_LEVEL" = "-Onone";
-				"DEBUG_INFORMATION_FORMAT" = "dwarf";
-				"SWIFT_ACTIVE_COMPILATION_CONDITIONS" = "DEBUG";
-				"ENABLE_TESTABILITY" = "YES";
-			};
-		};
-		"E6DE6C99132752C914FEF632" = {
-			"isa" = "XCBuildConfiguration";
-			"name" = "Release";
-			"buildSettings" = {
-				"SWIFT_VERSION" = "6.0";
-				"SWIFT_STRICT_CONCURRENCY" = "complete";
-				"SWIFT_TREAT_WARNINGS_AS_ERRORS" = "YES";
-				"IPHONEOS_DEPLOYMENT_TARGET" = "18.0";
-				"SDKROOT" = "iphoneos";
-				"TARGETED_DEVICE_FAMILY" = "1,2";
-				"CLANG_ENABLE_MODULES" = "YES";
-				"GENERATE_INFOPLIST_FILE" = "YES";
-				"CODE_SIGN_STYLE" = "Automatic";
-				"DEVELOPMENT_TEAM" = "";
-				"SWIFT_EMIT_LOC_STRINGS" = "YES";
-				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
-				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
-			};
-		};
-		"FBD3510CED826C9DAA696E48" = {
-			"isa" = "XCConfigurationList";
-			"buildConfigurations" = ("89E1FD6268CC0F221A2BE178", "E6DE6C99132752C914FEF632");
-			"defaultConfigurationIsVisible" = 0;
-			"defaultConfigurationName" = "Release";
-		};
-		"E9B2E96ABC5F6856F2BE79CF" = {
-			"isa" = "XCBuildConfiguration";
-			"name" = "Debug";
-			"buildSettings" = {
-				"PRODUCT_BUNDLE_IDENTIFIER" = "com.example.streamlab.demo";
-				"PRODUCT_NAME" = "StreamLab";
-				"GENERATE_INFOPLIST_FILE" = "NO";
-				"INFOPLIST_FILE" = "App/Configuration/Info.plist";
-				"INFOPLIST_KEY_UISupportedInterfaceOrientations" = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				"INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad" = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				"SUPPORTED_PLATFORMS" = "iphoneos iphonesimulator";
-				"SUPPORTS_MACCATALYST" = "NO";
-				"SWIFT_OPTIMIZATION_LEVEL" = "-Onone";
-				"DEBUG_INFORMATION_FORMAT" = "dwarf";
-				"SWIFT_ACTIVE_COMPILATION_CONDITIONS" = "DEBUG";
-				"ENABLE_TESTABILITY" = "YES";
-			};
-		};
-		"5A8C91857F674E16E2724F47" = {
-			"isa" = "XCBuildConfiguration";
-			"name" = "Release";
-			"buildSettings" = {
-				"PRODUCT_BUNDLE_IDENTIFIER" = "com.example.streamlab.demo";
-				"PRODUCT_NAME" = "StreamLab";
-				"GENERATE_INFOPLIST_FILE" = "NO";
-				"INFOPLIST_FILE" = "App/Configuration/Info.plist";
-				"INFOPLIST_KEY_UISupportedInterfaceOrientations" = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				"INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad" = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				"SUPPORTED_PLATFORMS" = "iphoneos iphonesimulator";
-				"SUPPORTS_MACCATALYST" = "NO";
-				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
-				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
-			};
-		};
-		"3ADB3100893F0122E432328D" = {
-			"isa" = "XCConfigurationList";
-			"buildConfigurations" = ("E9B2E96ABC5F6856F2BE79CF", "5A8C91857F674E16E2724F47");
-			"defaultConfigurationIsVisible" = 0;
-			"defaultConfigurationName" = "Release";
-		};
-		"FCB48D8F88BCDB0ED9FADFD7" = {
-			"isa" = "XCBuildConfiguration";
-			"name" = "Debug";
-			"buildSettings" = {
-				"PRODUCT_BUNDLE_IDENTIFIER" = "com.example.streamlab.demo.uitests";
-				"PRODUCT_NAME" = "StreamLabUITests";
-				"TEST_TARGET_NAME" = "StreamLab";
-				"SUPPORTED_PLATFORMS" = "iphoneos iphonesimulator";
-				"SWIFT_OPTIMIZATION_LEVEL" = "-Onone";
-				"DEBUG_INFORMATION_FORMAT" = "dwarf";
-				"SWIFT_ACTIVE_COMPILATION_CONDITIONS" = "DEBUG";
-				"ENABLE_TESTABILITY" = "YES";
-			};
-		};
-		"942EEBBACD6C88CAE7F29B29" = {
-			"isa" = "XCBuildConfiguration";
-			"name" = "Release";
-			"buildSettings" = {
-				"PRODUCT_BUNDLE_IDENTIFIER" = "com.example.streamlab.demo.uitests";
-				"PRODUCT_NAME" = "StreamLabUITests";
-				"TEST_TARGET_NAME" = "StreamLab";
-				"SUPPORTED_PLATFORMS" = "iphoneos iphonesimulator";
-				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
-				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
-			};
-		};
-		"57950A58A4374066B2AF45DD" = {
-			"isa" = "XCConfigurationList";
-			"buildConfigurations" = ("FCB48D8F88BCDB0ED9FADFD7", "942EEBBACD6C88CAE7F29B29");
-			"defaultConfigurationIsVisible" = 0;
-			"defaultConfigurationName" = "Release";
-		};
-		"7D1043473D55BFA90E8530D3" = {
-			"isa" = "PBXNativeTarget";
-			"name" = "StreamLab";
-			"productName" = "StreamLab";
-			"productType" = "com.apple.product-type.application";
-			"productReference" = "8BCD5BC4CDFDF0918087C782";
-			"buildConfigurationList" = "3ADB3100893F0122E432328D";
-			"buildPhases" = ("905DB04043B7311D06A28734", "7561BFB015D8F536760CB671", "0189424A5A60FED329FA868E");
-			"buildRules" = ();
-			"dependencies" = ();
-			"packageProductDependencies" = ("1ECE475196505E25AC58B422", "670E79DD01CFFEAE5110B594", "12514E481CA95FC12BE6BA3C", "1357686EA3757D56453D4C36", "0A9558D121481BAD7F6E6413", "23DE317B1D71CF89826A5396");
-		};
-		"D799BAE6088A90139B415FCC" = {
-			"isa" = "PBXContainerItemProxy";
-			"containerPortal" = "98F54143AB4E86B28C3AFEE0";
-			"proxyType" = 1;
-			"remoteGlobalIDString" = "7D1043473D55BFA90E8530D3";
-			"remoteInfo" = "StreamLab";
-		};
-		"E9FAD0C6CD43534327C0AF90" = {
-			"isa" = "PBXTargetDependency";
-			"target" = "7D1043473D55BFA90E8530D3";
-			"targetProxy" = "D799BAE6088A90139B415FCC";
-		};
-		"A94A8FE5CCB19BA61C4C0873" = {
-			"isa" = "PBXNativeTarget";
-			"name" = "StreamLabUITests";
-			"productName" = "StreamLabUITests";
-			"productType" = "com.apple.product-type.bundle.ui-testing";
-			"productReference" = "F219C0274590DA45E4BEF1EA";
-			"buildConfigurationList" = "57950A58A4374066B2AF45DD";
-			"buildPhases" = ("7CB9C5DBBDFFE89694C24C30", "FE5A98EB24D93616679DF2C5");
-			"buildRules" = ();
-			"dependencies" = ("E9FAD0C6CD43534327C0AF90");
-		};
-		"98F54143AB4E86B28C3AFEE0" = {
-			"isa" = "PBXProject";
-			"attributes" = {
-				"BuildIndependentTargetsInParallel" = "YES";
-				"LastUpgradeCheck" = "1600";
-				"TargetAttributes" = {
-					"7D1043473D55BFA90E8530D3" = {
-						"CreatedOnToolsVersion" = "16.0";
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		34B05C044115730ACE201B7A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					63B506BC28006E936F56EE21 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
 					};
-					"A94A8FE5CCB19BA61C4C0873" = {
-						"CreatedOnToolsVersion" = "16.0";
-						"TestTargetID" = "7D1043473D55BFA90E8530D3";
+					CFBC1E00C936A35D454498FA = {
+						DevelopmentTeam = "";
+						TestTargetID = 63B506BC28006E936F56EE21;
 					};
 				};
 			};
-			"buildConfigurationList" = "FBD3510CED826C9DAA696E48";
-			"compatibilityVersion" = "Xcode 14.0";
-			"developmentRegion" = "en";
-			"hasScannedForEncodings" = 0;
-			"knownRegions" = ("en", "Base");
-			"mainGroup" = "64292B1C2B2E13EAD8788FC8";
-			"productRefGroup" = "FBDC4F23F93125BBEEAE800C";
-			"projectDirPath" = "";
-			"projectRoot" = "";
-			"targets" = ("7D1043473D55BFA90E8530D3", "A94A8FE5CCB19BA61C4C0873");
-			"packageReferences" = ("94A0426E8D3203DA5468CCF0", "636117B25F17DA7E91194E09");
+			buildConfigurationList = 312551ECC6A002B4B7E9F0F9 /* Build configuration list for PBXProject "StreamLab" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = D030EBBCD6810C6C806ABAA3;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				2210859A3A86B36C9AF40C0B /* XCLocalSwiftPackageReference "Packages/StreamLabCore" */,
+				3CB2BFCAF6D12A4E5037241F /* XCLocalSwiftPackageReference "Packages/StreamLabUI" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 449C3D4E9EF0B41343065CCB /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				63B506BC28006E936F56EE21 /* StreamLab */,
+				CFBC1E00C936A35D454498FA /* StreamLabUITests */,
+			);
 		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1BF833E5113FF758B3A5140B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8F436144D70ED78BF8DDE537 /* AppDelegate.swift in Sources */,
+				218FFEE2BAB1D76DCC3D47C6 /* SceneDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DE4FD43D45122A4EFA879ADD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9892F4E31989988DC0AEBDE9 /* StreamLabUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		0D77FC74D749D83C0F5878F0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 63B506BC28006E936F56EE21 /* StreamLab */;
+			targetProxy = 5052179E776A80832C1C1267 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		325221AE31929789D397C20E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_TREAT_WARNINGS_AS_ERRORS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		51F473B9EA75480E326EB868 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = App/Configuration/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.streamlab.demo;
+				PRODUCT_NAME = StreamLab;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		54F8FFEC5D00A7B6EDB342F8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_TREAT_WARNINGS_AS_ERRORS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		7C03E4D46CBA0896298D2A07 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.streamlab.demo.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = StreamLab;
+			};
+			name = Debug;
+		};
+		7EBD928B4CFBD80D4CF2A287 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.streamlab.demo.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = StreamLab;
+			};
+			name = Release;
+		};
+		F30BF357771827B2494693DB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = App/Configuration/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.streamlab.demo;
+				PRODUCT_NAME = StreamLab;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		312551ECC6A002B4B7E9F0F9 /* Build configuration list for PBXProject "StreamLab" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				325221AE31929789D397C20E /* Debug */,
+				54F8FFEC5D00A7B6EDB342F8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		79C180286E2676B7BF8A0D12 /* Build configuration list for PBXNativeTarget "StreamLab" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				51F473B9EA75480E326EB868 /* Debug */,
+				F30BF357771827B2494693DB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CAF8D552ACDDE2C27980E976 /* Build configuration list for PBXNativeTarget "StreamLabUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7C03E4D46CBA0896298D2A07 /* Debug */,
+				7EBD928B4CFBD80D4CF2A287 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		2210859A3A86B36C9AF40C0B /* XCLocalSwiftPackageReference "Packages/StreamLabCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/StreamLabCore;
+		};
+		3CB2BFCAF6D12A4E5037241F /* XCLocalSwiftPackageReference "Packages/StreamLabUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/StreamLabUI;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		1CCFABA9B43D4A7323857A95 /* StreamLabProfileFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = StreamLabProfileFeature;
+		};
+		ADC06589EDA71067BB97B4F3 /* StreamLabPresentation */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = StreamLabPresentation;
+		};
+		B4300D9402C5CDC9FE938481 /* StreamLabCatalogData */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = StreamLabCatalogData;
+		};
+		D323E527722314FA5E5D065D /* StreamLabCatalogFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = StreamLabCatalogFeature;
+		};
+		DA01CAD0AA7973F7AD540599 /* StreamLabDesignSystem */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = StreamLabDesignSystem;
+		};
+		E77B5C661164E8E7C4394798 /* StreamLabDomain */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = StreamLabDomain;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
-	"rootObject" = "98F54143AB4E86B28C3AFEE0";
+	rootObject = 34B05C044115730ACE201B7A /* Project object */;
 }
