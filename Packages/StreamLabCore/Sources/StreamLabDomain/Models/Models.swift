@@ -109,6 +109,7 @@ public struct CatalogPage: Sendable {
 }
 
 public enum CatalogFailure: Error, Sendable, Equatable {
+    case duplicateID
     case missingFixture
     case invalidCursor
     case emptyCatalog

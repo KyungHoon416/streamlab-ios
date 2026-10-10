@@ -1,29 +1,136 @@
-# StreamLab — UIKit + Storyboard Phase 1
+# StreamLab — Phase 1 iOS Starter
 
-> Unofficial iOS engineering practice project, not affiliated with Netflix.
+> Unofficial learning/portfolio project. Not a Netflix recruiting task, product, API client, or affiliated project.
 
-**UI migration:** UIKit and Main.storyboard replace the original SwiftUI interface. This intentionally **deviates from the challenge document**, which specifies SwiftUI + AVFoundation. Swift 6 and iOS 18+ remain.
+This repository is a **Swift 6 / iOS 18+** SwiftUI streaming UI starter with a portable, fully offline fixture repository. It implements **Phase 1 only** (profiles + catalog + discovery). It does **not** stream actual video yet.
 
-## Features
-- Four Storyboard scenes: Profile, Home, Search, Detail (each builds its contents in UIKit code)
-- Three Mock profiles (Alex, Jamie, Kids)
-- 2,000 local catalog entries, five curated rails and per-profile continue watching
-- Repository-level kids access checks, cursor pagination, async cancellation and stale-response fencing
-- HLS playback and downloads are not implemented (future phases)
+## What works in Phase 1
 
-## Setup on Mac
-```sh
+- Three profiles (`Alex`, `Jamie`, `Kids`); changing profiles rebuilds feature UI.
+- Exactly **2,000 deterministic** original/sample metadata items in bundled `catalog.json`.
+- Profile-scoped five content rails and profile-scoped sample Continue Watching.
+- Kids entitlement filter enforced at **repository** boundary, including direct `detail()` lookup.
+- Cursor paging with no duplicated IDs, strict page-size validation and invalid cursor rejection.
+- Search debouncing, cancellation and generation checks for out-of-order results.
+- Offline poster artwork rendered via SwiftUI (no unauthorized image downloads).
+- Accessible buttons, labels, dynamic text; dark mode first.
+- Core Swift Testing suite: seven tests.
+
+## Requirements
+
+- Mac with a recent stable Xcode version that supports **Swift 6 + iOS 18 SDK**.
+- iOS 18+ simulator or device.
+- [XcodeGen](https://github.com/yonaskolb/XcodeGen) to turn `project.yml` into an Xcode project.
+- Homebrew recommended for installation, optional if XcodeGen already installed.
+
+## First run on Mac
+
+```bash
+# unzip and enter the StreamLab-Phase1 directory
+xcode-select -p
+xcodebuild -version
 brew install xcodegen
 ./scripts/bootstrap-mac.sh
 open StreamLab.xcodeproj
-xcodebuild -project StreamLab.xcodeproj -scheme StreamLab -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
-cd Packages/StreamLabCore && swift test
 ```
 
-Swift 8.0 is **not assumed to be available**. Verify the compiler installed with Xcode via `swift --version`. This repository retains Swift 6 language settings.
+In Xcode choose the **StreamLab** scheme and an iPhone simulator; press **Cmd+R**.
 
-## Validation
-Changes were committed through GitHub without direct Mac/Xcode access; Xcode build and UI runtime remain **NOT TESTED**. Run on a simulator and report errors before Phase 2. The project keeps prior Core unit tests.
+Command-line build (simulator):
 
-## Technical design
-Main.storyboard owns ViewController scene definitions and identifiers. AppDelegate/SceneDelegate own app/session navigation. UIKit ViewControllers build layouts and render models, while the SwiftPM StreamLabCore maintains independent models and a Mock repository. UI no longer depends on StreamLabUI Swift Package.
+```bash
+xcodebuild \
+  -project StreamLab.xcodeproj \
+  -scheme StreamLab \
+  -configuration Debug \
+  -sdk iphonesimulator \
+  -destination 'generic/platform=iOS Simulator' \
+  CODE_SIGNING_ALLOWED=NO build
+```
+
+If device signing fails, replace demo bundle ID and select your development team in Xcode. `project.yml` contains a placeholder `com.example.streamlab.demo` ID.
+
+## Fast portable core tests
+
+```bash
+cd Packages/StreamLabCore
+swift test
+```
+
+The `StreamLabCore` package uses only Foundation and Swift Testing, allowing its unit tests to run without UIKit, SwiftUI, or a simulator.
+
+## Module boundaries
+
+```text
+App (SwiftUI, XcodeGen)
+  |-- StreamLabProfileFeature --> StreamLabDesignSystem --> StreamLabDomain
+  |-- StreamLabCatalogFeature --> StreamLabDesignSystem --> StreamLabDomain
+  |-- StreamLabCatalogData -------------------------------> StreamLabDomain
+```
+
+- `StreamLabDomain`: `Sendable` entities, profile policy, pagination models, and the repository protocol.
+- `StreamLabCatalogData`: actor-based deterministic offline fixture repository.
+- `StreamLabDesignSystem`: static gradients/poster illustrations, reusable poster cards.
+- `StreamLabProfileFeature`: select Adult A / Adult B / Kids.
+- `StreamLabCatalogFeature`: Home, Search and Detail with cancellation-sensitive state.
+- `App`: SwiftUI app, dependency composition and profile session.
+
+No external packages are used in SwiftPM; `XcodeGen` is a Mac-side **project generator**, not a runtime dependency.
+
+## Product flow
+
+1. Launch → select Alex/Jamie/Kids.
+2. Home → hero, five rails, per-profile Continue Watching.
+3. Tap card → Detail, playback button explicitly explains Phase 2.
+4. Search tab → type quickly; old requests must not overwrite latest.
+5. Tap profile toolbar button to switch; old feature state is discarded.
+
+## Phase boundary (not built yet)
+
+- Real HLS/AVPlayer playback and player state machine
+- Persistent user progress, server-revision sync, offline mutation queue
+- Auth, Keychain, 401/409/429 handling, DRM mock
+- HLS Download + cache quota and recovery
+- Instruments performance measurements and ten chaos scenarios
+
+Do not represent placeholders as implemented. README proof and risk notes: `Docs/PHASE1_REPORT.md`.
+
+## Important scope and licensing
+
+The content titles/metadata are programmatically fabricated and posters are local SF Symbols and gradients. No Netflix media, logos or APIs are bundled. There are no backend calls and no networking requirement to browse fixtures. The next phase can use legally licensed public test HLS URLs with licensing documented.
+
+## Suggested commit sequence
+
+1. `chore: bootstrap iOS app and Swift packages`
+2. `feat: add domain types and 2000 deterministic fixtures`
+3. `feat: implement profile, home, search and detail`
+4. `test: verify catalog paging and profile authorization`
+5. `docs: add ADRs and Phase 1 validation report`
+
+## 화면별 폴더 구성
+
+기능별로 컨트롤러와 Storyboard를 같은 폴더에 배치했습니다. 각 Storyboard는 해당 SwiftPM 모듈의 리소스로 등록되며, `instantiate()`가 `Bundle.module`에서 로드합니다.
+
+| 폴더 | 내용 |
+|---|---|
+| App/Application | AppDelegate.swift |
+| App/Scene | SceneDelegate.swift — 프로필 세션·화면 전환 |
+| Packages/StreamLabUI/Sources/StreamLabProfileFeature/Profile | ProfileViewController.swift + Profile.storyboard |
+| Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Home | HomeViewController.swift + Home.storyboard |
+| Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Search | SearchViewController.swift + Search.storyboard |
+| Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Detail | DetailViewController.swift + Detail.storyboard |
+| Packages/StreamLabUI/Sources/StreamLabDesignSystem/Theme | 공통 색상·폰트·버튼 스타일 |
+| Packages/StreamLabUI/Sources/StreamLabDesignSystem/Cells | PosterCell.swift |
+| Packages/StreamLabUI/Sources/StreamLabDesignSystem/Headers | RailHeader.swift |
+| Packages/StreamLabCore/Sources/StreamLabDomain/Models | 데이터 모델·Repository 계약 |
+| Packages/StreamLabCore/Sources/StreamLabCatalogData/Repositories | MockCatalogRepository.swift |
+| Packages/StreamLabCore/Sources/StreamLabCatalogData/Resources | catalog.json, 2,000개 원본 Fixture |
+| Packages/StreamLabCore/Sources/StreamLabPresentation/Stores | CatalogStore.swift |
+| Packages/StreamLabCore/Tests | Repository·상태 관리 테스트 |
+| Tests/StreamLabUITests | UI 테스트 |
+| Docs | 사양·설계 결정·변경 목록·검증 보고서 |
+| scripts | 프로젝트 생성·검증 스크립트 |
+
+Xcode의 Package Dependencies에서 로컬 패키지를 펼치면 화면 폴더를 확인할 수 있습니다. Finder의 실제 디렉터리도 동일하게 분리했습니다. 폴더 재구성 후의 SwiftPM 리소스 컴파일/Storyboard 로딩은 아직 Mac에서 검증하지 않았습니다.
+
+GitHub 저장소: https://github.com/KyungHoon416/streamlab-ios

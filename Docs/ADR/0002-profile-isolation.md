@@ -1,9 +1,9 @@
-# ADR-0002 — Profile isolation
+# ADR-0002 — Filter at repository boundary and invalidate old UI tree
 
-Status: Accepted (Phase 1)
+Status: Accepted for Phase 1
 
-**Context:** Kids must not see adult titles or other profiles' viewing progress.
+Context: Kids profiles must never see adult titles or another profile's playback progress. Filtering only at the view layer leaks information through detail lookups and old asynchronous results.
 
-**Decision:** Every repository query is profile scoped, including direct detail lookup. Changing profiles recreates the feature tab tree and discards previous Home results.
+Decision: Every catalog query receives a `ViewerProfile`. The repository checks content rating for both listing and direct lookups. On profile switch, the app sets the selection back to nil, and feature tabs are keyed by profile ID. Home resets stale data before new results arrive.
 
-**Consequence:** Backend authorization and session expiry must later be tested separately; Phase 1 uses only a deterministic mock.
+Consequences: Type-level guarantee is not sufficient for eventual backend API; network requests must also carry server-authorized profile context. Phase 1 uses a deterministic mock only.

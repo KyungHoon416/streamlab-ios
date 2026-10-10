@@ -1,0 +1,68 @@
+{
+  "environment": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "results": [
+    {
+      "name": "fixtures",
+      "status": "PASS",
+      "exit_code": 0,
+      "command": [
+        "python3",
+        "scripts/validate-fixtures.py"
+      ]
+    },
+    {
+      "name": "structure",
+      "status": "PASS",
+      "exit_code": 0,
+      "command": [
+        "python3",
+        "scripts/validate-project.py"
+      ]
+    },
+    {
+      "name": "shell-syntax",
+      "status": "PASS",
+      "exit_code": 0,
+      "command": [
+        "bash",
+        "-n",
+        "scripts/bootstrap-mac.sh",
+        "scripts/verify-mac.sh"
+      ]
+    },
+    {
+      "name": "bootstrap",
+      "status": "NOT TESTED",
+      "exit_code": 1,
+      "command": [
+        "bash",
+        "scripts/bootstrap-mac.sh"
+      ]
+    },
+    {
+      "name": "swift-tests",
+      "status": "NOT TESTED",
+      "exit_code": 127,
+      "command": [
+        "bash",
+        "-c",
+        "swift test --package-path Packages/StreamLabCore -Xswiftc -warnings-as-errors"
+      ]
+    },
+    {
+      "name": "xcodebuild",
+      "status": "NOT TESTED",
+      "exit_code": 127,
+      "command": [
+        "bash",
+        "-c",
+        "xcodebuild -project StreamLab.xcodeproj -scheme StreamLab -sdk iphonesimulator -destination \"generic/platform=iOS Simulator\" CODE_SIGNING_ALLOWED=NO build"
+      ]
+    },
+    {
+      "name": "original-fixture-and-seven-tests-preserved",
+      "status": "PASS",
+      "fixture_sha256": "fec6ea37f1119b13646d2aebc6bbea6958663f2bfcfe27af0111239605da17e9"
+    }
+  ]
+}

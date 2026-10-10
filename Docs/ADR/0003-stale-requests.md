@@ -1,9 +1,9 @@
-# ADR-0003 — Cancel and fence stale requests
+# ADR-0003 — Cancel and fence stale searches
 
-Status: Accepted (Phase 1)
+Status: Accepted for Phase 1
 
-**Context:** Search requests can return in a different order than they were issued.
+Context: Fast repeated queries and profile changes can produce responses out of order. Cancellation alone does not guarantee that a response has not raced to completion.
 
-**Decision:** SearchViewModel cancels earlier tasks and uses monotonically increasing generation counters. Only matching generations may update current UI. Home uses a similar check.
+Decision: `SearchViewModel` cancels its previous Task, increments a monotonically increasing request generation and only commits results when the generation still matches. `HomeViewModel` uses the same generation-fencing principle.
 
-**Consequence:** Race conditions must still be exercised on the Apple simulator with injected delays and deterministic tests.
+Consequences: Unit tests cover repository pagination but true UI lifecycle races must be verified on macOS/iOS before Phase 1 is signed off. Add an injectable fake clock and mock transport in Phase 2.

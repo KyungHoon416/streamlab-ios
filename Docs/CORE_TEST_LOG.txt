@@ -1,1 +1,0 @@
-Original starter: Swift 6.2 Linux test suite, seven passing tests. See earlier distributed ZIP for the raw test transcript. This record is not a claim of current remote commit test results.

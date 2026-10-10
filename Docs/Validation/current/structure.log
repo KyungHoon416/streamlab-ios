@@ -1,0 +1,4 @@
+PASS: 4 separate feature Storyboards, sibling controllers, outlets/modules, package resource declarations, bundle-scoped factories, project paths, scheme XML, no SwiftUI
+NOT TESTED: Swift type checking, ibtool compilation, Auto Layout runtime, UIKit linking and execution
+
+EXIT_CODE=0

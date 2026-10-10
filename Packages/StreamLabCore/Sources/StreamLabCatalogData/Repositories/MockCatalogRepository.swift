@@ -17,6 +17,7 @@ public actor MockCatalogRepository: CatalogRepository {
             throw CatalogFailure.missingFixture
         }
         let titles = try JSONDecoder().decode([CatalogTitle].self, from: Data(contentsOf: url))
+        guard Set(titles.map(\.id)).count == titles.count else { throw CatalogFailure.duplicateID }
         cachedTitles = titles
         return titles
     }
@@ -35,7 +36,9 @@ public actor MockCatalogRepository: CatalogRepository {
 
     public func home(profile: ViewerProfile) async throws -> HomeSnapshot {
         try await simulateRequest()
-        let titles = try loadFor(profile)
+        let eligible = try loadFor(profile)
+        let offset = profile.id == "adult-b" ? min(29, eligible.count) : 0
+        let titles = Array(eligible.dropFirst(offset)) + Array(eligible.prefix(offset))
         guard let hero = titles.first else { throw CatalogFailure.emptyCatalog }
         let definitions: [(String, String, (CatalogTitle) -> Bool)] = [
             ("trending", "지금 인기", { _ in true }),

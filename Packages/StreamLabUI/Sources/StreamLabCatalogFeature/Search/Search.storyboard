@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23501" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="vc-Search">
+    <device id="retina6_12" orientation="portrait" appearance="dark" />
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23501" />
+        <capability name="Safe area layout guides" minToolsVersion="9.0" />
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0" />
+    </dependencies>
+    <scenes>
+        <scene sceneID="scene-Search">
+            <objects>
+                <viewController storyboardIdentifier="Search" id="vc-Search" customClass="SearchViewController" customModule="StreamLabCatalogFeature">
+                    <view key="view" contentMode="scaleToFill" id="root-Search">
+                        <rect key="frame" x="0" y="0" width="393" height="852" />
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES" />
+                        <subviews>
+                            <searchBar contentMode="redraw" translatesAutoresizingMaskIntoConstraints="NO" id="search-bar">
+                                <rect key="frame" x="0" y="59" width="393" height="56" />
+                            </searchBar>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="전체 콘텐츠" numberOfLines="0" translatesAutoresizingMaskIntoConstraints="NO" id="search-status">
+                                <rect key="frame" x="0" y="0" width="340" height="60" />
+                                <fontDescription key="fontDescription" type="system" pointSize="20" />
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace" />
+                            </label>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="singleLine" rowHeight="-1" estimatedRowHeight="86" translatesAutoresizingMaskIntoConstraints="NO" id="search-table">
+                                <rect key="frame" x="0" y="170" width="393" height="560" />
+                                <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace" />
+                            </tableView>
+                            <button opaque="NO" contentMode="scaleToFill" buttonType="system" translatesAutoresizingMaskIntoConstraints="NO" id="search-more">
+                                <rect key="frame" x="0" y="0" width="340" height="56" />
+                                <state key="normal" title="더 보기" />
+                            </button>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="safe-Search" />
+                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace" />
+                        <constraints>
+                            <constraint firstItem="search-bar" firstAttribute="top" secondItem="safe-Search" secondAttribute="top" constant="0" id="c17" />
+                            <constraint firstItem="search-status" firstAttribute="top" secondItem="search-bar" secondAttribute="bottom" constant="8" id="c18" />
+                            <constraint firstItem="search-table" firstAttribute="top" secondItem="search-status" secondAttribute="bottom" constant="8" id="c19" />
+                            <constraint firstItem="search-more" firstAttribute="top" secondItem="search-table" secondAttribute="bottom" constant="8" id="c20" />
+                            <constraint firstItem="search-more" firstAttribute="bottom" secondItem="safe-Search" secondAttribute="bottom" constant="-8" id="c21" />
+                            <constraint firstItem="search-bar" firstAttribute="leading" secondItem="safe-Search" secondAttribute="leading" constant="16" id="c22" />
+                            <constraint firstItem="search-bar" firstAttribute="trailing" secondItem="safe-Search" secondAttribute="trailing" constant="-16" id="c23" />
+                            <constraint firstItem="search-status" firstAttribute="leading" secondItem="safe-Search" secondAttribute="leading" constant="16" id="c24" />
+                            <constraint firstItem="search-status" firstAttribute="trailing" secondItem="safe-Search" secondAttribute="trailing" constant="-16" id="c25" />
+                            <constraint firstItem="search-table" firstAttribute="leading" secondItem="safe-Search" secondAttribute="leading" constant="16" id="c26" />
+                            <constraint firstItem="search-table" firstAttribute="trailing" secondItem="safe-Search" secondAttribute="trailing" constant="-16" id="c27" />
+                            <constraint firstItem="search-more" firstAttribute="leading" secondItem="safe-Search" secondAttribute="leading" constant="16" id="c28" />
+                            <constraint firstItem="search-more" firstAttribute="trailing" secondItem="safe-Search" secondAttribute="trailing" constant="-16" id="c29" />
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="searchBar" destination="search-bar" id="out-Search-searchBar" />
+                        <outlet property="tableView" destination="search-table" id="out-Search-tableView" />
+                        <outlet property="statusLabel" destination="search-status" id="out-Search-statusLabel" />
+                        <outlet property="moreButton" destination="search-more" id="out-Search-moreButton" />
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="first-Search" userLabel="First Responder" sceneMemberID="firstResponder" />
+            </objects>
+        </scene>
+    </scenes>
+</document>

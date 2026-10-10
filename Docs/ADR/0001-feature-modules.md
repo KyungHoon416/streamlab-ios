@@ -1,9 +1,9 @@
-# ADR-0001 — SwiftPM modules and repository contracts
+# ADR-0001 — Use SwiftPM modules and explicit repository contracts
 
-Status: Accepted (Phase 1)
+Status: Accepted for Phase 1
 
-**Context:** The assignment requires replaceable network, storage and player layers under Swift 6 concurrency.
+Context: The challenge requires replacement-friendly network, storage and player layers and testable Swift 6 concurrency. A single SwiftUI target would mix concerns and make future player and sync replacement harder.
 
-**Decision:** StreamLabDomain defines Sendable entities and CatalogRepository; StreamLabCatalogData implements an actor-based fixture repository; feature targets depend on protocols rather than concrete data implementations. App composes dependencies.
+Decision: `StreamLabDomain` contains portable data contracts. `StreamLabCatalogData` is an `actor` implementation of `CatalogRepository`. UI feature modules depend only on protocol types, domain and design system. `App` owns dependency composition.
 
-**Consequence:** Local core can be tested independently of iOS, while player and sync engines can be added later.
+Consequences: Extra package manifests and boilerplate, but pure core can be compiled/tested independently from iOS. HLS playback, sync and download can be introduced without rewriting UI type contracts.

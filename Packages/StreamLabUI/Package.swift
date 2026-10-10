@@ -17,10 +17,15 @@ let package = Package(
         .target(name: "StreamLabProfileFeature", dependencies: [
             "StreamLabDesignSystem",
             .product(name: "StreamLabDomain", package: "StreamLabCore")
-        ]),
+        ], resources: [.process("Profile/Profile.storyboard")]),
         .target(name: "StreamLabCatalogFeature", dependencies: [
             "StreamLabDesignSystem",
+            .product(name: "StreamLabPresentation", package: "StreamLabCore"),
             .product(name: "StreamLabDomain", package: "StreamLabCore")
+        ], resources: [
+            .process("Home/Home.storyboard"),
+            .process("Search/Search.storyboard"),
+            .process("Detail/Detail.storyboard")
         ])
     ]
 )
