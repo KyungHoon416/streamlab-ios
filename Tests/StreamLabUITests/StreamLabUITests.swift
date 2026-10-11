@@ -155,14 +155,31 @@ import XCTest
     }
 
     func testRapidDetailEntryExit() {
+        exerciseDetailNavigation(cycles: 20)
+    }
+
+    func testReleaseNavigationSoak() {
+        // Also run explicitly in Release to exercise compiled Storyboard resources.
+        // This checks navigation/crashes, not retained object counts or leaks.
+        exerciseDetailNavigation(cycles: 60)
+    }
+
+    private func exerciseDetailNavigation(cycles: Int) {
         let app = launch()
         choose("adult-a", in: app)
-        for _ in 0..<20 {
+        for cycle in 0..<cycles {
             let first = app.collectionViews["home-catalog"].cells.firstMatch
             XCTAssertTrue(first.waitForExistence(timeout: 5))
             first.tap()
             XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 2))
             app.navigationBars.buttons.element(boundBy: 0).tap()
+            XCTAssertTrue(app.collectionViews["home-catalog"].cells.firstMatch.waitForExistence(timeout: 5), "Return home after cycle \(cycle + 1)")
+            if (cycle + 1).isMultiple(of: 20) {
+                let checkpoint = XCTAttachment(screenshot: app.screenshot())
+                checkpoint.name = "Home after \(cycle + 1) detail cycles"
+                checkpoint.lifetime = .keepAlways
+                add(checkpoint)
+            }
         }
         XCTAssertTrue(app.collectionViews["home-catalog"].cells.firstMatch.waitForExistence(timeout: 5))
     }

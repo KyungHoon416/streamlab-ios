@@ -76,6 +76,9 @@ import StreamLabCatalogFeature
         for screen in [home as UIViewController, search as UIViewController] {
             screen.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "프로필 변경", image: UIImage(systemName: "person.crop.circle"), primaryAction: UIAction { [weak self] _ in self?.showProfiles() })
             screen.navigationItem.rightBarButtonItem?.accessibilityIdentifier = "switch-profile"
+            if #available(iOS 26.0, *) {
+                screen.navigationItem.rightBarButtonItem?.hidesSharedBackground = true
+            }
         }
         home.onSelect = { [weak self, weak homeNav] id in self?.showDetail(id, profile: profile, navigation: homeNav) }
         search.onSelect = { [weak self, weak searchNav] id in self?.showDetail(id, profile: profile, navigation: searchNav) }
@@ -94,7 +97,9 @@ import StreamLabCatalogFeature
         return store
     }
     private func showDetail(_ id: String, profile: ViewerProfile, navigation: UINavigationController?) {
-        guard let navigation else { return }
+        // Ignore repeated taps while a push/pop is still in flight.
+        guard let navigation, navigation.transitionCoordinator == nil,
+              !(navigation.topViewController is DetailViewController) else { return }
         let detail = DetailViewController.instantiate()
         // Detail owns its store; avoid retaining every popped detail in the coordinator.
         detail.store = CatalogStore(profile: profile, repository: repository)
@@ -102,6 +107,13 @@ import StreamLabCatalogFeature
         navigation.pushViewController(detail, animated: !UIAccessibility.isReduceMotionEnabled)
     }
     private func navigation(_ root: UIViewController) -> UINavigationController {
+        // Configure the system back item on the preceding screen before any push.
+        // Keep UIKit's native back action, interactive pop and accessibility.
+        let back = UIBarButtonItem(title: "뒤로", style: .plain, target: nil, action: nil)
+        if #available(iOS 26.0, *) {
+            back.hidesSharedBackground = true
+        }
+        root.navigationItem.backBarButtonItem = back
         let nav = UINavigationController(rootViewController: root)
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
@@ -109,6 +121,8 @@ import StreamLabCatalogFeature
         appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
         nav.navigationBar.standardAppearance = appearance
         nav.navigationBar.scrollEdgeAppearance = appearance
+        nav.navigationBar.compactAppearance = appearance
+        nav.navigationBar.compactScrollEdgeAppearance = appearance
         return nav
     }
 }

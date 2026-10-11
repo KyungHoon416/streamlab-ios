@@ -1,3 +1,11 @@
+# Post-change verification required — 2026-10-12 08:41 KST
+
+Run `./scripts/verify-mac.sh && ./scripts/check-runtime-mac.sh` after updating. The latter records a fresh Release 60-cycle navigation test and scoped runtime diagnostics. New code execution is NOT TESTED until those results arrive; earlier manual confirmations below are historical.
+
+After the navigation change, also confirm the standard back button, edge-swipe back (including cancelling a swipe), and VoiceOver back navigation. No custom back action was introduced. Longer Instruments/profile-switch measurements and a successful Leaks scan remain separate requirements; 60 UI cycles alone do not certify memory behavior.
+
+---
+
 # Latest manual evidence — 2026-10-12 08:36 KST
 
 This summary supersedes pending statuses in the historical checklist below.

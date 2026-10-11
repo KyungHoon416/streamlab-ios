@@ -6,6 +6,8 @@ This repository is a **Swift 6 / iOS 18+** UIKit + Storyboard streaming app with
 
 ## Current validation status (2026-10-12)
 
+**New navigation mitigation awaits Mac verification.** Native bar-item shared backgrounds are disabled on iOS 26+, duplicate detail pushes are guarded, and the UI suite now has 10 tests. Run `./scripts/verify-mac.sh && ./scripts/check-runtime-mac.sh` for current Debug and fresh Release/60-cycle checks. Historical PASS results below predate this code change. Runtime diagnostics and full memory acceptance remain pending.
+
 Latest supplied Mac `RESULTS(7).txt`: **all eight automated gates PASS**, including Core, Simulator build, UI tests and build warning checks. Manual VoiceOver, maximum-text retry/HUD and compact/iPad layout checks are **PASS by user report**. A 20-cycle Allocations capture shows **2 persistent CatalogStore objects, 36 released**; the received trace ZIP passed integrity checks. Native trace replay is unavailable on the analysis host.
 
 **Phase 1 is not signed off; Phase 2 remains deferred.** Back-navigation `glassEffect()` runtime warning remains unresolved. Longer memory series, profile-switch memory checks and successful Leaks analysis remain NOT TESTED. See [latest evidence and limits](Docs/PHASE1_REPORT.md); older entries below are historical.
@@ -22,7 +24,7 @@ Run `./scripts/verify-mac.sh` for a consolidated automated result, then follow [
 - Search debouncing, cancellation and generation checks for out-of-order results.
 - Offline poster artwork rendered via UIKit (no unauthorized image downloads).
 - Accessible buttons, labels, dynamic text; dark mode first.
-- Core Swift Testing suite: seven repository tests and ten state/race tests; nine UI tests (execution status: `Docs/PHASE1_REPORT.md`).
+- Core Swift Testing suite: seven repository tests and ten state/race tests; ten UI tests (execution status: `Docs/PHASE1_REPORT.md`).
 
 ## Requirements
 

@@ -1,3 +1,23 @@
+# Navigation mitigation and Release regression gate — 2026-10-12 08:41 KST
+
+**Post-change Apple verification: NOT TESTED. Phase 1 is not yet signed off.** Previous PASS results remain historical evidence for the preceding source revision.
+
+- Configure native back and profile bar items with `hidesSharedBackground` on iOS 26+, before transitions. Keep native back action and interactive pop; do not replace navigation with a custom implementation or suppress logs. This is a targeted mitigation, not a confirmed root-cause fix for the reported glassEffect warning. API: https://developer.apple.com/documentation/uikit/uibarbuttonitem/hidessharedbackground
+- Apply consistent standard/scroll-edge/compact navigation appearances. Ignore duplicate detail taps during a navigation transition or while detail is already on top.
+- Add `testReleaseNavigationSoak`: 60 actual detail/back cycles, home assertion after every return and screenshot checkpoints at 20/40/60. The UI suite now contains 10 tests. This test checks navigation and crashes, not memory retention.
+- Add `scripts/check-runtime-mac.sh`: fresh Release products, selected Simulator identity and Git state, one selected 60-cycle test, xcresult and app-scoped runtime stream. `scripts/summarize-runtime.py` fails when selected test did not run, diagnostics exist, or log capture is incomplete. A clean capture only covers this measured run, not every runtime diagnostic.
+- Local checks: project structure PASS; shell syntax PASS; runtime summary logic 8 synthetic scenarios PASS (clean, glass, missing capture, missing test, failing test, dead stream, compiler warning, crash). Swift type checking, Release build, UI execution and live log collection are NOT TESTED here (Linux).
+
+Mac command from repository root:
+
+```bash
+./scripts/verify-mac.sh && ./scripts/check-runtime-mac.sh
+```
+
+Send both RESULTS.txt files and, on failure, runtime-diagnostics.txt or release-navigation.log. The 60-cycle UI run does not replace the remaining Instruments memory series/profile-switch/Leaks checks. Preserve the existing memory trace. Do not mark all of Phase 1 PASS solely from these scripts.
+
+---
+
 # Latest Phase 1 evidence — 2026-10-12 08:36 KST
 
 This summary supersedes historical statuses below. **Phase 1 remains incomplete; Phase 2 is deferred.** No application code changes in this update.
