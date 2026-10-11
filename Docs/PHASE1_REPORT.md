@@ -1,3 +1,31 @@
+# Current Phase 1 acceptance status — 2026-10-12 01:23 KST
+
+**Overall: NOT TESTED / incomplete. Phase 2 is not started.**
+This current summary supersedes older pending status notes below; historical entries are retained for traceability.
+
+| Check | Result | Evidence and limit |
+|---|---|---|
+| Simulator app build / strict compiler gate | PASS | 114d734; user terminal and RESULTS(6).txt, exit 0 |
+| Build warning count | PASS | Same build: 0; AppIntents workaround confirmed for this configuration |
+| Fixtures, Storyboard/project structure | PASS | Local Python rerun: 2,000 unique IDs, valid ratings, four scenes/outlets/modules |
+| Project parser | PASS | 2 local tests |
+| Original repository tests | PASS (historical) | 7 of the 17 tests in supplied core-fresh.log |
+| Search reversal, profile switching, deduplication, lifecycle | PASS (historical) | 10 presentation tests in same Core 17/17 run; not rerun here |
+| UI suite | PASS (historical 8/8); current 9 NOT TESTED | Latest retry regression was added after the successful 8-test run |
+| Detail open/back | PASS (limited manual) | User reports immediate opening, no freeze/flicker |
+| Runtime warning-free | FAIL | glassEffect initially once, then no recurrence per user; not resolved |
+| Dynamic Type / VoiceOver | NOT TESTED (complete coverage) | Earlier audit and limited manual flows pass; remaining routes/HUD/retry layout unverified |
+| Memory/performance | NOT TESTED (complete coverage) | Limited allocation observation; Leaks scanner failed; no full measured cycle report |
+| Small iPhone/iPad layout | NOT TESTED | No supplied execution evidence |
+
+Latest Mac report folder: Docs/Validation/warnings-20261011T161131Z-BTMDs7/.
+The original report is user-supplied; the remote repo is not claimed to contain the .xcresult.
+Local host is Linux with neither swift nor xcodebuild available. Swift, UIKit, ibtool, Simulator and Instruments tests cannot be executed here.
+
+Local verifier execution in this audit: fixtures PASS, project-structure PASS, exit **2** because Apple toolchain is unavailable. Shell syntax PASS; warning extraction tested with 4 synthetic clean/Core/app/UI diagnostic cases PASS. This tests reporting logic only. Project parser 2 tests PASS. No Apple execution is implied.
+
+Current gate: `./scripts/verify-mac.sh` collects fixture/structure, generated project, Core 17 and UI 9 results, and warning text from the build/test logs. Manual checks are explicitly NOT TESTED rather than implied PASS by exit 0. See PHASE1_MANUAL_QA.md for remaining checks and ADR-0005 for the image loader proposal.
+
 # Phase 1 implementation and verification status
 
 **Verified in this environment (Linux Swift 6.2 toolchain)**

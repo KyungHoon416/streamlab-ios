@@ -1,30 +1,31 @@
 # Phase 1 requirements / acceptance criteria
 
-Source: user's `Netflix_iOS_과제.docx`, page 1 (iOS 18+, Swift 6), page 2 A1 (3 profiles, 2,000 titles, 5 rails, search, cursor paging, deduplication, lazy loading, stale request cancellation), page 3 B3 (profile-scoped responses), page 6 (mockable modules, tests, README).
+Current implementation: Swift 6 / iOS 18+, UIKit + four editable Storyboards.
+The user's explicit UIKit request supersedes the initial SwiftUI requirement (ADR-0004).
+UICollectionView/UITableView cell reuse replaces LazyHStack/LazyVStack.
 
-| ID | Requirement | Implementation | Phase 1 check |
+Verification baseline: app commit 114d734, Mac build evidence supplied 2026-10-12 KST.
+PASS on an earlier suite is historical evidence, not a claim of a fresh run.
+
+| ID | Requirement | Implementation / evidence | Status |
 |---|---|---|---|
-| P1-01 | iOS 18+ SwiftUI / Swift 6 | `project.yml`, Package manifests | Xcode build on Mac: PENDING |
-| P1-02 | 3 profiles, 2 adults / 1 child | `ViewerProfile.demo` | Unit + iOS UI manual |
-| P1-03 | 2,000 fixture items | `Resources/catalog.json` | Auto test PASSED |
-| P1-04 | 5 home rails, hero | `MockCatalogRepository.home`, `HomeView` | Repo test PASSED; UI manual PENDING |
-| P1-05 | Continue Watching data per profile | Profile scoped demo progress | Repo test PASSED |
-| P1-06 | Kid visibility and details guard | `canView`, `detail` restrictions | Auto test PASSED |
-| P1-07 | Search and results | `SearchViewModel`, `SearchView` | SwiftUI smoke: PENDING |
-| P1-08 | Cursor pagination and deduplication | `browse`, `search`, `loadNext` | Repo test PASSED |
-| P1-09 | Image lazy loading | `LazyHStack` for artwork (no network images yet) | Remote image lazy loading deferred |
-| P1-10 | Stale search requests discarded | cancellation + request generation | Concurrency UI scenario: PENDING |
-| P1-11 | Dependencies injectable/mockable | `CatalogRepository` protocol | Compile check for core PASSED |
-| P1-12 | README and initial ADRs | Docs folder | Included |
+| P1-01 | Swift 6 strict concurrency, iOS app | project.yml; RESULTS(6), build exit 0, warning count 0 | PASS: supplied Mac Debug Simulator build |
+| P1-02 | Three profiles | ViewerProfile.demo; earlier UI launch/profile tests | PASS: earlier UI suite |
+| P1-03 | 2,000 unique titles | catalog.json; validate-fixtures.py rerun | PASS |
+| P1-04 | Hero, five rails, Continue Watching | HomeViewController; repository rail/progress tests | PASS: earlier Core suite; full visual review limited |
+| P1-05 | Profile isolation | repository policy; CatalogStore.select/invalidate, generation and profile checks | PASS: earlier deterministic Core suite |
+| P1-06 | Kids listing/direct-detail restriction | MockCatalogRepository; kidsNeverSeeAdultTitlesEvenByDirectId | PASS: earlier Core suite; user Kids route confirmation |
+| P1-07 | Search, response reversal protection | CatalogStore; reversedSearchResponseCannotOverwriteLatest | PASS: earlier Core suite |
+| P1-08 | Cursor pagination, deduplication | repository/store paging tests; user pagination confirmation | PASS: earlier tests + manual report |
+| P1-09 | Reused cells / image-loader proposal | UICollectionView, UITableView; ADR-0005 | PASS: source review/proposal only; no remote image implementation |
+| P1-10 | Rapid exit, cancellation, stale completion | Core lifecycle tests; earlier rapid navigation UI test | PASS: earlier suites; latest UI rerun NOT TESTED |
+| P1-11 | Injectable/mockable modules | CatalogRepository, controlled continuations, SwiftPM | PASS: source review + earlier Core execution |
+| P1-12 | Accessibility | historical automated audit; manual detail playback confirmation | NOT TESTED: full VoiceOver, max-text HUD, latest retry layout |
+| P1-13 | Runtime/performance | user reports immediate detail, no freeze/flicker | NOT TESTED: full Instruments; glassEffect initially once remains unresolved |
+| P1-14 | Latest UI regression | 9 UI test methods including detail retry | NOT TESTED: current 9-test suite |
+| P1-15 | Docs / reproducible validation | README, report, manual checklist, verify-mac.sh | PASS: local review; Mac execution of updated verifier pending |
 
-Important: The original challenge requires **actual image lazy loading** and performance measurements in later work. Phase 1 provides generated local artwork with lazy view construction, not network image lazy loading. This is an explicit gap, not falsely reported as complete.
+Overall acceptance: **NOT TESTED (incomplete), not all PASS**.
+Before Phase 2: run the current automated gate, finish manual accessibility/layout/memory checks, and resolve or explicitly accept the initial runtime warning with rationale. Build-only PASS does not verify runtime diagnostics.
 
-### Manual tests to perform on macOS
-1. Select Kids → browse/search: only `ALL` and `7+` titles appear.
-2. Kids → profile switch → Adult A → Continue Watching changes.
-3. Enter search term, replace immediately, repeat 20x; old results never replace the new query.
-4. Open a detail and navigate back; home/search remains available.
-5. Open the first and 60th browse pages using a unit test: IDs unique.
-6. Switch the profile during a simulated 120ms `home` wait; old content does not appear.
-7. Swift 6 complete mode produces no concurrency diagnostics.
-8. Validate compact iPhone and iPad layouts, VoiceOver, Dynamic Type.
+The broader challenge's actual remote image loading and performance targets must not be described as implemented. Phase 1 currently uses local generated artwork and provides a future loader design.

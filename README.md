@@ -4,6 +4,12 @@
 
 This repository is a **Swift 6 / iOS 18+** UIKit + Storyboard streaming app with a portable, fully offline fixture repository. It implements **Phase 1 only** (profiles + catalog + discovery). It does **not** stream actual video yet.
 
+## Current validation status (2026-10-12)
+
+App commit `114d734`: supplied Mac Simulator build **PASS**, build warnings **0**. Earlier Core **17/17** and UI **8/8** passed; the current **9-test UI suite is NOT TESTED**. Initial `glassEffect()` runtime warning remains (once, no reported freeze/flicker). Full VoiceOver, max-text HUD/retry layout, small-device/iPad and Instruments checks remain incomplete. **Phase 1 is not signed off and Phase 2 is deferred.**
+
+Run `./scripts/verify-mac.sh` for a consolidated automated result, then follow [remaining manual checks](Docs/PHASE1_MANUAL_QA.md). Reports include warning text; a successful script exit certifies only its automated checks. See [acceptance matrix](Docs/PHASE1_SPEC.md) and [future image loader design](Docs/ADR/0005-image-loader-design.md).
+
 ## What works in Phase 1
 
 - Three profiles (`Alex`, `Jamie`, `Kids`); changing profiles rebuilds feature UI.
@@ -14,7 +20,7 @@ This repository is a **Swift 6 / iOS 18+** UIKit + Storyboard streaming app with
 - Search debouncing, cancellation and generation checks for out-of-order results.
 - Offline poster artwork rendered via UIKit (no unauthorized image downloads).
 - Accessible buttons, labels, dynamic text; dark mode first.
-- Core Swift Testing suite: seven repository tests and ten state/race tests; eight UI tests (execution status: `Docs/PHASE1_REPORT.md`).
+- Core Swift Testing suite: seven repository tests and ten state/race tests; nine UI tests (execution status: `Docs/PHASE1_REPORT.md`).
 
 ## Requirements
 

@@ -7,7 +7,7 @@ log_dir="$(mktemp -d "$PWD/Docs/Validation/$(date -u +%Y%m%dT%H%M%SZ)-XXXXXX")"
 summary="$log_dir/RESULTS.txt"
 failed=0
 completed=" "
-checks="fixtures project-structure bootstrap generated-project-structure core simulator-build ui-tests"
+checks="fixtures project-structure bootstrap generated-project-structure core simulator-build ui-tests warning-free"
 : > "$summary"
 finish() {
   local result=$?
@@ -18,6 +18,9 @@ finish() {
     esac
   done
   echo "NOT TESTED manual-voiceover: requires manual VoiceOver navigation" >> "$summary"
+  echo "NOT TESTED manual-dynamic-type: maximum text HUD and retry layout require manual review" >> "$summary"
+  echo "NOT TESTED runtime-warning-free: launch and navigation diagnostics require runtime review" >> "$summary"
+  echo "NOT TESTED device-layouts: compact iPhone and iPad manual review" >> "$summary"
   echo "NOT TESTED instruments: requires Instruments measurements" >> "$summary"
   printf '\nResults: %s\n' "$summary"
   return "$result"
@@ -71,5 +74,27 @@ if [ "$build_exit" -eq 0 ] && [ -n "$simulator_id" ]; then
 else
   echo 'UI tests skipped: build failed or no available iPhone simulator.'
   failed=1
+fi
+# Audit completed compiler/tool logs without an extra build; never suppress diagnostics.
+if [ "$build_exit" -eq 0 ]; then
+  run_check warning-free python3 - "$log_dir" <<'PY'
+from pathlib import Path
+import re, sys
+folder = Path(sys.argv[1])
+warnings = []
+for name in ("core", "simulator-build", "ui-tests"):
+    path = folder / (name + ".log")
+    if path.exists():
+        warnings.extend(f"{name}: {line}" for line in path.read_text(errors="replace").splitlines()
+                        if re.search(r"\bwarning:", line, re.I))
+(folder / "warnings.txt").write_text("\n".join(warnings) + "\n")
+print(f"warning count={len(warnings)}")
+for line in warnings:
+    print(line)
+if warnings:
+    with (folder / "RESULTS.txt").open("a") as output:
+        output.write("\nWarning details:\n" + "\n".join(warnings) + "\n")
+sys.exit(1 if warnings else 0)
+PY
 fi
 exit "$failed"
