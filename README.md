@@ -14,7 +14,7 @@ This repository is a **Swift 6 / iOS 18+** UIKit + Storyboard streaming app with
 - Search debouncing, cancellation and generation checks for out-of-order results.
 - Offline poster artwork rendered via UIKit (no unauthorized image downloads).
 - Accessible buttons, labels, dynamic text; dark mode first.
-- Core Swift Testing suite: seven repository tests and ten state/race tests; six UI tests (execution status: `Docs/PHASE1_REPORT.md`).
+- Core Swift Testing suite: seven repository tests and ten state/race tests; eight UI tests (execution status: `Docs/PHASE1_REPORT.md`).
 
 ## Requirements
 
@@ -152,3 +152,17 @@ GitHub 저장소: https://github.com/KyungHoon416/streamlab-ios
 같은 프로필에서 상세 화면을 다녀오거나 홈/검색 탭을 전환해도 완료된 검색 결과와 페이지 수를 유지합니다. 화면 이탈 시 진행 중 요청은 취소하고, 복귀 시 중단된 요청을 재개합니다. 프로필 변경 시에는 이전 프로필 데이터와 재개할 요청을 모두 비웁니다.
 
 2026-10-11 사용자 Simulator 캡처·로그로 프로필 첫 화면 표시를 확인했습니다. 홈·검색·상세 전환과 자동 테스트는 별도 실행 검증이 필요합니다.
+
+## Phase 1.1 — 검증 및 안정화
+
+중앙 로딩 동작은 사용자 수동 확인 PASS입니다. 이번 버전은 홈 탭 이름을 고정하고, 중앙 로딩 표시 및 로딩 중 프로필 전환 UI 테스트를 추가합니다. Core 17개 / UI 8개는 테스트 소스 개수이며, 실행 성공 개수가 아닙니다.
+
+Mac에서 프로젝트 루트에서 실행하세요:
+
+```bash
+./scripts/verify-mac.sh
+```
+
+실행별 `Docs/Validation/<실행 ID>/`에 `RESULTS.txt`, 명령별 로그, 환경·커밋 정보, 빌드 및 UI 테스트 `.xcresult`를 저장합니다. 검사 종료 코드를 기록하며 미실행 항목은 NOT TESTED로 표시합니다. 기본적으로 실행 중인 iPhone Simulator를 우선 선택합니다. 특정 기기는 `SIMULATOR_ID=<UDID> ./scripts/verify-mac.sh`로 지정하세요. 스크립트는 XcodeGen으로 프로젝트를 다시 생성하므로 별도 프로젝트 설정 변경은 project.yml에 반영하세요.
+
+UI 테스트의 `--ui-test-slow-catalog` 인수는 DEBUG 빌드에서만 Mock 응답을 2초로 늦춰 로딩 상태를 관찰하게 합니다. 일반 실행과 Release 응답 속도는 변경하지 않습니다. 실제 플레이어 개발은 Phase 1 검증 결과와 미해결 항목을 정리한 뒤 진행합니다.

@@ -10,7 +10,15 @@ import StreamLabCatalogFeature
 @MainActor final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
     private let startupLog = Logger(subsystem: "com.example.streamlab.demo", category: "Startup")
-    private let repository = MockCatalogRepository()
+    private let repository: MockCatalogRepository = {
+        #if DEBUG
+        // UI tests opt in; normal app launches keep the existing response delay.
+        if ProcessInfo.processInfo.arguments.contains("--ui-test-slow-catalog") {
+            return MockCatalogRepository(responseDelay: .seconds(2))
+        }
+        #endif
+        return MockCatalogRepository()
+    }()
     private var stores: [CatalogStore] = []
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {

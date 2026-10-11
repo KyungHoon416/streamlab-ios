@@ -85,6 +85,50 @@ import XCTest
         XCTAssertEqual(table.cells.count, 48)
     }
 
+    func testPaginationOverlayAppearsAndClears() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-slow-catalog"]
+        app.launch()
+        choose("adult-a", in: app)
+        app.tabBars.buttons["검색"].tap()
+        let table = app.tables["search-results"]
+        XCTAssertTrue(table.cells.firstMatch.waitForExistence(timeout: 8))
+        let more = app.buttons["load-more"]
+        more.tap()
+        let loading = app.staticTexts["pagination-loading-label"]
+        XCTAssertTrue(loading.waitForExistence(timeout: 3))
+        XCTAssertFalse(more.isEnabled)
+        expectation(for: NSPredicate(format: "count == 48"), evaluatedWith: table.cells)
+        waitForExpectations(timeout: 8)
+        XCTAssertFalse(loading.exists)
+        XCTAssertTrue(more.isEnabled)
+    }
+
+    func testProfileSwitchDuringPaginationRemovesOverlayAndOldResults() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-slow-catalog"]
+        app.launch()
+        choose("adult-a", in: app)
+        app.tabBars.buttons["검색"].tap()
+        let table = app.tables["search-results"]
+        XCTAssertTrue(table.cells.firstMatch.waitForExistence(timeout: 8))
+        app.buttons["load-more"].tap()
+        XCTAssertTrue(app.staticTexts["pagination-loading-label"].waitForExistence(timeout: 3))
+        app.buttons["switch-profile"].tap()
+        XCTAssertTrue(app.buttons["profile-kids-a"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.staticTexts["pagination-loading-label"].exists)
+        choose("kids-a", in: app)
+        app.tabBars.buttons["검색"].tap()
+        XCTAssertTrue(table.cells.firstMatch.waitForExistence(timeout: 8))
+        XCTAssertEqual(table.cells.count, 24)
+        XCTAssertFalse(app.staticTexts["pagination-loading-label"].exists)
+        for cell in table.cells.allElementsBoundByIndex {
+            for rating in ["12+", "15+", "19+"] {
+                XCTAssertFalse(cell.label.contains(rating))
+            }
+        }
+    }
+
     func testRapidDetailEntryExit() {
         let app = launch()
         choose("adult-a", in: app)

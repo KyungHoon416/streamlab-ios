@@ -76,3 +76,13 @@ Static Storyboard/project checks: PASS. Xcode compilation and visual verificatio
 Replaced the button spinner with a Storyboard-defined centered loading card: red activity indicator, Dynamic Type message and translucent backdrop retaining the visible results. Load More remains disabled during the request. The overlay does not intercept touches, so search edits, profile changes and navigation can still cancel work. It is hidden on completion, failure or screen disappearance; pending work shows it again on resume. A VoiceOver announcement occurs when it appears. No artificial wait or fake percentage.
 
 Static XML/outlet/project checks: PASS. ibtool compilation, Xcode build, Simulator appearance and VoiceOver: NOT TESTED here. Manual verification: Load More shows the centered card, completion adds rows and removes it; change query or leave the screen during loading and confirm no lingering overlay.
+
+## Phase 1.1 — validation and stability, 2026-10-11
+
+User-confirmed manual PASS: profile launch; home hero/continue-watching display; detail display; playback notice and search-to-detail flow (user confirmation); Load More increases result count; centered pagination loading UI (user explicitly reports PASS). These observations do not prove automated tests, all rating restrictions, concurrency or accessibility passed.
+
+Changes: keep the navigation heading STREAMLAB without overwriting the Home tab label; add DEBUG-only opt-in slow Mock responses for UI checks; add UI regressions for loading appearance/completion and profile switching while pagination is active. Core source tests: 17; UI source tests: 8.
+
+The Mac verifier now includes project structure checks, unique result directories, commit/worktree information, compiler warnings-as-errors, build and UI xcresult bundles, and explicit NOT TESTED entries when prerequisites stop execution. It prefers a booted iPhone simulator and supports SIMULATOR_ID. UI tests run serially for reproducible resource use.
+
+Validation in this environment: shell syntax and non-Apple preflight/report behavior PASS; Storyboard/project static checks PASS. Actual Swift compilation, Core/UI tests and Apple runtime behavior of this revision NOT TESTED. The script's missing-Xcode exit 2 is expected and is not a successful iOS build. Phase 1 remains open pending Mac logs, VoiceOver/Dynamic Type verification and unresolved findings; Phase 2 playback is not implemented in this revision.

@@ -16,7 +16,7 @@ import StreamLabDesignSystem
     private var progress: [String: Double] = [:]
     public override func viewDidLoad() {
         super.viewDidLoad()
-        title = "STREAMLAB"
+        navigationItem.title = "STREAMLAB"
         StreamLabTheme.configure(statusLabel, style: .body)
         collectionView.backgroundColor = .black
         collectionView.accessibilityIdentifier = "home-catalog"
