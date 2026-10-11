@@ -135,3 +135,26 @@ Added PHASE1_MANUAL_QA.md with VoiceOver scenarios, search/overlay Dynamic Type 
 Added check-build-warnings-mac.sh: fresh isolated DerivedData, retained raw build log/xcresult/environment, and independent build and warning-free outcomes. A successful build with warnings produces PASS simulator-build and FAIL warning-free. A failed build cannot produce PASS warning-free. Local shell syntax and three synthetic report cases PASS; actual new Apple build NOT TESTED here.
 
 Source inspection found no AppIntent/AppShortcut/AppEntity implementation. Supplied Xcode logs explicitly identify the missing AppIntents framework dependency in the metadata extraction step. No confirmed Xcode 27 supported setting to remove this warning was found in the documentation search; older forum workarounds were not applied. The warning remains unresolved, with no added unused framework or suppression flags. Core/UI success evidence is unchanged.
+
+## Warning mitigation and manual evidence — 2026-10-12 user session
+
+Latest supplied RESULTS(4).txt: **PASS** simulator-build exit=0; **FAIL** warning-free count=1. warnings.txt contains AppIntents metadata extraction skipped (00:42:02). A new environment/commit record was not supplied, so this does not certify the current revision.
+
+Changes:
+- App Debug/Release explicitly link AppIntents, mirrored in project.yml and the checked-in project. This is a candidate workaround for the metadata processor's missing dependency warning, not a proven fix or a new Siri/Shortcuts feature. It adds a system framework dependency and supersedes the earlier no-unused-framework decision. No diagnostics are suppressed.
+- Detail retry-button enabled-state changes wait for viewDidAppear, stop during disappearance and skip equal values. Reload also rejects a duplicate request while loading. This reduces transition-time navigation updates; the cause of the glassEffect warning remains unconfirmed.
+
+Validation:
+- **NOT TESTED**: Xcode build, post-change warning count and simulator runtime in this Linux environment.
+- Required Mac retest: warning audit script; open/back from content rows; retry during loading; rapid exit; cancel interactive back and confirm retry state reflects current loading.
+- Prior Core 17/17 and UI 8/8 evidence remains historical, not execution of this change.
+- Phase 2 remains deferred while warning verification and remaining manual checks are open.
+
+Additional manual evidence (user reports/screenshots, not automated results):
+- **PASS (limited scope)**: Kids → search → detail, immediate detail opening, search pagination, large text search rows and detail/Phase 2 alert visible.
+- **PASS (user report)**: loading HUD appears; **NOT TESTED**: HUD clipping at maximum Dynamic Type.
+- **PASS (limited user report)**: playback VoiceOver announcement and Phase 2 alert interaction; full VoiceOver route coverage remains **NOT TESTED**.
+- Detail allocation while open showed one persistent controller; user reported no matching persistent controller after back. This is limited lifecycle evidence, not proof of no leaks.
+- **NOT TESTED**: Leaks, because the simulator memory scanner failed. Runtime glassEffect warning remains open pending retest.
+
+Local post-change checks: **PASS** scripts/validate-project.py; **PASS** scripts/test-project-parser.py (2 tests). These validate structure/parser behavior only, not Swift compilation or UIKit execution.

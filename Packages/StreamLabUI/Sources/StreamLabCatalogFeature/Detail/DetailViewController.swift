@@ -14,6 +14,7 @@ import StreamLabDesignSystem
     @IBOutlet private weak var playbackButton: UIButton!
     public var store: CatalogStore!
     public var titleID = ""
+    private var hasFinishedAppearing = false
     public override func viewDidLoad() {
         super.viewDidLoad()
         title = "콘텐츠 상세"
@@ -37,13 +38,34 @@ import StreamLabDesignSystem
         if store.resume() != nil { return }
         if store.detail == nil { reload() }
     }
+    public override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        hasFinishedAppearing = true
+        updateRetryButton()
+    }
+    public override func viewWillDisappear(_ animated: Bool) {
+        hasFinishedAppearing = false
+        super.viewWillDisappear(animated)
+    }
     public override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         store.suspend()
     }
-    @objc private func reload() { store.loadDetail(id: titleID) }
+    @objc private func reload() {
+        guard !store.loading else { return }
+        store.loadDetail(id: titleID)
+    }
+    private func updateRetryButton() {
+        // A push/pop owns the navigation bar until appearance completes.
+        // Read current state here so a response during the transition is not lost.
+        guard hasFinishedAppearing, let button = navigationItem.rightBarButtonItem else { return }
+        let isEnabled = !store.loading
+        if button.isEnabled != isEnabled {
+            button.isEnabled = isEnabled
+        }
+    }
     private func render() {
-        navigationItem.rightBarButtonItem?.isEnabled = !store.loading
+        updateRetryButton()
         playbackButton.isHidden = store.detail == nil
         titleLabel.text = store.detail?.name ?? (store.loading ? "불러오는 중…" : "콘텐츠를 열 수 없습니다")
         if let title = store.detail {

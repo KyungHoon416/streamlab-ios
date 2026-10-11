@@ -31,6 +31,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.streamlab.demo
         PRODUCT_NAME: StreamLab
+        # Explicit metadata-processor dependency; verify on the target Xcode version.
+        OTHER_LDFLAGS: ["$(inherited)", "-framework", "AppIntents"]
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: App/Configuration/Info.plist
         CODE_SIGN_STYLE: Automatic

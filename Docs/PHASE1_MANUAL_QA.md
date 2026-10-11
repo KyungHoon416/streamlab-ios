@@ -62,3 +62,11 @@
 - 빌드 경고: 개수 / 로그 경로:
 
 Phase 2는 위 미해결 사항을 정리한 뒤 진행한다.
+
+## Subsequent user evidence and remaining scope — 2026-10-12
+
+The earlier NOT TESTED table is the initial baseline. User follow-up confirms visible large-text search rows, detail text and Phase 2 alert (**PASS** for those captured layouts); pagination and HUD appearance also work (**PASS**, user report). Maximum-text HUD clipping remains **NOT TESTED**. Playback VoiceOver/alert interaction has limited user confirmation; do not mark all VO routes passed.
+
+Leaks collection failed in Simulator (**NOT TESTED**, not PASS). No persistent DetailViewController after returning was reported by the user; full repeated-cycle memory measurements remain outstanding.
+
+After the warning mitigation, run the warning audit again and check content push/pop, rapid back, retry during loading, and a cancelled swipe-back gesture. Both actual warning removal and these post-change runtime checks are **NOT TESTED** until performed on Mac.
