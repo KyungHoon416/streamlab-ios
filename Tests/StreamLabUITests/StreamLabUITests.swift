@@ -137,8 +137,8 @@ import XCTest
         app.collectionViews["home-catalog"].cells.firstMatch.tap()
         let retry = app.buttons["detail-retry"]
         XCTAssertTrue(retry.waitForExistence(timeout: 3))
-        expectation(for: NSPredicate(format: "enabled == false"), evaluatedWith: retry)
-        waitForExpectations(timeout: 2)
+        // Navigation and accessibility snapshots may outlast the initial request.
+        // Wait for a settled screen before initiating the retry under test.
         expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: retry)
         waitForExpectations(timeout: 8)
         let title = app.staticTexts["detail-title"]

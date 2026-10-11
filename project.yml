@@ -60,6 +60,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.streamlab.demo.uitests
         TEST_TARGET_NAME: StreamLab
+        # The test bundle runs its own AppIntents metadata extraction step.
+        OTHER_LDFLAGS: ["$(inherited)", "-framework", "AppIntents"]
 schemes:
   StreamLab:
     build:

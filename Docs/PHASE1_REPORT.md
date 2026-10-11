@@ -1,3 +1,19 @@
+Local checks for this correction: project structure PASS; parser regression tests 2/2 PASS. Swift/UIKit execution NOT TESTED (Linux).
+
+# Latest regression diagnosis — 2026-10-12 01:53 KST
+
+The latest supplied full run at def3a5d reports fixtures, project structure, bootstrap, generated structure, Core and app build PASS; UI **FAIL (8/9 pass)**; warning-free **FAIL (1)**. This supersedes the older latest-UI-NOT-TESTED summary below.
+
+Evidence: ui-tests(1).log, lines 592–672. The initial detail tap happens at 8.52s and the first disabled-state assertion at 11.99s, after the 2-second mock response window. It fails at test line 141. The same test's explicit retry subsequently observes disabled at 16.16s, enabled at 17.23s and identical title, and returns home. Thus the failed assertion relies on a transient initial state; the log does not demonstrate a broken retry action.
+
+Correction: wait for initial loading to finish, then retain the retry tap → disabled → enabled → same title → back assertions. No app response timing is changed and no test is skipped. The retry transient check still uses the existing slow Mock; device scheduling can affect observation and the new run must verify it.
+
+The build warning explicitly comes from ExtractAppIntentsMetadata in target StreamLabUITests (lines 531–535), not the app. Add the same explicit AppIntents linkage to test-target Debug/Release and project.yml. No warning suppression.
+
+The log also contains Simulator accessibility duplicate-class and debugger lookup diagnostics, and paths indicate iOS 26.4 runtime while compilation uses iOS 27 SDK. Do not attribute this run to the earlier iOS 27 Simulator without environment evidence or claim a clean runtime.
+
+Post-correction Mac build/test/warning count: **NOT TESTED** here. Earlier Core success remains valid historical evidence. The initial glassEffect warning, manual accessibility and Instruments gaps remain open. Phase 1 is not signed off.
+
 # Current Phase 1 acceptance status — 2026-10-12 01:23 KST
 
 **Overall: NOT TESTED / incomplete. Phase 2 is not started.**

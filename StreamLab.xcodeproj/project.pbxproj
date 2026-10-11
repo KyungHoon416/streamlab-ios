@@ -402,6 +402,11 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.streamlab.demo.uitests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					AppIntents,
+				);
 				TEST_TARGET_NAME = StreamLab;
 			};
 			name = Debug;
@@ -418,6 +423,11 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.streamlab.demo.uitests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					AppIntents,
+				);
 				TEST_TARGET_NAME = StreamLab;
 			};
 			name = Release;
