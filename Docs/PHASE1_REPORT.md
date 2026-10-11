@@ -99,3 +99,9 @@ Evidence: user-provided RESULTS.txt, environment.txt, project-structure.log and 
 Corrections: parse project objects, resolve group-relative/SOURCE_ROOT paths, require source build-phase membership, and inspect the app target's Debug/Release Info.plist settings independent of quoting. Exclude hidden generated build directories from authored Swift source checks. Validate the generated project again after bootstrap. Replace the local weak variable with a constant weak-capture closure, retaining the deallocation assertion before the pending response completes. No warning suppression or compiler settings downgrade.
 
 Post-fix local PASS: project structure, 2,000 unique fixtures, Python parser regressions (quoted project, XcodeGen-style comments/unquoted keys/nested groups, missing build membership and incorrect folder), verifier shell syntax. Post-fix Core compilation/tests, Simulator build/UI tests: NOT TESTED here because this environment lacks Xcode and Swift. Mac rerun required; Phase 1 remains open and Phase 2 is not started.
+
+## Additional supplied build log — 2026-10-11
+
+The subsequent environment(1).txt still identifies 59d5cd2, recorded at 07:04 UTC / 16:04 KST, so it does not validate the d5bbe43 fixes. The supplied simulator-build.log explicitly ends BUILD SUCCEEDED, but contains two warnings: the Search Storyboard spinner has hidesWhenStopped without Hidden or Animating, and App Intents metadata extraction was skipped because there is no AppIntents.framework dependency. This build must not be described as warning-free.
+
+Set the initially stopped loading spinner to hidden in Storyboard; existing startAnimating/stopAnimating controls its runtime visibility. Static Storyboard/project validation PASS. Post-fix ibtool/build/UI execution NOT TESTED here; the App Intents build-tool warning remains unresolved pending review of a fresh build log. No framework dependency or warning suppression added solely to silence it.

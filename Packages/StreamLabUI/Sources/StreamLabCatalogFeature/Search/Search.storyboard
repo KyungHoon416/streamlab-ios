@@ -40,7 +40,7 @@
                                         <subviews>
                                             <stackView axis="vertical" alignment="center" spacing="16" translatesAutoresizingMaskIntoConstraints="NO" id="loading-stack">
                                                 <subviews>
-                                                    <activityIndicatorView opaque="NO" contentMode="scaleToFill" hidesWhenStopped="YES" style="large" translatesAutoresizingMaskIntoConstraints="NO" id="loading-spinner" />
+                                                    <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" hidesWhenStopped="YES" style="large" translatesAutoresizingMaskIntoConstraints="NO" id="loading-spinner" />
                                                     <label text="콘텐츠를 불러오는 중…" textAlignment="center" numberOfLines="0" translatesAutoresizingMaskIntoConstraints="NO" id="loading-label">
                                                         <fontDescription key="fontDescription" type="system" pointSize="17" />
                                                         <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace" />
