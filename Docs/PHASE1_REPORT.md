@@ -127,3 +127,11 @@ User-supplied core-fresh.log records a clean build in /private/tmp/streamlab-cor
 This supersedes the Core execution blocker for the successful fresh-path run. Clearing attributes on the old .build had failed; the exact source of those attributes remains unproven. The verifier now creates a unique Core scratch directory in /private/tmp, records it in environment.txt, and retains it for diagnosis. It does not delete the old build, disable signing, or suppress warnings. Shell syntax of the modified verifier PASS locally; the integrated revised verifier has NOT TESTED status on Mac, while its fresh-path Core command has the user-run PASS evidence above.
 
 Combined evidence: Core 17/17 PASS; earlier UI 8/8 PASS; fixtures, structure before/after generation and Simulator build PASS. These are separate runs, not one newly generated all-PASS RESULTS.txt. Remaining: manual VoiceOver and Instruments NOT TESTED; App Intents metadata warning in the earlier app build unresolved. Phase 1 is not yet declared fully complete; Phase 2 remains unstarted.
+
+## Remaining verification preparation — 2026-10-11
+
+Added PHASE1_MANUAL_QA.md with VoiceOver scenarios, search/overlay Dynamic Type coverage beyond the existing automated audit, and Allocations/Leaks procedures with warm-up and 20/40/60-cycle measurements. All unperformed manual checks remain NOT TESTED.
+
+Added check-build-warnings-mac.sh: fresh isolated DerivedData, retained raw build log/xcresult/environment, and independent build and warning-free outcomes. A successful build with warnings produces PASS simulator-build and FAIL warning-free. A failed build cannot produce PASS warning-free. Local shell syntax and three synthetic report cases PASS; actual new Apple build NOT TESTED here.
+
+Source inspection found no AppIntent/AppShortcut/AppEntity implementation. Supplied Xcode logs explicitly identify the missing AppIntents framework dependency in the metadata extraction step. No confirmed Xcode 27 supported setting to remove this warning was found in the documentation search; older forum workarounds were not applied. The warning remains unresolved, with no added unused framework or suppression flags. Core/UI success evidence is unchanged.
