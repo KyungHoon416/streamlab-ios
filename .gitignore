@@ -11,3 +11,9 @@ xcuserdata/
 .env.*
 *.p8
 *.p12
+
+# Local build products and raw validation runs (keep curated reports in Docs/).
+/.derivedData/
+/Docs/Validation/
+/core-fresh.log
+/core-recheck.log
