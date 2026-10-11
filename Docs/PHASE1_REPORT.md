@@ -105,3 +105,17 @@ Post-fix local PASS: project structure, 2,000 unique fixtures, Python parser reg
 The subsequent environment(1).txt still identifies 59d5cd2, recorded at 07:04 UTC / 16:04 KST, so it does not validate the d5bbe43 fixes. The supplied simulator-build.log explicitly ends BUILD SUCCEEDED, but contains two warnings: the Search Storyboard spinner has hidesWhenStopped without Hidden or Animating, and App Intents metadata extraction was skipped because there is no AppIntents.framework dependency. This build must not be described as warning-free.
 
 Set the initially stopped loading spinner to hidden in Storyboard; existing startAnimating/stopAnimating controls its runtime visibility. Static Storyboard/project validation PASS. Post-fix ibtool/build/UI execution NOT TESTED here; the App Intents build-tool warning remains unresolved pending review of a fresh build log. No framework dependency or warning suppression added solely to silence it.
+
+## Verified user Mac run at 5bc2bae — 2026-10-11 17:19 KST
+
+Evidence: environment(2).txt and supplied bootstrap, fixture, project structure, generated project structure, Core, Simulator build and UI test logs. Xcode 27.0 / Swift 6.4.
+
+- PASS: 2,000 unique fixtures, bootstrap, project structure before and after XcodeGen.
+- PASS: Simulator build explicitly reports BUILD SUCCEEDED.
+- PASS: UI suite explicitly reports TEST SUCCEEDED, 8 tests, 0 failures (215.965 seconds). Includes cold launch, large text accessibility audit, pagination overlay appearance/completion, profile switch during pagination, rapid detail navigation, retained search pages, pagination/profile switch and Storyboard/Phase 2 notice.
+- FAIL: Core build CodeSign step on StreamLabPresentationTests.xctest and StreamLabCatalogDataTests.xctest: resource fork, Finder information, or similar detritus not allowed. Core test execution remains NOT TESTED for this run. The supplied log no longer reports the weak-variable compiler diagnostic, but this is not evidence of a complete clean warning-free build.
+- NOT TESTED: manual VoiceOver navigation and Instruments.
+
+The new Simulator log contains no loading-spinner Storyboard warning. It still reports App Intents metadata extraction skipped; UI logs also contain debugger-version lookup diagnostics. Do not describe the build as warning-free.
+
+Next recovery on the user's Mac: inspect extended attributes with `xattr -lr Packages/StreamLabCore/.build`, then clear attributes on that generated build directory only with `xattr -cr Packages/StreamLabCore/.build`, and rerun the existing strict Core command. Apple QA1940 documents this code-signing failure and extended-attribute cleanup: https://developer.apple.com/library/archive/qa/qa1940/_index.html . No signing bypass or warning suppression. Recovery has NOT TESTED status until the new Core log arrives. Phase 1 remains open.
