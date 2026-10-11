@@ -12,6 +12,10 @@ import StreamLabDesignSystem
     @IBOutlet private weak var tableView: UITableView!
     @IBOutlet private weak var statusLabel: UILabel!
     @IBOutlet private weak var moreButton: UIButton!
+    @IBOutlet private weak var loadingOverlay: UIView!
+    @IBOutlet private weak var loadingCard: UIView!
+    @IBOutlet private weak var loadingIndicator: UIActivityIndicatorView!
+    @IBOutlet private weak var loadingLabel: UILabel!
     public var store: CatalogStore!
     private var hasAppeared = false
     public var onSelect: ((String) -> Void)?
@@ -30,8 +34,17 @@ import StreamLabDesignSystem
         StreamLabTheme.configure(statusLabel, style: .body)
         StreamLabTheme.button(moreButton, title: "더 보기")
         moreButton.accessibilityIdentifier = "load-more"
+        loadingCard.layer.cornerRadius = 18
+        loadingCard.clipsToBounds = true
+        loadingIndicator.color = StreamLabTheme.accent
+        loadingIndicator.isAccessibilityElement = false
+        StreamLabTheme.configure(loadingLabel, style: .body)
+        loadingLabel.textAlignment = .center
+        loadingOverlay.accessibilityIdentifier = "pagination-loading-overlay"
+        loadingLabel.accessibilityIdentifier = "pagination-loading-label"
         moreButton.addAction(UIAction { [weak self] _ in
             guard let self else { return }
+            self.searchBar.resignFirstResponder()
             if self.store.errorMessage != nil { self.store.retry() } else { self.store.loadNext() }
         }, for: .touchUpInside)
         store.onChange = { [weak self] in self?.render() }
@@ -47,7 +60,7 @@ import StreamLabDesignSystem
     public override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         store.suspend()
-        moreButton.configuration?.showsActivityIndicator = false
+        setPaginationLoading(false)
     }
     public func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) { store.search(searchText) }
     public func searchBarSearchButtonClicked(_ searchBar: UISearchBar) { searchBar.resignFirstResponder() }
@@ -57,14 +70,29 @@ import StreamLabDesignSystem
         moreButton.isEnabled = !store.loading
         let loadingMore = store.loading && store.nextCursor != nil
         var configuration = moreButton.configuration
-        configuration?.showsActivityIndicator = loadingMore
+        configuration?.showsActivityIndicator = false
         configuration?.imagePlacement = .leading
         configuration?.imagePadding = 8
         configuration?.title = loadingMore ? "불러오는 중…" : (store.errorMessage == nil ? "더 보기" : "다시 시도")
         moreButton.configuration = configuration
         moreButton.accessibilityLabel = loadingMore ? "다음 검색 결과 불러오는 중" : configuration?.title
+        setPaginationLoading(loadingMore)
         tableView.reloadData()
     }
+    private func setPaginationLoading(_ loading: Bool) {
+        let wasVisible = !loadingOverlay.isHidden
+        loadingOverlay.isHidden = !loading
+        if loading {
+            loadingIndicator.startAnimating()
+            view.bringSubviewToFront(loadingOverlay)
+            if !wasVisible {
+                UIAccessibility.post(notification: .announcement, argument: loadingLabel.text)
+            }
+        } else {
+            loadingIndicator.stopAnimating()
+        }
+    }
+
     public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { store.items.count }
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Result") ?? UITableViewCell(style: .subtitle, reuseIdentifier: "Result")

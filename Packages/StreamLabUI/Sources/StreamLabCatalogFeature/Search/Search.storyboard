@@ -30,6 +30,42 @@
                                 <rect key="frame" x="0" y="0" width="340" height="56" />
                                 <state key="normal" title="더 보기" />
                             </button>
+                            <view hidden="YES" userInteractionEnabled="NO" translatesAutoresizingMaskIntoConstraints="NO" id="loading-overlay">
+                                <rect key="frame" x="0" y="59" width="393" height="759" />
+                                <color key="backgroundColor" white="0" alpha="0.35" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace" />
+                                <subviews>
+                                    <view translatesAutoresizingMaskIntoConstraints="NO" id="loading-card">
+                                        <rect key="frame" x="32" y="300" width="329" height="160" />
+                                        <color key="backgroundColor" white="0.12" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace" />
+                                        <subviews>
+                                            <stackView axis="vertical" alignment="center" spacing="16" translatesAutoresizingMaskIntoConstraints="NO" id="loading-stack">
+                                                <subviews>
+                                                    <activityIndicatorView opaque="NO" contentMode="scaleToFill" hidesWhenStopped="YES" style="large" translatesAutoresizingMaskIntoConstraints="NO" id="loading-spinner" />
+                                                    <label text="콘텐츠를 불러오는 중…" textAlignment="center" numberOfLines="0" translatesAutoresizingMaskIntoConstraints="NO" id="loading-label">
+                                                        <fontDescription key="fontDescription" type="system" pointSize="17" />
+                                                        <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace" />
+                                                    </label>
+                                                </subviews>
+                                                <constraints>
+                                                    <constraint firstItem="loading-label" firstAttribute="width" secondItem="loading-stack" secondAttribute="width" id="hud-label-width" />
+                                                </constraints>
+                                            </stackView>
+                                        </subviews>
+                                        <constraints>
+                                            <constraint firstItem="loading-stack" firstAttribute="leading" secondItem="loading-card" secondAttribute="leading" constant="24" id="hud-c13" />
+                                            <constraint firstItem="loading-stack" firstAttribute="trailing" secondItem="loading-card" secondAttribute="trailing" constant="-24" id="hud-c14" />
+                                            <constraint firstItem="loading-stack" firstAttribute="top" secondItem="loading-card" secondAttribute="top" constant="24" id="hud-c15" />
+                                            <constraint firstItem="loading-stack" firstAttribute="bottom" secondItem="loading-card" secondAttribute="bottom" constant="-24" id="hud-c16" />
+                                        </constraints>
+                                    </view>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstItem="loading-card" firstAttribute="centerX" secondItem="loading-overlay" secondAttribute="centerX" constant="0" id="hud-c17" />
+                                    <constraint firstItem="loading-card" firstAttribute="centerY" secondItem="loading-overlay" secondAttribute="centerY" constant="0" id="hud-c18" />
+                                    <constraint firstItem="loading-card" firstAttribute="leading" secondItem="loading-overlay" secondAttribute="leading" constant="32" id="hud-c19" />
+                                    <constraint firstItem="loading-card" firstAttribute="trailing" secondItem="loading-overlay" secondAttribute="trailing" constant="-32" id="hud-c20" />
+                                </constraints>
+                            </view>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="safe-Search" />
                         <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace" />
@@ -47,6 +83,10 @@
                             <constraint firstItem="search-table" firstAttribute="trailing" secondItem="safe-Search" secondAttribute="trailing" constant="-16" id="c27" />
                             <constraint firstItem="search-more" firstAttribute="leading" secondItem="safe-Search" secondAttribute="leading" constant="16" id="c28" />
                             <constraint firstItem="search-more" firstAttribute="trailing" secondItem="safe-Search" secondAttribute="trailing" constant="-16" id="c29" />
+                            <constraint firstItem="loading-overlay" firstAttribute="leading" secondItem="safe-Search" secondAttribute="leading" constant="0" id="hud-c21" />
+                            <constraint firstItem="loading-overlay" firstAttribute="trailing" secondItem="safe-Search" secondAttribute="trailing" constant="0" id="hud-c22" />
+                            <constraint firstItem="loading-overlay" firstAttribute="top" secondItem="safe-Search" secondAttribute="top" constant="0" id="hud-c23" />
+                            <constraint firstItem="loading-overlay" firstAttribute="bottom" secondItem="safe-Search" secondAttribute="bottom" constant="0" id="hud-c24" />
                         </constraints>
                     </view>
                     <connections>
@@ -54,6 +94,10 @@
                         <outlet property="tableView" destination="search-table" id="out-Search-tableView" />
                         <outlet property="statusLabel" destination="search-status" id="out-Search-statusLabel" />
                         <outlet property="moreButton" destination="search-more" id="out-Search-moreButton" />
+                        <outlet property="loadingOverlay" destination="loading-overlay" id="out-loading-overlay" />
+                        <outlet property="loadingCard" destination="loading-card" id="out-loading-card" />
+                        <outlet property="loadingIndicator" destination="loading-spinner" id="out-loading-spinner" />
+                        <outlet property="loadingLabel" destination="loading-label" id="out-loading-label" />
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="first-Search" userLabel="First Responder" sceneMemberID="firstResponder" />

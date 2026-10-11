@@ -70,3 +70,9 @@ Added two Core lifecycle tests (Core total: 17) and a search-navigation UI regre
 User reports that tapping Load More increases the result count (manual confirmation). Added a native activity spinner and loading text inside the existing Storyboard-backed Load More button while a next-page request is active. Existing duplicate-tap prevention stays in place. Completion/failure clears the indicator; screen disappearance stops it and returning resumes pending work through the existing store lifecycle. No artificial delay is added.
 
 Static Storyboard/project checks: PASS. Xcode compilation and visual verification of the new indicator: NOT TESTED (no Xcode in this environment). Manual check: tap Load More, observe the spinner and disabled button, then restored button or hidden button on the last page; navigate away/back during loading and verify completion.
+
+## Centered pagination loading overlay — 2026-10-11
+
+Replaced the button spinner with a Storyboard-defined centered loading card: red activity indicator, Dynamic Type message and translucent backdrop retaining the visible results. Load More remains disabled during the request. The overlay does not intercept touches, so search edits, profile changes and navigation can still cancel work. It is hidden on completion, failure or screen disappearance; pending work shows it again on resume. A VoiceOver announcement occurs when it appears. No artificial wait or fake percentage.
+
+Static XML/outlet/project checks: PASS. ibtool compilation, Xcode build, Simulator appearance and VoiceOver: NOT TESTED here. Manual verification: Load More shows the centered card, completion adds rows and removes it; change query or leave the screen during loading and confirm no lingering overlay.
