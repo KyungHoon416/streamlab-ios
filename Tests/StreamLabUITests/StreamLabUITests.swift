@@ -129,6 +129,31 @@ import XCTest
         }
     }
 
+    func testDetailRetryDisablesUntilResponseCompletes() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-slow-catalog"]
+        app.launch()
+        choose("adult-a", in: app)
+        app.collectionViews["home-catalog"].cells.firstMatch.tap()
+        let retry = app.buttons["detail-retry"]
+        XCTAssertTrue(retry.waitForExistence(timeout: 3))
+        expectation(for: NSPredicate(format: "enabled == false"), evaluatedWith: retry)
+        waitForExpectations(timeout: 2)
+        expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: retry)
+        waitForExpectations(timeout: 8)
+        let title = app.staticTexts["detail-title"]
+        let loadedTitle = title.label
+        retry.tap()
+        expectation(for: NSPredicate(format: "enabled == false"), evaluatedWith: retry)
+        waitForExpectations(timeout: 2)
+        expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: retry)
+        waitForExpectations(timeout: 8)
+        XCTAssertEqual(title.label, loadedTitle)
+        XCTAssertTrue(app.buttons["phase2-playback"].exists)
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(app.collectionViews["home-catalog"].waitForExistence(timeout: 5))
+    }
+
     func testRapidDetailEntryExit() {
         let app = launch()
         choose("adult-a", in: app)

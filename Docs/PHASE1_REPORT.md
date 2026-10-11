@@ -158,3 +158,21 @@ Additional manual evidence (user reports/screenshots, not automated results):
 - **NOT TESTED**: Leaks, because the simulator memory scanner failed. Runtime glassEffect warning remains open pending retest.
 
 Local post-change checks: **PASS** scripts/validate-project.py; **PASS** scripts/test-project-parser.py (2 tests). These validate structure/parser behavior only, not Swift compilation or UIKit execution.
+
+## Simulator warning follow-up — 2026-10-12 01:04 KST
+
+Evidence: RESULTS(5).txt has **PASS** simulator-build exit=0 and **FAIL** warning-free count=1. User confirms glassEffect warning persists in Simulator. The prior appearance-timing mitigation did not resolve the reported runtime warning. No current warning text/environment record was supplied; the remaining build warning cannot be identified from its count.
+
+Implementation:
+- Move retry from UIBarButtonItem to a filled UIButton in Detail.storyboard (outlet, accessibility identifier, existing Dynamic Type styling). Keep it near the title and disable it while loading; duplicate-request guard remains.
+- Remove appearance-state bookkeeping and all detail navigation-item mutations driven by async responses. Preserve navigation animations and the system back gesture.
+- Include actual build warning lines in RESULTS.txt; do not hide/filter the glassEffect diagnostic or claim the build audit exercises the app.
+- Add a UI regression for initial detail loading and retry disable/re-enable, with the existing slow-catalog launch mode.
+
+Limitations: this removes an app-owned navigation mutation path, but does not establish UIKit's internal warning source. The framework linkage change is still unverified, with no further speculative build settings added. Phase 2 remains deferred.
+
+Validation for this revision:
+- **PASS** project structure validator including Storyboard outlet connections.
+- **PASS** project parser tests (2).
+- **PASS** shell syntax and warning-report extraction with three synthetic inputs (clean, warning, failed build).
+- **NOT TESTED** Xcode/ibtool compilation, new retry UI regression, existing UI suite, actual warning removal and maximum-text retry layout. Linux environment has no Apple SDK runtime.

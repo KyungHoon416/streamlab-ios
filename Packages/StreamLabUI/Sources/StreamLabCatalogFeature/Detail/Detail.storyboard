@@ -25,6 +25,10 @@
                                                 <fontDescription key="fontDescription" type="system" pointSize="20" />
                                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace" />
                                             </label>
+                                            <button opaque="NO" contentMode="scaleToFill" buttonType="system" translatesAutoresizingMaskIntoConstraints="NO" id="detail-retry">
+                                                <rect key="frame" x="0" y="84" width="340" height="56" />
+                                                <state key="normal" title="다시 시도" />
+                                            </button>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="" numberOfLines="0" translatesAutoresizingMaskIntoConstraints="NO" id="detail-meta">
                                                 <rect key="frame" x="0" y="0" width="340" height="60" />
                                                 <fontDescription key="fontDescription" type="system" pointSize="20" />
@@ -66,6 +70,7 @@
                         <outlet property="titleLabel" destination="detail-title" id="out-Detail-titleLabel" />
                         <outlet property="metadataLabel" destination="detail-meta" id="out-Detail-metadataLabel" />
                         <outlet property="synopsisLabel" destination="detail-synopsis" id="out-Detail-synopsisLabel" />
+                        <outlet property="retryButton" destination="detail-retry" id="out-Detail-retryButton" />
                         <outlet property="playbackButton" destination="detail-play" id="out-Detail-playbackButton" />
                     </connections>
                 </viewController>

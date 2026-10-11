@@ -24,6 +24,9 @@ warnings = [line for line in lines if re.search(r'\bwarning:', line, re.I)]
 summary = f'{"PASS" if code == 0 else "FAIL"} simulator-build exit={code}\n'
 summary += ('NOT TESTED warning-free: build failed\n' if code else
             f'{"FAIL" if warnings else "PASS"} warning-free count={len(warnings)}\n')
+if warnings:
+    summary += '\nBuild warning details:\n' + '\n'.join(warnings) + '\n'
+summary += '\nRuntime glassEffect warning: NOT TESTED by this build-only script\n'
 (folder / 'RESULTS.txt').write_text(summary)
 print(summary)
 PY

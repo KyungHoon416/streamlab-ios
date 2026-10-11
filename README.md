@@ -182,3 +182,9 @@ Remaining Phase 1 manual checks: see [VoiceOver, Dynamic Type and Instruments pr
 The latest supplied warning report records simulator-build **PASS**, warning-free **FAIL (1)**: AppIntents metadata extraction skipped. The app target now explicitly links AppIntents in Debug/Release and in XcodeGen configuration as a candidate workaround; no App Intent feature is added. This intentionally revises the earlier decision to leave the framework unlinked. Detail retry-button updates now wait until the view has appeared and skip unchanged values, reducing navigation-bar mutations during push/pop. Neither warning is claimed resolved until the Mac retest.
 
 After pulling, run `./scripts/check-build-warnings-mac.sh`, then run the app from Xcode and open/back from a vertical content row repeatedly. Also check retry while loading, rapid back navigation, and a cancelled interactive back gesture. Send the new report and whether `glassEffect()` still appears. Apple build/runtime validation for this change: **NOT TESTED** here (Linux).
+
+### Simulator warning follow-up — 2026-10-12 01:04 KST
+
+User retest still reports `glassEffect() tried to update multiple times per frame.`; RESULTS(5).txt reports build PASS and warning-free FAIL (1). The new warning text was not supplied, so the AppIntents workaround is not verified.
+
+The detail retry action now lives in Detail.storyboard as a regular filled button below the title. Loading responses no longer modify a detail navigation-bar button. This replaces the unsuccessful appearance-timing mitigation. UIKit navigation/back behavior is retained. This is a targeted mitigation, not a confirmed fix for the runtime diagnostic. The build audit now embeds warning text in RESULTS.txt and explicitly distinguishes runtime verification. Pull, run the audit, then open/back from content rows in Simulator. Post-change Apple build/UI execution remains NOT TESTED here.

@@ -12,9 +12,9 @@ import StreamLabDesignSystem
     @IBOutlet private weak var metadataLabel: UILabel!
     @IBOutlet private weak var synopsisLabel: UILabel!
     @IBOutlet private weak var playbackButton: UIButton!
+    @IBOutlet private weak var retryButton: UIButton!
     public var store: CatalogStore!
     public var titleID = ""
-    private var hasFinishedAppearing = false
     public override func viewDidLoad() {
         super.viewDidLoad()
         title = "콘텐츠 상세"
@@ -30,22 +30,15 @@ import StreamLabDesignSystem
             alert.addAction(UIAlertAction(title: "확인", style: .default))
             self?.present(alert, animated: true)
         }, for: .touchUpInside)
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "다시 시도", style: .plain, target: self, action: #selector(reload))
+        StreamLabTheme.button(retryButton, title: "다시 시도")
+        retryButton.accessibilityIdentifier = "detail-retry"
+        retryButton.addTarget(self, action: #selector(reload), for: .touchUpInside)
         store.onChange = { [weak self] in self?.render() }
     }
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         if store.resume() != nil { return }
         if store.detail == nil { reload() }
-    }
-    public override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        hasFinishedAppearing = true
-        updateRetryButton()
-    }
-    public override func viewWillDisappear(_ animated: Bool) {
-        hasFinishedAppearing = false
-        super.viewWillDisappear(animated)
     }
     public override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
@@ -55,17 +48,11 @@ import StreamLabDesignSystem
         guard !store.loading else { return }
         store.loadDetail(id: titleID)
     }
-    private func updateRetryButton() {
-        // A push/pop owns the navigation bar until appearance completes.
-        // Read current state here so a response during the transition is not lost.
-        guard hasFinishedAppearing, let button = navigationItem.rightBarButtonItem else { return }
-        let isEnabled = !store.loading
-        if button.isEnabled != isEnabled {
-            button.isEnabled = isEnabled
-        }
-    }
     private func render() {
-        updateRetryButton()
+        // Keep async loading state in content, outside the navigation bar.
+        if retryButton.isEnabled == store.loading {
+            retryButton.isEnabled = !store.loading
+        }
         playbackButton.isHidden = store.detail == nil
         titleLabel.text = store.detail?.name ?? (store.loading ? "불러오는 중…" : "콘텐츠를 열 수 없습니다")
         if let title = store.detail {
