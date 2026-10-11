@@ -166,3 +166,7 @@ Mac에서 프로젝트 루트에서 실행하세요:
 실행별 `Docs/Validation/<실행 ID>/`에 `RESULTS.txt`, 명령별 로그, 환경·커밋 정보, 빌드 및 UI 테스트 `.xcresult`를 저장합니다. 검사 종료 코드를 기록하며 미실행 항목은 NOT TESTED로 표시합니다. 기본적으로 실행 중인 iPhone Simulator를 우선 선택합니다. 특정 기기는 `SIMULATOR_ID=<UDID> ./scripts/verify-mac.sh`로 지정하세요. 스크립트는 XcodeGen으로 프로젝트를 다시 생성하므로 별도 프로젝트 설정 변경은 project.yml에 반영하세요.
 
 UI 테스트의 `--ui-test-slow-catalog` 인수는 DEBUG 빌드에서만 Mock 응답을 2초로 늦춰 로딩 상태를 관찰하게 합니다. 일반 실행과 Release 응답 속도는 변경하지 않습니다. 실제 플레이어 개발은 Phase 1 검증 결과와 미해결 항목을 정리한 뒤 진행합니다.
+
+### Xcode 27 / Swift 6.4 validation follow-up (2026-10-11)
+
+The supplied Mac RESULTS.txt at 59d5cd2 reports simulator-build and ui-tests PASS, but project-structure and core FAIL. The structure checker now resolves XcodeGen group-relative paths and build-phase membership instead of matching serialized strings. The Core lifetime test now uses a weak capture probe to avoid Swift 6.4's never-mutated local weak-variable diagnostic; warnings-as-errors remain enabled. Run `git pull --ff-only origin main` then `./scripts/verify-mac.sh` again. The verifier also checks the regenerated project after bootstrap. Post-fix Apple tests remain NOT TESTED until that run; results are under `Docs/Validation/<timestamp>-<suffix>/RESULTS.txt`.

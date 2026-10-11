@@ -180,12 +180,13 @@ private actor ControlledRepository: CatalogRepository {
         for index in 0..<20 {
             let repository = ControlledRepository()
             var store: CatalogStore? = CatalogStore(profile: adult, repository: repository)
-            weak var weakStore = store
+            // A weak capture keeps this probe non-owning across compiler versions.
+            let isStoreReleased = { [weak store] in store == nil }
             let work = store!.search("\(index)", debounce: .zero)
             await repository.wait("adult-a/\(index)/first")
             store!.invalidate()
             store = nil
-            #expect(weakStore == nil)
+            #expect(isStoreReleased())
             await repository.finish("adult-a/\(index)/first", page: .init(items: [title], nextCursor: nil))
             await work.value
         }

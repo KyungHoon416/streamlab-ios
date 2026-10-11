@@ -7,7 +7,7 @@ log_dir="$(mktemp -d "$PWD/Docs/Validation/$(date -u +%Y%m%dT%H%M%SZ)-XXXXXX")"
 summary="$log_dir/RESULTS.txt"
 failed=0
 completed=" "
-checks="fixtures project-structure bootstrap core simulator-build ui-tests"
+checks="fixtures project-structure bootstrap generated-project-structure core simulator-build ui-tests"
 : > "$summary"
 finish() {
   local result=$?
@@ -54,6 +54,7 @@ fi
 xcodebuild -version >> "$log_dir/environment.txt" 2>&1
 xcrun swift --version >> "$log_dir/environment.txt" 2>&1
 run_check bootstrap ./scripts/bootstrap-mac.sh || exit 1
+run_check generated-project-structure python3 scripts/validate-project.py
 run_check core xcrun swift test --package-path Packages/StreamLabCore -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete
 run_check simulator-build xcodebuild -project StreamLab.xcodeproj -scheme StreamLab -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath .derivedData -resultBundlePath "$log_dir/Build.xcresult" SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=NO build
 build_exit=$?

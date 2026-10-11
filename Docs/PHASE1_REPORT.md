@@ -86,3 +86,16 @@ Changes: keep the navigation heading STREAMLAB without overwriting the Home tab 
 The Mac verifier now includes project structure checks, unique result directories, commit/worktree information, compiler warnings-as-errors, build and UI xcresult bundles, and explicit NOT TESTED entries when prerequisites stop execution. It prefers a booted iPhone simulator and supports SIMULATOR_ID. UI tests run serially for reproducible resource use.
 
 Validation in this environment: shell syntax and non-Apple preflight/report behavior PASS; Storyboard/project static checks PASS. Actual Swift compilation, Core/UI tests and Apple runtime behavior of this revision NOT TESTED. The script's missing-Xcode exit 2 is expected and is not a successful iOS build. Phase 1 remains open pending Mac logs, VoiceOver/Dynamic Type verification and unresolved findings; Phase 2 playback is not implemented in this revision.
+
+## Mac validation failure corrections — 2026-10-11
+
+Evidence: user-provided RESULTS.txt, environment.txt, project-structure.log and core.log for 59d5cd27f195576895d254b8d5245976d3d5c206, Xcode 27.0 (27A266a), Swift 6.4.
+
+- PASS (user summary, exit 0): fixtures, bootstrap, simulator-build, ui-tests. Full build/UI logs were not provided; individual test counts and warning-free status are not independently established.
+- FAIL: structure checker line 47 compared full source paths against serialized PBX text, rejecting group-relative XcodeGen paths.
+- FAIL: Core compilation stopped at CatalogStoreTests.swift line 183: local weak variable never mutated, promoted to error by warnings-as-errors. Core test assertions did not run successfully.
+- NOT TESTED: manual VoiceOver and Instruments, as recorded in the supplied summary.
+
+Corrections: parse project objects, resolve group-relative/SOURCE_ROOT paths, require source build-phase membership, and inspect the app target's Debug/Release Info.plist settings independent of quoting. Exclude hidden generated build directories from authored Swift source checks. Validate the generated project again after bootstrap. Replace the local weak variable with a constant weak-capture closure, retaining the deallocation assertion before the pending response completes. No warning suppression or compiler settings downgrade.
+
+Post-fix local PASS: project structure, 2,000 unique fixtures, Python parser regressions (quoted project, XcodeGen-style comments/unquoted keys/nested groups, missing build membership and incorrect folder), verifier shell syntax. Post-fix Core compilation/tests, Simulator build/UI tests: NOT TESTED here because this environment lacks Xcode and Swift. Mac rerun required; Phase 1 remains open and Phase 2 is not started.
