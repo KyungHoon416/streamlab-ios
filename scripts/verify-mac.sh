@@ -55,7 +55,10 @@ xcodebuild -version >> "$log_dir/environment.txt" 2>&1
 xcrun swift --version >> "$log_dir/environment.txt" 2>&1
 run_check bootstrap ./scripts/bootstrap-mac.sh || exit 1
 run_check generated-project-structure python3 scripts/validate-project.py
-run_check core xcrun swift test --package-path Packages/StreamLabCore -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete
+# Keep Core products separate from the previously contaminated project-local .build.
+core_build_dir="$(mktemp -d /private/tmp/streamlab-core.XXXXXX)" || exit 1
+echo "Core scratch path: $core_build_dir" >> "$log_dir/environment.txt"
+run_check core xcrun swift test --package-path Packages/StreamLabCore --scratch-path "$core_build_dir" -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete
 run_check simulator-build xcodebuild -project StreamLab.xcodeproj -scheme StreamLab -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath .derivedData -resultBundlePath "$log_dir/Build.xcresult" SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=NO build
 build_exit=$?
 simulator_id="${SIMULATOR_ID:-}"
