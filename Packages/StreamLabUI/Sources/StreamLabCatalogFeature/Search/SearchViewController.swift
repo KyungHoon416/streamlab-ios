@@ -47,6 +47,7 @@ import StreamLabDesignSystem
     public override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         store.suspend()
+        moreButton.configuration?.showsActivityIndicator = false
     }
     public func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) { store.search(searchText) }
     public func searchBarSearchButtonClicked(_ searchBar: UISearchBar) { searchBar.resignFirstResponder() }
@@ -54,7 +55,14 @@ import StreamLabDesignSystem
         statusLabel.text = store.errorMessage ?? (store.loading ? "검색 중…" : (store.items.isEmpty ? "검색 결과가 없습니다." : "\(store.items.count)개 표시 · \(store.profile.displayName)"))
         moreButton.isHidden = store.nextCursor == nil && store.errorMessage == nil
         moreButton.isEnabled = !store.loading
-        moreButton.configuration?.title = store.errorMessage == nil ? "더 보기" : "다시 시도"
+        let loadingMore = store.loading && store.nextCursor != nil
+        var configuration = moreButton.configuration
+        configuration?.showsActivityIndicator = loadingMore
+        configuration?.imagePlacement = .leading
+        configuration?.imagePadding = 8
+        configuration?.title = loadingMore ? "불러오는 중…" : (store.errorMessage == nil ? "더 보기" : "다시 시도")
+        moreButton.configuration = configuration
+        moreButton.accessibilityLabel = loadingMore ? "다음 검색 결과 불러오는 중" : configuration?.title
         tableView.reloadData()
     }
     public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { store.items.count }

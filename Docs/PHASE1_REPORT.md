@@ -64,3 +64,9 @@ PASS (user-supplied evidence, not agent-run): after d9d1dc2, iPhone 18 Pro / iOS
 Home/Search/Detail now suspend offscreen requests with cancellation and generation invalidation while retaining loaded data. Returning resumes an interrupted request; completed search pages, cursor and query remain intact across detail navigation and tab changes. Profile switching and scene teardown still call invalidate to clear data and pending resumption. Detail retry is disabled while loading.
 
 Added two Core lifecycle tests (Core total: 17) and a search-navigation UI regression (UI total: 6). Swift and Xcode executables are unavailable here: all new Swift tests, Simulator navigation, accessibility and compiler warnings remain NOT TESTED. Existing structural checks PASS. Phase 2 remains out of scope.
+
+## Pagination loading indicator — 2026-10-11
+
+User reports that tapping Load More increases the result count (manual confirmation). Added a native activity spinner and loading text inside the existing Storyboard-backed Load More button while a next-page request is active. Existing duplicate-tap prevention stays in place. Completion/failure clears the indicator; screen disappearance stops it and returning resumes pending work through the existing store lifecycle. No artificial delay is added.
+
+Static Storyboard/project checks: PASS. Xcode compilation and visual verification of the new indicator: NOT TESTED (no Xcode in this environment). Manual check: tap Load More, observe the spinner and disabled button, then restored button or hidden button on the last page; navigate away/back during loading and verify completion.
