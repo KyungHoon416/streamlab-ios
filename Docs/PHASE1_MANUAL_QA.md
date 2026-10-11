@@ -1,3 +1,21 @@
+# Latest manual evidence — 2026-10-12 08:36 KST
+
+This summary supersedes pending statuses in the historical checklist below.
+
+- **PASS (user report):** VoiceOver profile selection, home exploration, search → detail, pagination and profile isolation. Playback/Phase 2 notice had earlier user confirmation.
+- **PASS (user report):** maximum Dynamic Type retry text and loading message without clipping/overlap; earlier search/detail text checks confirmed.
+- **PASS (user report):** compact iPhone/iPad layout checklist; exact device names not supplied.
+- **PASS (limited):** 20 home/detail/back cycles after clean Profile build; CatalogStore persistent 2, transient 36, total 38 in Allocations screenshot. DetailViewController name-filtered persistent list empty.
+- **NOT TESTED:** 40/60-cycle comparison, profile-switch memory series, successful Leaks scan, complete memory/performance acceptance.
+- **FAIL:** runtime warning-free; top-left back can emit glassEffect warning, with no reported freeze/flicker.
+- **PASS:** all automated gates in RESULTS(7).txt. Automated results do not certify manual tests.
+
+Received trace archive and SHA-256, screenshot measurements, earlier Profile crash and analysis limitations are recorded in [PHASE1_REPORT.md](PHASE1_REPORT.md). Native Instruments replay was not performed by the assistant. Keep the saved trace; no need to repeat completed checks merely to reproduce these screenshots.
+
+---
+
+# Historical checklist and evidence
+
 # Phase 1 수동 검증
 
 Core 17개·UI 8개는 이전 실행 PASS다. 현재 UI 테스트는 9개이며 최신 전체 실행은 NOT TESTED다. 아래 표는 제한된 수동 확인과 미검증 범위를 구분한다. 실측 없이 PASS로 바꾸지 않는다.

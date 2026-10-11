@@ -6,7 +6,9 @@ This repository is a **Swift 6 / iOS 18+** UIKit + Storyboard streaming app with
 
 ## Current validation status (2026-10-12)
 
-App commit `114d734`: supplied Mac Simulator build **PASS**, build warnings **0**. Earlier Core **17/17** and UI **8/8** passed; the current **9-test UI suite is NOT TESTED**. Initial `glassEffect()` runtime warning remains (once, no reported freeze/flicker). Full VoiceOver, max-text HUD/retry layout, small-device/iPad and Instruments checks remain incomplete. **Phase 1 is not signed off and Phase 2 is deferred.**
+Latest supplied Mac `RESULTS(7).txt`: **all eight automated gates PASS**, including Core, Simulator build, UI tests and build warning checks. Manual VoiceOver, maximum-text retry/HUD and compact/iPad layout checks are **PASS by user report**. A 20-cycle Allocations capture shows **2 persistent CatalogStore objects, 36 released**; the received trace ZIP passed integrity checks. Native trace replay is unavailable on the analysis host.
+
+**Phase 1 is not signed off; Phase 2 remains deferred.** Back-navigation `glassEffect()` runtime warning remains unresolved. Longer memory series, profile-switch memory checks and successful Leaks analysis remain NOT TESTED. See [latest evidence and limits](Docs/PHASE1_REPORT.md); older entries below are historical.
 
 Run `./scripts/verify-mac.sh` for a consolidated automated result, then follow [remaining manual checks](Docs/PHASE1_MANUAL_QA.md). Reports include warning text; a successful script exit certifies only its automated checks. See [acceptance matrix](Docs/PHASE1_SPEC.md) and [future image loader design](Docs/ADR/0005-image-loader-design.md).
 

@@ -1,3 +1,42 @@
+# Latest Phase 1 evidence — 2026-10-12 08:36 KST
+
+This summary supersedes historical statuses below. **Phase 1 remains incomplete; Phase 2 is deferred.** No application code changes in this update.
+
+| Check | Result | Evidence / scope |
+|---|---|---|
+| Fixtures, structure, bootstrap, generated structure | PASS | User-supplied RESULTS(7).txt, each exit 0 |
+| Core, Simulator build, UI tests, build warning gate | PASS | RESULTS(7).txt, each exit 0; report does not embed commit SHA, test counts or full environment |
+| VoiceOver profiles, home, search/detail, pagination, profile isolation | PASS | User checklist confirmation at 02:37 KST; manual user report, not independently executed here |
+| Maximum Dynamic Type retry and loading text | PASS | User confirms no clipping/overlap at 02:44–02:45 KST; earlier search/detail checks also confirmed |
+| Compact iPhone / iPad layout checklist | PASS | User reports normal operation after checklist; exact devices not supplied |
+| 20 home/detail/back cycles after clean Profile build | PASS | User reports no crash; earlier nil-outlet crash no longer reproduced |
+| CatalogStore residual count after 20 cycles | PASS (limited) | Screenshot: persistent 2, transient 36, total 38; consistent with retained home/search stores |
+| Complete memory / leaks / performance verification | NOT TESTED | No 40/60-cycle comparison, profile-switch memory series or successful Leaks scan |
+| Runtime warning-free | FAIL | User reports glassEffect warning on top-left back; immediate return without freeze/flicker; cause not established |
+
+## Received memory evidence
+
+Archive: StreamLab-Phase1-Memory.trace.zip, 181,405,631 bytes; 220 ZIP entries, 852,327,263 uncompressed bytes including package metadata.
+SHA-256: `4c09520b3b5146f62b27e6c1b2833ac20f8ab9a5231cd9e21d448841f9ede0a8`.
+ZIP CRC check PASS; trace package contains Trace1.run event data, instrument data and manifests. Raw archive remains in the user's saved trace and supplied attachment; it is not committed to Git.
+
+The analyzer host is Linux without Instruments/xctrace. Native trace replay and event-level analysis are **NOT TESTED**. The following measurements are read from supplied screenshots, not reconstructed from binary trace data:
+- Run 1 duration: 2:30.442; user reports 20 home → detail → back cycles and 10 seconds on home.
+- All Heap & Anonymous VM persistent allocation bytes: 35.00 MiB. This is not a measurement of total process footprint. Cumulative total bytes are not current memory usage.
+- CatalogStore filter: 2 persistent allocations (1.25 KiB), 36 transient, 38 total. Two retained stores match the home/search architecture; a single end snapshot cannot establish a long-run growth rate.
+- DetailViewController name filter: empty Created & Persistent table. This is a filtered observation, not proof that every detail-related allocation is released.
+- Earlier Profile crash: nil IUO in DetailViewController.viewDidLoad at line 33. Clean Build Folder followed by Profile and 20 cycles succeeded per user. Stale build/resources remain a hypothesis, not a proven root cause.
+
+## Remaining acceptance work
+
+1. Complete the existing 40/60-cycle, profile-switch and Leaks/memory-reference checks in PHASE1_MANUAL_QA.md.
+2. Diagnose/retest the back-navigation glassEffect runtime warning; do not equate build warning PASS with runtime warning-free.
+3. Preserve exact tested SHA/device/OS alongside future evidence. The latest automated summary was supplied after the 40e73cc update, but its SHA is not independently recorded in RESULTS(7).txt.
+
+---
+
+# Historical evidence (superseded where the latest summary differs)
+
 Local checks for this correction: project structure PASS; parser regression tests 2/2 PASS. Swift/UIKit execution NOT TESTED (Linux).
 
 # Latest regression diagnosis — 2026-10-12 01:53 KST
