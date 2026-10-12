@@ -1,8 +1,18 @@
-# StreamLab — SwiftUI Phase 1
+# StreamLab — SwiftUI Phase 2 재생
 
 비공식 학습·포트폴리오 프로젝트입니다. Netflix 공식 채용 과제나 제품이 아닙니다.
 
-**Swift 6 / iOS 18+ / SwiftUI** 오프라인 카탈로그 앱입니다. 원문 Netflix_iOS_과제.docx의 SwiftUI 조건에 맞춰 2026-10-12 UIKit 버전을 전환했습니다. 실제 AVPlayer 재생·동기화·다운로드는 Phase 2 이후이며 현재 재생 버튼은 “Phase 2 예정” 안내를 표시합니다.
+**Swift 6 / iOS 18+ / SwiftUI** 오프라인 카탈로그 앱입니다. 원문 Netflix_iOS_과제.docx의 SwiftUI 조건에 맞춰 2026-10-12 UIKit 버전을 전환했습니다. Phase 2 첫 구현으로 AVPlayer 데모 재생을 추가했습니다. 상세 → 데모 영상 재생에서 번들 영상 또는 HLS 스트리밍을 선택합니다. 동기화·다운로드·DRM·이어보기 저장은 아직 구현하지 않았습니다.
+
+## Phase 2 재생 — 이번 변경
+
+- SwiftUI `VideoPlayer` + `AVPlayer`: 재생/일시정지, 10초 탐색, 위치 슬라이더, 재생 완료/다시 재생.
+- 기본 영상: 직접 생성한 30초 무음 MP4. 실제 작품 영상이 아니며 모든 카탈로그 항목에 같은 데모를 사용합니다.
+- 소스 메뉴에서 Apple HLS 예제로 전환 가능. 인터넷이 필요하며 외부 서비스 가용성은 보장하지 않습니다.
+- 로딩/실패/30초 로딩 시간 초과/재시도, 재생 직전 Repository 권한 재검사.
+- 닫기/프로필 전환 시 요청 취소와 player 정리. 백그라운드 전환 시 일시정지, 복귀 후 수동 재생.
+- 추가 UI 회귀 3개와 기존 재생 안내 테스트 교체. **iOS 빌드·14개 UI 테스트·Swift 6 경고 검사는 이번 코드에서 NOT TESTED**입니다.
+- 범위와 검사 결과: [Phase 2 보고서](Docs/PHASE2_REPORT.md), [재생 ADR](Docs/ADR/0007-playback-lifecycle.md).
 
 ## 현재 상태
 
@@ -14,7 +24,7 @@
 - 메모리 전체 완료는 보류: Instruments 시작 구간 32바이트 1개 원인 미확인. 별도 Debug Memory Graph 누수 목록은 사용자 확인상 비어 있습니다.
 - 이전 Release 60회 런타임 검사 PASS 이후 수동 Debug에서 glassEffect 경고가 재발했습니다. 사용자는 화면 이상 없이 콘솔에만 표시된다고 확인했습니다.
 - UIKit PASS는 새 UI의 PASS가 아닙니다. [현재 보고서](Docs/PHASE1_REPORT.md)와 [이력](Docs/Archive/UIKIT_PHASE1_REPORT.md)을 구분합니다.
-- **Phase 1 전체 완료 판정 보류**, Phase 2는 시작하지 않았습니다.
+- Phase 1의 미확인 32B 항목과 수동 glassEffect 경고는 남겨두고, 사용자 승인으로 Phase 2를 시작했습니다. 아래 Phase 1 PASS는 새 재생 코드의 통과 증거가 아닙니다.
 
 ## 실행 및 검증
 
@@ -30,7 +40,7 @@ StreamLab scheme과 iPhone Simulator를 선택해 실행합니다. SwiftUI @main
 
     ./scripts/verify-mac.sh
 
-Fixture → 구조 검사 → XcodeGen → 생성 프로젝트 검사 → Core 17개 → Simulator 빌드 → UI 11개 → 빌드 경고 검사 순서입니다. **개수는 소스 정의 수이며 현재 통과 수가 아닙니다.** 출력되는 Docs/Validation/.../RESULTS.txt 및 environment.txt를 보관하세요. UI 실패는 같은 폴더의 ui-tests.log / UITests.xcresult에서 확인합니다.
+Fixture → 구조 검사 → XcodeGen → 생성 프로젝트 검사 → Core 17개 → Simulator 빌드 → UI 14개 → 빌드 경고 검사 순서입니다. **개수는 소스 정의 수이며 현재 통과 수가 아닙니다.** 출력되는 Docs/Validation/.../RESULTS.txt 및 environment.txt를 보관하세요. UI 실패는 같은 폴더의 ui-tests.log / UITests.xcresult에서 확인합니다.
 
 Release 및 런타임 회귀:
 
@@ -42,7 +52,7 @@ Debug에서만 재현되는 경고를 확인하려면:
 
     CONFIGURATION=Debug ./scripts/check-runtime-mac.sh
 
-할당 호출 경로는 **StreamLab-Memory** Scheme으로 별도 수집합니다. `MallocStackLogging=1`이 Run/Profile에 적용됩니다. [메모리 진단 절차](Docs/MEMORY_DIAGNOSTICS.md)를 따르세요. 새 진단 Scheme의 실제 Xcode 실행은 아직 NOT TESTED입니다.
+할당 호출 경로는 **StreamLab-Memory** Scheme으로 별도 수집합니다. `MallocStackLogging=1`이 Run/Profile에 적용됩니다. [메모리 진단 절차](Docs/MEMORY_DIAGNOSTICS.md)를 따르세요. 사용자는 새 진단 Scheme에서 상세 왕복 후 누수 필터 목록이 비어 있다고 확인했습니다. 해당 범위만 PASS이며 전체 메모리 검증 완료를 뜻하지 않습니다.
 
 특정 Simulator는 SIMULATOR_ID=<UDID> 환경변수로 선택합니다. Debug에서만 --ui-test-slow-catalog 인자를 넣으면 Mock 응답을 4초로 늦춰 HUD·취소를 확인할 수 있습니다. 검사 뒤 제거하세요.
 

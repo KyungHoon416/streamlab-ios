@@ -3,10 +3,12 @@ import StreamLabDesignSystem
 
 @MainActor public struct DetailView: View {
     @StateObject private var model: CatalogScreenModel
-    @State private var showsPlaybackNotice = false
+    @State private var showsPlayback = false
+    private let session: CatalogSession
     @Environment(\.scenePhase) private var phase
 
     public init(id: String, session: CatalogSession) {
+        self.session = session
         _model = StateObject(wrappedValue: CatalogScreenModel(session: session, screen: .detail(id)))
     }
 
@@ -29,9 +31,9 @@ import StreamLabDesignSystem
                         .font(.subheadline).foregroundStyle(.secondary)
                     Text(title.synopsis).font(.body)
                     Text("오리지널 Mock 콘텐츠 · 실제 상용 영상이 아닙니다.").font(.callout).foregroundStyle(.secondary)
-                    Button { showsPlaybackNotice = true } label: { Label("재생 · Phase 2 예정", systemImage: "play.fill") }
+                    Button { showsPlayback = true } label: { Label("데모 영상 재생", systemImage: "play.fill") }
                         .buttonStyle(StreamLabButtonStyle())
-                        .accessibilityIdentifier("phase2-playback")
+                        .accessibilityIdentifier("playback-open")
                 }
                 if model.store.loading { ProgressView("콘텐츠를 불러오는 중…") }
                 if let error = model.store.errorMessage { Text(error).foregroundStyle(.secondary) }
@@ -43,10 +45,10 @@ import StreamLabDesignSystem
         .background(StreamLabTheme.background)
         .navigationTitle("콘텐츠 상세")
         .navigationBarTitleDisplayMode(.inline)
-        .alert("Phase 2 예정", isPresented: $showsPlaybackNotice) {
-            Button("확인", role: .cancel) {}
-        } message: {
-            Text("Phase 1은 탐색 기능을 제공합니다. 실제 영상 재생은 아직 구현되지 않았습니다.")
+        .fullScreenCover(isPresented: $showsPlayback) {
+            if let title = model.store.detail {
+                PlaybackView(titleID: title.id, title: title.name, session: session)
+            }
         }
         .onAppear { model.appear(phase: phase) }
         .onDisappear { model.disappear() }

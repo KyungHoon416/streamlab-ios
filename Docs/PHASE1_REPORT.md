@@ -89,3 +89,11 @@ Leaks 실행에서만 보고된 중복 이동도 원인 미확인이다. 정상 
 - README, 수동 QA, MEMORY_DIAGNOSTICS 갱신. 화면 디자인/Swift 앱 로직 변경 없음.
 - Linux에서 fixture/프로젝트 구조/파서/런타임 요약 회귀와 shell/XML/YAML 확인. iOS 빌드·실행을 대신하지 않음.
 - 누수 또는 glass 경고 해결 완료로 주장하지 않는다. Phase 2 진행 보류.
+
+
+## 2026-10-12 추가 증거 및 Phase 2 진행 승인
+
+- 사용자 RESULTS(20261012-064948).txt: Debug 60회 왕복 테스트 PASS(exit=0), 빌드 경고 0, 캡처한 실행에서 glassEffect 매칭 없음. 전체 수동 경로에서 해결됐다는 뜻은 아니다.
+- StreamLab-Memory 사용 후 사용자가 검색어를 지우고 누수 필터를 켜서 재확인했다. 상세 왕복 후 탐지 목록 없음: 사용자 확인 범위 PASS. 최초 Release 32B의 원인은 여전히 미확인이다.
+- 사용자가 위 상황을 확인한 뒤 Phase 2 기능 구현을 승인했다. Phase 1 전체 PASS로 바꾸지 않고 미해결 항목을 이월한다.
+- 새 재생 코드의 빌드/런타임/메모리 검증은 별도로 Docs/PHASE2_REPORT.md에 기록한다. Phase 1 결과를 재생 기능의 PASS로 재사용하지 않는다.

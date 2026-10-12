@@ -71,16 +71,70 @@ import XCTest
         }
     }
 
-    func testSwiftUIScreensAndPhase2Notice() {
+    func testSwiftUIScreensAndPlayback() {
         let app = launch()
         choose("adult-a", in: app)
         openHomeDetail(app)
-        tap(app.buttons["phase2-playback"], in: app)
-        XCTAssertTrue(app.alerts["Phase 2 예정"].waitForExistence(timeout: 3))
-        app.alerts.buttons["확인"].tap()
+        tap(app.buttons["playback-open"], in: app)
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("일시 정지", in: app)
+        tap(app.buttons["playback-forward"], in: app)
+        let time = app.staticTexts["playback-time"]
+        expectation(for: NSPredicate(format: "label MATCHES %@", "(1[0-9]|2[0-9]|30)초 / 30초"), evaluatedWith: time)
+        waitForExpectations(timeout: 10)
+        tap(app.buttons["playback-close"], in: app)
         back(app)
         tap(app.buttons["switch-profile"], in: app)
         choose("adult-b", in: app)
+    }
+
+    private func expectPlayback(_ status: String, in app: XCUIApplication) {
+        let label = app.staticTexts["playback-status"]
+        expectation(for: NSPredicate(format: "label == %@", status), evaluatedWith: label)
+        waitForExpectations(timeout: 15)
+    }
+
+    func testPlaybackRetryAfterMissingResource() {
+        let app = XCUIApplication()
+        app.launchArguments.append("--playback-missing-resource-once")
+        app.launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        tap(app.buttons["playback-open"], in: app)
+        tap(app.buttons["playback-retry"], in: app)
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-close"], in: app)
+    }
+
+    func testPlaybackCloseDuringAuthorizationAndReopenForKids() {
+        let app = launch(slow: true)
+        choose("kids-a", in: app)
+        openHomeDetail(app)
+        tap(app.buttons["playback-open"], in: app)
+        tap(app.buttons["playback-close"], in: app)
+        XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 5))
+        tap(app.buttons["playback-open"], in: app)
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-close"], in: app)
+        back(app)
+        tap(app.buttons["switch-profile"], in: app)
+        choose("adult-b", in: app)
+        XCTAssertFalse(app.buttons["playback-close"].exists)
+    }
+
+    func testPlaybackPausesAfterBackground() {
+        let app = launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        tap(app.buttons["playback-open"], in: app)
+        expectPlayback("재생 중", in: app)
+        XCUIDevice.shared.press(.home)
+        app.activate()
+        expectPlayback("일시 정지", in: app)
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-close"], in: app)
     }
 
     func testSearchPaginationAndProfileSwitch() {
@@ -112,7 +166,7 @@ import XCTest
         XCTAssertTrue(first.waitForExistence(timeout: 12))
         let firstID = first.identifier
         tap(first, in: app)
-        XCTAssertTrue(app.buttons["phase2-playback"].waitForExistence(timeout: 12))
+        XCTAssertTrue(app.buttons["playback-open"].waitForExistence(timeout: 12))
         back(app)
         expectCount(48, in: app)
         XCTAssertTrue(app.descendants(matching: .any).matching(identifier: firstID).firstMatch.waitForExistence(timeout: 5))
@@ -159,7 +213,7 @@ import XCTest
         let app = launch(slow: true)
         choose("adult-a", in: app)
         openHomeDetail(app)
-        XCTAssertTrue(app.buttons["phase2-playback"].waitForExistence(timeout: 12))
+        XCTAssertTrue(app.buttons["playback-open"].waitForExistence(timeout: 12))
         let retry = app.buttons["detail-retry"]
         let title = app.staticTexts["detail-title"]
         let loadedTitle = title.label
@@ -215,7 +269,7 @@ import XCTest
         choose("kids-a", in: app)
         try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .hitRegion])
         openHomeDetail(app)
-        XCTAssertTrue(app.buttons["phase2-playback"].waitForExistence(timeout: 12))
+        XCTAssertTrue(app.buttons["playback-open"].waitForExistence(timeout: 12))
         try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .hitRegion])
         back(app)
         app.tabBars.buttons["검색"].tap()
