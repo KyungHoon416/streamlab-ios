@@ -109,3 +109,11 @@ RESULTS(20261012-080504).txt는 fixtures/project-structure/bootstrap/generated-p
 - 상세 상단뿐 아니라 재조회 버튼에 도달할 때까지 스크롤한 화면도 동일한 dynamicType/textClipped/hitRegion audit을 수행한다. 하단 버튼 도달 여부를 검증한다.
 - API 확인: https://developer.apple.com/documentation/xcuiautomation/xcuiaccessibilityauditissue 및 https://developer.apple.com/documentation/xcuiautomation/xcuiapplication/performaccessibilityaudit(for:_:)
 - NOT TESTED: 후속 수정의 Xcode 빌드, Swift 6 타입/Concurrency 검사, Simulator 접근성 검사 및 전체 UI 회귀. 작성 환경에 swift/xcodebuild가 없어 실행하지 않았다.
+
+## 2026-10-13 08:52 KST 도달성 검사 실패
+
+- 사용자 로그: 4eca380 업데이트 후 testLargeTextAccessibilityAudit 1개 실행, 67.549초, 1개 실패. 실패는 line 345의 마지막 상세 버튼 도달성 assertion이다. 이번 요약에 textClipped 실패는 없지만, 모든 콘텐츠의 접근성 해결을 뜻하지 않는다.
+- 원인 구분: 상세 스크롤 문제인지 테스트 제스처/검사 간 레이아웃 변경 문제인지는 현재 로그만으로 확정할 수 없다. 기존 테스트는 앱 전체 swipeUp과 audit을 반복하며 실제 이동량을 기록하지 않았다.
+- 후속 변경: DetailView ScrollView에 detail-scroll 식별자 추가. 테스트는 내비게이션/탭 영역을 제외한 상세 viewport 안에서 목표 버튼 중심과의 차이만큼 드래그한다. 접근성 audit을 스크롤 루프와 분리하고 재생/나의 리스트/재조회 각각의 완전 노출 및 hittable을 확인한 뒤 audit을 실행한다. audit 실패를 무시하지 않는다.
+- DetailScroll 로그에 각 시도의 요소 frame, viewport, hittable을 남긴다. 도달 실패는 hierarchy/스크린샷 첨부와 XCTest 실패로 유지한다. 실제 앱 레이아웃과 터치 동작은 이 변경에서 수정하지 않는다.
+- NOT TESTED: 후속 변경의 Xcode 빌드/Swift 타입 검사/Simulator 테스트. Mac 재실행 필요. 이전 FAIL을 PASS로 변경하지 않는다.

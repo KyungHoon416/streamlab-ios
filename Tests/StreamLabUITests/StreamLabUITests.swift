@@ -297,6 +297,54 @@ import XCTest
         XCTAssertTrue(app.buttons["load-more"].isEnabled)
     }
 
+    private func revealDetailElement(_ element: XCUIElement, in app: XCUIApplication) -> Bool {
+        let scroll = app.scrollViews["detail-scroll"]
+        guard scroll.waitForExistence(timeout: 5), element.waitForExistence(timeout: 5) else {
+            XCTFail("Missing detail scroll container or checkpoint: \(element.identifier)")
+            return false
+        }
+
+        for attempt in 0...12 {
+            let scrollFrame = scroll.frame
+            var viewport = scrollFrame.intersection(app.frame)
+            if app.navigationBars.firstMatch.exists {
+                let top = max(viewport.minY, app.navigationBars.firstMatch.frame.maxY)
+                viewport = CGRect(x: viewport.minX, y: top, width: viewport.width,
+                                  height: max(0, viewport.maxY - top))
+            }
+            if app.tabBars.firstMatch.exists {
+                viewport.size.height = max(0, min(viewport.maxY, app.tabBars.firstMatch.frame.minY) - viewport.minY)
+            }
+            viewport = viewport.insetBy(dx: 8, dy: 8)
+            let frame = element.frame
+            print("[DetailScroll] \(element.identifier) attempt=\(attempt) frame=\(frame) viewport=\(viewport) hittable=\(element.isHittable)")
+            if viewport.contains(frame) && element.isHittable { return true }
+            guard attempt < 12, viewport.width > 0, viewport.height > 80 else { break }
+
+            // Keep both ends inside the visible content, away from navigation and tab bars.
+            let distance = min(viewport.height * 0.55, max(-viewport.height * 0.55, frame.midY - viewport.midY))
+            let startY = viewport.midY + distance / 2
+            let endY = viewport.midY - distance / 2
+            let origin = scroll.coordinate(withNormalizedOffset: .zero)
+            let start = origin.withOffset(CGVector(dx: viewport.midX - scrollFrame.minX,
+                                                   dy: startY - scrollFrame.minY))
+            let end = origin.withOffset(CGVector(dx: viewport.midX - scrollFrame.minX,
+                                                 dy: endY - scrollFrame.minY))
+            start.press(forDuration: 0.1, thenDragTo: end)
+        }
+
+        let hierarchy = XCTAttachment(string: app.debugDescription)
+        hierarchy.name = "Unreachable detail checkpoint - \(element.identifier)"
+        hierarchy.lifetime = .keepAlways
+        add(hierarchy)
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "Unreachable detail checkpoint screen"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+        XCTFail("Detail checkpoint must be fully visible and hittable at maximum text size: \(element.identifier), frame=\(element.frame)")
+        return false
+    }
+
     private func auditLargeText(_ app: XCUIApplication, screen: String) throws {
         let hierarchy = XCTAttachment(string: app.debugDescription)
         hierarchy.name = "\(screen) - Large text UI hierarchy"
@@ -332,17 +380,13 @@ import XCTest
         openHomeDetail(app)
         XCTAssertTrue(app.buttons["playback-open"].waitForExistence(timeout: 12))
         try auditLargeText(app, screen: "detail-top")
-        // Audit the scrolling content too: larger layouts must not move failures out of coverage.
-        let retry = app.buttons["detail-retry"]
-        for page in 1...8 {
-            let frame = retry.frame
-            let visibleBottom = app.tabBars.firstMatch.frame.minY
-            if retry.isHittable && frame.minY >= app.navigationBars.firstMatch.frame.maxY
-                && frame.maxY <= visibleBottom { break }
-            app.swipeUp()
-            try auditLargeText(app, screen: "detail-scroll-\(page)")
+        // Reach each checkpoint before auditing. Do not interleave audits with scroll gestures:
+        // audits can change text size/layout, so each checkpoint resolves fresh geometry.
+        for identifier in ["playback-open", "detail-my-list", "detail-retry"] {
+            let element = app.descendants(matching: .any).matching(identifier: identifier).firstMatch
+            guard revealDetailElement(element, in: app) else { return }
+            try auditLargeText(app, screen: identifier)
         }
-        XCTAssertTrue(retry.isHittable, "The last detail action must remain reachable at maximum text size.")
         back(app)
         app.tabBars.buttons["검색"].tap()
         expectCount(24, in: app)
