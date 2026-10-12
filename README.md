@@ -9,7 +9,10 @@
 - 구현: 프로필 3개, 히어로, 추천 레일 5개, 계속 시청, 검색, 상세, 커서 페이지네이션, 중앙 로딩.
 - Core의 2,000개 fixture, Repository 수준 키즈 등급 제한, 요청 세대·프로필·취소 검사를 재사용합니다.
 - 최신 사용자 Mac 결과: Fixture·구조·bootstrap·Core·Simulator 빌드·빌드 경고 검사 **PASS**.
-- UI 테스트 **7 PASS / 4 FAIL**: 검색 행 탐색 3개, 검색창 최대 글자 잘림 1개. 검색 접근성·레이아웃을 수정했으며 **수정 후 빌드/UI 재검증은 NOT TESTED**입니다.
+- 검색 접근성 수정 후 사용자 RESULTS(20261012-013429).txt에서 UI gate **PASS(exit=0)**. 개별 테스트 수는 해당 요약 파일에 없습니다.
+- 최대 글자·VoiceOver·작은 iPhone·iPad 세로/가로는 사용자 확인 범위 PASS. Allocations의 홈/상세 반복 후 Store/Model 각 1개 잔존, 21개 해제 확인.
+- 메모리 전체 완료는 보류: Instruments 시작 구간 32바이트 1개 원인 미확인. 별도 Debug Memory Graph 누수 목록은 사용자 확인상 비어 있습니다.
+- 이전 Release 60회 런타임 검사 PASS 이후 수동 Debug에서 glassEffect 경고가 재발했습니다. 사용자는 화면 이상 없이 콘솔에만 표시된다고 확인했습니다.
 - UIKit PASS는 새 UI의 PASS가 아닙니다. [현재 보고서](Docs/PHASE1_REPORT.md)와 [이력](Docs/Archive/UIKIT_PHASE1_REPORT.md)을 구분합니다.
 - **Phase 1 전체 완료 판정 보류**, Phase 2는 시작하지 않았습니다.
 
@@ -34,6 +37,12 @@ Release 및 런타임 회귀:
     ./scripts/check-runtime-mac.sh
 
 새 Release 제품으로 상세 ↔ 홈 60회, 20/40/60회 스크린샷, 앱 로그와 glassEffect 진단을 수집합니다. **UI 반복은 누수 측정이 아닙니다.** 로그 수집 실패나 선택 테스트 미실행은 PASS로 처리하지 않습니다.
+
+Debug에서만 재현되는 경고를 확인하려면:
+
+    CONFIGURATION=Debug ./scripts/check-runtime-mac.sh
+
+할당 호출 경로는 **StreamLab-Memory** Scheme으로 별도 수집합니다. `MallocStackLogging=1`이 Run/Profile에 적용됩니다. [메모리 진단 절차](Docs/MEMORY_DIAGNOSTICS.md)를 따르세요. 새 진단 Scheme의 실제 Xcode 실행은 아직 NOT TESTED입니다.
 
 특정 Simulator는 SIMULATOR_ID=<UDID> 환경변수로 선택합니다. Debug에서만 --ui-test-slow-catalog 인자를 넣으면 Mock 응답을 4초로 늦춰 HUD·취소를 확인할 수 있습니다. 검사 뒤 제거하세요.
 
@@ -70,4 +79,4 @@ onDisappear/비활성 scenePhase에서 요청을 중단합니다. 현재 화면�
 - 계속 시청은 샘플 진도이며 영속 저장/멀티디바이스 동기화는 미구현입니다.
 - 실제 재생, Player/Download 상태 머신, DRM Mock, 인증, 오프라인 큐, 카오스 전체는 이후 범위입니다.
 - 전체 과제의 필수 ADR: 충돌 처리 / 플레이어 수명주기 / 다운로드 캐시 정책은 후속 단계에서 작성합니다. 현재 문서 개수만으로 전체 산출물 완료라고 보지 않습니다.
-- SwiftUI VoiceOver, 최대 글자, Reduce Motion, 작은 iPhone/iPad, 런타임, Instruments를 다시 확인합니다. [수동 QA](Docs/PHASE1_MANUAL_QA.md).
+- VoiceOver·최대 글자·기기 레이아웃의 사용자 확인 범위와 남은 메모리/런타임 항목을 구분합니다. [수동 QA](Docs/PHASE1_MANUAL_QA.md).

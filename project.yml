@@ -73,3 +73,17 @@ schemes:
       config: Debug
       targets:
         - StreamLabUITests
+
+  # Opt-in allocation backtraces; keep normal runs/performance measurements separate.
+  StreamLab-Memory:
+    build:
+      targets:
+        StreamLab: all
+    run:
+      config: Debug
+      environmentVariables:
+        MallocStackLogging: "1"
+    profile:
+      config: Release
+      environmentVariables:
+        MallocStackLogging: "1"

@@ -1,6 +1,6 @@
 # SwiftUI Phase 1 수동 검증
 
-새 SwiftUI 기준 전 항목 **NOT TESTED**. [UIKit 이력](Archive/UIKIT_PHASE1_MANUAL_QA.md)은 별도다.
+SwiftUI 사용자 확인 결과는 아래에 기록한다. 명시하지 않은 시나리오는 **NOT TESTED**. [UIKit 이력](Archive/UIKIT_PHASE1_MANUAL_QA.md)은 별도다.
 Git SHA / Xcode / 기기 / iOS / 날짜 / 결과·증거를 기록한다.
 
 ## 기능·접근성
@@ -28,3 +28,17 @@ Git SHA / Xcode / 기기 / iOS / 날짜 / 결과·증거를 기록한다.
 
 ./scripts/verify-mac.sh 및 ./scripts/check-runtime-mac.sh.
 60회 UI 이동은 누수 측정이 아니다. glassEffect 발생 시 동작과 runtime-diagnostics.txt를 제출한다.
+
+
+## 2026-10-12 사용자 확인 기록
+
+- PASS: 최대 글자 홈/검색/상세 및 중앙 HUD, VoiceOver 낭독/활성화, 작은 iPhone 및 iPad 세로·가로의 확인 범위.
+- PASS: Allocations 반복 이동 후 CatalogStore/CatalogScreenModel 각 1 persistent, 21 transient.
+- PASS: 별도 Debug Memory Graph 누수 필터 목록 없음(사용자 보고, 캡처 시점 한정).
+- FAIL: Release Instruments 누수 0건 기준. 32바이트 1개, 최초 할당 경로 미확인. 후속 검사 No new leaks는 최초 누수 해제를 의미하지 않음.
+- FAIL: 수동 Debug 경고 없음 기준. glassEffect 재발, 사용자 확인상 화면 이상 없음.
+- NOT TESTED: 이번 기록에 없는 프로필 전환 누적 계측, 40/60회 객체 수, frame time 및 실기기.
+- NOT TESTED: 새 StreamLab-Memory Scheme 실행과 CONFIGURATION=Debug 자동 런타임 검사.
+
+다음 검증은 [메모리 진단](MEMORY_DIAGNOSTICS.md)의 호출 경로 수집과 Debug 런타임 기록이다.
+기존 대용량 trace 전체를 재전송하거나 원인 정보 없이 동일 반복을 계속할 필요는 없다.
