@@ -67,8 +67,9 @@ import StreamLabDesignSystem
 
     @ToolbarContentBuilder private var profileToolbar: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
-            Button(action: onSwitchProfile) { Label("프로필 변경", systemImage: "person.crop.circle") }
+            Button(action: onSwitchProfile) { Label(session.profile.displayName, systemImage: session.profile.avatarSymbol) }
                 .accessibilityLabel("프로필 변경")
+                .accessibilityValue(session.profile.displayName)
                 .accessibilityIdentifier("switch-profile")
         }
     }

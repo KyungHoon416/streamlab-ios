@@ -42,9 +42,16 @@ public struct CatalogPoster: View {
     public init(title: CatalogTitle) { self.title = title }
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            CatalogArtwork(title: title).frame(height: 180)
+            CatalogArtwork(title: title).frame(height: 220)
+                .overlay(alignment: .topLeading) {
+                    Text(title.typeLabel).font(.caption.bold())
+                        .padding(8).background(.black.opacity(0.65), in: Capsule())
+                        .padding(10)
+                }
             Text(title.name).font(.headline).fixedSize(horizontal: false, vertical: true)
             Text("\(title.year) · \(title.rating.rawValue)").font(.caption).foregroundStyle(.secondary)
+            Text(title.genre).font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(width: 160, alignment: .leading)
         .foregroundStyle(.white)
