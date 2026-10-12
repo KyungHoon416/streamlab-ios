@@ -89,3 +89,12 @@ RESULTS(20261012-080504).txt는 fixtures/project-structure/bootstrap/generated-p
 - UI 회귀 1개 추가: 저장 버튼이 상세를 열지 않음, 홈/상세 상태 공유, 프로필 분리, 재실행 유지, 제거. 총 정의 15개. 실제 실행 전 NOT TESTED.
 - PASS: Linux fixtures/구조 검사, 프로젝트 파서 2개, 런타임 요약 6개.
 - NOT TESTED: 새 Swift 코드 타입 검사·Xcode 빌드·15개 UI 테스트·저장 동작 수동 검증. 이전 버전 PASS와 구분.
+
+## 2026-10-13 최대 글자 상세 화면 회귀
+
+- 사용자 제공 RESULTS(20261012-085752).txt: fixtures, project structure, bootstrap, generated structure, Core, Simulator build, compiler warning audit PASS. UI suite FAIL.
+- StreamLab-UI-failure.zip 내부 SQLite: UI 15개 중 14개 성공, testLargeTextAccessibilityAudit 1개 실패. iPhone 17 Pro / iOS Simulator 26.4.1에서 상세 화면 audit의 Text clipped. 런타임 경고 없음이나 메모리 PASS로 확대 해석하지 않는다.
+- detailedDescription은 "Text of this element may be clipped at larger Dynamic Type sizes."이며 대상 요소 ID가 없다. 원본 이미지에는 큰 글자 상세 화면과 화면 하단에 일부만 노출된 나의 리스트 버튼이 보인다. 스크롤 경계에 걸린 것만으로 원인을 확정하지 않는다.
+- 수정: 상세 재생/재조회 및 공용 나의 리스트 Label의 Text가 여러 줄 높이를 확보하도록 fixedSize(horizontal: false, vertical: true) 적용. 상세 배지/소개/장르/대표 이미지 문구에도 세로 압축 방지.
+- 접근성 검사 전 UI hierarchy와 화면을 keepAlways 첨부한다. 기존 dynamicType/textClipped/hitRegion 검사와 실패 처리는 유지한다.
+- NOT TESTED: 이 수정의 Swift 타입 검사, Xcode 빌드 및 Simulator 접근성 재검증. 이 환경에는 Xcode가 없다. 원인 확정 및 해결 PASS는 재실행 증거가 필요하다.

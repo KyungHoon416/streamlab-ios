@@ -7,8 +7,12 @@ import StreamLabDomain
 
     var body: some View {
         Button { store.toggle(title) } label: {
-            Label(store.contains(title) ? "나의 리스트에서 제거" : "나의 리스트 추가",
-                  systemImage: store.contains(title) ? "checkmark" : "plus")
+            Label {
+                Text(store.contains(title) ? "나의 리스트에서 제거" : "나의 리스트 추가")
+                    .fixedSize(horizontal: false, vertical: true)
+            } icon: {
+                Image(systemName: store.contains(title) ? "checkmark" : "plus")
+            }
                 .font(.headline).multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .padding(.horizontal, 12).padding(.vertical, 4)

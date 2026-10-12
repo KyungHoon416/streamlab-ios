@@ -297,17 +297,30 @@ import XCTest
         XCTAssertTrue(app.buttons["load-more"].isEnabled)
     }
 
+    private func auditLargeText(_ app: XCUIApplication) throws {
+        let hierarchy = XCTAttachment(string: app.debugDescription)
+        hierarchy.name = "Large text UI hierarchy"
+        hierarchy.lifetime = .keepAlways
+        add(hierarchy)
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "Large text audit screen"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+        // Keep all audit failures visible; do not filter or ignore text clipping.
+        try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .hitRegion])
+    }
+
     func testLargeTextAccessibilityAudit() throws {
         let app = launch(largeText: true)
-        try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .hitRegion])
+        try auditLargeText(app)
         choose("kids-a", in: app)
-        try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .hitRegion])
+        try auditLargeText(app)
         openHomeDetail(app)
         XCTAssertTrue(app.buttons["playback-open"].waitForExistence(timeout: 12))
-        try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .hitRegion])
+        try auditLargeText(app)
         back(app)
         app.tabBars.buttons["검색"].tap()
         expectCount(24, in: app)
-        try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .hitRegion])
+        try auditLargeText(app)
     }
 }

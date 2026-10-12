@@ -24,6 +24,7 @@ import StreamLabDomain
                         .overlay(alignment: .bottomLeading) {
                             Text("STREAMLAB ORIGINAL")
                                 .font(.caption.bold()).tracking(2)
+                                .fixedSize(horizontal: false, vertical: true)
                                 .padding(16)
                         }
                 }
@@ -37,15 +38,23 @@ import StreamLabDomain
                         HStack(spacing: 10) { metadata(title) }
                         VStack(alignment: .leading, spacing: 10) { metadata(title) }
                     }
-                    Button { showsPlayback = true } label: { Label("데모 영상 재생", systemImage: "play.fill") }
+                    Button { showsPlayback = true } label: {
+                        Label {
+                            Text("데모 영상 재생")
+                                .fixedSize(horizontal: false, vertical: true)
+                        } icon: { Image(systemName: "play.fill") }
+                    }
                         .buttonStyle(StreamLabButtonStyle())
                         .accessibilityIdentifier("playback-open")
                     MyListButton(title: title, store: myList)
                         .accessibilityIdentifier("detail-my-list")
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("작품 소개").font(.title2.bold()).accessibilityAddTraits(.isHeader)
+                        Text("작품 소개").font(.title2.bold())
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityAddTraits(.isHeader)
                         Text(title.synopsis).font(.body).fixedSize(horizontal: false, vertical: true)
                         Text(title.genre).font(.subheadline).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(20).frame(maxWidth: .infinity, alignment: .leading)
                     .background(StreamLabTheme.surface, in: RoundedRectangle(cornerRadius: 18))
@@ -53,7 +62,12 @@ import StreamLabDomain
                         .font(.callout).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                Button { model.retry() } label: { Label("상세 정보 다시 불러오기", systemImage: "arrow.clockwise") }
+                Button { model.retry() } label: {
+                    Label {
+                        Text("상세 정보 다시 불러오기")
+                            .fixedSize(horizontal: false, vertical: true)
+                    } icon: { Image(systemName: "arrow.clockwise") }
+                }
                     .buttonStyle(.bordered)
                     .frame(minHeight: 44)
                     .disabled(model.store.loading)
@@ -81,6 +95,7 @@ import StreamLabDomain
 
     @ViewBuilder private func metadata(_ title: CatalogTitle) -> some View {
         Text(title.rating.rawValue).font(.subheadline.bold())
+            .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, 10).padding(.vertical, 6)
             .background(StreamLabTheme.surface, in: RoundedRectangle(cornerRadius: 6))
         Text("\(String(title.year)) · \(title.typeLabel) · \(title.durationMinutes)분")
