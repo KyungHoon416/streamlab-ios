@@ -297,30 +297,55 @@ import XCTest
         XCTAssertTrue(app.buttons["load-more"].isEnabled)
     }
 
-    private func auditLargeText(_ app: XCUIApplication) throws {
+    private func auditLargeText(_ app: XCUIApplication, screen: String) throws {
         let hierarchy = XCTAttachment(string: app.debugDescription)
-        hierarchy.name = "Large text UI hierarchy"
+        hierarchy.name = "\(screen) - Large text UI hierarchy"
         hierarchy.lifetime = .keepAlways
         add(hierarchy)
         let screenshot = XCTAttachment(screenshot: app.screenshot())
-        screenshot.name = "Large text audit screen"
+        screenshot.name = "\(screen) - Large text audit screen"
         screenshot.lifetime = .keepAlways
         add(screenshot)
         // Keep all audit failures visible; do not filter or ignore text clipping.
-        try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .hitRegion])
+        try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .hitRegion]) { issue in
+            var details = "[AccessibilityAudit] \(screen): \(issue.compactDescription)\n\(issue.detailedDescription)"
+            if let element = issue.element {
+                details += "\nidentifier=\(element.identifier)\nlabel=\(element.label)\nframe=\(element.frame)"
+                details += "\n\(element.debugDescription)"
+            } else {
+                details += "\nNo element supplied by XCTest."
+            }
+            print(details)
+            let attachment = XCTAttachment(string: details)
+            attachment.name = "\(screen) - Accessibility issue"
+            attachment.lifetime = .keepAlways
+            self.add(attachment)
+            return false // Record the failure; never accept or suppress an audit issue.
+        }
     }
 
     func testLargeTextAccessibilityAudit() throws {
         let app = launch(largeText: true)
-        try auditLargeText(app)
+        try auditLargeText(app, screen: "profiles")
         choose("kids-a", in: app)
-        try auditLargeText(app)
+        try auditLargeText(app, screen: "home")
         openHomeDetail(app)
         XCTAssertTrue(app.buttons["playback-open"].waitForExistence(timeout: 12))
-        try auditLargeText(app)
+        try auditLargeText(app, screen: "detail-top")
+        // Audit the scrolling content too: larger layouts must not move failures out of coverage.
+        let retry = app.buttons["detail-retry"]
+        for page in 1...8 {
+            let frame = retry.frame
+            let visibleBottom = app.tabBars.firstMatch.frame.minY
+            if retry.isHittable && frame.minY >= app.navigationBars.firstMatch.frame.maxY
+                && frame.maxY <= visibleBottom { break }
+            app.swipeUp()
+            try auditLargeText(app, screen: "detail-scroll-\(page)")
+        }
+        XCTAssertTrue(retry.isHittable, "The last detail action must remain reachable at maximum text size.")
         back(app)
         app.tabBars.buttons["검색"].tap()
         expectCount(24, in: app)
-        try auditLargeText(app)
+        try auditLargeText(app, screen: "search")
     }
 }

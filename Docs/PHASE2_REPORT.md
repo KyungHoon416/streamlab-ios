@@ -98,3 +98,14 @@ RESULTS(20261012-080504).txt는 fixtures/project-structure/bootstrap/generated-p
 - 수정: 상세 재생/재조회 및 공용 나의 리스트 Label의 Text가 여러 줄 높이를 확보하도록 fixedSize(horizontal: false, vertical: true) 적용. 상세 배지/소개/장르/대표 이미지 문구에도 세로 압축 방지.
 - 접근성 검사 전 UI hierarchy와 화면을 keepAlways 첨부한다. 기존 dynamicType/textClipped/hitRegion 검사와 실패 처리는 유지한다.
 - NOT TESTED: 이 수정의 Swift 타입 검사, Xcode 빌드 및 Simulator 접근성 재검증. 이 환경에는 Xcode가 없다. 원인 확정 및 해결 PASS는 재실행 증거가 필요하다.
+
+## 2026-10-13 08:35 KST 재검사 및 후속 조정
+
+- 증거: 사용자 첨부 StreamLab-LargeText-failure.zip, Test-StreamLab-2026.10.13_08-35-18-+0900.xcresult. 0da634b 적용 후 testLargeTextAccessibilityAudit 단독 실행, 24.948초, 1개 실패. 상세 audit의 Text clipped가 재현됐다. 기존 fixedSize 변경만으로 해결되지 않았다.
+- 이번 번들의 Data payload에서 상세 hierarchy와 audit 스크린샷을 추출해 확인했다. 실패 요약에는 여전히 대상 요소가 없다. 빌드 후 UI 테스트가 실행됐지만 이 선택 실행은 전체 Core/UI 통과 증거가 아니다.
+- 관찰: 재생 문구는 2줄 높이(125.3pt)를 확보한다. 메타정보는 가용 폭 362pt를 모두 사용한다. ORIGINAL 문구는 고정 높이 아트워크의 중앙 아이콘과 시각적으로 겹친다. 화면 아래 일부 노출된 저장 버튼만으로 textClipped 원인을 확정하지 않는다.
+- DetailView: 접근성 글자 크기에서 ORIGINAL 문구를 이미지 밖의 자연 높이 텍스트로 분리한다. 등급/연도/종류/시간을 각각 세로 배치하며 해당 크기에서는 ViewThatFits 가로 후보를 사용하지 않는다. 기본 글자 크기의 기존 배치는 유지한다. 원인 확정에 따른 최종 해결이 아닌 관찰된 레이아웃 위험 보완이다.
+- UITest: 각 화면 이름을 첨부 파일에 붙인다. issueHandler에서 compact/detailed description 및 제공되는 경우 element의 identifier/label/frame/debugDescription을 콘솔과 첨부에 남긴다. element가 nil이면 명시한다. 항상 false를 반환하여 기존 audit 실패를 보존한다.
+- 상세 상단뿐 아니라 재조회 버튼에 도달할 때까지 스크롤한 화면도 동일한 dynamicType/textClipped/hitRegion audit을 수행한다. 하단 버튼 도달 여부를 검증한다.
+- API 확인: https://developer.apple.com/documentation/xcuiautomation/xcuiaccessibilityauditissue 및 https://developer.apple.com/documentation/xcuiautomation/xcuiapplication/performaccessibilityaudit(for:_:)
+- NOT TESTED: 후속 수정의 Xcode 빌드, Swift 6 타입/Concurrency 검사, Simulator 접근성 검사 및 전체 UI 회귀. 작성 환경에 swift/xcodebuild가 없어 실행하지 않았다.

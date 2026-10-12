@@ -8,6 +8,7 @@ import StreamLabDomain
     @State private var showsPlayback = false
     private let session: CatalogSession
     @Environment(\.scenePhase) private var phase
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     public init(id: String, session: CatalogSession) {
         self.session = session
@@ -19,14 +20,16 @@ import StreamLabDomain
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 if let title = model.store.detail {
-                    CatalogArtwork(title: title)
-                        .frame(height: 230)
-                        .overlay(alignment: .bottomLeading) {
-                            Text("STREAMLAB ORIGINAL")
-                                .font(.caption.bold()).tracking(2)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .padding(16)
-                        }
+                    if dynamicTypeSize.isAccessibilitySize {
+                        CatalogArtwork(title: title).frame(height: 230)
+                        originalLabel
+                    } else {
+                        CatalogArtwork(title: title)
+                            .frame(height: 230)
+                            .overlay(alignment: .bottomLeading) {
+                                originalLabel.padding(16)
+                            }
+                    }
                 }
                 Text(model.store.detail?.name ?? (model.store.loading ? "불러오는 중…" : "콘텐츠를 열 수 없습니다"))
                     .font(.largeTitle.bold())
@@ -34,9 +37,23 @@ import StreamLabDomain
                     .accessibilityAddTraits(.isHeader)
                     .accessibilityIdentifier("detail-title")
                 if let title = model.store.detail {
-                    ViewThatFits(in: .horizontal) {
-                        HStack(spacing: 10) { metadata(title) }
-                        VStack(alignment: .leading, spacing: 10) { metadata(title) }
+                    if dynamicTypeSize.isAccessibilitySize {
+                        VStack(alignment: .leading, spacing: 10) {
+                            ratingBadge(title)
+                            Text(String(title.year))
+                                .accessibilityIdentifier("detail-year")
+                            Text(title.typeLabel)
+                                .accessibilityIdentifier("detail-type")
+                            Text("\(title.durationMinutes)분")
+                                .accessibilityIdentifier("detail-duration")
+                        }
+                        .font(.subheadline)
+                        .fixedSize(horizontal: false, vertical: true)
+                    } else {
+                        ViewThatFits(in: .horizontal) {
+                            HStack(spacing: 10) { metadata(title) }
+                            VStack(alignment: .leading, spacing: 10) { metadata(title) }
+                        }
                     }
                     Button { showsPlayback = true } label: {
                         Label {
@@ -93,11 +110,23 @@ import StreamLabDomain
         .onChange(of: phase) { _, value in model.setPhase(value) }
     }
 
-    @ViewBuilder private func metadata(_ title: CatalogTitle) -> some View {
+    private var originalLabel: some View {
+        Text("STREAMLAB ORIGINAL")
+            .font(.caption.bold()).tracking(2)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("detail-original")
+    }
+
+    private func ratingBadge(_ title: CatalogTitle) -> some View {
         Text(title.rating.rawValue).font(.subheadline.bold())
             .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, 10).padding(.vertical, 6)
             .background(StreamLabTheme.surface, in: RoundedRectangle(cornerRadius: 6))
+            .accessibilityIdentifier("detail-rating")
+    }
+
+    @ViewBuilder private func metadata(_ title: CatalogTitle) -> some View {
+        ratingBadge(title)
         Text("\(String(title.year)) · \(title.typeLabel) · \(title.durationMinutes)분")
             .font(.subheadline).foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
