@@ -33,7 +33,9 @@ import XCTest
     }
 
     private func searchRows(_ app: XCUIApplication) -> XCUIElementQuery {
-        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "search-title-"))
+        // SwiftUI NavigationLink may be exposed as a Link or another AX element.
+        // Resolve its stable identifier without assuming UIKit's Button type.
+        app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "search-title-"))
     }
 
     private func openHomeDetail(_ app: XCUIApplication) {
@@ -46,8 +48,10 @@ import XCTest
     }
 
     private func assertVisibleKidsRows(_ app: XCUIApplication) {
+        XCTAssertTrue(searchRows(app).firstMatch.waitForExistence(timeout: 12))
         XCTAssertGreaterThan(searchRows(app).count, 0)
         for row in searchRows(app).allElementsBoundByIndex {
+            XCTAssertTrue(row.label.contains("ALL") || row.label.contains("7+"), "Missing allowed rating: \(row.label)")
             for forbidden in ["12+", "15+", "19+"] {
                 XCTAssertFalse(row.label.contains(forbidden))
             }
@@ -93,7 +97,7 @@ import XCTest
         choose("kids-a", in: app)
         app.tabBars.buttons["검색"].tap()
         expectCount(24, in: app)
-        XCTAssertEqual(app.textFields["catalog-search-field"].value as? String, "제목 또는 장르 검색")
+        XCTAssertEqual(app.textFields["catalog-search-field"].value as? String, "검색어")
         assertVisibleKidsRows(app)
     }
 
@@ -105,12 +109,13 @@ import XCTest
         tap(app.buttons["load-more"], in: app)
         expectCount(48, in: app)
         let first = searchRows(app).firstMatch
+        XCTAssertTrue(first.waitForExistence(timeout: 12))
         let firstID = first.identifier
         tap(first, in: app)
         XCTAssertTrue(app.buttons["phase2-playback"].waitForExistence(timeout: 12))
         back(app)
         expectCount(48, in: app)
-        XCTAssertTrue(app.buttons[firstID].exists)
+        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: firstID).firstMatch.waitForExistence(timeout: 5))
         app.tabBars.buttons["홈"].tap()
         app.tabBars.buttons["검색"].tap()
         expectCount(48, in: app)

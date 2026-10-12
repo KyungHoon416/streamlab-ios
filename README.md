@@ -8,8 +8,8 @@
 
 - 구현: 프로필 3개, 히어로, 추천 레일 5개, 계속 시청, 검색, 상세, 커서 페이지네이션, 중앙 로딩.
 - Core의 2,000개 fixture, Repository 수준 키즈 등급 제한, 요청 세대·프로필·취소 검사를 재사용합니다.
-- 사용자 Mac 검증(e9dfba1): Fixture·구조·bootstrap·Core **PASS**, Simulator 빌드 **FAIL**(ObservableObject 격리 충돌).
-- 해당 관찰 코드를 @Published 기반으로 수정했습니다. **수정 후 Xcode 빌드·UI·접근성·Instruments: NOT TESTED.**
+- 최신 사용자 Mac 결과: Fixture·구조·bootstrap·Core·Simulator 빌드·빌드 경고 검사 **PASS**.
+- UI 테스트 **7 PASS / 4 FAIL**: 검색 행 탐색 3개, 검색창 최대 글자 잘림 1개. 검색 접근성·레이아웃을 수정했으며 **수정 후 빌드/UI 재검증은 NOT TESTED**입니다.
 - UIKit PASS는 새 UI의 PASS가 아닙니다. [현재 보고서](Docs/PHASE1_REPORT.md)와 [이력](Docs/Archive/UIKIT_PHASE1_REPORT.md)을 구분합니다.
 - **Phase 1 전체 완료 판정 보류**, Phase 2는 시작하지 않았습니다.
 

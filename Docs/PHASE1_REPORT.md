@@ -1,7 +1,7 @@
 # Phase 1 — SwiftUI 전환 보고서
 
 2026-10-12 사용자 요청. UIKit 기준선 a2ecc89.
-**SwiftUI 전환 후 첫 빌드 FAIL → 관찰 코드 수정 / 수정 후 빌드·iOS 실행 NOT TESTED / Phase 1 전체 완료 보류.**
+**사용자 Mac 빌드·경고 검사 PASS / UI 7 PASS·4 FAIL → 검색 접근성 수정 / 수정 후 재검증 NOT TESTED / Phase 1 전체 완료 보류.**
 
 ## 변경
 
@@ -25,8 +25,9 @@
 | Shell syntax | PASS | Mac 스크립트 문법 |
 | Core gate (정의 17개) | PASS | 사용자 RESULTS(8).txt: core exit=0; 개별 테스트 로그 미첨부 |
 | SwiftUI 최초 빌드 | FAIL | e9dfba1, simulator-build exit=65, ConformanceIsolation |
-| 수정 후 빌드·경고 | NOT TESTED | 이 호스트 Xcode 없음; Mac 재실행 필요 |
-| UI 11개 | NOT TESTED | Simulator 없음 |
+| 관찰 수정 후 빌드·경고 | PASS | 사용자 RESULTS(9).txt: simulator-build / warning-free exit=0 |
+| 검색 접근성 수정 후 빌드·UI | NOT TESTED | 이번 변경은 Mac 재실행 필요 |
+| UI 11개 | FAIL | ui-tests(2).log: 7 PASS, 4 FAIL, exit=65 |
 | VoiceOver·Dynamic Type·기기 | NOT TESTED | 새 검사 필요 |
 | Release·런타임 glassEffect | NOT TESTED | 새 로그 필요 |
 | Instruments·프레임 타임 | NOT TESTED | UIKit 수치 전용하지 않음 |
@@ -46,3 +47,11 @@ Mac에서 ./scripts/verify-mac.sh && ./scripts/check-runtime-mac.sh 실행 후 R
 Fixture, project-structure, bootstrap, generated-project-structure, Core는 PASS. Simulator 빌드는 arm64/x86_64 모두 CatalogScreenModel의 명시적 objectWillChange가 ObservableObject의 nonisolated 요구사항과 충돌하여 FAIL(exit=65). UI와 warning-free는 실행되지 않아 NOT TESTED.
 
 CatalogScreenModel의 직접 publisher 선언/전송을 제거하고 @Published private revision으로 Core 변경을 전달한다. MainActor 상태 변경과 weak self 콜백을 유지한다. README와 ADR-0006을 함께 갱신했다. 오류를 숨기는 설정 변경은 없다. 수정 후 실제 컴파일·화면 갱신은 verify-mac.sh와 check-runtime-mac.sh로 확인해야 한다.
+
+## 검색 접근성 후속 수정 — RESULTS(9), ui-tests(2)
+
+사용자 로그: 11개 실행, 4개 실패. 검색 결과 수 24/48 검사는 통과했으나 Button 타입으로 제한한 검색 행 쿼리가 0개를 반환하여 키즈 전환 2개와 상세/탭 페이지 보존 1개가 실패했다. 실제 AX 타입은 텍스트 로그에 없어 확정하지 않는다. NavigationLink의 자식 접근성을 combine하고 버튼 trait을 명시했으며, 테스트는 element type 대신 고유 ID로 탐색하고 존재를 기다린다. 키즈 행에 ALL/7+ 등급이 명시되는지 양방향으로 검사한다.
+
+최대 글자 감사 실패는 검색 화면 catalog-search-field의 Text clipped로 보고되었다. 긴 안내를 줄바꿈 가능한 별도 Text로 옮기고 입력 placeholder를 검색어로 줄였다. 입력 높이는 폰트에 맞춰 확장하고 기존 접근성 이름을 유지한다. 감사 항목을 제외하거나 실패를 무시하지 않는다.
+
+통과한 7개: 시작/재실행, SwiftUI 화면·Phase2 안내, 상세 재시도, 페이지 HUD, 백그라운드 페이지 재개, 상세 20회, 상세 60회. 마지막 테스트 이름에 Release가 있으나 이번 실행은 Debug UI 검증이므로 Release 런타임 또는 메모리 PASS로 해석하지 않는다. 이번 검색 수정 후 실제 Xcode 빌드·UI 테스트는 NOT TESTED다.

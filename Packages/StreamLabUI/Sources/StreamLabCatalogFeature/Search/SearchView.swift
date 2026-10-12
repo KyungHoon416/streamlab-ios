@@ -13,9 +13,18 @@ import StreamLabDesignSystem
 
     public var body: some View {
         VStack(spacing: 12) {
+            Text("제목 또는 장르 검색")
+                .font(.subheadline)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
             HStack {
                 Image(systemName: "magnifyingglass").accessibilityHidden(true)
-                TextField("제목 또는 장르 검색", text: $query)
+                TextField("검색어", text: $query)
+                    .font(.body)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .layoutPriority(1)
+                    .accessibilityLabel("제목 또는 장르 검색")
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .submitLabel(.search)
@@ -27,6 +36,7 @@ import StreamLabDesignSystem
                 }
             }
             .padding(.horizontal, 12)
+            .padding(.vertical, 8)
             .frame(minHeight: 52)
             .background(StreamLabTheme.surface, in: RoundedRectangle(cornerRadius: 12))
             .padding(.horizontal)
@@ -52,7 +62,8 @@ import StreamLabDesignSystem
                             .background(StreamLabTheme.surface, in: RoundedRectangle(cornerRadius: 14))
                         }
                         .buttonStyle(.plain)
-                        .accessibilityElement(children: .ignore)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityAddTraits(.isButton)
                         .accessibilityLabel("\(title.name), \(title.rating.rawValue), \(title.genre)")
                         .accessibilityIdentifier("search-title-\(title.id)")
                     }
