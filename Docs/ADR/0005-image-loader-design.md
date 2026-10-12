@@ -1,3 +1,5 @@
+> Current UI: SwiftUI (ADR-0006). Network loading remains proposed. Apply identity/cancellation to view tasks; earlier UIKit cell examples are historical context.
+
 # ADR-0005 — Future asynchronous image loading
 
 Status: Proposed, not implemented. Phase 1 uses local artwork.

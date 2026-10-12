@@ -1,3 +1,5 @@
+> Historical: superseded by ADR-0006 on 2026-10-12. UIKit/Storyboard is no longer active.
+
 # ADR-0004 — UIKit and Storyboard instead of SwiftUI
 
 Status: Accepted, user instruction 2026-10-10. Supersedes SwiftUI/UI-tree references in ADRs 0001–0003.

@@ -1,204 +1,72 @@
-# StreamLab — Phase 1 iOS Starter
+# StreamLab — SwiftUI Phase 1
 
-> Unofficial learning/portfolio project. Not a Netflix recruiting task, product, API client, or affiliated project.
+비공식 학습·포트폴리오 프로젝트입니다. Netflix 공식 채용 과제나 제품이 아닙니다.
 
-This repository is a **Swift 6 / iOS 18+** UIKit + Storyboard streaming app with a portable, fully offline fixture repository. It implements **Phase 1 only** (profiles + catalog + discovery). It does **not** stream actual video yet.
+**Swift 6 / iOS 18+ / SwiftUI** 오프라인 카탈로그 앱입니다. 원문 Netflix_iOS_과제.docx의 SwiftUI 조건에 맞춰 2026-10-12 UIKit 버전을 전환했습니다. 실제 AVPlayer 재생·동기화·다운로드는 Phase 2 이후이며 현재 재생 버튼은 “Phase 2 예정” 안내를 표시합니다.
 
-## Current validation status (2026-10-12)
+## 현재 상태
 
-**New navigation mitigation awaits Mac verification.** Native bar-item shared backgrounds are disabled on iOS 26+, duplicate detail pushes are guarded, and the UI suite now has 10 tests. Run `./scripts/verify-mac.sh && ./scripts/check-runtime-mac.sh` for current Debug and fresh Release/60-cycle checks. Historical PASS results below predate this code change. Runtime diagnostics and full memory acceptance remain pending.
+- 구현: 프로필 3개, 히어로, 추천 레일 5개, 계속 시청, 검색, 상세, 커서 페이지네이션, 중앙 로딩.
+- Core의 2,000개 fixture, Repository 수준 키즈 등급 제한, 요청 세대·프로필·취소 검사를 재사용합니다.
+- **SwiftUI 버전 Xcode 빌드·Core/UI 실행·접근성·Instruments: NOT TESTED.**
+- UIKit PASS는 새 UI의 PASS가 아닙니다. [현재 보고서](Docs/PHASE1_REPORT.md)와 [이력](Docs/Archive/UIKIT_PHASE1_REPORT.md)을 구분합니다.
+- **Phase 1 전체 완료 판정 보류**, Phase 2는 시작하지 않았습니다.
 
-Latest supplied Mac `RESULTS(7).txt`: **all eight automated gates PASS**, including Core, Simulator build, UI tests and build warning checks. Manual VoiceOver, maximum-text retry/HUD and compact/iPad layout checks are **PASS by user report**. A 20-cycle Allocations capture shows **2 persistent CatalogStore objects, 36 released**; the received trace ZIP passed integrity checks. Native trace replay is unavailable on the analysis host.
+## 실행 및 검증
 
-**Phase 1 is not signed off; Phase 2 remains deferred.** Back-navigation `glassEffect()` runtime warning remains unresolved. Longer memory series, profile-switch memory checks and successful Leaks analysis remain NOT TESTED. See [latest evidence and limits](Docs/PHASE1_REPORT.md); older entries below are historical.
+Mac, Swift 6 / iOS 18 SDK를 지원하는 Xcode와 XcodeGen이 필요합니다. 사용자 환경은 Xcode 27.0 / Swift 6.4입니다. 변경을 작성한 호스트에는 Xcode·Swift가 없습니다.
 
-Run `./scripts/verify-mac.sh` for a consolidated automated result, then follow [remaining manual checks](Docs/PHASE1_MANUAL_QA.md). Reports include warning text; a successful script exit certifies only its automated checks. See [acceptance matrix](Docs/PHASE1_SPEC.md) and [future image loader design](Docs/ADR/0005-image-loader-design.md).
+    brew install xcodegen
+    ./scripts/bootstrap-mac.sh
+    open StreamLab.xcodeproj
 
-## What works in Phase 1
+StreamLab scheme과 iPhone Simulator를 선택해 실행합니다. SwiftUI @main App → WindowGroup으로 시작하며 Storyboard/SceneDelegate가 없습니다. XcodeGen이 없으면 위 첫 명령으로 설치합니다.
 
-- Three profiles (`Alex`, `Jamie`, `Kids`); changing profiles rebuilds feature UI.
-- Exactly **2,000 deterministic** original/sample metadata items in bundled `catalog.json`.
-- Profile-scoped five content rails and profile-scoped sample Continue Watching.
-- Kids entitlement filter enforced at **repository** boundary, including direct `detail()` lookup.
-- Cursor paging with no duplicated IDs, strict page-size validation and invalid cursor rejection.
-- Search debouncing, cancellation and generation checks for out-of-order results.
-- Offline poster artwork rendered via UIKit (no unauthorized image downloads).
-- Accessible buttons, labels, dynamic text; dark mode first.
-- Core Swift Testing suite: seven repository tests and ten state/race tests; ten UI tests (execution status: `Docs/PHASE1_REPORT.md`).
+전체 자동 검증:
 
-## Requirements
+    ./scripts/verify-mac.sh
 
-- Mac with a recent stable Xcode version that supports **Swift 6 + iOS 18 SDK**.
-- iOS 18+ simulator or device.
-- [XcodeGen](https://github.com/yonaskolb/XcodeGen) to turn `project.yml` into an Xcode project.
-- Homebrew recommended for installation, optional if XcodeGen already installed.
+Fixture → 구조 검사 → XcodeGen → 생성 프로젝트 검사 → Core 17개 → Simulator 빌드 → UI 11개 → 빌드 경고 검사 순서입니다. **개수는 소스 정의 수이며 현재 통과 수가 아닙니다.** 출력되는 Docs/Validation/.../RESULTS.txt 및 environment.txt를 보관하세요. UI 실패는 같은 폴더의 ui-tests.log / UITests.xcresult에서 확인합니다.
 
-## First run on Mac
+Release 및 런타임 회귀:
 
-```bash
-# unzip and enter the StreamLab-Phase1 directory
-xcode-select -p
-xcodebuild -version
-brew install xcodegen
-./scripts/bootstrap-mac.sh
-open StreamLab.xcodeproj
-```
+    ./scripts/check-runtime-mac.sh
 
-In Xcode choose the **StreamLab** scheme and an iPhone simulator; press **Cmd+R**.
+새 Release 제품으로 상세 ↔ 홈 60회, 20/40/60회 스크린샷, 앱 로그와 glassEffect 진단을 수집합니다. **UI 반복은 누수 측정이 아닙니다.** 로그 수집 실패나 선택 테스트 미실행은 PASS로 처리하지 않습니다.
 
-Command-line build (simulator):
+특정 Simulator는 SIMULATOR_ID=<UDID> 환경변수로 선택합니다. Debug에서만 --ui-test-slow-catalog 인자를 넣으면 Mock 응답을 4초로 늦춰 HUD·취소를 확인할 수 있습니다. 검사 뒤 제거하세요.
 
-```bash
-xcodebuild \
-  -project StreamLab.xcodeproj \
-  -scheme StreamLab \
-  -configuration Debug \
-  -sdk iphonesimulator \
-  -destination 'generic/platform=iOS Simulator' \
-  CODE_SIGNING_ALLOWED=NO build
-```
+업데이트가 로컬 생성 프로젝트 변경으로 막히면 git status와 diff를 먼저 확인합니다. 소스를 일괄 discard하지 않습니다. 생성된 파일만 백업하려면:
 
-If device signing fails, replace demo bundle ID and select your development team in Xcode. `project.yml` contains a placeholder `com.example.streamlab.demo` ID.
+    git stash push -m "Backup generated Xcode project before SwiftUI migration" -- StreamLab.xcodeproj/project.pbxproj StreamLab.xcodeproj/xcshareddata/xcschemes/StreamLab.xcscheme
+    git pull --ff-only --no-rebase origin main
+    ./scripts/bootstrap-mac.sh
 
-## Fast portable core tests
+이전 UIKit 프로젝트 설정을 새 프로젝트에 그대로 stash pop하지 말고 필요한 개인 설정만 확인해서 옮기세요.
 
-```bash
-cd Packages/StreamLabCore
-swift test
-```
+## 폴더 구조
 
-The `StreamLabCore` package uses only Foundation and Swift Testing, allowing its unit tests to run without UIKit, SwiftUI, or a simulator.
+- App/Application/StreamLabApp.swift: SwiftUI 진입점.
+- App/Scene/AppRootView.swift: 프로필, 세션 교체, 탭, NavigationStack.
+- Packages/StreamLabUI/Sources/StreamLabProfileFeature/Profile/: 프로필.
+- Packages/StreamLabUI/Sources/StreamLabCatalogFeature/: Home, Search, Detail, State.
+- Packages/StreamLabUI/Sources/StreamLabDesignSystem/Theme/: 테마, 포스터, 버튼, HUD.
+- Packages/StreamLabCore/: Domain, actor MockRepository, MainActor CatalogStore, fixture, 테스트.
+- Tests/StreamLabUITests/: 화면·프로필·페이지·접근성·백그라운드·반복 이동.
+- Docs/ADR/: 설계 결정. [ADR-0006](Docs/ADR/0006-swiftui-migration.md)이 UIKit ADR-0004를 대체합니다.
 
-## Module boundaries
+## 상태와 수명주기
 
-```text
-App (UIKit + Storyboard, XcodeGen)
-  |-- StreamLabProfileFeature --> StreamLabDesignSystem --> StreamLabDomain
-  |-- StreamLabCatalogFeature --> StreamLabDesignSystem --> StreamLabDomain
-  |-- StreamLabCatalogData -------------------------------> StreamLabDomain
-```
+화면마다 @StateObject CatalogScreenModel을 소유합니다. 어댑터가 Foundation 기반 CatalogStore의 변경을 SwiftUI에 전달합니다. Core는 SwiftUI/Combine에 의존하지 않습니다.
 
-- `StreamLabDomain`: `Sendable` entities, profile policy, pagination models, and the repository protocol.
-- `StreamLabCatalogData`: actor-based deterministic offline fixture repository.
-- `StreamLabDesignSystem`: static gradients/poster illustrations, reusable poster cards.
-- `StreamLabProfileFeature`: select Adult A / Adult B / Kids.
-- `StreamLabCatalogFeature`: Home, Search and Detail with cancellation-sensitive state.
-- `App`: UIKit app, explicit scene registration, dependency composition and profile session.
+선택마다 새 UUID의 CatalogSession을 만듭니다. 프로필 전환 시 이전 세션의 살아 있는 Store를 먼저 동기적으로 무효화하고, .id(session.id)로 탐색 경로·검색어·화면을 새로 만듭니다. 세션 레지스트리는 Store를 약하게 참조합니다.
 
-No external packages are used in SwiftPM; `XcodeGen` is a Mac-side **project generator**, not a runtime dependency.
+onDisappear/비활성 scenePhase에서 요청을 중단합니다. 현재 화면만 active 복귀 시 재개하며 받은 검색 페이지·커서는 유지합니다. 상세 조회도 Repository 권한 검사를 거칩니다.
 
-## Product flow
+## 남은 범위
 
-1. Launch → select Alex/Jamie/Kids.
-2. Home → hero, five rails, per-profile Continue Watching.
-3. Tap card → Detail, playback button explicitly explains Phase 2.
-4. Search tab → type quickly; old requests must not overwrite latest.
-5. Tap profile toolbar button to switch; old feature state is discarded.
-
-## Phase boundary (not built yet)
-
-- Real HLS/AVPlayer playback and player state machine
-- Persistent user progress, server-revision sync, offline mutation queue
-- Auth, Keychain, 401/409/429 handling, DRM mock
-- HLS Download + cache quota and recovery
-- Instruments performance measurements and ten chaos scenarios
-
-Do not represent placeholders as implemented. README proof and risk notes: `Docs/PHASE1_REPORT.md`.
-
-## Important scope and licensing
-
-The content titles/metadata are programmatically fabricated and posters are local SF Symbols and gradients. No Netflix media, logos or APIs are bundled. There are no backend calls and no networking requirement to browse fixtures. The next phase can use legally licensed public test HLS URLs with licensing documented.
-
-## Suggested commit sequence
-
-1. `chore: bootstrap iOS app and Swift packages`
-2. `feat: add domain types and 2000 deterministic fixtures`
-3. `feat: implement profile, home, search and detail`
-4. `test: verify catalog paging and profile authorization`
-5. `docs: add ADRs and Phase 1 validation report`
-
-## 화면별 폴더 구성
-
-기능별로 컨트롤러와 Storyboard를 같은 폴더에 배치했습니다. 각 Storyboard는 해당 SwiftPM 모듈의 리소스로 등록되며, `instantiate()`가 `Bundle.module`에서 로드합니다.
-
-| 폴더 | 내용 |
-|---|---|
-| App/Application | AppDelegate.swift |
-| App/Configuration | Info.plist — 명시적 SceneDelegate 등록 |
-| App/Scene | SceneDelegate.swift — 프로필 세션·화면 전환 |
-| Packages/StreamLabUI/Sources/StreamLabProfileFeature/Profile | ProfileViewController.swift + Profile.storyboard |
-| Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Home | HomeViewController.swift + Home.storyboard |
-| Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Search | SearchViewController.swift + Search.storyboard |
-| Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Detail | DetailViewController.swift + Detail.storyboard |
-| Packages/StreamLabUI/Sources/StreamLabDesignSystem/Theme | 공통 색상·폰트·버튼 스타일 |
-| Packages/StreamLabUI/Sources/StreamLabDesignSystem/Cells | PosterCell.swift |
-| Packages/StreamLabUI/Sources/StreamLabDesignSystem/Headers | RailHeader.swift |
-| Packages/StreamLabCore/Sources/StreamLabDomain/Models | 데이터 모델·Repository 계약 |
-| Packages/StreamLabCore/Sources/StreamLabCatalogData/Repositories | MockCatalogRepository.swift |
-| Packages/StreamLabCore/Sources/StreamLabCatalogData/Resources | catalog.json, 2,000개 원본 Fixture |
-| Packages/StreamLabCore/Sources/StreamLabPresentation/Stores | CatalogStore.swift |
-| Packages/StreamLabCore/Tests | Repository·상태 관리 테스트 |
-| Tests/StreamLabUITests | UI 테스트 |
-| Docs | 사양·설계 결정·변경 목록·검증 보고서 |
-| scripts | 프로젝트 생성·검증 스크립트 |
-
-Xcode의 Package Dependencies에서 로컬 패키지를 펼치면 화면 폴더를 확인할 수 있습니다. Finder의 실제 디렉터리도 동일하게 분리했습니다. 폴더 재구성 후의 SwiftPM 리소스 컴파일/Storyboard 로딩은 아직 Mac에서 검증하지 않았습니다.
-
-GitHub 저장소: https://github.com/KyungHoon416/streamlab-ios
-
-## 검은 시작 화면 진단
-
-`App/Configuration/Info.plist`가 SceneDelegate를 명시적으로 등록합니다. 업데이트 후 `./scripts/bootstrap-mac.sh`로 프로젝트를 생성하고 Xcode에서 실행을 중지한 뒤 다시 실행하세요. 계속 검은 화면이면 Debug Console의 `[Startup]` 로그와 첫 예외 메시지를 공유해 주세요. 로그는 앱 시작 → Scene 연결 → Profile.storyboard 로드 → 루트 화면 설치 → 창 표시 순서입니다.
-
-이 변경의 설정·XML 정적 검사는 수행했지만, Xcode 빌드와 Simulator 실행은 이 Linux 환경에서 **NOT TESTED**입니다. 실제 실행 성공을 의미하지 않습니다.
-
-
-### Profiles 식별자 조회 크래시 수정 (2026-10-11)
-
-`Profile.storyboard` 로딩 중 `doesn't contain a view controller with identifier 'Profiles'`가 발생한 실행 로그를 확인했습니다. 네 Storyboard의 누락된 `sceneMemberID="viewController"` 속성을 추가하고 정적 검사를 보강했습니다. 업데이트 후 Xcode의 **Product > Clean Build Folder**를 실행하고 다시 Run하여 Storyboard 리소스를 재컴파일하세요. 수정 후 Simulator 실행은 아직 NOT TESTED입니다.
-
-### 탐색 상태 유지
-
-같은 프로필에서 상세 화면을 다녀오거나 홈/검색 탭을 전환해도 완료된 검색 결과와 페이지 수를 유지합니다. 화면 이탈 시 진행 중 요청은 취소하고, 복귀 시 중단된 요청을 재개합니다. 프로필 변경 시에는 이전 프로필 데이터와 재개할 요청을 모두 비웁니다.
-
-2026-10-11 사용자 Simulator 캡처·로그로 프로필 첫 화면 표시를 확인했습니다. 홈·검색·상세 전환과 자동 테스트는 별도 실행 검증이 필요합니다.
-
-## Phase 1.1 — 검증 및 안정화
-
-중앙 로딩 동작은 사용자 수동 확인 PASS입니다. 이번 버전은 홈 탭 이름을 고정하고, 중앙 로딩 표시 및 로딩 중 프로필 전환 UI 테스트를 추가합니다. Core 17개 / UI 8개는 테스트 소스 개수이며, 실행 성공 개수가 아닙니다.
-
-Mac에서 프로젝트 루트에서 실행하세요:
-
-```bash
-./scripts/verify-mac.sh
-```
-
-실행별 `Docs/Validation/<실행 ID>/`에 `RESULTS.txt`, 명령별 로그, 환경·커밋 정보, 빌드 및 UI 테스트 `.xcresult`를 저장합니다. 검사 종료 코드를 기록하며 미실행 항목은 NOT TESTED로 표시합니다. 기본적으로 실행 중인 iPhone Simulator를 우선 선택합니다. 특정 기기는 `SIMULATOR_ID=<UDID> ./scripts/verify-mac.sh`로 지정하세요. 스크립트는 XcodeGen으로 프로젝트를 다시 생성하므로 별도 프로젝트 설정 변경은 project.yml에 반영하세요.
-
-UI 테스트의 `--ui-test-slow-catalog` 인수는 DEBUG 빌드에서만 Mock 응답을 2초로 늦춰 로딩 상태를 관찰하게 합니다. 일반 실행과 Release 응답 속도는 변경하지 않습니다. 실제 플레이어 개발은 Phase 1 검증 결과와 미해결 항목을 정리한 뒤 진행합니다.
-
-### Xcode 27 / Swift 6.4 validation follow-up (2026-10-11)
-
-The supplied Mac RESULTS.txt at 59d5cd2 reports simulator-build and ui-tests PASS, but project-structure and core FAIL. The structure checker now resolves XcodeGen group-relative paths and build-phase membership instead of matching serialized strings. The Core lifetime test now uses a weak capture probe to avoid Swift 6.4's never-mutated local weak-variable diagnostic; warnings-as-errors remain enabled. Run `git pull --ff-only origin main` then `./scripts/verify-mac.sh` again. The verifier also checks the regenerated project after bootstrap. Post-fix Apple tests remain NOT TESTED until that run; results are under `Docs/Validation/<timestamp>-<suffix>/RESULTS.txt`.
-
-Latest supplied Mac evidence (5bc2bae, 2026-10-11 17:19 KST): project structure before/after XcodeGen PASS; Simulator build PASS; UI tests 8/8 PASS. Core is blocked at code signing by extended attributes on generated test bundles; Core execution is not yet verified. See `Docs/PHASE1_REPORT.md` for targeted recovery. Manual VoiceOver, Instruments and remaining build-tool warnings are still open.
-
-Core follow-up (2026-10-11 18:07 KST): supplied `core-fresh.log` confirms **17/17 Swift Testing tests PASS, exit 0**, with no compiler warnings shown in the fresh build. Together with the earlier **8/8 UI tests PASS**, the recorded automated suites now pass across separate runs. `verify-mac.sh` now uses a unique `/private/tmp/streamlab-core.*` directory for Core build products and records that path in `environment.txt`; the directory is retained for diagnosis. Manual VoiceOver, Instruments and the app-build App Intents warning remain open. No immediate repeat of the already-passing suites is required for this documentation/script change.
-
-Remaining Phase 1 manual checks: see [VoiceOver, Dynamic Type and Instruments procedure](Docs/PHASE1_MANUAL_QA.md). Run `./scripts/check-build-warnings-mac.sh` only when investigating the remaining app-build warning; it records build success separately from warning-free status and does not repeat UI tests. Reports are in `Docs/Validation/warnings-*/`.
-
-### Warning mitigation follow-up (2026-10-12 user session)
-
-The latest supplied warning report records simulator-build **PASS**, warning-free **FAIL (1)**: AppIntents metadata extraction skipped. The app target now explicitly links AppIntents in Debug/Release and in XcodeGen configuration as a candidate workaround; no App Intent feature is added. This intentionally revises the earlier decision to leave the framework unlinked. Detail retry-button updates now wait until the view has appeared and skip unchanged values, reducing navigation-bar mutations during push/pop. Neither warning is claimed resolved until the Mac retest.
-
-After pulling, run `./scripts/check-build-warnings-mac.sh`, then run the app from Xcode and open/back from a vertical content row repeatedly. Also check retry while loading, rapid back navigation, and a cancelled interactive back gesture. Send the new report and whether `glassEffect()` still appears. Apple build/runtime validation for this change: **NOT TESTED** here (Linux).
-
-### Simulator warning follow-up — 2026-10-12 01:04 KST
-
-User retest still reports `glassEffect() tried to update multiple times per frame.`; RESULTS(5).txt reports build PASS and warning-free FAIL (1). The new warning text was not supplied, so the AppIntents workaround is not verified.
-
-The detail retry action now lives in Detail.storyboard as a regular filled button below the title. Loading responses no longer modify a detail navigation-bar button. This replaces the unsuccessful appearance-timing mitigation. UIKit navigation/back behavior is retained. This is a targeted mitigation, not a confirmed fix for the runtime diagnostic. The build audit now embeds warning text in RESULTS.txt and explicitly distinguishes runtime verification. Pull, run the audit, then open/back from content rows in Simulator. Post-change Apple build/UI execution remains NOT TESTED here.
-
-### Full-run failure correction (2026-10-12 01:53 KST)
-
-The supplied def3a5d full run passed Core and app build; UI was 8/9 with the initial detail-loading assertion timing out. The test now waits for initial completion before exercising retry and retains the retry disabled/enabled checks. The one metadata warning came from StreamLabUITests; explicit AppIntents linkage is now mirrored in that target and project.yml. Post-fix Mac execution is NOT TESTED. Run the full verifier to validate the 9-test suite and test-target warning gate; see the report for exact evidence. Phase 1 remains incomplete.
+- 포스터는 SF Symbols와 로컬 그라데이션. 네트워크 이미지 로더는 [ADR-0005](Docs/ADR/0005-image-loader-design.md)의 제안이며 미구현입니다.
+- 계속 시청은 샘플 진도이며 영속 저장/멀티디바이스 동기화는 미구현입니다.
+- 실제 재생, Player/Download 상태 머신, DRM Mock, 인증, 오프라인 큐, 카오스 전체는 이후 범위입니다.
+- 전체 과제의 필수 ADR: 충돌 처리 / 플레이어 수명주기 / 다운로드 캐시 정책은 후속 단계에서 작성합니다. 현재 문서 개수만으로 전체 산출물 완료라고 보지 않습니다.
+- SwiftUI VoiceOver, 최대 글자, Reduce Motion, 작은 iPhone/iPad, 런타임, Instruments를 다시 확인합니다. [수동 QA](Docs/PHASE1_MANUAL_QA.md).

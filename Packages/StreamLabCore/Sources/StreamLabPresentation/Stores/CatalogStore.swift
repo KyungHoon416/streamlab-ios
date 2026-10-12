@@ -1,7 +1,7 @@
 import Foundation
 import StreamLabDomain
 
-/// One screen owns one store. UIKit and tests exercise this same state boundary.
+/// One screen owns one store. SwiftUI observation adapters and tests exercise this same state boundary.
 @MainActor
 public final class CatalogStore {
     public private(set) var profile: ViewerProfile

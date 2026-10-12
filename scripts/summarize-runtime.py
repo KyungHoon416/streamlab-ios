@@ -21,7 +21,7 @@ def summarize(folder: Path, test_exit: int, stream_alive: bool) -> tuple[list[st
     diagnostics = [line for line in (runtime + "\n" + build).splitlines()
                    if re.search(r"glassEffect\(\).*multiple times per frame|Terminating app due to uncaught exception|Swift runtime failure", line)]
     (folder / "runtime-diagnostics.txt").write_text("\n".join(diagnostics))
-    captured = stream_alive and "[Startup] window is visible" in runtime
+    captured = stream_alive and "[Startup] SwiftUI root appeared" in runtime
     if diagnostics:
         lines.append(f"FAIL runtime-glass/crash-diagnostics count={len(diagnostics)} (see runtime-diagnostics.txt)")
     elif not captured or not test_passed:

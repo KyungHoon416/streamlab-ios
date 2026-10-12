@@ -9,7 +9,7 @@ class ProjectParserTests(unittest.TestCase):
     def test_checked_in_project_sources(self):
         project = loads((Path(__file__).resolve().parent.parent /
                          'StreamLab.xcodeproj/project.pbxproj').read_text())
-        self.assertIn('App/Application/AppDelegate.swift', source_paths(project))
+        self.assertIn('App/Application/StreamLabApp.swift', source_paths(project))
 
     def test_group_relative_paths_and_comments(self):
         project = loads('''// !$*UTF8*$!
@@ -18,22 +18,22 @@ class ProjectParserTests(unittest.TestCase):
           MAIN = { isa = PBXGroup; children = (APP,); sourceTree = "<group>"; };
           APP = { isa = PBXGroup; path = App; children = (APPLICATION,); };
           APPLICATION = { isa = PBXGroup; path = Application; children = (FILE,); };
-          FILE /* AppDelegate.swift */ = { isa = PBXFileReference;
-            path = AppDelegate.swift; sourceTree = "<group>"; };
-          BUILD = { isa = PBXBuildFile; fileRef = FILE /* AppDelegate.swift */; };
+          FILE /* StreamLabApp.swift */ = { isa = PBXFileReference;
+            path = StreamLabApp.swift; sourceTree = "<group>"; };
+          BUILD = { isa = PBXBuildFile; fileRef = FILE /* StreamLabApp.swift */; };
           SOURCES = { isa = PBXSourcesBuildPhase; files = (BUILD,); };
           CONFIG = { isa = XCBuildConfiguration; buildSettings = {
             INFOPLIST_FILE = App/Configuration/Info.plist;
           }; };
         }; rootObject = ROOT; }''')
-        self.assertEqual(source_paths(project), {'App/Application/AppDelegate.swift'})
+        self.assertEqual(source_paths(project), {'App/Application/StreamLabApp.swift'})
         self.assertEqual(project['objects']['CONFIG']['buildSettings']['INFOPLIST_FILE'],
                          'App/Configuration/Info.plist')
         project['objects']['SOURCES']['files'] = []
         self.assertEqual(source_paths(project), set(), 'An uncompiled reference must fail validation')
         project['objects']['SOURCES']['files'] = ['BUILD']
         project['objects']['APPLICATION']['path'] = 'WrongFolder'
-        self.assertNotIn('App/Application/AppDelegate.swift', source_paths(project))
+        self.assertNotIn('App/Application/StreamLabApp.swift', source_paths(project))
 
 
 if __name__ == '__main__':

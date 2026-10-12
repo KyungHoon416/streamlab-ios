@@ -1,3 +1,5 @@
+> Current UI: SwiftUI (ADR-0006). Network loading remains proposed. Apply identity/cancellation to view tasks; earlier UIKit cell examples are historical context.
+
 # Future asynchronous artwork loading (proposal, not implemented)
 
 Phase 1 draws local SF Symbols over deterministic gradients. No image HTTP requests occur. Collection/table reuse limits view allocation, but does not prove measured scroll or memory performance.

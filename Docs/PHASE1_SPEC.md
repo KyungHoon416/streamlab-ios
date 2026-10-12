@@ -1,31 +1,21 @@
-# Phase 1 requirements / acceptance criteria
+# Phase 1 — SwiftUI 인수 기준
 
-Current implementation: Swift 6 / iOS 18+, UIKit + four editable Storyboards.
-The user's explicit UIKit request supersedes the initial SwiftUI requirement (ADR-0004).
-UICollectionView/UITableView cell reuse replaces LazyHStack/LazyVStack.
+2026-10-12 원문 SwiftUI 조건 복원. ADR-0006이 UIKit 예외를 대체한다.
+Swift 6 / iOS 18+ / SwiftUI. 전체 과제와 Phase 1 탐색 범위를 구분한다.
 
-Verification baseline: app commit 114d734, Mac build evidence supplied 2026-10-12 KST.
-PASS on an earlier suite is historical evidence, not a claim of a fresh run.
+| 요구사항 | 구현 | 현재 검증 |
+|---|---|---|
+| SwiftUI 진입점·4화면 | App/WindowGroup, 프로필/홈/검색/상세 | 구조 PASS, iOS NOT TESTED |
+| 프로필 3개·키즈 권한 | Repository와 세션 트리 | 기존 Core 이력 PASS, 새 실행 NOT TESTED |
+| 2,000 고유 ID | fixture 재사용 | 로컬 PASS |
+| 히어로·5레일·계속 시청 | LazyVStack/LazyHStack | UI NOT TESTED |
+| 검색·커서·중복 방지 | CatalogStore/Repository | 새 UI NOT TESTED |
+| HUD·재시도·Phase 2 안내 | SwiftUI 콘텐츠/alert | NOT TESTED |
+| 역전·프로필 중 요청 완료 | generation/profile/cancellation | 기존 Core 유지, 새 실행 NOT TESTED |
+| 화면·앱 수명주기 | StateObject, session UUID, onDisappear, scenePhase | NOT TESTED |
+| 접근성·큰 글자·모션·기기 | semantic font, native controls, scroll | NOT TESTED |
+| Strict Concurrency 경고 0 | Swift 6 complete + warnings-as-errors | 새 Xcode NOT TESTED |
+| 메모리·런타임 | Release 반복/로그, Instruments 절차 | NOT TESTED |
+| 원격 이미지 | 설계 제안, 로컬 아트만 구현 | 원격 로더 미구현 |
 
-| ID | Requirement | Implementation / evidence | Status |
-|---|---|---|---|
-| P1-01 | Swift 6 strict concurrency, iOS app | project.yml; RESULTS(6), build exit 0, warning count 0 | PASS: supplied Mac Debug Simulator build |
-| P1-02 | Three profiles | ViewerProfile.demo; earlier UI launch/profile tests | PASS: earlier UI suite |
-| P1-03 | 2,000 unique titles | catalog.json; validate-fixtures.py rerun | PASS |
-| P1-04 | Hero, five rails, Continue Watching | HomeViewController; repository rail/progress tests | PASS: earlier Core suite; full visual review limited |
-| P1-05 | Profile isolation | repository policy; CatalogStore.select/invalidate, generation and profile checks | PASS: earlier deterministic Core suite |
-| P1-06 | Kids listing/direct-detail restriction | MockCatalogRepository; kidsNeverSeeAdultTitlesEvenByDirectId | PASS: earlier Core suite; user Kids route confirmation |
-| P1-07 | Search, response reversal protection | CatalogStore; reversedSearchResponseCannotOverwriteLatest | PASS: earlier Core suite |
-| P1-08 | Cursor pagination, deduplication | repository/store paging tests; user pagination confirmation | PASS: earlier tests + manual report |
-| P1-09 | Reused cells / image-loader proposal | UICollectionView, UITableView; ADR-0005 | PASS: source review/proposal only; no remote image implementation |
-| P1-10 | Rapid exit, cancellation, stale completion | Core lifecycle tests; earlier rapid navigation UI test | PASS: earlier suites; latest UI rerun NOT TESTED |
-| P1-11 | Injectable/mockable modules | CatalogRepository, controlled continuations, SwiftPM | PASS: source review + earlier Core execution |
-| P1-12 | Accessibility | historical automated audit; manual detail playback confirmation | NOT TESTED: full VoiceOver, max-text HUD, latest retry layout |
-| P1-13 | Runtime/performance | user reports immediate detail, no freeze/flicker | NOT TESTED: full Instruments; glassEffect initially once remains unresolved |
-| P1-14 | Latest UI regression | 9 UI test methods including detail retry | NOT TESTED: current 9-test suite |
-| P1-15 | Docs / reproducible validation | README, report, manual checklist, verify-mac.sh | PASS: local review; Mac execution of updated verifier pending |
-
-Overall acceptance: **NOT TESTED (incomplete), not all PASS**.
-Before Phase 2: run the current automated gate, finish manual accessibility/layout/memory checks, and resolve or explicitly accept the initial runtime warning with rationale. Build-only PASS does not verify runtime diagnostics.
-
-The broader challenge's actual remote image loading and performance targets must not be described as implemented. Phase 1 currently uses local generated artwork and provides a future loader design.
+원격 이미지 lazy loading은 원문 A1 항목이다. Lazy 컨테이너/로컬 아트를 네트워크 로더 구현으로 보지 않는다. 재생·동기화·다운로드·카오스 전체는 후속 범위다. Phase 1 전체 완료는 미해결 범위 정리와 실제 검증 뒤 판정한다.

@@ -17,11 +17,11 @@ finish() {
       *) echo "NOT TESTED $name: prerequisites unavailable or validation stopped" >> "$summary" ;;
     esac
   done
-  echo "NOT TESTED manual-voiceover: requires manual VoiceOver navigation" >> "$summary"
-  echo "NOT TESTED manual-dynamic-type: maximum text HUD and retry layout require manual review" >> "$summary"
+  echo "NOT TESTED manual-voiceover: requires new SwiftUI VoiceOver navigation" >> "$summary"
+  echo "NOT TESTED manual-dynamic-type: SwiftUI maximum text HUD and retry layout require manual review" >> "$summary"
   echo "NOT TESTED runtime-warning-free: launch and navigation diagnostics require runtime review" >> "$summary"
   echo "NOT TESTED device-layouts: compact iPhone and iPad manual review" >> "$summary"
-  echo "NOT TESTED instruments: requires Instruments measurements" >> "$summary"
+  echo "NOT TESTED instruments: requires new SwiftUI Instruments measurements" >> "$summary"
   printf '\nResults: %s\n' "$summary"
   return "$result"
 }

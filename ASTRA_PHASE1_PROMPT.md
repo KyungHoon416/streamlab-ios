@@ -1,3 +1,5 @@
+> Current direction: SwiftUI per user request 2026-10-12, ADR-0006. Read current SPEC/REPORT first. Do not restore UIKit/Storyboard from historical prompts.
+
 # Paste into GPT-6 Astra after attaching this project ZIP and the challenge document
 
 You are the Staff iOS engineer implementing StreamLab Phase 1. You have access to a Mac with Xcode and the attached `StreamLab-Phase1` starter project and `Netflix_iOS_과제.docx`.
