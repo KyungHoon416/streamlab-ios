@@ -4,14 +4,15 @@ import StreamLabDesignSystem
 
 @MainActor public struct HomeView: View {
     @StateObject private var model: CatalogScreenModel
+    @ObservedObject private var myList: MyListStore
     @State private var category: Category = .recommended
     @State private var playbackTitle: CatalogTitle?
     private let session: CatalogSession
     private enum Category: String, CaseIterable {
-        case recommended = "추천", movies = "영화", series = "시리즈"
+        case recommended = "추천", movies = "영화", series = "시리즈", saved = "나의 리스트"
         func includes(_ title: CatalogTitle) -> Bool {
             switch self {
-            case .recommended: true
+            case .recommended, .saved: true
             case .movies: title.kind == .movie
             case .series: title.kind == .series
             }
@@ -21,6 +22,7 @@ import StreamLabDesignSystem
 
     public init(session: CatalogSession) {
         self.session = session
+        _myList = ObservedObject(wrappedValue: session.myList)
         _model = StateObject(wrappedValue: CatalogScreenModel(session: session, screen: .home))
     }
 
@@ -29,6 +31,9 @@ import StreamLabDesignSystem
             LazyVStack(alignment: .leading, spacing: 28) {
                 if let home = model.store.home {
                     categoryPicker
+                    if category == .saved {
+                        savedContents
+                    } else {
                     if let featured = ([home.hero] + home.rails.flatMap(\.items)).first(where: category.includes) {
                         hero(featured)
                     }
@@ -72,6 +77,7 @@ import StreamLabDesignSystem
                             }
                         }
                     }
+                    }
                 } else if model.store.loading {
                     ProgressView("홈을 불러오는 중…").frame(maxWidth: .infinity).padding(32)
                 }
@@ -91,9 +97,12 @@ import StreamLabDesignSystem
         .fullScreenCover(item: $playbackTitle) { title in
             PlaybackView(titleID: title.id, title: title.name, session: session)
         }
-        .onAppear { model.appear(phase: phase) }
+        .onAppear { myList.refresh(); model.appear(phase: phase) }
         .onDisappear { model.disappear() }
-        .onChange(of: phase) { _, value in model.setPhase(value) }
+        .onChange(of: phase) { _, value in
+            if value == .active { myList.refresh() }
+            model.setPhase(value)
+        }
     }
 
     private var categoryPicker: some View {
@@ -113,23 +122,55 @@ import StreamLabDesignSystem
         }.scrollIndicators(.hidden)
     }
 
+    private var savedContents: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("나의 리스트").font(.title2.bold()).accessibilityAddTraits(.isHeader)
+            if myList.items.isEmpty {
+                Text("아직 추가한 작품이 없습니다. 작품의 ‘나의 리스트 추가’를 눌러 보세요.")
+                    .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("my-list-empty")
+            }
+            LazyVStack(alignment: .leading, spacing: 20) {
+                ForEach(myList.items) { title in
+                    NavigationLink(value: title.id) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            CatalogArtwork(title: title).frame(height: 150)
+                            Text(title.name).font(.headline).fixedSize(horizontal: false, vertical: true)
+                            Text("\(title.rating.rawValue) · \(title.genre)").font(.subheadline)
+                        }.frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("my-list-\(title.id)")
+                }
+            }
+        }.padding(.horizontal, 20)
+    }
+
     private func hero(_ title: CatalogTitle) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("STREAMLAB ORIGINAL · 오늘의 추천")
-                .font(.caption.bold()).foregroundStyle(.white)
-            Text(title.name).font(.largeTitle.bold())
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityAddTraits(.isHeader)
-            Text("\(title.year) · \(title.rating.rawValue) · \(title.genre)")
-                .font(.subheadline).fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: 0) {
+            NavigationLink(value: title.id) {
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("STREAMLAB ORIGINAL · 오늘의 추천")
+                        .font(.caption.bold())
+                    Text(title.name).font(.largeTitle.bold())
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text("\(String(title.year)) · \(title.rating.rawValue) · \(title.genre)")
+                        .font(.subheadline).fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(24).padding(.top, 115)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(title.name), 상세 정보")
+            .accessibilityHint("작품 상세 화면을 엽니다")
+            .accessibilityIdentifier("hero-detail")
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: 12) { heroActions(title) }
                 VStack(spacing: 12) { heroActions(title) }
             }
+            .padding(.horizontal, 24).padding(.bottom, 24)
         }
-        .padding(24)
-        .padding(.top, 115)
-        .frame(maxWidth: .infinity, alignment: .leading)
         .background {
             CatalogArtwork(title: title)
                 .overlay(LinearGradient(colors: [.clear, .black.opacity(0.95)], startPoint: .top, endPoint: .bottom))
@@ -143,8 +184,7 @@ import StreamLabDesignSystem
         Button { playbackTitle = title } label: { Label("데모 재생", systemImage: "play.fill") }
             .buttonStyle(StreamLabButtonStyle())
             .accessibilityIdentifier("hero-playback")
-        NavigationLink(value: title.id) { Label("상세 정보", systemImage: "info.circle") }
-            .buttonStyle(StreamLabButtonStyle())
-            .accessibilityIdentifier("hero-detail")
+        MyListButton(title: title, store: myList)
+            .accessibilityIdentifier("hero-my-list")
     }
 }

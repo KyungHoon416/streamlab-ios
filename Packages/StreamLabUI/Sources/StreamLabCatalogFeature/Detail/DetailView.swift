@@ -4,12 +4,14 @@ import StreamLabDomain
 
 @MainActor public struct DetailView: View {
     @StateObject private var model: CatalogScreenModel
+    @ObservedObject private var myList: MyListStore
     @State private var showsPlayback = false
     private let session: CatalogSession
     @Environment(\.scenePhase) private var phase
 
     public init(id: String, session: CatalogSession) {
         self.session = session
+        _myList = ObservedObject(wrappedValue: session.myList)
         _model = StateObject(wrappedValue: CatalogScreenModel(session: session, screen: .detail(id)))
     }
 
@@ -38,6 +40,8 @@ import StreamLabDomain
                     Button { showsPlayback = true } label: { Label("데모 영상 재생", systemImage: "play.fill") }
                         .buttonStyle(StreamLabButtonStyle())
                         .accessibilityIdentifier("playback-open")
+                    MyListButton(title: title, store: myList)
+                        .accessibilityIdentifier("detail-my-list")
                     VStack(alignment: .leading, spacing: 12) {
                         Text("작품 소개").font(.title2.bold()).accessibilityAddTraits(.isHeader)
                         Text(title.synopsis).font(.body).fixedSize(horizontal: false, vertical: true)
@@ -79,7 +83,7 @@ import StreamLabDomain
         Text(title.rating.rawValue).font(.subheadline.bold())
             .padding(.horizontal, 10).padding(.vertical, 6)
             .background(StreamLabTheme.surface, in: RoundedRectangle(cornerRadius: 6))
-        Text("\(title.year) · \(title.typeLabel) · \(title.durationMinutes)분")
+        Text("\(String(title.year)) · \(title.typeLabel) · \(title.durationMinutes)분")
             .font(.subheadline).foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
     }

@@ -75,3 +75,17 @@ RESULTS(20261012-080504).txt는 fixtures/project-structure/bootstrap/generated-p
 - PASS: Linux fixture 검사, 프로젝트 구조 검사, 프로젝트 파서 2개, 런타임 요약 회귀 6개.
 - NOT TESTED: 이번 레이아웃의 Xcode 빌드/Swift 6 경고/UI 테스트/Simulator 렌더링/VoiceOver/최대 글자/iPad. 직전 버전의 PASS를 이번 변경의 PASS로 재사용하지 않는다.
 - Mac: ./scripts/verify-mac.sh 실행 후 홈 추천/영화/시리즈 전환, 히어로 재생/닫기, 상세 재생/재조회, 최대 글자에서 제목/버튼 줄바꿈을 확인한다.
+
+
+## 2026-10-12 히어로 터치 영역 및 나의 리스트
+
+사용자 정정: 히어로 이미지·제목이 상세 진입이며, 오른쪽 버튼은 상세 정보가 아닌 나의 리스트 추가여야 한다.
+
+- HomeView: 상세 NavigationLink와 재생/저장 Button을 형제로 분리하여 중첩 탭 동작 방지. 홈 나의 리스트 필터/빈 상태/저장 목록 추가.
+- MyListStore: 프로필 ID별 버전 키로 UserDefaults에 CatalogTitle 스냅샷 저장. 중복 ID 제거, 키즈 허용 등급 필터링, 세션 invalidate 후 변경 차단. 상세·재생은 기존 Repository로 재검증.
+- MyListButton: + 추가 / 체크 제거 상태, 접근성 값, 보조 버튼 스타일. 홈과 상세에서 같은 Store 관찰.
+- CatalogSession/DetailView 연결. 홈 복귀·포그라운드 진입 시 저장 상태 갱신. 로컬 저장만 지원하며 다중 기기 동기화는 미구현.
+- hero-detail 식별자를 카드의 NavigationLink로 이동. UI 테스트는 요소 타입을 한정하지 않고 이 ID로 조회한다.
+- UI 회귀 1개 추가: 저장 버튼이 상세를 열지 않음, 홈/상세 상태 공유, 프로필 분리, 재실행 유지, 제거. 총 정의 15개. 실제 실행 전 NOT TESTED.
+- PASS: Linux fixtures/구조 검사, 프로젝트 파서 2개, 런타임 요약 6개.
+- NOT TESTED: 새 Swift 코드 타입 검사·Xcode 빌드·15개 UI 테스트·저장 동작 수동 검증. 이전 버전 PASS와 구분.

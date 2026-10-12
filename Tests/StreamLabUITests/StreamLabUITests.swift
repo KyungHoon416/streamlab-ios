@@ -21,7 +21,7 @@ import XCTest
 
     private func choose(_ id: String, in app: XCUIApplication) {
         tap(app.buttons["profile-\(id)"], in: app)
-        XCTAssertTrue(app.buttons["hero-detail"].waitForExistence(timeout: 12))
+        XCTAssertTrue(app.descendants(matching: .any)["hero-detail"].waitForExistence(timeout: 12))
     }
 
     private func expectCount(_ count: Int, in app: XCUIApplication) {
@@ -39,7 +39,7 @@ import XCTest
     }
 
     private func openHomeDetail(_ app: XCUIApplication) {
-        tap(app.buttons["hero-detail"], in: app)
+        tap(app.descendants(matching: .any)["hero-detail"], in: app)
         XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 5))
     }
 
@@ -137,6 +137,40 @@ import XCTest
         tap(app.buttons["playback-close"], in: app)
     }
 
+    func testMyListPersistsAndIsolatesProfiles() {
+        let app = launch()
+        choose("adult-a", in: app)
+        let saved = app.buttons["hero-my-list"]
+        XCTAssertTrue(saved.waitForExistence(timeout: 5))
+        if saved.value as? String == "추가됨" { tap(saved, in: app) }
+        tap(saved, in: app)
+        XCTAssertEqual(saved.value as? String, "추가됨")
+        XCTAssertFalse(app.staticTexts["detail-title"].exists)
+        openHomeDetail(app)
+        XCTAssertTrue(app.buttons["detail-my-list"].waitForExistence(timeout: 12))
+        XCTAssertEqual(app.buttons["detail-my-list"].value as? String, "추가됨")
+        back(app)
+        tap(app.buttons["switch-profile"], in: app)
+        choose("adult-b", in: app)
+        // Establish a known B state, then verify A's saved state is independent.
+        if app.buttons["hero-my-list"].value as? String == "추가됨" {
+            tap(app.buttons["hero-my-list"], in: app)
+        }
+        tap(app.buttons["switch-profile"], in: app)
+        choose("adult-a", in: app)
+        XCTAssertEqual(saved.value as? String, "추가됨")
+        app.terminate()
+        app.launch()
+        choose("adult-a", in: app)
+        XCTAssertEqual(saved.value as? String, "추가됨")
+        tap(app.buttons["home-category-나의 리스트"], in: app)
+        XCTAssertTrue(app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier BEGINSWITH %@ AND identifier != %@", "my-list-", "my-list-empty")).firstMatch.exists)
+        tap(app.buttons["home-category-추천"], in: app)
+        tap(saved, in: app)
+        XCTAssertEqual(saved.value as? String, "추가 안 됨")
+    }
+
     func testSearchPaginationAndProfileSwitch() {
         let app = launch()
         choose("adult-a", in: app)
@@ -224,7 +258,7 @@ import XCTest
         waitForExpectations(timeout: 12)
         XCTAssertEqual(title.label, loadedTitle)
         back(app)
-        XCTAssertTrue(app.buttons["hero-detail"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["hero-detail"].waitForExistence(timeout: 5))
     }
 
     func testRapidDetailEntryExit() { exerciseDetailNavigation(cycles: 20) }
@@ -240,7 +274,7 @@ import XCTest
         for cycle in 0..<cycles {
             openHomeDetail(app)
             back(app)
-            XCTAssertTrue(app.buttons["hero-detail"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.descendants(matching: .any)["hero-detail"].waitForExistence(timeout: 5))
             if (cycle + 1).isMultiple(of: 20) {
                 let checkpoint = XCTAttachment(screenshot: app.screenshot())
                 checkpoint.name = "Home after \(cycle + 1) detail cycles"

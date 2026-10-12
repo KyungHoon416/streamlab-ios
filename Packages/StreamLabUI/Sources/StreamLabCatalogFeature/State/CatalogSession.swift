@@ -7,6 +7,7 @@ import StreamLabPresentation
     public let id = UUID()
     public let profile: ViewerProfile
     let repository: any CatalogRepository
+    let myList: MyListStore
     public private(set) var isActive = true
     private var stores: [WeakStore] = []
     private var players: [WeakPlayer] = []
@@ -29,6 +30,7 @@ import StreamLabPresentation
     public init(profile: ViewerProfile, repository: any CatalogRepository) {
         self.profile = profile
         self.repository = repository
+        self.myList = MyListStore(profile: profile)
     }
 
     func makeStore() -> CatalogStore {
@@ -41,6 +43,7 @@ import StreamLabPresentation
     /// Called synchronously BEFORE replacing the SwiftUI subtree.
     public func invalidate() {
         isActive = false
+        myList.invalidate()
         for reference in players { reference.value?.stop() }
         players.removeAll()
         for reference in stores { reference.value?.invalidate() }
