@@ -5,7 +5,9 @@ import StreamLabPresentation
 
 /// SwiftUI observation adapter: Core remains Foundation-only and independently testable.
 @MainActor final class CatalogScreenModel: ObservableObject {
-    let objectWillChange = ObservableObjectPublisher()
+    // Use Combine’s synthesized publisher; an explicit actor-isolated publisher
+    // cannot satisfy ObservableObject’s nonisolated requirement in Swift 6.
+    @Published private var revision: UInt64 = 0
     enum Screen { case home, search, detail(String) }
     let store: CatalogStore
     private let session: CatalogSession
@@ -18,7 +20,11 @@ import StreamLabPresentation
         self.session = session
         self.screen = screen
         self.store = session.makeStore()
-        store.onChange = { [weak self] in self?.objectWillChange.send() }
+        store.onChange = { [weak self] in self?.publishChange() }
+    }
+
+    private func publishChange() {
+        revision &+= 1
     }
 
     func appear(phase: ScenePhase) {
@@ -36,7 +42,7 @@ import StreamLabPresentation
             return
         }
         if store.resume() != nil { return }
-        guard !started else { objectWillChange.send(); return }
+        guard !started else { publishChange(); return }
         started = true
         switch screen {
         case .home: store.loadHome()
