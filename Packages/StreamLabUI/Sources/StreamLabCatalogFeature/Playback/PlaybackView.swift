@@ -49,12 +49,9 @@ import StreamLabDesignSystem
                     LinearGradient(colors: [.black.opacity(0.85), .black.opacity(0.15), .black.opacity(0.85)],
                                    startPoint: .top, endPoint: .bottom)
                         .ignoresSafeArea().allowsHitTesting(false)
-                    if textSize.isAccessibilitySize || geometry.size.height < 300 {
-                        ScrollView {
-                            VStack(spacing: 20) { header; transport; footer }
-                                .padding(20)
-                        }
-                    } else {
+                    // Caption/recovery/resume text can grow even at the default font size.
+                    // Let content exceed the viewport instead of pushing footer hit targets offscreen.
+                    ScrollView {
                         VStack(spacing: 12) {
                             header
                             Spacer(minLength: 8)
@@ -62,8 +59,10 @@ import StreamLabDesignSystem
                             Spacer(minLength: 8)
                             footer
                         }
+                        .frame(minHeight: max(0, geometry.size.height - 40))
                         .padding(20)
                     }
+                    .accessibilityIdentifier("playback-controls-scroll")
                 }
             }
         }

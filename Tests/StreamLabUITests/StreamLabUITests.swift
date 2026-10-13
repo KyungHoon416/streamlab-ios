@@ -3,6 +3,22 @@ import XCTest
 @MainActor final class StreamLabUITests: XCTestCase {
     private var playbackReturnFrame: CGRect?
 
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        continueAfterFailure = false
+    }
+
+    private func captureFailure(_ app: XCUIApplication, name: String) {
+        let hierarchy = XCTAttachment(string: app.debugDescription)
+        hierarchy.name = name + " hierarchy"
+        hierarchy.lifetime = .keepAlways
+        add(hierarchy)
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = name
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+    }
+
     func testSubtitleSelectionSeekingAndReset() {
         let app = launch()
         choose("adult-a", in: app)
@@ -128,9 +144,15 @@ import XCTest
         }
         for _ in 0..<8 {
             if element.isHittable { break }
-            app.swipeUp()
+            let controls = app.scrollViews["playback-controls-scroll"]
+            if controls.exists {
+                let viewport = controls.frame
+                if element.frame.midY < viewport.midY { controls.swipeDown() }
+                else { controls.swipeUp() }
+            } else { app.swipeUp() }
         }
         guard element.isHittable else {
+            captureFailure(app, name: "Unreachable " + element.identifier)
             XCTFail("Target is not hittable: \(element)", file: file, line: line)
             return
         }
@@ -184,8 +206,12 @@ import XCTest
 
     private func back(_ app: XCUIApplication) {
         let button = app.navigationBars.buttons["BackButton"]
-        expectation(for: NSPredicate(format: "exists == true AND hittable == true"), evaluatedWith: button)
-        waitForExpectations(timeout: 5)
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true AND hittable == true"), object: button)
+        guard XCTWaiter.wait(for: [ready], timeout: 5) == .completed else {
+            captureFailure(app, name: "Detail back button timeout")
+            XCTFail("Detail back button did not become hittable")
+            return
+        }
         button.tap()
         // Fail at the actual navigation boundary instead of cascading into profile taps.
         expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: app.staticTexts["detail-title"])
@@ -468,6 +494,7 @@ import XCTest
         let app = launch()
         choose("adult-a", in: app)
         for cycle in 0..<cycles {
+            print("[NavigationSoak] cycle=\(cycle + 1)/\(cycles) time=\(Date())")
             openHomeDetail(app)
             back(app)
             XCTAssertTrue(app.descendants(matching: .any)["hero-detail"].waitForExistence(timeout: 5))
