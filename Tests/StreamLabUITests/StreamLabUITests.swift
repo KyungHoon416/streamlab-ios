@@ -137,9 +137,17 @@ import XCTest
         tap(app.buttons["playback-toggle"], in: app)
         expectPlayback("일시 정지", in: app)
         app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0.5)
-        expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: app.buttons["playback-toggle"])
-        expectation(for: NSPredicate(format: "label MATCHES %@", "1[3-7]초 / 30초"), evaluatedWith: app.staticTexts["playback-time"])
-        waitForExpectations(timeout: 5)
+        let seekReady = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: app.buttons["playback-toggle"])
+        let seekTime = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label MATCHES %@", "1[3-7]초 / 30초"), object: app.staticTexts["playback-time"])
+        guard XCTWaiter.wait(for: [seekReady, seekTime], timeout: 5) == .completed else {
+            let time = app.staticTexts["playback-time"]
+            let slider = app.sliders["playback-position"]
+            let actual = time.exists ? time.label : "missing"
+            let value = slider.exists ? String(describing: slider.value) : "missing"
+            captureFailure(app, name: "Home progress initial seek")
+            XCTFail("Expected 13–17 seconds after 50% seek; time=\(actual), slider=\(value)")
+            return
+        }
         closePlayback(app)
         back(app)
         let card = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@ AND identifier != %@", "continue-", "continue-retry")).firstMatch
