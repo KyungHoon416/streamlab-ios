@@ -153,9 +153,13 @@ import XCTest
         XCTAssertTrue(app.staticTexts["playback-resumed"].waitForExistence(timeout: 10))
         expectPlayback("재생 중", in: app)
         tap(app.buttons["playback-close"], in: app)
-        expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: app.buttons["playback-close"])
-        expectation(for: NSPredicate(format: "frame == %@", NSValue(cgRect: returnFrame)), evaluatedWith: app)
-        waitForExpectations(timeout: 10)
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.buttons["playback-close"])
+        let restored = XCTNSPredicateExpectation(predicate: NSPredicate(format: "frame == %@", NSValue(cgRect: returnFrame)), object: app)
+        guard XCTWaiter.wait(for: [dismissed, restored], timeout: 10) == .completed else {
+            captureFailure(app, name: "Home playback orientation restoration")
+            XCTFail("Home playback must dismiss and restore its original frame. Expected \(returnFrame), actual \(app.frame)")
+            return
+        }
         tap(app.buttons["switch-profile"], in: app)
         choose("adult-b", in: app)
         XCTAssertTrue(app.staticTexts["continue-empty"].waitForExistence(timeout: 10))

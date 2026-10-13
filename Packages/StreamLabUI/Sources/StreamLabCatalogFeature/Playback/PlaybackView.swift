@@ -3,6 +3,7 @@ import StreamLabDesignSystem
 
 @MainActor struct PlaybackView: View {
     @StateObject private var model: PlaybackModel
+    @StateObject private var orientationSession = PlaybackOrientationSession()
     @State private var source: PlaybackModel.Source = .bundled
     @State private var scrubPosition: Double = 0
     @State private var scrubbing = false
@@ -68,7 +69,7 @@ import StreamLabDesignSystem
             }
         }
         .background {
-            PlaybackOrientation(landscape: landscape)
+            PlaybackOrientation(landscape: landscape, session: orientationSession)
                 .frame(width: 0, height: 0)
                 .accessibilityHidden(true)
         }
@@ -84,7 +85,7 @@ import StreamLabDesignSystem
             model.setForeground(phase == .active)
             model.load(source)
         }
-        .onDisappear { model.stop() }
+        .onDisappear { model.stop(); orientationSession.finish() }
         .onChange(of: source) { _, value in
             scrubbing = false
             revealControls()
@@ -131,6 +132,7 @@ import StreamLabDesignSystem
         HStack(alignment: .top, spacing: 16) {
             iconButton("닫기", symbol: "xmark", id: "playback-close") {
                 model.stop()
+                orientationSession.finish()
                 dismiss()
             }
             VStack(alignment: .leading, spacing: 4) {
