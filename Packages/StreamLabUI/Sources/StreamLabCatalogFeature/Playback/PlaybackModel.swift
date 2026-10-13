@@ -56,6 +56,7 @@ import StreamLabDomain
     struct SubtitleOption: Identifiable {
         let id: String
         let label: String
+        var language: String? = nil
     }
     @Published private(set) var subtitleOptions: [SubtitleOption] = []
     @Published private(set) var selectedSubtitleID = "off"
@@ -64,6 +65,14 @@ import StreamLabDomain
     @Published private(set) var subtitlesLoading = false
     @Published private(set) var subtitleLoadFailed = false
     @Published private(set) var canDisableSubtitles = true
+    @Published private(set) var audioOptions: [SubtitleOption] = []
+    @Published private(set) var selectedAudioID = "automatic"
+    @Published private(set) var audioMessage = ""
+    @Published private(set) var audioLoading = false
+    @Published private(set) var audioLoadFailed = false
+    private var audioTask: Task<Void, Never>?
+    private var audioGroup: AVMediaSelectionGroup?
+    private var nativeAudio: [String: AVMediaSelectionOption] = [:]
     private var subtitleTask: Task<Void, Never>?
     private var subtitleGroup: AVMediaSelectionGroup?
     private var nativeSubtitles: [String: AVMediaSelectionOption] = [:]
@@ -150,7 +159,9 @@ import StreamLabDomain
         guard let url else { fail("데모 영상을 찾을 수 없습니다. 다시 시도해 주세요."); return }
         let player = AVPlayer(url: url)
         self.player = player
+        player.appliesMediaSelectionCriteriaAutomatically = false
         prepareSubtitles(player: player, ticket: ticket)
+        prepareAudio(player: player, ticket: ticket)
         // Wait for item readiness and restore its position before starting playback.
         waitingSince = Date()
         // No KVO/notification/periodic-time observer crosses actor boundaries.
@@ -340,6 +351,9 @@ import StreamLabDomain
         seekGeneration += 1
         seekStarted = nil
         seekMessage = ""
+        audioTask?.cancel(); audioTask = nil
+        audioGroup = nil; nativeAudio = [:]; audioOptions = []
+        selectedAudioID = "automatic"; audioMessage = ""; audioLoading = false; audioLoadFailed = false
         subtitleTask?.cancel(); subtitleTask = nil
         subtitleGroup = nil
         nativeSubtitles = [:]; sidecarSubtitles = [:]
@@ -362,7 +376,7 @@ import StreamLabDomain
         subtitleOptions.first(where: { $0.id == selectedSubtitleID })?.label ?? "끄기"
     }
 
-    func selectSubtitle(_ id: String) {
+    func selectSubtitle(_ id: String, persist: Bool = true) {
         guard session.isActive, let item = player?.currentItem else { return }
         guard id == "off" || subtitleOptions.contains(where: { $0.id == id }) else { return }
         if let group = subtitleGroup {
@@ -370,6 +384,16 @@ import StreamLabDomain
             item.select(nativeSubtitles[id], in: group)
         }
         selectedSubtitleID = id
+        if persist {
+            let language = subtitleOptions.first(where: { $0.id == id })?.language
+            if id == "off" {
+                session.languages.setSubtitles(.off)
+            } else if let language {
+                session.languages.setSubtitles(.language(language))
+            } else {
+                subtitleMessage = "언어 정보가 없는 트랙입니다. 이번 영상에만 적용하며 기존 선호 언어는 유지합니다."
+            }
+        }
         updateSubtitleText()
     }
 
@@ -385,13 +409,16 @@ import StreamLabDomain
                 let cues = SubRip.parse(text)
                 guard !cues.isEmpty else { continue }
                 sidecarSubtitles[id] = cues
-                subtitleOptions.append(SubtitleOption(id: id, label: label))
+                subtitleOptions.append(SubtitleOption(id: id, label: label, language: id))
             }
             subtitleMessage = subtitleOptions.isEmpty ? "이 영상에 제공되는 자막이 없습니다." : "무음 데모용 안내 자막입니다."
+            restoreSubtitles()
             return
         }
         guard let item = player.currentItem else { return }
         subtitleLoadFailed = false
+        subtitleOptions = []
+        nativeSubtitles = [:]
         subtitlesLoading = true
         // Only the weak model is captured across loading. Results are bound to this item/session.
         subtitleTask = Task { [weak self] in
@@ -405,19 +432,14 @@ import StreamLabDomain
                     self.subtitleMessage = "이 영상에 제공되는 자막이 없습니다."
                     return
                 }
-                for (index, option) in group.options.enumerated() {
+                for (index, option) in group.options.filter({ $0.isPlayable }).enumerated() {
                     let id = "native-\(index)"
                     self.nativeSubtitles[id] = option
-                    self.subtitleOptions.append(SubtitleOption(id: id, label: option.displayName))
+                    self.subtitleOptions.append(SubtitleOption(id: id, label: option.displayName, language: MediaLanguageResolver.normalized(option.extendedLanguageTag ?? option.locale?.identifier)))
                 }
                 self.canDisableSubtitles = group.allowsEmptySelection
-                if group.allowsEmptySelection {
-                    item.select(nil, in: group)
-                } else if let option = group.options.first {
-                    item.select(option, in: group)
-                    self.selectedSubtitleID = "native-0"
-                    self.subtitleMessage = "이 영상의 필수 자막은 끌 수 없습니다."
-                }
+                self.restoreSubtitles()
+
             } catch {
                 guard !Task.isCancelled, let self, self.generation == ticket, self.session.isActive else { return }
                 self.subtitlesLoading = false
@@ -434,12 +456,101 @@ import StreamLabDomain
         prepareSubtitles(player: player, ticket: generation)
     }
 
+    private func restoreSubtitles() {
+        let preference = session.languages.preferences.subtitles
+        let defaultIndex = subtitleOptions.firstIndex { nativeSubtitles[$0.id] == subtitleGroup?.defaultOption }
+        let index = MediaLanguageResolver.index(for: preference, languages: subtitleOptions.map(\.language),
+                                                defaultIndex: subtitleGroup == nil ? nil : defaultIndex,
+                                                allowsOff: canDisableSubtitles)
+        selectSubtitle(index.map { subtitleOptions[$0].id } ?? "off", persist: false)
+        if preference == .off && !canDisableSubtitles {
+            subtitleMessage = "이 영상의 필수 자막은 끌 수 없습니다. 저장된 끄기 설정은 유지됩니다."
+        } else if case .language(let language) = preference,
+                  MediaLanguageResolver.index(for: preference, languages: subtitleOptions.map(\.language), defaultIndex: nil, allowsOff: true) == nil {
+            subtitleMessage = "저장된 자막 언어(\(language))가 없어 기본 자막 또는 끄기를 적용했습니다. 선호 언어는 유지됩니다."
+        }
+    }
+
+    func selectAudio(_ id: String) {
+        guard session.isActive, let item = player?.currentItem, let group = audioGroup else { return }
+        if id == "automatic" {
+            session.languages.setAudio(.automatic)
+            applyAudioPreference(item: item, group: group)
+        } else if let option = nativeAudio[id] {
+            item.select(option, in: group)
+            selectedAudioID = id
+            if let language = audioOptions.first(where: { $0.id == id })?.language {
+                session.languages.setAudio(.language(language))
+                audioMessage = "선택한 오디오 언어를 이 프로필에 저장했습니다."
+            } else {
+                audioMessage = "언어 정보가 없는 트랙입니다. 이번 영상에만 적용하며 기존 선호 언어는 유지합니다."
+            }
+        }
+    }
+
+    private func applyAudioPreference(item: AVPlayerItem, group: AVMediaSelectionGroup) {
+        let preference = session.languages.preferences.audio
+        let defaultIndex = audioOptions.firstIndex { nativeAudio[$0.id] == group.defaultOption }
+        let index = MediaLanguageResolver.index(for: preference, languages: audioOptions.map(\.language),
+                                                defaultIndex: defaultIndex, allowsOff: false)
+        guard let index else { return }
+        let id = audioOptions[index].id
+        item.select(nativeAudio[id], in: group)
+        selectedAudioID = preference == .automatic ? "automatic" : id
+        audioMessage = ""
+        if case .language(let language) = preference,
+           MediaLanguageResolver.index(for: preference, languages: audioOptions.map(\.language), defaultIndex: nil, allowsOff: true) == nil {
+            audioMessage = "저장된 오디오 언어(\(language))가 없어 기본 트랙을 재생합니다. 선호 언어는 유지됩니다."
+        }
+    }
+
+    private func prepareAudio(player: AVPlayer, ticket: Int) {
+        guard let item = player.currentItem else { return }
+        audioLoading = true
+        audioLoadFailed = false
+        audioTask = Task { [weak self] in
+            do {
+                let group = try await item.asset.loadMediaSelectionGroup(for: .audible)
+                guard !Task.isCancelled, let self, self.generation == ticket,
+                      self.session.isActive, self.player?.currentItem === item else { return }
+                self.audioLoading = false
+                self.audioGroup = group
+                guard let group else {
+                    self.audioMessage = self.source == .hls ? "선택 가능한 대체 오디오 트랙이 없습니다." : "이 데모 영상은 무음입니다."
+                    return
+                }
+                self.audioOptions = []
+                self.nativeAudio = [:]
+                for (index, option) in group.options.filter({ $0.isPlayable }).enumerated() {
+                    let id = "audio-\(index)"
+                    self.nativeAudio[id] = option
+                    self.audioOptions.append(SubtitleOption(id: id, label: option.displayName,
+                        language: MediaLanguageResolver.normalized(option.extendedLanguageTag ?? option.locale?.identifier)))
+                }
+                if self.audioOptions.isEmpty { self.audioMessage = "선택 가능한 오디오 트랙이 없습니다." }
+                self.applyAudioPreference(item: item, group: group)
+            } catch {
+                guard !Task.isCancelled, let self, self.generation == ticket, self.session.isActive else { return }
+                self.audioLoading = false
+                self.audioLoadFailed = true
+                self.audioMessage = "오디오 목록을 불러오지 못했습니다. 다시 시도해 주세요."
+            }
+        }
+    }
+
+    func retryAudio() {
+        guard session.isActive, let player, !audioLoading else { return }
+        audioTask?.cancel()
+        prepareAudio(player: player, ticket: generation)
+    }
+
     private func fail(_ message: String) {
         stop()
         status = .failed(message)
     }
 
     deinit {
+        audioTask?.cancel()
         subtitleTask?.cancel()
         loadTask?.cancel()
         sampleTask?.cancel()

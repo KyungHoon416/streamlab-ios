@@ -80,7 +80,7 @@ import XCTest
         closePlayback(app)
     }
 
-    func testSubtitleSelectionSeekingAndReset() {
+    func testSubtitleSelectionSeekingAndRestoration() {
         let app = launch()
         choose("adult-a", in: app)
         openHomeDetail(app)
@@ -114,8 +114,58 @@ import XCTest
         closePlayback(app)
         openPlayback(app)
         expectPlayback("재생 중", in: app)
+        XCTAssertEqual(app.buttons["playback-subtitles"].value as? String, "한국어 · 데모")
+        XCTAssertTrue(caption.waitForExistence(timeout: 5))
+        closePlayback(app)
+    }
+
+    func testLanguagePreferenceSurvivesEpisodesRelaunchAndProfileSwitch() {
+        let app = launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        selectEpisodeDemo(app)
+        tap(app.buttons["playback-subtitles"], in: app)
+        tap(app.buttons["playback-subtitle-en"], in: app)
+        finishEpisode(app)
+        tap(app.buttons["playback-next-now"], in: app)
+        expectPlayback("재생 중", in: app)
+        XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("2화"))
+        XCTAssertEqual(app.buttons["playback-subtitles"].value as? String, "English · Demo")
+        closePlayback(app)
+        app.terminate()
+        app.launch() // same defaults suite, fresh process
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        XCTAssertEqual(app.buttons["playback-subtitles"].value as? String, "English · Demo")
+        tap(app.buttons["playback-subtitles"], in: app)
+        tap(app.buttons["playback-subtitle-off"], in: app)
+        closePlayback(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
         XCTAssertEqual(app.buttons["playback-subtitles"].value as? String, "끄기")
-        XCTAssertFalse(caption.exists)
+        tap(app.buttons["playback-subtitles"], in: app)
+        tap(app.buttons["playback-subtitle-en"], in: app)
+        closePlayback(app)
+        app.terminate()
+        app.launch()
+        choose("adult-b", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        XCTAssertEqual(app.buttons["playback-subtitles"].value as? String, "끄기")
+        tap(app.buttons["playback-subtitles"], in: app)
+        let message = app.staticTexts["playback-audio-message"]
+        for _ in 0..<3 {
+            if message.exists { break }
+            app.descendants(matching: .any)["playback-language-list"].firstMatch.swipeUp()
+        }
+        XCTAssertTrue(message.waitForExistence(timeout: 10))
+        XCTAssertEqual(message.label, "이 데모 영상은 무음입니다.")
+        tap(app.buttons["playback-subtitle-done"], in: app)
         closePlayback(app)
     }
 
@@ -237,6 +287,7 @@ import XCTest
 
     private func launch(largeText: Bool = false, slow: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
+        app.launchArguments.append("--ui-test-progress-suite=streamlab-uitest-\(UUID())")
         if largeText { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
         if slow { app.launchArguments.append("--ui-test-slow-catalog") }
         app.launchArguments.append("--ui-test-disable-resume")

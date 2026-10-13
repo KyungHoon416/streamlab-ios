@@ -342,3 +342,23 @@ RESULTS(20261013-140519).txt: fixtures/구조/bootstrap/Core/빌드/warning-free
 실패한 60회 왕복은 접근성 snapshot 수집 416.20초 지연을 동반했다. 사용자 수동 일시정지/잠자기 없음 보고. 근본 원인 미확정.
 ui-tests(20261013-151947).log: 코드 변경 없는 단독 재실행에서 60/60회 완료, 1 test/0 failures, 502.977초 PASS.
 전체 실행 실패와 단독 재실행 성공은 별도 기록이며 21개 동시 PASS 또는 간헐적 지연 해결로 해석하지 않는다.
+
+## Profile language preferences (2026-10-14 KST)
+
+- Added profile-scoped subtitle/audio persistence and restoration on item load,
+  episode advance and re-entry. Missing language fallback does not erase preferences.
+- Added audible-track selection to the existing subtitle sheet, loading/error/retry,
+  and an explicit silent-demo message. Native subtitle mandatory selection is respected.
+- Core resolver/store tests and UI restoration/profile isolation tests added.
+  Old subtitle re-entry reset expectation now expects the saved selection.
+- `scripts/check-languages-mac.sh` runs Core plus two focused UI tests and records
+  exit codes. Core and Xcode products use a fresh `/private/tmp` build directory;
+  evidence remains under Docs/Validation/languages-*. No source/xattr deletion.
+- PASS: local project-structure validator and shell syntax check.
+- NOT TESTED here: Swift type checking, Mac Core tests, Xcode simulator build/UI tests,
+  Swift concurrency warnings, actual HLS alternative audio listening, full regression.
+- Previous commit 87106fd evidence: supplied RESULTS(20261013-154820).txt reports
+  PASS episode-playback exit=0. User screenshot confirms episode 3 ended with no
+  next-episode button/countdown. This is not a full-suite PASS for this new change.
+- Limitations: demo episodes reuse one silent video; language preferences do not
+  distinguish multiple same-language SDH/commentary renditions. Real HLS QA remains required.

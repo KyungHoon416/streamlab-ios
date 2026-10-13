@@ -260,7 +260,7 @@ import StreamLabDesignSystem
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("playback-time")
                 Spacer(minLength: 0)
-                iconButton("자막 선택", symbol: "captions.bubble", id: "playback-subtitles") {
+                iconButton("자막 및 오디오 선택", symbol: "captions.bubble", id: "playback-subtitles") {
                     model.cancelNextEpisode()
                     subtitleSheet = true
                 }
@@ -315,6 +315,24 @@ import StreamLabDesignSystem
                         subtitleRow(id: option.id, label: option.label)
                     }
                 } header: { Text("자막 언어") }
+                Section {
+                    if !model.audioOptions.isEmpty {
+                        audioRow(id: "automatic", label: "기본 오디오")
+                        ForEach(model.audioOptions) { option in
+                            audioRow(id: option.id, label: option.label)
+                        }
+                    }
+                    if model.audioLoading { ProgressView("오디오 목록을 불러오는 중…") }
+                    if !model.audioMessage.isEmpty {
+                        Text(model.audioMessage)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("playback-audio-message")
+                    }
+                    if model.audioLoadFailed {
+                        Button("오디오 목록 다시 시도") { model.retryAudio() }
+                            .accessibilityIdentifier("playback-audio-retry")
+                    }
+                } header: { Text("오디오 언어") }
                 if model.subtitlesLoading {
                     ProgressView("자막 목록을 불러오는 중…")
                 }
@@ -328,7 +346,8 @@ import StreamLabDesignSystem
                         .accessibilityIdentifier("playback-subtitle-retry")
                 }
             }
-            .navigationTitle("자막")
+            .accessibilityIdentifier("playback-language-list")
+            .navigationTitle("자막 및 오디오")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("완료") { subtitleSheet = false; revealControls() }
@@ -336,6 +355,22 @@ import StreamLabDesignSystem
                 }
             }
         }
+    }
+
+    private func audioRow(id: String, label: String) -> some View {
+        Button {
+            model.selectAudio(id)
+        } label: {
+            HStack {
+                Text(label).fixedSize(horizontal: false, vertical: true)
+                Spacer()
+                if model.selectedAudioID == id { Image(systemName: "checkmark") }
+            }
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .accessibilityValue(model.selectedAudioID == id ? "선택됨" : "")
+        .accessibilityIdentifier("playback-audio-\(id)")
     }
 
     private func subtitleRow(id: String, label: String) -> some View {

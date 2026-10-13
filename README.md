@@ -266,3 +266,26 @@ RESULTS(20261013-140519).txt: fixtures/구조/bootstrap/Core/빌드/warning-free
 실패한 60회 왕복은 접근성 snapshot 수집 416.20초 지연을 동반했다. 사용자 수동 일시정지/잠자기 없음 보고. 근본 원인 미확정.
 ui-tests(20261013-151947).log: 코드 변경 없는 단독 재실행에서 60/60회 완료, 1 test/0 failures, 502.977초 PASS.
 전체 실행 실패와 단독 재실행 성공은 별도 기록이며 21개 동시 PASS 또는 간헐적 지연 해결로 해석하지 않는다.
+
+### Profile subtitle / audio preferences
+
+The subtitle button now opens **자막 및 오디오**. Subtitle off/language and audio
+language are saved per profile and restored when reopening playback or advancing
+episodes. If a video lacks the language, a default available track (or subtitles off)
+is used without discarding the preference. Silent demos do not offer fake audio tracks.
+
+Focused validation (Mac; Core + two UI tests):
+
+```bash
+cd ~/Desktop/streamlab-ios &&
+git pull --ff-only --no-rebase origin main &&
+caffeinate -i bash scripts/check-languages-mac.sh
+```
+
+Results: `Docs/Validation/languages-*/RESULTS.txt`, `core.log`, `ui-tests.log`,
+`UITests.xcresult`. Build products use a fresh `/private/tmp` directory; its path is
+recorded in `environment.txt`. Local structure/shell checks PASS; new Mac tests and
+real HLS alternate-audio playback are NOT TESTED until executed.
+See ADR 0013. Real audio QA: choose an available HLS audio language, close/reopen,
+check selection and listen; switch profile; try a video without that language, then
+return to one that supports it. Do not count silent demo tests as audio validation.

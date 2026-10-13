@@ -8,6 +8,7 @@ import StreamLabPresentation
     public let profile: ViewerProfile
     let repository: any CatalogRepository
     let myList: MyListStore
+    let languages: PlaybackLanguageStore
     let progress: PlaybackProgressStore
     public private(set) var isActive = true
     private var stores: [WeakStore] = []
@@ -39,6 +40,7 @@ import StreamLabPresentation
             progressDefaults = suite
         }
         #endif
+        self.languages = PlaybackLanguageStore(profileID: profile.id, defaults: progressDefaults)
         self.progress = PlaybackProgressStore(profileID: profile.id, defaults: progressDefaults)
     }
 
