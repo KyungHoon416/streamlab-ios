@@ -182,13 +182,42 @@ import XCTest
             XCTFail("Target did not appear: \(element)", file: file, line: line)
             return
         }
+        let playerTarget = element.identifier.hasPrefix("playback-") && element.identifier != "playback-open"
         for _ in 0..<8 {
-            if element.isHittable { break }
+            // Auto-hide can occur during snapshot queries; re-resolve on every attempt.
+            if reveal.exists && reveal.isHittable { reveal.tap() }
+            if element.exists && element.isHittable { break }
             let controls = app.scrollViews["playback-controls-scroll"]
-            if controls.exists {
-                let viewport = controls.frame
-                if element.frame.midY < viewport.midY { controls.swipeDown() }
-                else { controls.swipeUp() }
+            if playerTarget {
+                let ready = XCTNSPredicateExpectation(
+                    predicate: NSPredicate(format: "exists == true AND hittable == true"), object: controls)
+                guard XCTWaiter.wait(for: [ready], timeout: 3) == .completed,
+                      element.exists else {
+                    captureFailure(app, name: "Player controls unavailable")
+                    XCTFail("Player controls disappeared while reaching \(element.identifier)", file: file, line: line)
+                    return
+                }
+                let viewport = controls.frame.intersection(app.frame)
+                let target = element.frame
+                guard !viewport.isNull, !viewport.isEmpty, !target.isEmpty else {
+                    captureFailure(app, name: "Player controls empty frame")
+                    XCTFail("Player controls or target have no usable frame", file: file, line: line)
+                    return
+                }
+                if target.maxY <= viewport.minY { controls.swipeDown() }
+                else if target.minY >= viewport.maxY { controls.swipeUp() }
+                else {
+                    // A visible but unhittable button may still be transitioning.
+                    // Do not guess a swipe direction or send gestures to the underlying detail.
+                    let hittable = XCTNSPredicateExpectation(
+                        predicate: NSPredicate(format: "exists == true AND hittable == true"), object: element)
+                    guard XCTWaiter.wait(for: [hittable], timeout: 3) == .completed else {
+                        captureFailure(app, name: "Player target blocked")
+                        XCTFail("Visible player target is not hittable: \(element.identifier)", file: file, line: line)
+                        return
+                    }
+                    break
+                }
             } else { app.swipeUp() }
         }
         guard element.isHittable else {

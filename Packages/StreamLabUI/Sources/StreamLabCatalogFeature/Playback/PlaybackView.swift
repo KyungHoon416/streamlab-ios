@@ -7,6 +7,7 @@ import StreamLabDesignSystem
     @State private var source: PlaybackModel.Source = .bundled
     @State private var scrubPosition: Double = 0
     @State private var scrubbing = false
+    @GestureState private var interactingWithControls = false
     @State private var controlsVisible = true
     @State private var sourceSheet = false
     @State private var subtitleSheet = false
@@ -65,6 +66,11 @@ import StreamLabDesignSystem
                         .padding(20)
                     }
                     .accessibilityIdentifier("playback-controls-scroll")
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 4)
+                            .updating($interactingWithControls) { _, active, _ in active = true }
+                            .onEnded { _ in revealControls() }
+                    )
                 }
             }
         }
@@ -109,7 +115,7 @@ import StreamLabDesignSystem
     }
 
     private var mayHide: Bool {
-        model.status == .playing && !model.isSeeking && !scrubbing && !sourceSheet && !subtitleSheet
+        model.status == .playing && !model.isSeeking && !scrubbing && !interactingWithControls && !sourceSheet && !subtitleSheet
             && !voiceOver && !textSize.isAccessibilitySize && phase == .active
     }
 
