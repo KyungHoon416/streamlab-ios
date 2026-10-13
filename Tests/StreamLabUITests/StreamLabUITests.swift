@@ -42,6 +42,37 @@ import XCTest
         closePlayback(app)
     }
 
+    func testPausedSeekTimeoutRecoversControls() {
+        let app = XCUIApplication()
+        app.launchArguments.append("--ui-test-stall-seek-once")
+        app.launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("일시 정지", in: app)
+        tap(app.buttons["playback-forward"], in: app)
+        XCTAssertTrue(app.staticTexts["playback-seek-message"].waitForExistence(timeout: 12))
+        expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: app.progressIndicators["playback-loading"])
+        expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: app.buttons["playback-toggle"])
+        waitForExpectations(timeout: 5)
+        expectPlayback("일시 정지", in: app)
+        for _ in 0..<3 {
+            tap(app.buttons["playback-backward"], in: app)
+            expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: app.buttons["playback-forward"])
+            waitForExpectations(timeout: 5)
+            expectPlayback("일시 정지", in: app)
+            tap(app.buttons["playback-forward"], in: app)
+            expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: app.buttons["playback-toggle"])
+            waitForExpectations(timeout: 5)
+            expectPlayback("일시 정지", in: app)
+        }
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("재생 중", in: app)
+        closePlayback(app)
+    }
+
     private func launch(largeText: Bool = false, slow: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         if largeText { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }

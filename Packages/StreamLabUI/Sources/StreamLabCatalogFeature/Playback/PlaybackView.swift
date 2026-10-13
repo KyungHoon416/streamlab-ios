@@ -151,6 +151,13 @@ import StreamLabDesignSystem
             subtitleCaption
             if model.status == .loading || model.isSeeking {
                 ProgressView().tint(.white).accessibilityLabel("영상 로딩 중")
+                    .accessibilityIdentifier("playback-loading")
+            }
+            if !model.seekMessage.isEmpty {
+                Text(model.seekMessage)
+                    .font(.callout).multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("playback-seek-message")
             }
             Text(model.status.label)
                 .font(.callout).multilineTextAlignment(.center)

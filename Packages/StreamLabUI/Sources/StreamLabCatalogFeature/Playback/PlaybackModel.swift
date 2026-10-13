@@ -56,7 +56,14 @@ import StreamLabDomain
     private var loadTask: Task<Void, Never>?
     private var sampleTask: Task<Void, Never>?
     private var seekTask: Task<Void, Never>?
+    private var seekGeneration = 0
+    private var seekStarted: ContinuousClock.Instant?
+    @Published private(set) var seekMessage = ""
+    #if DEBUG
+    private var injectedSeekStall = false
+    #endif
     private var foreground = true
+    private var foregroundGeneration = 0
     private var wantsPlayback = true
     private var waitingSince: Date?
     private var attempted = false
@@ -128,11 +135,21 @@ import StreamLabDomain
             fail("영상을 재생할 수 없습니다. 연결 상태를 확인하고 다시 시도해 주세요.")
             return false
         }
+        if isSeeking, let seekStarted, seekStarted.duration(to: .now) >= .seconds(8) {
+            seekGeneration += 1
+            seekTask?.cancel(); seekTask = nil
+            self.seekStarted = nil
+            isSeeking = false
+            wantsPlayback = false
+            player.pause()
+            item.cancelPendingSeeks()
+            seekMessage = "재생 위치 이동이 지연되어 취소했습니다. 다시 이동하거나 재생해 주세요."
+        }
         let seconds = item.duration.seconds
         duration = seconds.isFinite && seconds > 0 ? seconds : 0
         let current = player.currentTime().seconds
         if !isSeeking { position = current.isFinite ? max(0, current) : 0 }
-        if item.status != .readyToPlay || player.timeControlStatus == .waitingToPlayAtSpecifiedRate {
+        if item.status != .readyToPlay || (wantsPlayback && player.timeControlStatus == .waitingToPlayAtSpecifiedRate) {
             status = .loading
             if waitingSince == nil { waitingSince = Date() }
             if foreground, let waitingSince, Date().timeIntervalSince(waitingSince) > 30 {
@@ -163,19 +180,35 @@ import StreamLabDomain
         guard canSeek, seconds.isFinite, let player else { return }
         let destination = min(duration, max(0, seconds))
         let ticket = generation
+        seekGeneration += 1
+        let seekTicket = seekGeneration
+        let resumeAfterSeek = wantsPlayback || playAfterSeek
+        let foregroundTicket = foregroundGeneration
+        seekStarted = .now
+        seekMessage = ""
         isSeeking = true
+        if !resumeAfterSeek { player.pause() }
         position = destination
         subtitleText = ""
         seekTask = Task { [weak self, weak player] in
             guard let player else { return }
             let completed = await player.seek(to: CMTime(seconds: destination, preferredTimescale: 600),
-                                              toleranceBefore: .zero, toleranceAfter: .zero)
-            guard !Task.isCancelled, let self, self.generation == ticket, self.session.isActive else { return }
-            self.isSeeking = false
-            if completed && playAfterSeek && self.foreground {
-                self.wantsPlayback = true
-                player.play()
+                                              toleranceBefore: CMTime(seconds: 0.1, preferredTimescale: 600),
+                                              toleranceAfter: CMTime(seconds: 0.1, preferredTimescale: 600))
+            guard !Task.isCancelled, let self, self.generation == ticket,
+                  self.seekGeneration == seekTicket, self.session.isActive else { return }
+            #if DEBUG
+            // Deterministically exercise the watchdog without relying on network timing.
+            if !self.injectedSeekStall && ProcessInfo.processInfo.arguments.contains("--ui-test-stall-seek-once") {
+                self.injectedSeekStall = true
+                return
             }
+            #endif
+            self.seekStarted = nil
+            self.isSeeking = false
+            self.wantsPlayback = completed && resumeAfterSeek && self.foreground && self.foregroundGeneration == foregroundTicket
+            if self.wantsPlayback { player.play() } else { player.pause() }
+            if !completed { self.seekMessage = "재생 위치 이동이 취소되었습니다. 다시 시도해 주세요." }
             _ = self.sample(ticket: ticket)
         }
     }
@@ -184,6 +217,7 @@ import StreamLabDomain
         foreground = active
         waitingSince = nil
         if !active {
+            foregroundGeneration += 1
             wantsPlayback = false
             player?.pause()
             waitingSince = nil
@@ -193,6 +227,9 @@ import StreamLabDomain
 
     func stop() {
         generation += 1
+        seekGeneration += 1
+        seekStarted = nil
+        seekMessage = ""
         subtitleTask?.cancel(); subtitleTask = nil
         subtitleGroup = nil
         nativeSubtitles = [:]; sidecarSubtitles = [:]
