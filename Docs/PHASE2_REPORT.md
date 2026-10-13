@@ -117,3 +117,45 @@ RESULTS(20261012-080504).txt는 fixtures/project-structure/bootstrap/generated-p
 - 후속 변경: DetailView ScrollView에 detail-scroll 식별자 추가. 테스트는 내비게이션/탭 영역을 제외한 상세 viewport 안에서 목표 버튼 중심과의 차이만큼 드래그한다. 접근성 audit을 스크롤 루프와 분리하고 재생/나의 리스트/재조회 각각의 완전 노출 및 hittable을 확인한 뒤 audit을 실행한다. audit 실패를 무시하지 않는다.
 - DetailScroll 로그에 각 시도의 요소 frame, viewport, hittable을 남긴다. 도달 실패는 hierarchy/스크린샷 첨부와 XCTest 실패로 유지한다. 실제 앱 레이아웃과 터치 동작은 이 변경에서 수정하지 않는다.
 - NOT TESTED: 후속 변경의 Xcode 빌드/Swift 타입 검사/Simulator 테스트. Mac 재실행 필요. 이전 FAIL을 PASS로 변경하지 않는다.
+
+
+## 2026-10-13 전체 자동 검사 증거 및 커스텀 플레이어
+
+### 변경 직전 결과
+
+사용자 RESULTS(20261013-004227).txt는 fixtures/project-structure/bootstrap/generated-project-structure/core/simulator-build/ui-tests/warning-free 모두 PASS(exit=0)이다. 앞서 사용자는 최대 글자 선택 테스트 성공도 보고했다. 요약에는 커밋 SHA와 개별 테스트 수가 없으므로 개별 실행 수를 추정하지 않는다. VoiceOver/최대 글자 수동 확인/runtime warnings/device layouts/Instruments는 해당 파일에서 NOT TESTED이다. 이 결과는 아래 새 플레이어 변경의 통과 증거가 아니다.
+
+### 구현
+
+- PlaybackView: 영상 위 SwiftUI 커스텀 컨트롤, 전체 화면, 재생/일시정지/완료 후 재생, ±10초, 슬라이더, 시간, 로딩/오류 재시도, 소스 시트, 영상 전체/채우기 전환.
+- PlayerSurface: AVPlayerLayer 출력과 dismantle 시 연결 해제. 기존 PlaybackModel은 변경하지 않는다.
+- PlaybackOrientation: 연결된 scene의 가로 회전 요청 및 종료 시 원래 방향 요청. 세로/가로 요청 버튼. 시스템이 거부하면 가용 화면에 적응한다.
+- 재생 중 무조작 4초 후 컨트롤 숨김. VoiceOver/접근성 글자/로딩/일시정지/스크럽/소스 시트/비활성에서는 숨기지 않는다. 숨김 Task는 상태 변화와 화면 종료에서 취소된다.
+- 기존 UI 재생 테스트의 컨트롤 재표시 처리, 새 UI 회귀 2개 추가. 정의 수는 총 17개이며 실행 통과 수가 아니다.
+- 구조 검사에서 영상/회전 연결 파일 2개에만 UIKit import 허용. App/일반 화면은 SwiftUI 유지.
+- ADR 0008 추가, README 및 ADR 0007 보완.
+
+### 이번 변경 검증
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 프로젝트 구조 검사 | PASS | python3 scripts/validate-project.py exit=0 |
+| Swift 6 타입/Strict Concurrency/경고 | NOT TESTED | 작성 환경에 Swift/Xcode 없음 |
+| iOS Simulator 빌드·Core·UI 17개 | NOT TESTED | Mac 실행 필요 |
+| 가로 전환/복원·커스텀 컨트롤 렌더링 | NOT TESTED | iPhone/iPad 실제 확인 필요 |
+| HLS·VoiceOver·Instruments | NOT TESTED | 수동/계측 확인 필요 |
+
+### Mac 검증
+
+먼저 git pull --ff-only --no-rebase origin main 후 ./scripts/verify-mac.sh를 실행한다. 전체 스크립트는 새 SwiftPM 파일을 포함해 생성/빌드/UI 검사를 수행한다. 단일 테스트만으로 전체 완료를 표시하지 않는다.
+
+수동 체크:
+1. 홈/상세 → 데모 재생: 가로 화면 요청, 영상/시간 진행, 닫기 가능.
+2. 4초 무조작 → 컨트롤 숨김 → 화면 탭으로 복구. 일시정지 중 유지.
+3. ±10초와 슬라이더: 시작/끝 범위, 재생/일시정지 상태 확인.
+4. 전체 영상/화면 채우기와 세로/가로 요청, 닫기 후 이전 화면/방향 복원.
+5. 소스 → HLS/오프라인 전환, 로딩 중 닫기, 재진입, 백그라운드 복귀 시 일시정지.
+6. VoiceOver/최대 글자에서 조작 순서와 스크롤·닫기, iPad 분할 화면에서 회전 거부 시에도 조작 가능.
+7. Instruments 재생 진입/종료 20회 후 player/model/layer 연결 정리와 지속 증가 여부.
+
+이번 범위 이후 자막 선택 → 재생 시간 복원 → 에피소드 데이터와 자동 다음 편 순으로 진행한다. 다운로드/DRM/PiP는 미구현이다.

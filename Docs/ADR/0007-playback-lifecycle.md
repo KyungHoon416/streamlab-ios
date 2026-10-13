@@ -28,3 +28,8 @@ HLS 메뉴는 Apple 공개 예제 URL을 사용한다. 실패해도 번들 데�
 - https://developer.apple.com/documentation/avkit/videoplayer
 - https://developer.apple.com/documentation/avfoundation/avplayer/seek(to:tolerancebefore:toleranceafter:completionhandler:)
 - https://developer.apple.com/streaming/examples/
+
+
+## 2026-10-13 화면 후속 변경
+
+커스텀 SwiftUI 컨트롤과 영상/장면 회전용 최소 UIKit 어댑터는 ADR 0008을 따른다. 이 ADR의 PlaybackModel 소유권/프로필 권한/취소/stop 결정은 유지한다. 변경 직전 사용자 전체 자동 gate PASS와 새 화면의 NOT TESTED 상태는 Phase 2 보고서에서 구분한다.

@@ -10,6 +10,8 @@ import XCTest
     }
 
     private func tap(_ element: XCUIElement, in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
+        let reveal = app.buttons["playback-reveal-controls"]
+        if reveal.exists { reveal.tap() }
         XCTAssertTrue(element.waitForExistence(timeout: 12), file: file, line: line)
         for _ in 0..<8 {
             if element.isHittable { break }
@@ -90,9 +92,57 @@ import XCTest
     }
 
     private func expectPlayback(_ status: String, in app: XCUIApplication) {
+        let reveal = app.buttons["playback-reveal-controls"]
+        if reveal.exists { reveal.tap() }
         let label = app.staticTexts["playback-status"]
         expectation(for: NSPredicate(format: "label == %@", status), evaluatedWith: label)
         waitForExpectations(timeout: 15)
+    }
+
+    func testCustomPlaybackLandscapeAndControls() {
+        XCUIDevice.shared.orientation = .portrait
+        defer { XCUIDevice.shared.orientation = .portrait }
+        let app = launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        tap(app.buttons["playback-open"], in: app)
+        expectPlayback("재생 중", in: app)
+        let reveal = app.buttons["playback-reveal-controls"]
+        XCTAssertTrue(reveal.waitForExistence(timeout: 10), "Playing controls should hide after inactivity.")
+        XCTAssertGreaterThan(app.frame.width, app.frame.height, "Player should request landscape on a full-screen iPhone.")
+        reveal.tap()
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("일시 정지", in: app)
+        let slider = app.sliders["playback-position"]
+        XCTAssertTrue(slider.waitForExistence(timeout: 5))
+        slider.adjust(toNormalizedSliderPosition: 0.5)
+        let time = app.staticTexts["playback-time"]
+        expectation(for: NSPredicate(format: "label MATCHES %@", "1[3-7]초 / 30초"), evaluatedWith: time)
+        waitForExpectations(timeout: 10)
+        tap(app.buttons["playback-fit"], in: app)
+        XCTAssertEqual(app.buttons["playback-fit"].value as? String, "화면 채우기")
+        tap(app.buttons["playback-fit"], in: app)
+        XCTAssertEqual(app.buttons["playback-fit"].value as? String, "영상 전체 보기")
+        tap(app.buttons["playback-close"], in: app)
+        XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["playback-toggle"].exists)
+        // Reopening creates a fresh player rather than resuming the closed instance.
+        tap(app.buttons["playback-open"], in: app)
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-close"], in: app)
+    }
+
+    func testPlaybackLargeTextControls() throws {
+        let app = launch(largeText: true)
+        choose("kids-a", in: app)
+        openHomeDetail(app)
+        tap(app.buttons["playback-open"], in: app)
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("일시 정지", in: app)
+        try auditLargeText(app, screen: "custom-player-large-text")
+        tap(app.buttons["playback-close"], in: app)
+        XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 5))
     }
 
     func testPlaybackRetryAfterMissingResource() {
@@ -393,3 +443,4 @@ import XCTest
         try auditLargeText(app, screen: "search")
     }
 }
+

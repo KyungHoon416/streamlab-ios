@@ -13,8 +13,18 @@ sources = [p for folder in ("App", "Packages", "Tests")
            for p in (root / folder).rglob("*.swift")
            if not any(part.startswith(".") for part in p.relative_to(root).parts)]
 assert not list(ui.rglob("*.storyboard")), "Obsolete Storyboard resources remain"
+# SwiftUI owns all screens. Only the media layer and scene-geometry adapters use UIKit.
+bridges = {
+    "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Playback/PlayerSurface.swift",
+    "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Playback/PlaybackOrientation.swift",
+}
 for p in sources:
-    assert not re.search(r"import UIKit|UIHostingController|UIStoryboard|@IBOutlet|class (AppDelegate|SceneDelegate)", p.read_text()), p
+    text = p.read_text()
+    assert not re.search(r"UIHostingController|UIStoryboard|@IBOutlet|class (AppDelegate|SceneDelegate)", text), p
+    if "import UIKit" in text:
+        assert p.relative_to(root).as_posix() in bridges, p
+assert all((root / p).is_file() for p in bridges)
+
 assert ".storyboard" not in manifest
 assert "StreamLabPresentation" in manifest
 app = (root / "App/Application/StreamLabApp.swift").read_text()
@@ -60,3 +70,4 @@ assert "SWIFT_TREAT_WARNINGS_AS_ERRORS: YES" in (root / "project.yml").read_text
 print("PASS: SwiftUI App + four feature views, lazy containers, profile identity, lifecycle wiring")
 print("PASS: package declarations, compiled source paths, scheme target IDs and Info.plist")
 print("NOT TESTED: Swift type checking, iOS build, SwiftUI layout/accessibility/runtime")
+
