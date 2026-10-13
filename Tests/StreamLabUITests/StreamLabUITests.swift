@@ -302,7 +302,9 @@ import XCTest
             XCTFail("Target did not appear: \(element)", file: file, line: line)
             return
         }
-        let playerTarget = element.identifier.hasPrefix("playback-") && element.identifier != "playback-open"
+        // Cache before auto-hide; querying identifier on a missing element throws in XCTest.
+        let targetID = element.identifier
+        let playerTarget = targetID.hasPrefix("playback-") && targetID != "playback-open"
         for _ in 0..<8 {
             // Auto-hide can occur during snapshot queries; re-resolve on every attempt.
             if reveal.exists && reveal.isHittable { reveal.tap() }
@@ -311,11 +313,10 @@ import XCTest
             if playerTarget {
                 let ready = XCTNSPredicateExpectation(
                     predicate: NSPredicate(format: "exists == true AND hittable == true"), object: controls)
-                guard XCTWaiter.wait(for: [ready], timeout: 3) == .completed,
+                guard XCTWaiter.wait(for: [ready], timeout: 1) == .completed,
                       element.exists else {
-                    captureFailure(app, name: "Player controls unavailable")
-                    XCTFail("Player controls disappeared while reaching \(element.identifier)", file: file, line: line)
-                    return
+                    // A new loop rechecks the reveal button. Still bounded by eight attempts.
+                    continue
                 }
                 let viewport = controls.frame.intersection(app.frame)
                 let target = element.frame
@@ -331,18 +332,16 @@ import XCTest
                     // Do not guess a swipe direction or send gestures to the underlying detail.
                     let hittable = XCTNSPredicateExpectation(
                         predicate: NSPredicate(format: "exists == true AND hittable == true"), object: element)
-                    guard XCTWaiter.wait(for: [hittable], timeout: 3) == .completed else {
-                        captureFailure(app, name: "Player target blocked")
-                        XCTFail("Visible player target is not hittable: \(element.identifier)", file: file, line: line)
-                        return
+                    guard XCTWaiter.wait(for: [hittable], timeout: 1) == .completed else {
+                        continue
                     }
                     break
                 }
             } else { app.swipeUp() }
         }
-        guard element.isHittable else {
-            captureFailure(app, name: "Unreachable " + element.identifier)
-            XCTFail("Target is not hittable: \(element)", file: file, line: line)
+        guard element.exists && element.isHittable else {
+            captureFailure(app, name: "Unreachable " + targetID)
+            XCTFail("Target is not hittable after bounded reveal attempts: \(targetID)", file: file, line: line)
             return
         }
         element.tap()

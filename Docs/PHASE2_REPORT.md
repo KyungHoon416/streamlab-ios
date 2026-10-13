@@ -362,3 +362,16 @@ ui-tests(20261013-151947).log: 코드 변경 없는 단독 재실행에서 60/60
   next-episode button/countdown. This is not a full-suite PASS for this new change.
 - Limitations: demo episodes reuse one silent video; language preferences do not
   distinguish multiple same-language SDH/commentary renditions. Real HLS QA remains required.
+
+### Language validation follow-up (2026-10-14 KST)
+
+Supplied RESULTS(20261013-162502).txt: Core PASS exit=0; language UI FAIL
+exit=65 (2 tests, 2 failures). Both reached playing, then failed while finding
+playback-source / playback-toggle. Failure hierarchy still contains
+playback-reveal-controls; this does not establish a player dismissal. The four-second
+control auto-hide can occur during the helper's snapshot/hittability waits.
+The helper now rechecks reveal after a short wait, with the existing eight-attempt
+bound and final hittability assertion. Cache the target identifier before it disappears
+so diagnostics do not throw an additional missing-element error. No production
+auto-hide behavior changed. Fix runtime result: NOT TESTED pending Mac rerun.
+StreamLabUITests-Runner.app is the XCTest runner, not a duplicate production app.
