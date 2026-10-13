@@ -169,3 +169,47 @@ RESULTS(20261012-080504).txt는 fixtures/project-structure/bootstrap/generated-p
 - 후속 수정은 UI 테스트만 변경한다. openPlayback은 진입 직전 app.frame을 저장한다. closePlayback은 닫기 버튼 소멸, 원래 window frame 복원, 상세 및 BackButton hittable을 각각 기다린다. back은 정확한 BackButton을 탭하고 상세가 사라졌는지 확인한다. 고정 sleep, 무조건 재탭, 실패 무시를 사용하지 않는다.
 - 공용 tap은 대상이 없거나 hittable이 아니면 실패를 기록하고 반환하여 불필요한 탭 오류 연쇄를 줄인다. 앱의 회전·재생 동작은 이번 수정에서 바꾸지 않았다.
 - 이번 후속 구조 검사: PASS(exit=0). 후속 Xcode 빌드/Swift 타입 검사/UI 재실행: NOT TESTED(Linux 환경). 이전 2개 실패는 재검증 전 해결 완료로 처리하지 않는다.
+
+
+## 2026-10-13 — 자막 선택
+
+### 이전 회귀 검증 결과 수신
+
+사용자가 제출한 RESULTS(20261013-022429).txt에서 fixtures, project-structure, bootstrap,
+generated-project-structure, core, simulator-build, ui-tests, warning-free 8개 게이트 모두 PASS를 확인했다.
+요약 파일에는 개별 테스트 수와 커밋 SHA가 없으므로 이 파일만으로 이를 확정하지 않는다.
+수동 VoiceOver, Dynamic Type, runtime-warning-free, device-layouts, Instruments는 해당 실행에서 NOT TESTED다.
+
+### 변경
+
+- Domain SubRip 파서: BOM/CRLF, 다중 행, 잘못된 타임코드 제외, 겹치는 큐, 종료 경계 제외.
+- 번들 한국어·영어 SRT 안내 자막과 재생 시간 기반 오버레이. 일시 정지 유지, 10초 이동/시킹 이후 재계산.
+- SwiftUI 자막 시트: 언어 선택/끄기/현재 선택 표시, 로딩/없음/로드 실패 재시도.
+- HLS AVMediaSelectionGroup(.legible), AVPlayerItem.select로 실제 트랙 선택.
+- allowsEmptySelection=false인 자막 그룹은 끄기 비활성화 및 설명 제공.
+- 로드 작업 취소 + generation/session/currentItem 검증으로 이전 영상 응답 차단.
+- 닫기/소스 변경/프로필 무효화 시 자막 초기화. 자막 시트를 열면 컨트롤 자동 숨김 중지.
+- Core 테스트 4개, UI 테스트 1개 추가(언어 변경/끄기/앞뒤 시킹/재진입 초기화).
+
+### 검증 상태
+
+| 항목 | 결과 | 근거 |
+| --- | --- | --- |
+| 프로젝트 구조 | PASS | Linux에서 validate-project.py exit=0 |
+| 새 Swift 코드 컴파일, Strict Concurrency | NOT TESTED | 현 환경에 Swift/Xcode 없음 |
+| 새 Core 테스트 및 UI 18개 전체 | NOT TESTED | Mac verify-mac.sh 필요 |
+| HLS 트랙 선택/없음/실패 복구 | NOT TESTED | 네트워크와 해당 트랙 제공 스트림 필요 |
+| 큰 글자/VoiceOver/가로·세로 자막 배치 | NOT TESTED | 시뮬레이터·실기기 수동 확인 필요 |
+
+### Mac 수동 검증
+
+1. 오프라인 데모를 일시 정지 → 자막 버튼 → 한국어. 화면에 안내 문구가 표시된다.
+2. 10초 앞으로/뒤로 및 슬라이더 이동 → 해당 시점의 문구가 표시된다.
+3. 영어로 바꾸면 영어, 끄기를 선택하면 문구가 사라진다.
+4. 자막이 켜진 상태로 닫고 다시 열기 → 기본 끄기, 이전 문구 없음.
+5. 재생 컨트롤이 자동으로 숨겨져도 자막은 계속 표시된다.
+6. HLS 소스로 변경 → 이전 SRT 없음. 제공되는 실제 자막 선택 또는 자막 없음 안내 확인.
+7. HLS 자막 로딩 도중 닫기/소스 변경 → 이전 응답이 새 재생에 반영되지 않는지 확인.
+8. 최대 글자 크기 및 VoiceOver로 자막 버튼/언어/끄기/완료 접근 확인.
+
+외부 파일 가져오기, 자막 스타일 태그, 자막 지연 조절, 선택 영구 저장은 이번 구현 범위 밖이다.

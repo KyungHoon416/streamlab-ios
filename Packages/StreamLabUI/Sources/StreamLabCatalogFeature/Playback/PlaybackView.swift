@@ -8,6 +8,7 @@ import StreamLabDesignSystem
     @State private var scrubbing = false
     @State private var controlsVisible = true
     @State private var sourceSheet = false
+    @State private var subtitleSheet = false
     @State private var fillsScreen = false
     @State private var landscape = true
     @State private var interaction = 0
@@ -40,6 +41,10 @@ import StreamLabDesignSystem
                 .accessibilityLabel(controlsVisible ? "재생 컨트롤 숨기기" : "재생 컨트롤 표시")
                 .accessibilityHidden(controlsVisible && !mayHide)
                 .accessibilityIdentifier(controlsVisible ? "playback-surface" : "playback-reveal-controls")
+                if !controlsVisible {
+                    VStack { Spacer(); subtitleCaption.padding(.horizontal, 24).padding(.bottom, 24) }
+                        .allowsHitTesting(false)
+                }
                 if controlsVisible {
                     LinearGradient(colors: [.black.opacity(0.85), .black.opacity(0.15), .black.opacity(0.85)],
                                    startPoint: .top, endPoint: .bottom)
@@ -72,6 +77,7 @@ import StreamLabDesignSystem
         .preferredColorScheme(.dark)
         .statusBarHidden(!controlsVisible)
         .sheet(isPresented: $sourceSheet) { sourceSelection }
+        .sheet(isPresented: $subtitleSheet, onDismiss: { revealControls() }) { subtitleSelection }
         .onAppear {
             guard !started else { return }
             started = true
@@ -102,7 +108,7 @@ import StreamLabDesignSystem
     }
 
     private var mayHide: Bool {
-        model.status == .playing && !model.isSeeking && !scrubbing && !sourceSheet
+        model.status == .playing && !model.isSeeking && !scrubbing && !sourceSheet && !subtitleSheet
             && !voiceOver && !textSize.isAccessibilitySize && phase == .active
     }
 
@@ -142,6 +148,7 @@ import StreamLabDesignSystem
 
     private var transport: some View {
         VStack(spacing: 12) {
+            subtitleCaption
             if model.status == .loading || model.isSeeking {
                 ProgressView().tint(.white).accessibilityLabel("영상 로딩 중")
             }
@@ -207,6 +214,10 @@ import StreamLabDesignSystem
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("playback-time")
                 Spacer(minLength: 0)
+                iconButton("자막 선택", symbol: "captions.bubble", id: "playback-subtitles") {
+                    subtitleSheet = true
+                }
+                .accessibilityValue(model.subtitleLabel)
                 iconButton(fillsScreen ? "영상 전체 보기" : "화면 채우기", symbol: fillsScreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right", id: "playback-fit") {
                     fillsScreen.toggle()
                 }
@@ -233,6 +244,69 @@ import StreamLabDesignSystem
         .buttonStyle(.plain)
         .accessibilityLabel(label)
         .accessibilityIdentifier(id)
+    }
+
+    @ViewBuilder private var subtitleCaption: some View {
+        if !model.subtitleText.isEmpty {
+            Text(model.subtitleText)
+                .font(.body.weight(.semibold))
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(8)
+                .background(.black.opacity(0.85), in: RoundedRectangle(cornerRadius: 6))
+                .accessibilityIdentifier("playback-caption")
+        }
+    }
+
+    private var subtitleSelection: some View {
+        NavigationStack {
+            List {
+                Section {
+                    subtitleRow(id: "off", label: "끄기")
+                        .disabled(!model.canDisableSubtitles || model.subtitlesLoading)
+                    ForEach(model.subtitleOptions) { option in
+                        subtitleRow(id: option.id, label: option.label)
+                    }
+                } header: { Text("자막 언어") }
+                if model.subtitlesLoading {
+                    ProgressView("자막 목록을 불러오는 중…")
+                }
+                if !model.subtitleMessage.isEmpty {
+                    Text(model.subtitleMessage)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("playback-subtitle-message")
+                }
+                if model.subtitleLoadFailed {
+                    Button("자막 목록 다시 시도") { model.retrySubtitles() }
+                        .accessibilityIdentifier("playback-subtitle-retry")
+                }
+            }
+            .navigationTitle("자막")
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("완료") { subtitleSheet = false; revealControls() }
+                        .accessibilityIdentifier("playback-subtitle-done")
+                }
+            }
+        }
+    }
+
+    private func subtitleRow(id: String, label: String) -> some View {
+        Button {
+            model.selectSubtitle(id)
+            subtitleSheet = false
+            revealControls()
+        } label: {
+            HStack {
+                Text(label).fixedSize(horizontal: false, vertical: true)
+                Spacer()
+                if model.selectedSubtitleID == id { Image(systemName: "checkmark") }
+            }
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .accessibilityValue(model.selectedSubtitleID == id ? "선택됨" : "")
+        .accessibilityIdentifier("playback-subtitle-\(id)")
     }
 
     private var sourceSelection: some View {

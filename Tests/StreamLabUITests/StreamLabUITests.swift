@@ -3,6 +3,45 @@ import XCTest
 @MainActor final class StreamLabUITests: XCTestCase {
     private var playbackReturnFrame: CGRect?
 
+    func testSubtitleSelectionSeekingAndReset() {
+        let app = launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("일시 정지", in: app)
+        app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0.1667)
+        expectation(for: NSPredicate(format: "label MATCHES %@", "[4-6]초 / 30초"), evaluatedWith: app.staticTexts["playback-time"])
+        waitForExpectations(timeout: 5)
+        tap(app.buttons["playback-subtitles"], in: app)
+        tap(app.buttons["playback-subtitle-ko"], in: app)
+        let caption = app.staticTexts["playback-caption"]
+        XCTAssertTrue(caption.waitForExistence(timeout: 5))
+        tap(app.buttons["playback-forward"], in: app)
+        expectation(for: NSPredicate(format: "label == %@", "자막 선택에서 언어를 바꿀 수 있습니다."), evaluatedWith: caption)
+        waitForExpectations(timeout: 5)
+        tap(app.buttons["playback-backward"], in: app)
+        expectation(for: NSPredicate(format: "label == %@", "StreamLab 데모 영상입니다."), evaluatedWith: caption)
+        waitForExpectations(timeout: 5)
+        tap(app.buttons["playback-subtitles"], in: app)
+        tap(app.buttons["playback-subtitle-en"], in: app)
+        expectation(for: NSPredicate(format: "label == %@", "Welcome to the StreamLab demo."), evaluatedWith: caption)
+        waitForExpectations(timeout: 5)
+        tap(app.buttons["playback-subtitles"], in: app)
+        tap(app.buttons["playback-subtitle-off"], in: app)
+        XCTAssertFalse(caption.exists)
+        tap(app.buttons["playback-subtitles"], in: app)
+        tap(app.buttons["playback-subtitle-ko"], in: app)
+        XCTAssertTrue(caption.waitForExistence(timeout: 5))
+        closePlayback(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        XCTAssertEqual(app.buttons["playback-subtitles"].value as? String, "끄기")
+        XCTAssertFalse(caption.exists)
+        closePlayback(app)
+    }
+
     private func launch(largeText: Bool = false, slow: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         if largeText { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }

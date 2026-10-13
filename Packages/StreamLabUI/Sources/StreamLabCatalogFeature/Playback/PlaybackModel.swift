@@ -34,6 +34,21 @@ import StreamLabDomain
     @Published private(set) var position: Double = 0
     @Published private(set) var duration: Double = 0
     @Published private(set) var isSeeking = false
+    struct SubtitleOption: Identifiable {
+        let id: String
+        let label: String
+    }
+    @Published private(set) var subtitleOptions: [SubtitleOption] = []
+    @Published private(set) var selectedSubtitleID = "off"
+    @Published private(set) var subtitleText = ""
+    @Published private(set) var subtitleMessage = ""
+    @Published private(set) var subtitlesLoading = false
+    @Published private(set) var subtitleLoadFailed = false
+    @Published private(set) var canDisableSubtitles = true
+    private var subtitleTask: Task<Void, Never>?
+    private var subtitleGroup: AVMediaSelectionGroup?
+    private var nativeSubtitles: [String: AVMediaSelectionOption] = [:]
+    private var sidecarSubtitles: [String: [SubtitleCue]] = [:]
     private(set) var source: Source = .bundled
     private let titleID: String
     private let session: CatalogSession
@@ -93,6 +108,7 @@ import StreamLabDomain
         guard let url else { fail("데모 영상을 찾을 수 없습니다. 다시 시도해 주세요."); return }
         let player = AVPlayer(url: url)
         self.player = player
+        prepareSubtitles(player: player, ticket: ticket)
         if foreground && wantsPlayback { player.play() }
         waitingSince = Date()
         // No KVO/notification/periodic-time observer crosses actor boundaries.
@@ -131,6 +147,7 @@ import StreamLabDomain
                 status = player.rate > 0 ? .playing : .paused
             }
         }
+        updateSubtitleText()
         return true
     }
 
@@ -148,6 +165,7 @@ import StreamLabDomain
         let ticket = generation
         isSeeking = true
         position = destination
+        subtitleText = ""
         seekTask = Task { [weak self, weak player] in
             guard let player else { return }
             let completed = await player.seek(to: CMTime(seconds: destination, preferredTimescale: 600),
@@ -175,6 +193,11 @@ import StreamLabDomain
 
     func stop() {
         generation += 1
+        subtitleTask?.cancel(); subtitleTask = nil
+        subtitleGroup = nil
+        nativeSubtitles = [:]; sidecarSubtitles = [:]
+        subtitleOptions = []; selectedSubtitleID = "off"; subtitleText = ""
+        subtitleMessage = ""; subtitleLoadFailed = false; subtitlesLoading = false; canDisableSubtitles = true
         loadTask?.cancel(); loadTask = nil
         sampleTask?.cancel(); sampleTask = nil
         seekTask?.cancel(); seekTask = nil
@@ -188,14 +211,92 @@ import StreamLabDomain
         status = .idle
     }
 
+    var subtitleLabel: String {
+        subtitleOptions.first(where: { $0.id == selectedSubtitleID })?.label ?? "끄기"
+    }
+
+    func selectSubtitle(_ id: String) {
+        guard session.isActive, let item = player?.currentItem else { return }
+        guard id == "off" || subtitleOptions.contains(where: { $0.id == id }) else { return }
+        if let group = subtitleGroup {
+            guard id != "off" || group.allowsEmptySelection else { return }
+            item.select(nativeSubtitles[id], in: group)
+        }
+        selectedSubtitleID = id
+        updateSubtitleText()
+    }
+
+    private func updateSubtitleText() {
+        subtitleText = isSeeking ? "" : SubRip.text(at: position, in: sidecarSubtitles[selectedSubtitleID] ?? [])
+    }
+
+    private func prepareSubtitles(player: AVPlayer, ticket: Int) {
+        if source == .bundled {
+            for (id, label) in [("ko", "한국어 · 데모"), ("en", "English · Demo")] {
+                guard let url = Bundle.module.url(forResource: "playback-demo-\(id)", withExtension: "srt"),
+                      let text = try? String(contentsOf: url, encoding: .utf8) else { continue }
+                let cues = SubRip.parse(text)
+                guard !cues.isEmpty else { continue }
+                sidecarSubtitles[id] = cues
+                subtitleOptions.append(SubtitleOption(id: id, label: label))
+            }
+            subtitleMessage = subtitleOptions.isEmpty ? "이 영상에 제공되는 자막이 없습니다." : "무음 데모용 안내 자막입니다."
+            return
+        }
+        guard let item = player.currentItem else { return }
+        subtitleLoadFailed = false
+        subtitlesLoading = true
+        // Only the weak model is captured across loading. Results are bound to this item/session.
+        subtitleTask = Task { [weak self] in
+            do {
+                let group = try await item.asset.loadMediaSelectionGroup(for: .legible)
+                guard !Task.isCancelled, let self, self.generation == ticket,
+                      self.session.isActive, self.player?.currentItem === item else { return }
+                self.subtitlesLoading = false
+                self.subtitleGroup = group
+                guard let group, !group.options.isEmpty else {
+                    self.subtitleMessage = "이 영상에 제공되는 자막이 없습니다."
+                    return
+                }
+                for (index, option) in group.options.enumerated() {
+                    let id = "native-\(index)"
+                    self.nativeSubtitles[id] = option
+                    self.subtitleOptions.append(SubtitleOption(id: id, label: option.displayName))
+                }
+                self.canDisableSubtitles = group.allowsEmptySelection
+                if group.allowsEmptySelection {
+                    item.select(nil, in: group)
+                } else if let option = group.options.first {
+                    item.select(option, in: group)
+                    self.selectedSubtitleID = "native-0"
+                    self.subtitleMessage = "이 영상의 필수 자막은 끌 수 없습니다."
+                }
+            } catch {
+                guard !Task.isCancelled, let self, self.generation == ticket, self.session.isActive else { return }
+                self.subtitlesLoading = false
+                self.subtitleLoadFailed = true
+                self.subtitleMessage = "자막 목록을 불러오지 못했습니다. 다시 시도해 주세요."
+            }
+        }
+    }
+
+    func retrySubtitles() {
+        guard session.isActive, let player, source == .hls, !subtitlesLoading else { return }
+        subtitleTask?.cancel()
+        subtitleMessage = ""
+        prepareSubtitles(player: player, ticket: generation)
+    }
+
     private func fail(_ message: String) {
         stop()
         status = .failed(message)
     }
 
     deinit {
+        subtitleTask?.cancel()
         loadTask?.cancel()
         sampleTask?.cancel()
         seekTask?.cancel()
     }
 }
+
