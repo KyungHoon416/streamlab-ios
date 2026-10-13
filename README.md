@@ -120,3 +120,7 @@ onDisappear/비활성 scenePhase에서 요청을 중단합니다. 현재 화면�
 사용자 제공 RESULTS(20261013-004227).txt의 변경 직전 자동 gate는 모두 PASS입니다. **이번 커스텀 플레이어의 구조 검사만 PASS이며 Xcode 빌드·UI·회전·VoiceOver·메모리는 NOT TESTED**입니다. Mac에서 ./scripts/verify-mac.sh 후 [Phase 2 보고서](Docs/PHASE2_REPORT.md)의 수동 항목을 확인하세요. 설계는 [ADR 0008](Docs/ADR/0008-custom-player-presentation.md)에 기록했습니다.
 
 자막 선택·재생 시간 복원·자동 다음 에피소드·다운로드·DRM은 아직 구현하지 않았습니다.
+
+### 커스텀 플레이어 첫 Mac 결과와 후속 테스트 수정
+
+RESULTS(20261013-012609).txt 및 ui-tests(4).log에서 빌드/Core/빌드 경고 PASS, UI 17개 중 15개 PASS입니다. 가로 플레이어와 큰 글자 테스트는 통과했고, 재생 종료 후 뒤로가기/프로필 전환 2개 테스트가 실패했습니다. 닫기와 세로 회전이 겹치는 로그를 근거로 테스트가 cover 종료·원래 window frame 복원·뒤로가기 완료를 기다리도록 보완했습니다. 이 테스트 수정의 Xcode/UI 재검증은 NOT TESTED입니다. 수동 항목과 전체 완료는 별도입니다.

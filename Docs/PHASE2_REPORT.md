@@ -159,3 +159,13 @@ RESULTS(20261012-080504).txt는 fixtures/project-structure/bootstrap/generated-p
 7. Instruments 재생 진입/종료 20회 후 player/model/layer 연결 정리와 지속 증가 여부.
 
 이번 범위 이후 자막 선택 → 재생 시간 복원 → 에피소드 데이터와 자동 다음 편 순으로 진행한다. 다운로드/DRM/PiP는 미구현이다.
+
+## 2026-10-13 10:26 사용자 커스텀 플레이어 검증 및 전환 대기 보완
+
+- RESULTS(20261013-012609).txt: Fixture/구조/bootstrap/Core/Simulator 빌드/빌드 경고 PASS, UI FAIL(exit=65), 수동 5개 항목 NOT TESTED.
+- ui-tests(4).log: 17개 중 15개 테스트 PASS, 2개 테스트 FAIL. 6 failures는 2개 테스트에서 연쇄 발생한 assertion/탭 오류 수이다.
+- PASS: testCustomPlaybackLandscapeAndControls, testPlaybackLargeTextControls, 기존 상세 최대 글자, 백그라운드 재생, 누락 리소스 재시도, 검색/프로필/페이지/반복 이동 등 로그의 15개 테스트. 이 실행만으로 수동 HLS/VoiceOver/실기기/메모리 통과를 주장하지 않는다.
+- FAIL: testPlaybackCloseDuringAuthorizationAndReopenForKids와 testSwiftUIScreensAndPlayback. 각각 닫기 직후 BackButton 합성 이벤트 사이에 Interface orientation changed to Portrait가 기록되고, 이후에도 상세의 BackButton/playback-open/detail-my-list/detail-retry만 남아 switch-profile 탐색에 실패했다. 회전 중 탭 경합이 유력하며 완전한 원인 확정은 후속 실행으로 검증한다.
+- 후속 수정은 UI 테스트만 변경한다. openPlayback은 진입 직전 app.frame을 저장한다. closePlayback은 닫기 버튼 소멸, 원래 window frame 복원, 상세 및 BackButton hittable을 각각 기다린다. back은 정확한 BackButton을 탭하고 상세가 사라졌는지 확인한다. 고정 sleep, 무조건 재탭, 실패 무시를 사용하지 않는다.
+- 공용 tap은 대상이 없거나 hittable이 아니면 실패를 기록하고 반환하여 불필요한 탭 오류 연쇄를 줄인다. 앱의 회전·재생 동작은 이번 수정에서 바꾸지 않았다.
+- 이번 후속 구조 검사: PASS(exit=0). 후속 Xcode 빌드/Swift 타입 검사/UI 재실행: NOT TESTED(Linux 환경). 이전 2개 실패는 재검증 전 해결 완료로 처리하지 않는다.

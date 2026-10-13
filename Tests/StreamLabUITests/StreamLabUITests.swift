@@ -1,6 +1,8 @@
 import XCTest
 
 @MainActor final class StreamLabUITests: XCTestCase {
+    private var playbackReturnFrame: CGRect?
+
     private func launch(largeText: Bool = false, slow: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         if largeText { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
@@ -12,12 +14,18 @@ import XCTest
     private func tap(_ element: XCUIElement, in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
         let reveal = app.buttons["playback-reveal-controls"]
         if reveal.exists { reveal.tap() }
-        XCTAssertTrue(element.waitForExistence(timeout: 12), file: file, line: line)
+        guard element.waitForExistence(timeout: 12) else {
+            XCTFail("Target did not appear: \(element)", file: file, line: line)
+            return
+        }
         for _ in 0..<8 {
             if element.isHittable { break }
             app.swipeUp()
         }
-        XCTAssertTrue(element.isHittable, file: file, line: line)
+        guard element.isHittable else {
+            XCTFail("Target is not hittable: \(element)", file: file, line: line)
+            return
+        }
         element.tap()
     }
 
@@ -45,8 +53,35 @@ import XCTest
         XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 5))
     }
 
+    private func openPlayback(_ app: XCUIApplication) {
+        playbackReturnFrame = app.frame
+        tap(app.buttons["playback-open"], in: app)
+    }
+
+    private func closePlayback(_ app: XCUIApplication) {
+        tap(app.buttons["playback-close"], in: app)
+        // Cover dismissal and scene rotation are separate transitions. Neither a tap
+        // returning nor the underlying detail existing proves both have completed.
+        expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: app.buttons["playback-close"])
+        if let frame = playbackReturnFrame {
+            print("[PlaybackReturn] Waiting for original window frame: \(frame)")
+            expectation(for: NSPredicate(format: "frame == %@", NSValue(cgRect: frame)), evaluatedWith: app)
+        }
+        waitForExpectations(timeout: 10)
+        XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 5))
+        let backButton = app.navigationBars.buttons["BackButton"]
+        expectation(for: NSPredicate(format: "exists == true AND hittable == true"), evaluatedWith: backButton)
+        waitForExpectations(timeout: 5)
+    }
+
     private func back(_ app: XCUIApplication) {
-        app.navigationBars.buttons.element(boundBy: 0).tap()
+        let button = app.navigationBars.buttons["BackButton"]
+        expectation(for: NSPredicate(format: "exists == true AND hittable == true"), evaluatedWith: button)
+        waitForExpectations(timeout: 5)
+        button.tap()
+        // Fail at the actual navigation boundary instead of cascading into profile taps.
+        expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: app.staticTexts["detail-title"])
+        waitForExpectations(timeout: 5)
     }
 
     private func assertVisibleKidsRows(_ app: XCUIApplication) {
@@ -77,7 +112,7 @@ import XCTest
         let app = launch()
         choose("adult-a", in: app)
         openHomeDetail(app)
-        tap(app.buttons["playback-open"], in: app)
+        openPlayback(app)
         expectPlayback("재생 중", in: app)
         tap(app.buttons["playback-toggle"], in: app)
         expectPlayback("일시 정지", in: app)
@@ -85,7 +120,7 @@ import XCTest
         let time = app.staticTexts["playback-time"]
         expectation(for: NSPredicate(format: "label MATCHES %@", "(1[0-9]|2[0-9]|30)초 / 30초"), evaluatedWith: time)
         waitForExpectations(timeout: 10)
-        tap(app.buttons["playback-close"], in: app)
+        closePlayback(app)
         back(app)
         tap(app.buttons["switch-profile"], in: app)
         choose("adult-b", in: app)
@@ -105,7 +140,7 @@ import XCTest
         let app = launch()
         choose("adult-a", in: app)
         openHomeDetail(app)
-        tap(app.buttons["playback-open"], in: app)
+        openPlayback(app)
         expectPlayback("재생 중", in: app)
         let reveal = app.buttons["playback-reveal-controls"]
         XCTAssertTrue(reveal.waitForExistence(timeout: 10), "Playing controls should hide after inactivity.")
@@ -123,25 +158,25 @@ import XCTest
         XCTAssertEqual(app.buttons["playback-fit"].value as? String, "화면 채우기")
         tap(app.buttons["playback-fit"], in: app)
         XCTAssertEqual(app.buttons["playback-fit"].value as? String, "영상 전체 보기")
-        tap(app.buttons["playback-close"], in: app)
+        closePlayback(app)
         XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["playback-toggle"].exists)
         // Reopening creates a fresh player rather than resuming the closed instance.
-        tap(app.buttons["playback-open"], in: app)
+        openPlayback(app)
         expectPlayback("재생 중", in: app)
-        tap(app.buttons["playback-close"], in: app)
+        closePlayback(app)
     }
 
     func testPlaybackLargeTextControls() throws {
         let app = launch(largeText: true)
         choose("kids-a", in: app)
         openHomeDetail(app)
-        tap(app.buttons["playback-open"], in: app)
+        openPlayback(app)
         expectPlayback("재생 중", in: app)
         tap(app.buttons["playback-toggle"], in: app)
         expectPlayback("일시 정지", in: app)
         try auditLargeText(app, screen: "custom-player-large-text")
-        tap(app.buttons["playback-close"], in: app)
+        closePlayback(app)
         XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 5))
     }
 
@@ -151,22 +186,22 @@ import XCTest
         app.launch()
         choose("adult-a", in: app)
         openHomeDetail(app)
-        tap(app.buttons["playback-open"], in: app)
+        openPlayback(app)
         tap(app.buttons["playback-retry"], in: app)
         expectPlayback("재생 중", in: app)
-        tap(app.buttons["playback-close"], in: app)
+        closePlayback(app)
     }
 
     func testPlaybackCloseDuringAuthorizationAndReopenForKids() {
         let app = launch(slow: true)
         choose("kids-a", in: app)
         openHomeDetail(app)
-        tap(app.buttons["playback-open"], in: app)
-        tap(app.buttons["playback-close"], in: app)
+        openPlayback(app)
+        closePlayback(app)
         XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 5))
-        tap(app.buttons["playback-open"], in: app)
+        openPlayback(app)
         expectPlayback("재생 중", in: app)
-        tap(app.buttons["playback-close"], in: app)
+        closePlayback(app)
         back(app)
         tap(app.buttons["switch-profile"], in: app)
         choose("adult-b", in: app)
@@ -177,14 +212,14 @@ import XCTest
         let app = launch()
         choose("adult-a", in: app)
         openHomeDetail(app)
-        tap(app.buttons["playback-open"], in: app)
+        openPlayback(app)
         expectPlayback("재생 중", in: app)
         XCUIDevice.shared.press(.home)
         app.activate()
         expectPlayback("일시 정지", in: app)
         tap(app.buttons["playback-toggle"], in: app)
         expectPlayback("재생 중", in: app)
-        tap(app.buttons["playback-close"], in: app)
+        closePlayback(app)
     }
 
     func testMyListPersistsAndIsolatesProfiles() {
