@@ -149,6 +149,14 @@ import StreamLabDesignSystem
     private var transport: some View {
         VStack(spacing: 12) {
             subtitleCaption
+            if !model.resumeMessage.isEmpty {
+                Text(model.resumeMessage).font(.caption)
+                    .accessibilityIdentifier("playback-resumed")
+                Button("처음부터 보기") { revealControls(); model.restartFromBeginning() }
+                    .frame(minHeight: 44)
+                    .disabled(!model.canSeek)
+                    .accessibilityIdentifier("playback-restart")
+            }
             if model.status == .loading || model.isSeeking {
                 ProgressView().tint(.white).accessibilityLabel("영상 로딩 중")
                     .accessibilityIdentifier("playback-loading")
@@ -335,7 +343,7 @@ import StreamLabDesignSystem
                         .accessibilityValue(source == option ? "선택됨" : "")
                     }
                 } footer: {
-                    Text("모든 작품은 같은 테스트 영상을 재생합니다. 오프라인 데모는 30초 무음이며 HLS는 인터넷 연결이 필요합니다. 소스를 바꾸면 처음부터 재생합니다.")
+                    Text("모든 작품은 같은 테스트 영상을 재생합니다. 오프라인 데모는 30초 무음이며 HLS는 인터넷 연결이 필요합니다. 소스별로 저장된 위치에서 이어봅니다.")
                 }
             }
             .navigationTitle("영상 소스")

@@ -45,6 +45,7 @@ import XCTest
     func testPausedSeekTimeoutRecoversControls() {
         let app = XCUIApplication()
         app.launchArguments.append("--ui-test-stall-seek-once")
+        app.launchArguments.append("--ui-test-disable-resume")
         app.launch()
         choose("adult-a", in: app)
         openHomeDetail(app)
@@ -73,10 +74,47 @@ import XCTest
         closePlayback(app)
     }
 
+    func testPlaybackResumeAfterRelaunchAndRestart() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=streamlab-uitest-\(UUID())"]
+        app.launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("일시 정지", in: app)
+        app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0.5)
+        expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: app.buttons["playback-toggle"])
+        expectation(for: NSPredicate(format: "label MATCHES %@", "1[3-7]초 / 30초"), evaluatedWith: app.staticTexts["playback-time"])
+        waitForExpectations(timeout: 5)
+        closePlayback(app)
+        app.terminate()
+        app.launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        XCTAssertTrue(app.staticTexts["playback-resumed"].waitForExistence(timeout: 10))
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("일시 정지", in: app)
+        expectation(for: NSPredicate(format: "label MATCHES %@", "(1[3-9]|2[0-4])초 / 30초"), evaluatedWith: app.staticTexts["playback-time"])
+        waitForExpectations(timeout: 5)
+        tap(app.buttons["playback-restart"], in: app)
+        expectation(for: NSPredicate(format: "label == %@", "0초 / 30초"), evaluatedWith: app.staticTexts["playback-time"])
+        waitForExpectations(timeout: 5)
+        closePlayback(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        XCTAssertFalse(app.staticTexts["playback-resumed"].exists)
+        closePlayback(app)
+    }
+
     private func launch(largeText: Bool = false, slow: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         if largeText { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
         if slow { app.launchArguments.append("--ui-test-slow-catalog") }
+        app.launchArguments.append("--ui-test-disable-resume")
         app.launch()
         return app
     }
@@ -168,7 +206,8 @@ import XCTest
     func testColdLaunchAndRelaunchShowProfiles() {
         let app = XCUIApplication()
         for _ in 0..<2 {
-            app.launch()
+            app.launchArguments.append("--ui-test-disable-resume")
+        app.launch()
             for id in ["adult-a", "adult-b", "kids-a"] {
                 let button = app.buttons["profile-\(id)"]
                 XCTAssertTrue(button.waitForExistence(timeout: 10))
@@ -253,6 +292,7 @@ import XCTest
     func testPlaybackRetryAfterMissingResource() {
         let app = XCUIApplication()
         app.launchArguments.append("--playback-missing-resource-once")
+        app.launchArguments.append("--ui-test-disable-resume")
         app.launch()
         choose("adult-a", in: app)
         openHomeDetail(app)
@@ -315,6 +355,7 @@ import XCTest
         choose("adult-a", in: app)
         XCTAssertEqual(saved.value as? String, "추가됨")
         app.terminate()
+        app.launchArguments.append("--ui-test-disable-resume")
         app.launch()
         choose("adult-a", in: app)
         XCTAssertEqual(saved.value as? String, "추가됨")

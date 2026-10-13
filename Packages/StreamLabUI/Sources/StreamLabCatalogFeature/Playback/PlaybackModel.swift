@@ -8,6 +8,12 @@ import StreamLabDomain
     enum Source: String, CaseIterable, Identifiable {
         case bundled = "오프라인 데모", hls = "HLS 스트리밍"
         var id: String { rawValue }
+        var progressID: String {
+            switch self {
+            case .bundled: "bundled-demo-v1"
+            case .hls: "apple-bipbop-v1"
+            }
+        }
         var url: URL? {
             switch self {
             case .bundled: Bundle.module.url(forResource: "playback-demo", withExtension: "mp4")
@@ -67,6 +73,19 @@ import StreamLabDomain
     private var wantsPlayback = true
     private var waitingSince: Date?
     private var attempted = false
+    private var needsInitialPosition = true
+    private var progressReady = false
+    private var restoringPosition = false
+    private var lastProgressSave: ContinuousClock.Instant?
+    @Published private(set) var resumeMessage = ""
+
+    private var progressEnabled: Bool {
+        #if DEBUG
+        !ProcessInfo.processInfo.arguments.contains("--ui-test-disable-resume")
+        #else
+        true
+        #endif
+    }
 
     init(titleID: String, session: CatalogSession) {
         self.titleID = titleID
@@ -116,7 +135,7 @@ import StreamLabDomain
         let player = AVPlayer(url: url)
         self.player = player
         prepareSubtitles(player: player, ticket: ticket)
-        if foreground && wantsPlayback { player.play() }
+        // Wait for item readiness and restore its position before starting playback.
         waitingSince = Date()
         // No KVO/notification/periodic-time observer crosses actor boundaries.
         // Weak ownership is released before every suspension.
@@ -143,12 +162,23 @@ import StreamLabDomain
             wantsPlayback = false
             player.pause()
             item.cancelPendingSeeks()
+            restoringPosition = false
             seekMessage = "재생 위치 이동이 지연되어 취소했습니다. 다시 이동하거나 재생해 주세요."
         }
         let seconds = item.duration.seconds
         duration = seconds.isFinite && seconds > 0 ? seconds : 0
         let current = player.currentTime().seconds
         if !isSeeking { position = current.isFinite ? max(0, current) : 0 }
+        if needsInitialPosition && item.status == .readyToPlay && duration > 0 {
+            needsInitialPosition = false
+            if progressEnabled, let saved = session.progress.position(titleID: titleID, sourceID: source.progressID, duration: duration) {
+                restoringPosition = true
+                seek(to: saved)
+                return true
+            }
+            progressReady = true
+            if foreground && wantsPlayback { player.play() }
+        }
         if item.status != .readyToPlay || (wantsPlayback && player.timeControlStatus == .waitingToPlayAtSpecifiedRate) {
             status = .loading
             if waitingSince == nil { waitingSince = Date() }
@@ -165,12 +195,16 @@ import StreamLabDomain
             }
         }
         updateSubtitleText()
+        if lastProgressSave.map({ $0.duration(to: .now) >= .seconds(5) }) ?? true {
+            saveProgress()
+        }
         return true
     }
 
     func togglePlayback() {
         guard session.isActive, foreground, let player else { return }
         if status == .ended { seek(to: 0, playAfterSeek: true); return }
+        progressReady = true
         wantsPlayback = player.rate == 0
         if wantsPlayback { player.play() } else { player.pause() }
         _ = sample(ticket: generation)
@@ -206,6 +240,11 @@ import StreamLabDomain
             #endif
             self.seekStarted = nil
             self.isSeeking = false
+            if completed {
+                self.progressReady = true
+                if self.restoringPosition { self.resumeMessage = "저장된 위치에서 이어보는 중" }
+            }
+            self.restoringPosition = false
             self.wantsPlayback = completed && resumeAfterSeek && self.foreground && self.foregroundGeneration == foregroundTicket
             if self.wantsPlayback { player.play() } else { player.pause() }
             if !completed { self.seekMessage = "재생 위치 이동이 취소되었습니다. 다시 시도해 주세요." }
@@ -220,12 +259,33 @@ import StreamLabDomain
             foregroundGeneration += 1
             wantsPlayback = false
             player?.pause()
+            saveProgress()
             waitingSince = nil
         }
         // Returning to the foreground never starts audio/video automatically.
     }
 
+    func saveProgress() {
+        guard progressEnabled, session.isActive, progressReady, !isSeeking,
+              let player, let item = player.currentItem, item.status == .readyToPlay else { return }
+        session.progress.save(titleID: titleID, sourceID: source.progressID,
+                              position: player.currentTime().seconds, duration: item.duration.seconds)
+        lastProgressSave = .now
+    }
+
+    func restartFromBeginning() {
+        guard canSeek else { return }
+        resumeMessage = ""
+        seek(to: 0)
+    }
+
     func stop() {
+        saveProgress()
+        needsInitialPosition = true
+        progressReady = false
+        restoringPosition = false
+        lastProgressSave = nil
+        resumeMessage = ""
         generation += 1
         seekGeneration += 1
         seekStarted = nil

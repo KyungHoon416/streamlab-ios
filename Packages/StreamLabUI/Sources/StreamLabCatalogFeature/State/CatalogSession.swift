@@ -8,6 +8,7 @@ import StreamLabPresentation
     public let profile: ViewerProfile
     let repository: any CatalogRepository
     let myList: MyListStore
+    let progress: PlaybackProgressStore
     public private(set) var isActive = true
     private var stores: [WeakStore] = []
     private var players: [WeakPlayer] = []
@@ -31,6 +32,14 @@ import StreamLabPresentation
         self.profile = profile
         self.repository = repository
         self.myList = MyListStore(profile: profile)
+        var progressDefaults = UserDefaults.standard
+        #if DEBUG
+        if let argument = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix("--ui-test-progress-suite=") }),
+           let suite = UserDefaults(suiteName: String(argument.dropFirst("--ui-test-progress-suite=".count))) {
+            progressDefaults = suite
+        }
+        #endif
+        self.progress = PlaybackProgressStore(profileID: profile.id, defaults: progressDefaults)
     }
 
     func makeStore() -> CatalogStore {
@@ -42,6 +51,7 @@ import StreamLabPresentation
 
     /// Called synchronously BEFORE replacing the SwiftUI subtree.
     public func invalidate() {
+        for reference in players { reference.value?.saveProgress() }
         isActive = false
         myList.invalidate()
         for reference in players { reference.value?.stop() }
@@ -50,3 +60,4 @@ import StreamLabPresentation
         stores.removeAll()
     }
 }
+
