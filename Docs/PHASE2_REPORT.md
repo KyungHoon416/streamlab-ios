@@ -314,3 +314,9 @@ RESULTS(20261013-124816).txt / ui-tests(20261013-124817).log: 단일 UI FAIL(exi
 회전 세션을 Home/Detail의 각 재생 presentation이 소유하도록 변경했다. 닫기/이탈 때는 늦은 회전 요청만 차단하고, fullScreenCover의 onDismiss에서 원래 방향을 한 번 복원한다. 새 재생마다 새 세션을 만든다.
 10초 제한과 원래 프레임 비교는 유지하며, 최초 상세 재생 종료 실패에도 실제 프레임/닫기 버튼 상태/화면/계층을 남긴다.
 구조 검사 PASS. 수정 후 Xcode 빌드·단일 UI·전체 회귀·실기기 회전은 NOT TESTED. 재검증: bash scripts/check-home-playback-mac.sh.
+
+### 2026-10-13 재생 전 방향 저장 및 회전 진단 추가
+312c901 재검증: RESULTS(20261013-131720).txt / ui-tests(20261013-131718).log에서 단일 UI FAIL(exit=65). 닫기 버튼은 사라졌지만 예상 402×874 대신 실제 874×402로 남았다. onDismiss 복원 변경만으로 해결되지 않았다.
+기존 코드는 플레이어 브리지의 최초 요청에서 원래 방향을 저장하고, 재생 시 회전 객체를 교체했다. 이제 Home/Detail의 StateObject로 동일 객체를 유지하고, 해당 화면의 WindowScene을 연결해 재생 버튼에서 begin()으로 회전 전 방향을 저장한다. 복원은 onDismiss에서 실행한다. UIKit 브리지 업데이트도 현재 세션을 동기화한다.
+정확한 이전 런타임 실패 원인은 아직 미확정이다. OSLog에 begin/capture/request/finish 및 거절 오류를 기록하고 단일 테스트 스크립트가 orientation.log로 수집한다. 테스트의 10초/정확한 프레임 조건은 유지한다.
+PASS: 프로젝트 구조, 스크립트 bash 문법. NOT TESTED: 새 Swift 코드 컴파일, iOS 단일 UI, 전체 회귀 및 실제 회전.

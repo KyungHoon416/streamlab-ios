@@ -7,7 +7,7 @@ import StreamLabDesignSystem
     @StateObject private var model: CatalogScreenModel
     @ObservedObject private var myList: MyListStore
     @State private var category: Category = .recommended
-    @State private var playbackOrientation = PlaybackOrientationSession()
+    @StateObject private var playbackOrientation = PlaybackOrientationSession()
     @State private var playbackTitle: CatalogTitle?
     @State private var playbackSource: PlaybackModel.Source = .bundled
     @State private var recent: [RecentItem] = []
@@ -83,6 +83,7 @@ import StreamLabDesignSystem
             .padding(.bottom, 24)
         }
         .accessibilityIdentifier("home-catalog")
+        .background(PlaybackPresenterScene(session: playbackOrientation).frame(width: 0, height: 0))
         .background(StreamLabTheme.background)
         .navigationTitle("STREAMLAB")
         .navigationBarTitleDisplayMode(.inline)
@@ -141,7 +142,7 @@ import StreamLabDesignSystem
                 LazyHStack(alignment: .top, spacing: 16) {
                     ForEach(recent.filter { category.includes($0.title) }) { item in
                         Button {
-                            playbackOrientation = PlaybackOrientationSession()
+                            playbackOrientation.begin()
                             playbackSource = item.source
                             playbackTitle = item.title
                         } label: {
@@ -241,7 +242,7 @@ import StreamLabDesignSystem
 
     @ViewBuilder private func heroActions(_ title: CatalogTitle) -> some View {
         Button {
-            playbackOrientation = PlaybackOrientationSession()
+            playbackOrientation.begin()
             playbackSource = .bundled
             playbackTitle = title
         } label: { Label("데모 재생", systemImage: "play.fill") }

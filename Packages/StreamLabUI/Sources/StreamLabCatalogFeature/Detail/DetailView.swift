@@ -5,7 +5,7 @@ import StreamLabDomain
 @MainActor public struct DetailView: View {
     @StateObject private var model: CatalogScreenModel
     @ObservedObject private var myList: MyListStore
-    @State private var playbackOrientation = PlaybackOrientationSession()
+    @StateObject private var playbackOrientation = PlaybackOrientationSession()
     @State private var showsPlayback = false
     private let session: CatalogSession
     @Environment(\.scenePhase) private var phase
@@ -57,7 +57,7 @@ import StreamLabDomain
                         }
                     }
                     Button {
-                        playbackOrientation = PlaybackOrientationSession()
+                        playbackOrientation.begin()
                         showsPlayback = true
                     } label: {
                         Label {
@@ -102,6 +102,7 @@ import StreamLabDomain
             .frame(maxWidth: .infinity)
         }
         .accessibilityIdentifier("detail-scroll")
+        .background(PlaybackPresenterScene(session: playbackOrientation).frame(width: 0, height: 0))
         .background(StreamLabTheme.background)
         .navigationTitle("콘텐츠 상세")
         .navigationBarTitleDisplayMode(.inline)

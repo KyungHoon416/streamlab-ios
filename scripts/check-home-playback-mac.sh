@@ -20,6 +20,12 @@ xcodebuild -project StreamLab.xcodeproj -scheme StreamLab -configuration Debug \
   -only-testing:StreamLabUITests/StreamLabUITests/testHomeContinueWatchingUsesSavedProgress \
   SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=NO test > "$run_dir/ui-tests.log" 2>&1
 result=$?
+# App-process orientation messages are not guaranteed to appear in XCTest output.
+xcrun simctl spawn "$simulator_id" log show --last 15m --style compact \
+  --predicate 'subsystem == "com.example.streamlab.demo" AND category == "PlaybackOrientation"' \
+  > "$run_dir/orientation.log" 2>&1
+diagnostics_result=$?
+echo "Orientation log collection exit=$diagnostics_result" >> "$run_dir/environment.txt"
 if [ "$result" -eq 0 ]; then
   echo 'PASS home-playback exit=0' | tee "$run_dir/RESULTS.txt"
 else

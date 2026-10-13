@@ -1,35 +1,64 @@
 import SwiftUI
 import UIKit
+import OSLog
 
 /// One rotation lifetime per player, independent of representable reconstruction.
 @MainActor final class PlaybackOrientationSession: ObservableObject {
+    private let logger = Logger(subsystem: "com.example.streamlab.demo", category: "PlaybackOrientation")
+    private weak var presenterScene: UIWindowScene?
     private weak var scene: UIWindowScene?
     private var originalOrientation: UIInterfaceOrientationMask?
     private var requestedLandscape: Bool?
     private var finished = false
     private var restored = false
 
+    func attachPresenter(to scene: UIWindowScene) {
+        presenterScene = scene
+    }
+
+    /// Capture before presenting: the player's first callback may already be landscape.
+    func begin() {
+        finished = false
+        restored = false
+        requestedLandscape = nil
+        originalOrientation = nil
+        scene = nil
+        if let presenterScene {
+            capture(presenterScene)
+            logger.notice("begin: captured presenter orientation mask=\(self.originalOrientation?.rawValue ?? 0)")
+        } else {
+            logger.error("begin: presenter scene unavailable; capture deferred")
+        }
+    }
+
+    private func capture(_ scene: UIWindowScene) {
+        self.scene = scene
+        let orientation: UIInterfaceOrientation
+        if #available(iOS 26.0, *) {
+            orientation = scene.effectiveGeometry.interfaceOrientation
+        } else {
+            orientation = scene.interfaceOrientation
+        }
+        switch orientation {
+        case .landscapeLeft: originalOrientation = .landscapeLeft
+        case .landscapeRight: originalOrientation = .landscapeRight
+        case .portraitUpsideDown: originalOrientation = .portraitUpsideDown
+        default: originalOrientation = .portrait
+        }
+    }
+
     func request(in scene: UIWindowScene, landscape: Bool) {
         guard !finished else { return }
         if originalOrientation == nil {
-            self.scene = scene
-            let orientation: UIInterfaceOrientation
-            if #available(iOS 26.0, *) {
-                orientation = scene.effectiveGeometry.interfaceOrientation
-            } else {
-                orientation = scene.interfaceOrientation
-            }
-            switch orientation {
-            case .landscapeLeft: originalOrientation = .landscapeLeft
-            case .landscapeRight: originalOrientation = .landscapeRight
-            case .portraitUpsideDown: originalOrientation = .portraitUpsideDown
-            default: originalOrientation = .portrait
-            }
+            capture(scene)
+            logger.notice("request: fallback capture mask=\(self.originalOrientation?.rawValue ?? 0)")
         }
         guard requestedLandscape != landscape else { return }
         requestedLandscape = landscape
+        logger.notice("request: landscape=\(landscape)")
+        let logger = self.logger
         scene.requestGeometryUpdate(.iOS(interfaceOrientations: landscape ? .landscape : .portrait)) { error in
-            print("[PlaybackOrientation] Rotation request declined: \(error.localizedDescription)")
+            logger.error("rotation declined: \(error.localizedDescription, privacy: .public)")
         }
     }
 
@@ -43,10 +72,15 @@ import UIKit
         stopRequests()
         guard !restored else { return }
         restored = true
-        guard let scene, let originalOrientation else { return }
+        guard let scene, let originalOrientation else {
+            logger.error("finish: missing scene or original orientation")
+            return
+        }
         self.scene = nil
+        logger.notice("finish: restoring mask=\(originalOrientation.rawValue)")
+        let logger = self.logger
         scene.requestGeometryUpdate(.iOS(interfaceOrientations: originalOrientation)) { error in
-            print("[PlaybackOrientation] Restore request declined: \(error.localizedDescription)")
+            logger.error("restore declined: \(error.localizedDescription, privacy: .public)")
         }
     }
 }
@@ -63,6 +97,7 @@ import UIKit
     }
 
     func updateUIViewController(_ controller: OrientationController, context: Context) {
+        controller.session = session
         controller.landscape = landscape
         controller.requestOrientation()
     }
@@ -89,6 +124,37 @@ import UIKit
         func requestOrientation() {
             guard let scene = view.window?.windowScene else { return }
             session?.request(in: scene, landscape: landscape)
+        }
+    }
+}
+
+/// Resolves the presenting window without consulting global connectedScenes.
+@MainActor struct PlaybackPresenterScene: UIViewRepresentable {
+    let session: PlaybackOrientationSession
+
+    func makeUIView(context: Context) -> SceneView {
+        let view = SceneView()
+        view.session = session
+        view.isUserInteractionEnabled = false
+        return view
+    }
+
+    func updateUIView(_ view: SceneView, context: Context) {
+        view.session = session
+        view.attachScene()
+    }
+
+    final class SceneView: UIView {
+        weak var session: PlaybackOrientationSession?
+
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            attachScene()
+        }
+
+        func attachScene() {
+            guard let scene = window?.windowScene else { return }
+            session?.attachPresenter(to: scene)
         }
     }
 }
