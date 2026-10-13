@@ -269,12 +269,18 @@ import XCTest
         tap(app.buttons["playback-close"], in: app)
         // Cover dismissal and scene rotation are separate transitions. Neither a tap
         // returning nor the underlying detail existing proves both have completed.
-        expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: app.buttons["playback-close"])
+        var transitions = [
+            XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.buttons["playback-close"])
+        ]
         if let frame = playbackReturnFrame {
             print("[PlaybackReturn] Waiting for original window frame: \(frame)")
-            expectation(for: NSPredicate(format: "frame == %@", NSValue(cgRect: frame)), evaluatedWith: app)
+            transitions.append(XCTNSPredicateExpectation(predicate: NSPredicate(format: "frame == %@", NSValue(cgRect: frame)), object: app))
         }
-        waitForExpectations(timeout: 10)
+        guard XCTWaiter.wait(for: transitions, timeout: 10) == .completed else {
+            captureFailure(app, name: "Detail playback orientation restoration")
+            XCTFail("Detail playback must dismiss and restore its original frame. Expected \(String(describing: playbackReturnFrame)), actual \(app.frame), close exists: \(app.buttons["playback-close"].exists)")
+            return
+        }
         XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 5))
         let backButton = app.navigationBars.buttons["BackButton"]
         expectation(for: NSPredicate(format: "exists == true AND hittable == true"), evaluatedWith: backButton)

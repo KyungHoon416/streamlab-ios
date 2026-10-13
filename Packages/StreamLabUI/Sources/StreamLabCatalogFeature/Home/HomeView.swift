@@ -7,6 +7,7 @@ import StreamLabDesignSystem
     @StateObject private var model: CatalogScreenModel
     @ObservedObject private var myList: MyListStore
     @State private var category: Category = .recommended
+    @State private var playbackOrientation = PlaybackOrientationSession()
     @State private var playbackTitle: CatalogTitle?
     @State private var playbackSource: PlaybackModel.Source = .bundled
     @State private var recent: [RecentItem] = []
@@ -85,8 +86,11 @@ import StreamLabDesignSystem
         .background(StreamLabTheme.background)
         .navigationTitle("STREAMLAB")
         .navigationBarTitleDisplayMode(.inline)
-        .fullScreenCover(item: $playbackTitle, onDismiss: { recentRefresh = UUID() }) { title in
-            PlaybackView(titleID: title.id, title: title.name, session: session, initialSource: playbackSource)
+        .fullScreenCover(item: $playbackTitle, onDismiss: {
+            playbackOrientation.finish()
+            recentRefresh = UUID()
+        }) { title in
+            PlaybackView(titleID: title.id, title: title.name, session: session, orientationSession: playbackOrientation, initialSource: playbackSource)
         }
         .task(id: recentRefresh) { await refreshRecent() }
         .onAppear { recentRefresh = UUID(); myList.refresh(); model.appear(phase: phase) }
@@ -137,6 +141,7 @@ import StreamLabDesignSystem
                 LazyHStack(alignment: .top, spacing: 16) {
                     ForEach(recent.filter { category.includes($0.title) }) { item in
                         Button {
+                            playbackOrientation = PlaybackOrientationSession()
                             playbackSource = item.source
                             playbackTitle = item.title
                         } label: {
@@ -235,7 +240,11 @@ import StreamLabDesignSystem
     }
 
     @ViewBuilder private func heroActions(_ title: CatalogTitle) -> some View {
-        Button { playbackSource = .bundled; playbackTitle = title } label: { Label("데모 재생", systemImage: "play.fill") }
+        Button {
+            playbackOrientation = PlaybackOrientationSession()
+            playbackSource = .bundled
+            playbackTitle = title
+        } label: { Label("데모 재생", systemImage: "play.fill") }
             .buttonStyle(StreamLabButtonStyle())
             .accessibilityIdentifier("hero-playback")
         MyListButton(title: title, store: myList)

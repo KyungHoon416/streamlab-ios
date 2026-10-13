@@ -3,7 +3,7 @@ import StreamLabDesignSystem
 
 @MainActor struct PlaybackView: View {
     @StateObject private var model: PlaybackModel
-    @StateObject private var orientationSession = PlaybackOrientationSession()
+    private let orientationSession: PlaybackOrientationSession
     @State private var source: PlaybackModel.Source = .bundled
     @State private var scrubPosition: Double = 0
     @State private var scrubbing = false
@@ -21,9 +21,10 @@ import StreamLabDesignSystem
     @Environment(\.dynamicTypeSize) private var textSize
     private let title: String
 
-    init(titleID: String, title: String, session: CatalogSession, initialSource: PlaybackModel.Source = .bundled) {
+    init(titleID: String, title: String, session: CatalogSession, orientationSession: PlaybackOrientationSession, initialSource: PlaybackModel.Source = .bundled) {
         _source = State(initialValue: initialSource)
         self.title = title
+        self.orientationSession = orientationSession
         _model = StateObject(wrappedValue: PlaybackModel(titleID: titleID, session: session))
     }
 
@@ -90,7 +91,7 @@ import StreamLabDesignSystem
             model.setForeground(phase == .active)
             model.load(source)
         }
-        .onDisappear { model.stop(); orientationSession.finish() }
+        .onDisappear { model.stop(); orientationSession.stopRequests() }
         .onChange(of: source) { _, value in
             scrubbing = false
             revealControls()
@@ -137,7 +138,7 @@ import StreamLabDesignSystem
         HStack(alignment: .top, spacing: 16) {
             iconButton("닫기", symbol: "xmark", id: "playback-close") {
                 model.stop()
-                orientationSession.finish()
+                orientationSession.stopRequests()
                 dismiss()
             }
             VStack(alignment: .leading, spacing: 4) {

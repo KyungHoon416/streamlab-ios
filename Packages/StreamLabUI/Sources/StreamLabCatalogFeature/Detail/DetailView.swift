@@ -5,6 +5,7 @@ import StreamLabDomain
 @MainActor public struct DetailView: View {
     @StateObject private var model: CatalogScreenModel
     @ObservedObject private var myList: MyListStore
+    @State private var playbackOrientation = PlaybackOrientationSession()
     @State private var showsPlayback = false
     private let session: CatalogSession
     @Environment(\.scenePhase) private var phase
@@ -55,7 +56,10 @@ import StreamLabDomain
                             VStack(alignment: .leading, spacing: 10) { metadata(title) }
                         }
                     }
-                    Button { showsPlayback = true } label: {
+                    Button {
+                        playbackOrientation = PlaybackOrientationSession()
+                        showsPlayback = true
+                    } label: {
                         Label {
                             Text("데모 영상 재생")
                                 .fixedSize(horizontal: false, vertical: true)
@@ -101,9 +105,9 @@ import StreamLabDomain
         .background(StreamLabTheme.background)
         .navigationTitle("콘텐츠 상세")
         .navigationBarTitleDisplayMode(.inline)
-        .fullScreenCover(isPresented: $showsPlayback) {
+        .fullScreenCover(isPresented: $showsPlayback, onDismiss: { playbackOrientation.finish() }) {
             if let title = model.store.detail {
-                PlaybackView(titleID: title.id, title: title.name, session: session)
+                PlaybackView(titleID: title.id, title: title.name, session: session, orientationSession: playbackOrientation)
             }
         }
         .onAppear { model.appear(phase: phase) }
@@ -134,3 +138,4 @@ import StreamLabDomain
     }
 
 }
+

@@ -7,6 +7,7 @@ import UIKit
     private var originalOrientation: UIInterfaceOrientationMask?
     private var requestedLandscape: Bool?
     private var finished = false
+    private var restored = false
 
     func request(in scene: UIWindowScene, landscape: Bool) {
         guard !finished else { return }
@@ -32,10 +33,16 @@ import UIKit
         }
     }
 
-    func finish() {
-        guard !finished else { return }
-        // Close before requesting restoration: late controller callbacks must not rotate again.
+    /// Freeze outgoing callbacks before dismissal starts; retain the original geometry.
+    func stopRequests() {
         finished = true
+    }
+
+    /// Called by the presenting view only after the full-screen cover has dismissed.
+    func finish() {
+        stopRequests()
+        guard !restored else { return }
+        restored = true
         guard let scene, let originalOrientation else { return }
         self.scene = nil
         scene.requestGeometryUpdate(.iOS(interfaceOrientations: originalOrientation)) { error in
