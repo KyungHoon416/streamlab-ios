@@ -7,16 +7,29 @@ import StreamLabDomain
 @MainActor final class PlaybackModel: ObservableObject {
     enum Source: String, CaseIterable, Identifiable {
         case bundled = "오프라인 데모", hls = "HLS 스트리밍"
+        case episode1 = "연속 재생 데모 · 1화"
+        case episode2 = "연속 재생 데모 · 2화"
+        case episode3 = "연속 재생 데모 · 3화"
         var id: String { rawValue }
+        var nextEpisode: Source? {
+            switch self {
+            case .episode1: .episode2
+            case .episode2: .episode3
+            default: nil
+            }
+        }
         var progressID: String {
             switch self {
             case .bundled: "bundled-demo-v1"
             case .hls: "apple-bipbop-v1"
+            case .episode1: "demo-series-episode-1-v1"
+            case .episode2: "demo-series-episode-2-v1"
+            case .episode3: "demo-series-episode-3-v1"
             }
         }
         var url: URL? {
             switch self {
-            case .bundled: Bundle.module.url(forResource: "playback-demo", withExtension: "mp4")
+            case .bundled, .episode1, .episode2, .episode3: Bundle.module.url(forResource: "playback-demo", withExtension: "mp4")
             case .hls: URL(string: "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8")
             }
         }
@@ -55,7 +68,10 @@ import StreamLabDomain
     private var subtitleGroup: AVMediaSelectionGroup?
     private var nativeSubtitles: [String: AVMediaSelectionOption] = [:]
     private var sidecarSubtitles: [String: [SubtitleCue]] = [:]
-    private(set) var source: Source = .bundled
+    @Published private(set) var source: Source = .bundled
+    @Published private(set) var nextEpisodeSeconds: Int?
+    private var autoAdvance = AutoAdvanceCountdown()
+    private var nextEpisodeStarted: ContinuousClock.Instant?
     private let titleID: String
     private let session: CatalogSession
     private var generation = 0
@@ -194,11 +210,38 @@ import StreamLabDomain
                 status = player.rate > 0 ? .playing : .paused
             }
         }
+        if status == .ended, source.nextEpisode != nil, foreground, wantsPlayback {
+            if autoAdvance.state == .idle {
+                autoAdvance.start()
+                nextEpisodeStarted = .now
+            }
+            if let start = nextEpisodeStarted {
+                let elapsed = start.duration(to: .now).components
+                let seconds = Double(elapsed.seconds) + Double(elapsed.attoseconds) / 1e18
+                let ready = autoAdvance.advance(elapsed: seconds)
+                nextEpisodeSeconds = autoAdvance.remaining
+                if ready {
+                    playNextEpisode()
+                    return false // old sampling task must not continue after load()
+                }
+            }
+        }
         updateSubtitleText()
         if lastProgressSave.map({ $0.duration(to: .now) >= .seconds(5) }) ?? true {
             saveProgress()
         }
         return true
+    }
+
+    func cancelNextEpisode() {
+        autoAdvance.cancel()
+        nextEpisodeStarted = nil
+        nextEpisodeSeconds = nil
+    }
+
+    func playNextEpisode() {
+        guard session.isActive, foreground, status == .ended, let next = source.nextEpisode else { return }
+        load(next) // Saves old item, cancels tasks and rechecks repository permission.
     }
 
     func togglePlayback() {
@@ -212,6 +255,9 @@ import StreamLabDomain
 
     func seek(to seconds: Double, playAfterSeek: Bool = false) {
         guard canSeek, seconds.isFinite, let player else { return }
+        autoAdvance.reset()
+        nextEpisodeStarted = nil
+        nextEpisodeSeconds = nil
         let destination = min(duration, max(0, seconds))
         let ticket = generation
         seekGeneration += 1
@@ -256,6 +302,7 @@ import StreamLabDomain
         foreground = active
         waitingSince = nil
         if !active {
+            cancelNextEpisode()
             foregroundGeneration += 1
             wantsPlayback = false
             player?.pause()
@@ -280,6 +327,9 @@ import StreamLabDomain
     }
 
     func stop() {
+        autoAdvance.reset()
+        nextEpisodeStarted = nil
+        nextEpisodeSeconds = nil
         saveProgress()
         needsInitialPosition = true
         progressReady = false
@@ -328,7 +378,7 @@ import StreamLabDomain
     }
 
     private func prepareSubtitles(player: AVPlayer, ticket: Int) {
-        if source == .bundled {
+        if source != .hls {
             for (id, label) in [("ko", "한국어 · 데모"), ("en", "English · Demo")] {
                 guard let url = Bundle.module.url(forResource: "playback-demo-\(id)", withExtension: "srt"),
                       let text = try? String(contentsOf: url, encoding: .utf8) else { continue }

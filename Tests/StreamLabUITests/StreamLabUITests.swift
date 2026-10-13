@@ -19,6 +19,67 @@ import XCTest
         add(screenshot)
     }
 
+
+    private func selectEpisodeDemo(_ app: XCUIApplication) {
+        tap(app.buttons["playback-source"], in: app)
+        tap(app.buttons["source-demo-series-episode-1-v1"], in: app)
+        expectPlayback("재생 중", in: app)
+        XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("1화"))
+    }
+
+    private func finishEpisode(_ app: XCUIApplication) {
+        let reveal = app.buttons["playback-reveal-controls"]
+        if reveal.exists && reveal.isHittable { reveal.tap() }
+        let slider = app.sliders["playback-position"]
+        XCTAssertTrue(slider.waitForExistence(timeout: 5))
+        slider.adjust(toNormalizedSliderPosition: 1)
+        expectPlayback("재생 완료", in: app)
+    }
+
+    func testDemoEpisodesAdvanceAndStopAtFinalEpisode() {
+        let app = launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        selectEpisodeDemo(app)
+        for number in [2, 3] {
+            finishEpisode(app)
+            XCTAssertTrue(app.staticTexts["playback-next-countdown"].waitForExistence(timeout: 5))
+            let advanced = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "label CONTAINS %@", "\(number)화"),
+                object: app.staticTexts["playback-source-label"])
+            XCTAssertEqual(XCTWaiter.wait(for: [advanced], timeout: 20), .completed)
+            expectPlayback("재생 중", in: app)
+        }
+        finishEpisode(app)
+        XCTAssertFalse(app.staticTexts["playback-next-countdown"].exists)
+        XCTAssertFalse(app.buttons["playback-next-now"].exists)
+        closePlayback(app)
+    }
+
+    func testDemoEpisodeCountdownCancellationAndManualAdvance() {
+        let app = launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        selectEpisodeDemo(app)
+        finishEpisode(app)
+        tap(app.buttons["playback-next-cancel"], in: app)
+        let unwantedAdvance = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "label CONTAINS %@", "2화"),
+            object: app.staticTexts["playback-source-label"])
+        unwantedAdvance.isInverted = true
+        XCTAssertEqual(XCTWaiter.wait(for: [unwantedAdvance], timeout: 11), .completed)
+        XCTAssertFalse(app.staticTexts["playback-next-countdown"].exists)
+        expectPlayback("재생 완료", in: app)
+        tap(app.buttons["playback-next-now"], in: app)
+        expectPlayback("재생 중", in: app)
+        XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("2화"))
+        closePlayback(app)
+    }
+
     func testSubtitleSelectionSeekingAndReset() {
         let app = launch()
         choose("adult-a", in: app)

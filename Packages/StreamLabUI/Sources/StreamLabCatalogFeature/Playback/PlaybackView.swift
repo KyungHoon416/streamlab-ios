@@ -95,7 +95,12 @@ import StreamLabDesignSystem
         .onChange(of: source) { _, value in
             scrubbing = false
             revealControls()
-            model.load(value)
+            if value != model.source { model.load(value) }
+        }
+        .onChange(of: model.source) { _, value in
+            source = value
+            scrubbing = false
+            revealControls()
         }
         .onChange(of: phase) { _, value in
             model.setForeground(value == .active)
@@ -144,11 +149,13 @@ import StreamLabDesignSystem
             VStack(alignment: .leading, spacing: 4) {
                 Text(title).font(.headline).fixedSize(horizontal: false, vertical: true)
                 Text("테스트 영상 · \(source.rawValue)")
+                    .accessibilityIdentifier("playback-source-label")
                     .font(.caption).foregroundStyle(.white.opacity(0.8))
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             iconButton("영상 소스 선택", symbol: "ellipsis", id: "playback-source") {
+                model.cancelNextEpisode()
                 sourceSheet = true
             }
         }
@@ -157,6 +164,22 @@ import StreamLabDesignSystem
     private var transport: some View {
         VStack(spacing: 12) {
             subtitleCaption
+            if model.status == .ended, let next = model.source.nextEpisode {
+                VStack(spacing: 8) {
+                    Text(next.rawValue).font(.headline)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let seconds = model.nextEpisodeSeconds {
+                        Text("\(seconds)초 후 다음 화 재생")
+                            .accessibilityIdentifier("playback-next-countdown")
+                        Button("자동 다음 화 취소") { model.cancelNextEpisode() }
+                            .frame(minHeight: 44)
+                            .accessibilityIdentifier("playback-next-cancel")
+                    }
+                    Button("다음 화 지금 재생") { revealControls(); model.playNextEpisode() }
+                        .buttonStyle(StreamLabButtonStyle())
+                        .accessibilityIdentifier("playback-next-now")
+                }
+            }
             if !model.resumeMessage.isEmpty {
                 Text(model.resumeMessage).font(.caption)
                     .accessibilityIdentifier("playback-resumed")
@@ -238,6 +261,7 @@ import StreamLabDesignSystem
                     .accessibilityIdentifier("playback-time")
                 Spacer(minLength: 0)
                 iconButton("자막 선택", symbol: "captions.bubble", id: "playback-subtitles") {
+                    model.cancelNextEpisode()
                     subtitleSheet = true
                 }
                 .accessibilityValue(model.subtitleLabel)
@@ -349,9 +373,10 @@ import StreamLabDesignSystem
                             }
                         }
                         .accessibilityValue(source == option ? "선택됨" : "")
+                        .accessibilityIdentifier("source-\(option.progressID)")
                     }
                 } footer: {
-                    Text("모든 작품은 같은 테스트 영상을 재생합니다. 오프라인 데모는 30초 무음이며 HLS는 인터넷 연결이 필요합니다. 소스별로 저장된 위치에서 이어봅니다.")
+                    Text("모든 작품은 같은 테스트 영상을 재생합니다. 오프라인 데모는 30초 무음이며 HLS는 인터넷 연결이 필요합니다. 소스별로 저장된 위치에서 이어봅니다. 연속 재생 데모 1~3화는 동일한 영상을 사용하며 화별 진행 기록은 분리됩니다.")
                 }
             }
             .navigationTitle("영상 소스")
