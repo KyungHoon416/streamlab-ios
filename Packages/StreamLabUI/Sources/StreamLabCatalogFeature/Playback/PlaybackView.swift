@@ -35,17 +35,15 @@ import StreamLabDesignSystem
                 PlayerSurface(player: model.player, fillsScreen: fillsScreen)
                     .ignoresSafeArea()
                     .accessibilityHidden(true)
-                Button {
-                    if controlsVisible && mayHide { controlsVisible = false }
-                    else { revealControls() }
-                } label: {
-                    Color.clear.contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(controlsVisible ? "재생 컨트롤 숨기기" : "재생 컨트롤 표시")
-                .accessibilityHidden(controlsVisible && !mayHide)
-                .accessibilityIdentifier(controlsVisible ? "playback-surface" : "playback-reveal-controls")
+                // A full-screen accessible Button must not coexist with the controls:
+                // it can cover their accessibility hit targets even when visually behind them.
                 if !controlsVisible {
+                    Button { revealControls() } label: {
+                        Color.clear.contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("재생 컨트롤 표시")
+                    .accessibilityIdentifier("playback-reveal-controls")
                     VStack { Spacer(); subtitleCaption.padding(.horizontal, 24).padding(.bottom, 24) }
                         .allowsHitTesting(false)
                 }
@@ -65,6 +63,15 @@ import StreamLabDesignSystem
                         }
                         .frame(minHeight: max(0, geometry.size.height - 40))
                         .padding(20)
+                        .background {
+                            // Only empty content handles hide taps; child controls keep their actions.
+                            Color.clear
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    if mayHide { controlsVisible = false }
+                                }
+                                .accessibilityHidden(true)
+                        }
                     }
                     .accessibilityIdentifier("playback-controls-scroll")
                     .onScrollPhaseChange { _, scrollPhase in

@@ -375,3 +375,17 @@ bound and final hittability assertion. Cache the target identifier before it dis
 so diagnostics do not throw an additional missing-element error. No production
 auto-hide behavior changed. Fix runtime result: NOT TESTED pending Mac rerun.
 StreamLabUITests-Runner.app is the XCTest runner, not a duplicate production app.
+
+### Visible playback controls hit targets (2026-10-14 KST)
+
+- User rerun: Core PASS; two language UI tests FAIL. The bounded-wait change did
+  not resolve the failure. Screenshot and hierarchy show source/pause inside
+  the landscape viewport, with a full-screen playback-surface Button also present.
+- Suspected accessibility hit-target overlap: remove the full-screen Button while
+  controls are visible. Keep the reveal Button only in the hidden state; blank
+  content background handles hide taps without becoming an accessibility element.
+  Auto-hide timing, VoiceOver/large-text restrictions and actual button assertions
+  remain unchanged. Existing language tests exercise source, pause and subtitle taps.
+- PASS: project-structure validator. NOT TESTED here: Xcode compilation and runtime
+  fix, language UI rerun, full regression, VoiceOver interaction. Mac verification
+  with scripts/check-languages-mac.sh is required before claiming resolution.
