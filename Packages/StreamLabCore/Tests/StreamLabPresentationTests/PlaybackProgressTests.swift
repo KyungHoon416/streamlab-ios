@@ -3,6 +3,25 @@ import Testing
 import StreamLabPresentation
 
 @MainActor struct PlaybackProgressTests {
+    @Test func recentDeduplicatesAndExcludesFinishedAndOtherProfiles() throws {
+        let name = "progress-tests-\(UUID())"
+        let defaults = try #require(UserDefaults(suiteName: name))
+        defer { defaults.removePersistentDomain(forName: name) }
+        let store = PlaybackProgressStore(profileID: "a", defaults: defaults)
+        store.save(titleID: "one", sourceID: "mp4", position: 10, duration: 30)
+        store.save(titleID: "one", sourceID: "hls", position: 15, duration: 60)
+        store.save(titleID: "done", sourceID: "mp4", position: 30, duration: 30)
+        let other = PlaybackProgressStore(profileID: "kids", defaults: defaults)
+        other.save(titleID: "private", sourceID: "mp4", position: 5, duration: 30)
+        let entries = store.recent()
+        #expect(entries.count == 1)
+        #expect(entries.first?.titleID == "one")
+        #expect(entries.first?.sourceID == "hls")
+        #expect(entries.first?.position == 15)
+        #expect(store.recent(limit: 0).isEmpty)
+        #expect(other.recent().first?.titleID == "private")
+    }
+
     @Test func persistsAndSeparatesProfileTitleAndSource() throws {
         let name = "progress-tests-\(UUID())"
         let defaults = try #require(UserDefaults(suiteName: name))

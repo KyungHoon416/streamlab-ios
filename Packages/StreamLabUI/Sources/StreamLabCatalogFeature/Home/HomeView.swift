@@ -1,5 +1,6 @@
 import SwiftUI
 import StreamLabDomain
+import StreamLabPresentation
 import StreamLabDesignSystem
 
 @MainActor public struct HomeView: View {
@@ -7,6 +8,16 @@ import StreamLabDesignSystem
     @ObservedObject private var myList: MyListStore
     @State private var category: Category = .recommended
     @State private var playbackTitle: CatalogTitle?
+    @State private var playbackSource: PlaybackModel.Source = .bundled
+    @State private var recent: [RecentItem] = []
+    @State private var recentRefresh = UUID()
+    @State private var recentError = false
+    private struct RecentItem: Identifiable {
+        let title: CatalogTitle
+        let entry: PlaybackProgressStore.Entry
+        let source: PlaybackModel.Source
+        var id: String { title.id }
+    }
     private let session: CatalogSession
     private enum Category: String, CaseIterable {
         case recommended = "추천", movies = "영화", series = "시리즈", saved = "나의 리스트"
@@ -41,27 +52,7 @@ import StreamLabDesignSystem
                         Text("추천 콘텐츠 중 \(category.rawValue)")
                             .font(.subheadline).foregroundStyle(.secondary).padding(.horizontal, 20)
                     }
-                    if home.continueWatching.contains(where: { category.includes($0.title) }) {
-                        Text("계속 시청").font(.title2.bold()).accessibilityAddTraits(.isHeader).padding(.horizontal)
-                        ScrollView(.horizontal) {
-                            LazyHStack(alignment: .top, spacing: 16) {
-                                ForEach(home.continueWatching.filter { category.includes($0.title) }) { progress in
-                                    NavigationLink(value: progress.id) {
-                                        VStack(alignment: .leading) {
-                                            CatalogArtwork(title: progress.title).frame(height: 112)
-                                            ProgressView(value: progress.fraction).tint(StreamLabTheme.accent)
-                                            Text(progress.title.name).font(.headline).fixedSize(horizontal: false, vertical: true)
-                                            Text("\(max(0, (progress.durationSeconds - progress.positionSeconds) / 60))분 남음")
-                                                .font(.caption).foregroundStyle(.secondary)
-                                        }.frame(width: 210, alignment: .leading)
-                                    }
-                                    .buttonStyle(.plain)
-                                    .accessibilityLabel("\(progress.title.name), \(progress.title.rating.rawValue), \(Int(progress.fraction * 100))퍼센트 시청")
-                                    .accessibilityIdentifier("continue-\(progress.id)")
-                                }
-                            }.padding(.horizontal)
-                        }
-                    }
+                    continueWatching
                     ForEach(home.rails.filter { $0.items.contains(where: category.includes) }) { rail in
                         VStack(alignment: .leading, spacing: 12) {
                             Text(rail.title).font(.title2.bold()).accessibilityAddTraits(.isHeader).padding(.horizontal)
@@ -94,14 +85,77 @@ import StreamLabDesignSystem
         .background(StreamLabTheme.background)
         .navigationTitle("STREAMLAB")
         .navigationBarTitleDisplayMode(.inline)
-        .fullScreenCover(item: $playbackTitle) { title in
-            PlaybackView(titleID: title.id, title: title.name, session: session)
+        .fullScreenCover(item: $playbackTitle, onDismiss: { recentRefresh = UUID() }) { title in
+            PlaybackView(titleID: title.id, title: title.name, session: session, initialSource: playbackSource)
         }
-        .onAppear { myList.refresh(); model.appear(phase: phase) }
+        .task(id: recentRefresh) { await refreshRecent() }
+        .onAppear { recentRefresh = UUID(); myList.refresh(); model.appear(phase: phase) }
         .onDisappear { model.disappear() }
         .onChange(of: phase) { _, value in
-            if value == .active { myList.refresh() }
+            if value == .active { myList.refresh(); recentRefresh = UUID() }
             model.setPhase(value)
+        }
+    }
+
+    private func refreshRecent() async {
+        let ticket = recentRefresh
+        let entries = session.progress.recent()
+        var result: [RecentItem] = []
+        var failed = false
+        for entry in entries {
+            guard !Task.isCancelled, session.isActive, ticket == recentRefresh else { return }
+            guard let source = PlaybackModel.Source.allCases.first(where: { $0.progressID == entry.sourceID }) else { continue }
+            do {
+                if let title = try await session.repository.detail(id: entry.titleID, profile: session.profile),
+                   title.canView(in: session.profile) {
+                    result.append(RecentItem(title: title, entry: entry, source: source))
+                }
+            } catch {
+                if Task.isCancelled { return }
+                failed = true
+            }
+        }
+        guard !Task.isCancelled, session.isActive, ticket == recentRefresh else { return }
+        recent = result
+        recentError = failed
+    }
+
+    private var continueWatching: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("계속 시청").font(.title2.bold()).accessibilityAddTraits(.isHeader).padding(.horizontal)
+            if recentError {
+                Button("시청 기록 다시 불러오기") { recentRefresh = UUID() }
+                    .padding(.horizontal).accessibilityIdentifier("continue-retry")
+            }
+            if recent.isEmpty && !recentError {
+                Text("시청 중인 작품이 없습니다. 영상을 재생하면 여기에 표시됩니다.")
+                    .font(.callout).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true).padding(.horizontal)
+                    .accessibilityIdentifier("continue-empty")
+            }
+            ScrollView(.horizontal) {
+                LazyHStack(alignment: .top, spacing: 16) {
+                    ForEach(recent.filter { category.includes($0.title) }) { item in
+                        Button {
+                            playbackSource = item.source
+                            playbackTitle = item.title
+                        } label: {
+                            VStack(alignment: .leading, spacing: 8) {
+                                CatalogArtwork(title: item.title).frame(height: 112)
+                                ProgressView(value: item.entry.position / item.entry.duration)
+                                    .tint(StreamLabTheme.accent)
+                                Text(item.title.name).font(.headline).fixedSize(horizontal: false, vertical: true)
+                                Text("\(Int(item.entry.position))초 / \(Int(item.entry.duration))초 · \(item.source.rawValue)")
+                                    .font(.caption).foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }.frame(width: 210, alignment: .leading)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("\(item.title.name), \(item.title.rating.rawValue), \(Int(item.entry.position / item.entry.duration * 100))퍼센트 시청, 이어보기")
+                        .accessibilityIdentifier("continue-\(item.id)")
+                    }
+                }.padding(.horizontal)
+            }
         }
     }
 
@@ -181,10 +235,11 @@ import StreamLabDesignSystem
     }
 
     @ViewBuilder private func heroActions(_ title: CatalogTitle) -> some View {
-        Button { playbackTitle = title } label: { Label("데모 재생", systemImage: "play.fill") }
+        Button { playbackSource = .bundled; playbackTitle = title } label: { Label("데모 재생", systemImage: "play.fill") }
             .buttonStyle(StreamLabButtonStyle())
             .accessibilityIdentifier("hero-playback")
         MyListButton(title: title, store: myList)
             .accessibilityIdentifier("hero-my-list")
     }
 }
+

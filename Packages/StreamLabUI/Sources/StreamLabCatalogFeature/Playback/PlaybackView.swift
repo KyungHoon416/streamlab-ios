@@ -19,7 +19,8 @@ import StreamLabDesignSystem
     @Environment(\.dynamicTypeSize) private var textSize
     private let title: String
 
-    init(titleID: String, title: String, session: CatalogSession) {
+    init(titleID: String, title: String, session: CatalogSession, initialSource: PlaybackModel.Source = .bundled) {
+        _source = State(initialValue: initialSource)
         self.title = title
         _model = StateObject(wrappedValue: PlaybackModel(titleID: titleID, session: session))
     }

@@ -126,6 +126,42 @@ import XCTest
         closePlayback(app)
     }
 
+    func testHomeContinueWatchingUsesSavedProgress() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=streamlab-home-uitest-\(UUID())"]
+        app.launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("일시 정지", in: app)
+        app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0.5)
+        expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: app.buttons["playback-toggle"])
+        expectation(for: NSPredicate(format: "label MATCHES %@", "1[3-7]초 / 30초"), evaluatedWith: app.staticTexts["playback-time"])
+        waitForExpectations(timeout: 5)
+        closePlayback(app)
+        back(app)
+        let card = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@ AND identifier != %@", "continue-", "continue-retry")).firstMatch
+        for _ in 0..<5 {
+            if card.exists && card.isHittable { break }
+            app.scrollViews["home-catalog"].swipeUp()
+        }
+        XCTAssertTrue(card.waitForExistence(timeout: 10))
+        let returnFrame = app.frame
+        tap(card, in: app)
+        XCTAssertTrue(app.staticTexts["playback-resumed"].waitForExistence(timeout: 10))
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-close"], in: app)
+        expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: app.buttons["playback-close"])
+        expectation(for: NSPredicate(format: "frame == %@", NSValue(cgRect: returnFrame)), evaluatedWith: app)
+        waitForExpectations(timeout: 10)
+        tap(app.buttons["switch-profile"], in: app)
+        choose("adult-b", in: app)
+        XCTAssertTrue(app.staticTexts["continue-empty"].waitForExistence(timeout: 10))
+        XCTAssertFalse(card.exists)
+    }
+
     private func launch(largeText: Bool = false, slow: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         if largeText { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
