@@ -389,3 +389,19 @@ StreamLabUITests-Runner.app is the XCTest runner, not a duplicate production app
 - PASS: project-structure validator. NOT TESTED here: Xcode compilation and runtime
   fix, language UI rerun, full regression, VoiceOver interaction. Mac verification
   with scripts/check-languages-mac.sh is required before claiming resolution.
+
+### Full regression evidence and home large text follow-up (2026-10-14 KST)
+
+- User RESULTS(20261013-231912).txt: Core and language-playback PASS after
+  playback hit-target separation. Actual HLS alternate audio listening NOT TESTED.
+- User RESULTS(20261013-235952).txt and ui-tests(20261014-000002).log:
+  fixtures, structure, bootstrap, Core, simulator build and warning-free PASS;
+  UI suite FAIL: 24 tests, 1 failure (23 passed). Language persistence and playback
+  tests passed. testLargeTextAccessibilityAudit failed on home with Text clipped.
+  XCTest supplied no element, so the exact offending label is not established.
+- At accessibility text sizes, home categories now use a vertical list with
+  wrapping labels; hero actions explicitly stack vertically, hero eyebrow/play
+  labels take their full multiline height, and decorative top spacing is reduced.
+  Accessibility audit assertions remain unchanged; no clipping issue is ignored.
+- PASS local project-structure validation. NOT TESTED: this change's Xcode build,
+  targeted large-text audit, full regression and manual accessibility/layout review.

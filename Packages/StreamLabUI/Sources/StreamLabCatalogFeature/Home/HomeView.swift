@@ -30,6 +30,7 @@ import StreamLabDesignSystem
             }
         }
     }
+    @Environment(\.dynamicTypeSize) private var textSize
     @Environment(\.scenePhase) private var phase
 
     public init(session: CatalogSession) {
@@ -165,21 +166,34 @@ import StreamLabDesignSystem
         }
     }
 
-    private var categoryPicker: some View {
-        ScrollView(.horizontal) {
-            HStack(spacing: 12) {
-                ForEach(Category.allCases, id: \.self) { value in
-                    Button { category = value } label: {
-                        Text(value.rawValue).font(.headline)
-                            .padding(.horizontal, 22).frame(minHeight: 44)
-                            .background(category == value ? StreamLabTheme.accent : StreamLabTheme.surface, in: Capsule())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityAddTraits(category == value ? [.isSelected] : [])
-                    .accessibilityIdentifier("home-category-\(value.rawValue)")
-                }
+    @ViewBuilder private var categoryPicker: some View {
+        if textSize.isAccessibilitySize {
+            // Keep every category label within the viewport at accessibility sizes.
+            VStack(spacing: 12) {
+                categoryButtons
             }.padding(.horizontal, 20)
-        }.scrollIndicators(.hidden)
+        } else {
+            ScrollView(.horizontal) {
+                HStack(spacing: 12) { categoryButtons }
+                    .padding(.horizontal, 20)
+            }.scrollIndicators(.hidden)
+        }
+    }
+
+    private var categoryButtons: some View {
+        ForEach(Category.allCases, id: \.self) { value in
+            Button { category = value } label: {
+                Text(value.rawValue).font(.headline)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 22).padding(.vertical, 8)
+                    .frame(maxWidth: textSize.isAccessibilitySize ? .infinity : nil, minHeight: 44)
+                    .background(category == value ? StreamLabTheme.accent : StreamLabTheme.surface,
+                                in: RoundedRectangle(cornerRadius: 22))
+            }
+            .buttonStyle(.plain)
+            .accessibilityAddTraits(category == value ? [.isSelected] : [])
+            .accessibilityIdentifier("home-category-\(value.rawValue)")
+        }
     }
 
     private var savedContents: some View {
@@ -212,12 +226,13 @@ import StreamLabDesignSystem
                 VStack(alignment: .leading, spacing: 14) {
                     Text("STREAMLAB ORIGINAL · 오늘의 추천")
                         .font(.caption.bold())
+                        .fixedSize(horizontal: false, vertical: true)
                     Text(title.name).font(.largeTitle.bold())
                         .fixedSize(horizontal: false, vertical: true)
                     Text("\(String(title.year)) · \(title.rating.rawValue) · \(title.genre)")
                         .font(.subheadline).fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(24).padding(.top, 115)
+                .padding(24).padding(.top, textSize.isAccessibilitySize ? 24 : 115)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
             }
@@ -225,9 +240,15 @@ import StreamLabDesignSystem
             .accessibilityLabel("\(title.name), 상세 정보")
             .accessibilityHint("작품 상세 화면을 엽니다")
             .accessibilityIdentifier("hero-detail")
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: 12) { heroActions(title) }
-                VStack(spacing: 12) { heroActions(title) }
+            Group {
+                if textSize.isAccessibilitySize {
+                    VStack(spacing: 12) { heroActions(title) }
+                } else {
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 12) { heroActions(title) }
+                        VStack(spacing: 12) { heroActions(title) }
+                    }
+                }
             }
             .padding(.horizontal, 24).padding(.bottom, 24)
         }
@@ -245,7 +266,11 @@ import StreamLabDesignSystem
             playbackOrientation.begin()
             playbackSource = .bundled
             playbackTitle = title
-        } label: { Label("데모 재생", systemImage: "play.fill") }
+        } label: {
+            Label {
+                Text("데모 재생").fixedSize(horizontal: false, vertical: true)
+            } icon: { Image(systemName: "play.fill") }
+        }
             .buttonStyle(StreamLabButtonStyle())
             .accessibilityIdentifier("hero-playback")
         MyListButton(title: title, store: myList)
