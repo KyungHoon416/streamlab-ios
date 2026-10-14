@@ -6,6 +6,16 @@ import Foundation
         let position: Double
         let duration: Double
         var updatedAt: Date? = nil
+        // Optional for backward-compatible decoding of existing v1 records.
+        var profileID: String? = nil
+        var titleID: String? = nil
+        var sourceID: String? = nil
+
+        func matches(profile: String, title: String, source: String) -> Bool {
+            (profileID == nil || profileID == profile) &&
+            (titleID == nil || titleID == title) &&
+            (sourceID == nil || sourceID == source)
+        }
     }
     private let profileID: String
     private let defaults: UserDefaults
@@ -42,6 +52,7 @@ import Foundation
             guard parts.count == 2,
                   let titleData = Data(base64Encoded: parts[0]), let title = String(data: titleData, encoding: .utf8),
                   let sourceData = Data(base64Encoded: parts[1]), let source = String(data: sourceData, encoding: .utf8) else { return nil }
+            guard record.matches(profile: profileID, title: title, source: source) else { return nil }
             return Entry(titleID: title, sourceID: source, position: record.position,
                          duration: record.duration, updatedAt: record.updatedAt ?? .distantPast)
         }.sorted {
@@ -56,6 +67,7 @@ import Foundation
         guard duration.isFinite, duration > 0,
               let data = defaults.data(forKey: key(titleID: titleID, sourceID: sourceID)),
               let record = try? JSONDecoder().decode(Record.self, from: data),
+              record.matches(profile: profileID, title: titleID, source: sourceID),
               record.duration.isFinite, abs(record.duration - duration) <= max(1, duration * 0.01),
               record.position.isFinite, record.position >= 1,
               record.position < duration - min(5, duration * 0.05) else { return nil }
@@ -69,7 +81,7 @@ import Foundation
             defaults.removeObject(forKey: key)
             return
         }
-        guard let data = try? JSONEncoder().encode(Record(position: position, duration: duration, updatedAt: Date())) else { return }
+        guard let data = try? JSONEncoder().encode(Record(position: position, duration: duration, updatedAt: Date(), profileID: profileID, titleID: titleID, sourceID: sourceID)) else { return }
         defaults.set(data, forKey: key)
     }
 }

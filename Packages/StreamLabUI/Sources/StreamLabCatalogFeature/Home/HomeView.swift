@@ -93,6 +93,7 @@ import StreamLabDesignSystem
             recentRefresh = UUID()
         }) { title in
             PlaybackView(titleID: title.id, title: title.name, session: session, orientationSession: playbackOrientation, initialSource: playbackSource)
+                .id("\(session.id.uuidString):\(title.id)")
         }
         .task(id: recentRefresh) { await refreshRecent() }
         .onAppear { recentRefresh = UUID(); myList.refresh(); model.appear(phase: phase) }

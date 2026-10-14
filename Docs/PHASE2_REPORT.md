@@ -453,3 +453,22 @@ StreamLabUITests-Runner.app is the XCTest runner, not a duplicate production app
   Xcode executable is available in this environment.
 - ADR 0014 and HLS_AUDIO_QA steps 6–10 describe policy and manual acceptance checks.
   Same-language same-role commentary differentiation remains unimplemented.
+
+## 2026-10-14 — Profile playback progress report and hardening
+
+- User reports focused language tests succeeded after simulator restart; DVS
+  selection survives player reopening and app relaunch (manual user evidence).
+- OPEN / FAIL (user reported): a previously unwatched profile resumed HLS at
+  another profile's position. Root cause is not established from static review.
+- Bind cover player identity explicitly to session + title. New progress records
+  include profile/title/source ownership, checked on both lookup and recent list.
+  Legacy v1 records remain readable under their existing profile-scoped keys;
+  this does not retroactively identify any incorrectly written legacy record.
+- With no matching saved position, HLS VOD explicitly seeks to zero before play.
+- Debug PlaybackProgress logs report fresh/restore, profile, title, source and
+  restored seconds. No user records are deleted or reset by this update.
+- Add Core tests for A/B independent positions after store recreation and rejection
+  of a record copied under another profile's key.
+- PASS: local project structure validator. NOT TESTED: new Swift tests, Xcode
+  build, simulator regression and reported real HLS reproduction. Linux host has
+  no Xcode. This is defensive hardening plus diagnostics, not a confirmed fix.

@@ -109,6 +109,7 @@ import StreamLabDomain
         .fullScreenCover(isPresented: $showsPlayback, onDismiss: { playbackOrientation.finish() }) {
             if let title = model.store.detail {
                 PlaybackView(titleID: title.id, title: title.name, session: session, orientationSession: playbackOrientation)
+                    .id("\(session.id.uuidString):\(title.id)")
             }
         }
         .onAppear { model.appear(phase: phase) }

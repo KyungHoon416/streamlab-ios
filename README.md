@@ -319,3 +319,13 @@ profile. Missing roles temporarily fall back without overwriting the preference;
 Run `caffeinate -i bash scripts/check-languages-mac.sh` for Core and existing language
 UI regression, then follow steps 6–10 in Docs/HLS_AUDIO_QA.md for real DVS restoration.
 The new role-specific Core tests and actual HLS restoration are NOT TESTED here.
+
+### Profile playback position diagnostics
+
+A profile-isolation report remains open. Player covers now use session/title
+identity; new saved records validate ownership; HLS VOD without a saved position
+explicitly starts at zero. Existing records remain intact. In a Debug run, filter
+Xcode console by `fresh profile=` or `restore profile=` (OSLog category
+`PlaybackProgress`) to identify the selected profile, title, source and position.
+After updating, run `caffeinate -i ./scripts/verify-mac.sh`, then reproduce with the
+same title and HLS source across Alex and Jamie. New code is not yet Xcode-tested.

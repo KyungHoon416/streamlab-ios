@@ -1,6 +1,7 @@
 import AVFoundation
 import Combine
 import Foundation
+import OSLog
 import StreamLabDomain
 
 /// Owns one player for one presentation and one profile session.
@@ -93,6 +94,7 @@ import StreamLabDomain
     private var nextEpisodeStarted: ContinuousClock.Instant?
     private let titleID: String
     private let session: CatalogSession
+    private let progressLog = Logger(subsystem: "com.example.streamlab.demo", category: "PlaybackProgress")
     private var generation = 0
     private var loadTask: Task<Void, Never>?
     private var sampleTask: Task<Void, Never>?
@@ -209,8 +211,19 @@ import StreamLabDomain
         if needsInitialPosition && item.status == .readyToPlay && duration > 0 {
             needsInitialPosition = false
             if progressEnabled, let saved = session.progress.position(titleID: titleID, sourceID: source.progressID, duration: duration) {
+                #if DEBUG
+                progressLog.notice("restore profile=\(self.session.profile.id, privacy: .public) title=\(self.titleID, privacy: .public) source=\(self.source.progressID, privacy: .public) seconds=\(saved)")
+                #endif
                 restoringPosition = true
                 seek(to: saved)
+                return true
+            }
+            #if DEBUG
+            progressLog.notice("fresh profile=\(self.session.profile.id, privacy: .public) title=\(self.titleID, privacy: .public) source=\(self.source.progressID, privacy: .public) seconds=0")
+            #endif
+            if source.isHLS {
+                // No saved record for this profile: explicitly position the VOD at zero.
+                seek(to: 0)
                 return true
             }
             progressReady = true

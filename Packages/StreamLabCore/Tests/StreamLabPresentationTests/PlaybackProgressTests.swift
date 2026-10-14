@@ -3,6 +3,38 @@ import Testing
 import StreamLabPresentation
 
 @MainActor struct PlaybackProgressTests {
+    @Test func adultProfilesKeepIndependentPositionsAfterReopening() throws {
+        let name = "progress-tests-\(UUID())"
+        let defaults = try #require(UserDefaults(suiteName: name))
+        defer { defaults.removePersistentDomain(forName: name) }
+        let a = PlaybackProgressStore(profileID: "adult-a", defaults: defaults)
+        let b = PlaybackProgressStore(profileID: "adult-b", defaults: defaults)
+        a.save(titleID: "same", sourceID: "hls", position: 30, duration: 98)
+        #expect(b.position(titleID: "same", sourceID: "hls", duration: 98) == nil)
+        b.save(titleID: "same", sourceID: "hls", position: 10, duration: 98)
+        #expect(PlaybackProgressStore(profileID: "adult-a", defaults: defaults)
+            .position(titleID: "same", sourceID: "hls", duration: 98) == 30)
+        #expect(PlaybackProgressStore(profileID: "adult-b", defaults: defaults)
+            .position(titleID: "same", sourceID: "hls", duration: 98) == 10)
+    }
+
+    @Test func rejectsRecordCopiedUnderAnotherProfileKey() throws {
+        let name = "progress-tests-\(UUID())"
+        let defaults = try #require(UserDefaults(suiteName: name))
+        defer { defaults.removePersistentDomain(forName: name) }
+        let a = PlaybackProgressStore(profileID: "adult-a", defaults: defaults)
+        let b = PlaybackProgressStore(profileID: "adult-b", defaults: defaults)
+        a.save(titleID: "same", sourceID: "hls", position: 30, duration: 98)
+        func key(_ profile: String) -> String {
+            "streamlab.progress.v1." + [profile, "same", "hls"]
+                .map { Data($0.utf8).base64EncodedString() }.joined(separator: ".")
+        }
+        defaults.set(try #require(defaults.data(forKey: key("adult-a"))), forKey: key("adult-b"))
+        #expect(b.position(titleID: "same", sourceID: "hls", duration: 98) == nil)
+        #expect(b.recent().isEmpty)
+        #expect(a.position(titleID: "same", sourceID: "hls", duration: 98) == 30)
+    }
+
     @Test func recentDeduplicatesAndExcludesFinishedAndOtherProfiles() throws {
         let name = "progress-tests-\(UUID())"
         let defaults = try #require(UserDefaults(suiteName: name))
