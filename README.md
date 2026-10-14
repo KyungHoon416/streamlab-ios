@@ -340,3 +340,8 @@ restoration and the 60-cycle navigation soak. Results, logs and xcresult are
 written to `Docs/Validation/ui-recovery-*`. Each test has a 900-second allowance;
 a timeout remains a failure, never a pass or an automatic retry. Core tests
 passed in the separately supplied 15b3168 run; this script does not rerun them.
+
+For the remaining subtitle seek failure, run
+`caffeinate -i bash scripts/check-subtitle-seek-mac.sh`. This checks actual seek
+completion before time and caption assertions, retaining failure diagnostics in
+`Docs/Validation/subtitle-seek-*`. A seek timeout still fails the test.

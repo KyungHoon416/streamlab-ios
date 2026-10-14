@@ -287,6 +287,8 @@ import StreamLabDesignSystem
                     .font(.caption).monospacedDigit()
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("playback-time")
+                    .accessibilityValue(model.isSeeking ? "재생 위치 이동 중" :
+                        (model.seekMessage.isEmpty ? "재생 위치 확인됨" : "재생 위치 이동 실패"))
                 Spacer(minLength: 0)
                 iconButton("자막 및 오디오 선택", symbol: "captions.bubble", id: "playback-subtitles") {
                     model.cancelNextEpisode()

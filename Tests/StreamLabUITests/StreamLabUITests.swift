@@ -89,8 +89,7 @@ import XCTest
         tap(app.buttons["playback-toggle"], in: app)
         expectPlayback("일시 정지", in: app)
         app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0.1667)
-        expectation(for: NSPredicate(format: "label MATCHES %@", "00:00:0[4-6] / 00:00:30"), evaluatedWith: app.staticTexts["playback-time"])
-        waitForExpectations(timeout: 5)
+        guard waitForPausedSeek(app, timePattern: "00:00:0[4-6] / 00:00:30") else { return }
         tap(app.buttons["playback-subtitles"], in: app)
         tap(app.buttons["playback-subtitle-ko"], in: app)
         XCTAssertEqual(app.buttons["playback-subtitle-ko"].value as? String, "선택됨")
@@ -99,9 +98,11 @@ import XCTest
         let caption = app.staticTexts["playback-caption"]
         XCTAssertTrue(caption.waitForExistence(timeout: 5))
         tap(app.buttons["playback-forward"], in: app)
+        guard waitForPausedSeek(app, timePattern: "00:00:1[4-6] / 00:00:30") else { return }
         expectation(for: NSPredicate(format: "label == %@", "자막 선택에서 언어를 바꿀 수 있습니다."), evaluatedWith: caption)
         waitForExpectations(timeout: 5)
         tap(app.buttons["playback-backward"], in: app)
+        guard waitForPausedSeek(app, timePattern: "00:00:0[4-6] / 00:00:30") else { return }
         expectation(for: NSPredicate(format: "label == %@", "StreamLab 데모 영상입니다."), evaluatedWith: caption)
         waitForExpectations(timeout: 5)
         tap(app.buttons["playback-subtitles"], in: app)
@@ -415,6 +416,31 @@ import XCTest
     private func openPlayback(_ app: XCUIApplication) {
         playbackReturnFrame = app.frame
         tap(app.buttons["playback-open"], in: app)
+    }
+
+    // A seek publishes its target optimistically. Check completion before time/caption.
+    // The allowance exceeds the engine's eight-second watchdog so a stalled seek
+    // reports a seek failure, without retrying it or accepting a cleared spinner alone.
+    private func waitForPausedSeek(_ app: XCUIApplication, timePattern: String) -> Bool {
+        let time = app.staticTexts["playback-time"]
+        let completed = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true AND value == %@", "재생 위치 확인됨"), object: time)
+        guard XCTWaiter.wait(for: [completed], timeout: 10) == .completed else {
+            captureFailure(app, name: "Seek did not complete before caption check")
+            XCTFail("Seek did not complete successfully; inspect playback-seek-message and playback-time")
+            return false
+        }
+        let position = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == %@ AND label MATCHES %@", "재생 위치 확인됨", timePattern), object: time)
+        guard XCTWaiter.wait(for: [position], timeout: 2) == .completed else {
+            captureFailure(app, name: "Seek completed at unexpected position")
+            XCTFail("Completed seek must reach \(timePattern); actual: \(time.label)")
+            return false
+        }
+        XCTAssertFalse(app.descendants(matching: .any)["playback-loading"].exists)
+        XCTAssertFalse(app.staticTexts["playback-seek-message"].exists)
+        XCTAssertEqual(app.staticTexts["playback-status"].label, "일시 정지")
+        return true
     }
 
     private func closePlayback(_ app: XCUIApplication) {

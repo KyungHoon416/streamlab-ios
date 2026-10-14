@@ -519,3 +519,18 @@ StreamLabUITests-Runner.app is the XCTest runner, not a duplicate production app
   and xcresult, and caps each test at 900 seconds using XCTest time allowances.
 - PASS: local structure validation and shell syntax. NOT TESTED: Apple Swift
   compilation and corrected UI execution here. Both UI issues require Mac rerun.
+
+## 2026-10-15 — Seek completion before subtitle assertions
+
+- Uploaded ui-recovery-eBrLRn: navigation soak PASS, all 60 cycles (467.029 s).
+  Subtitle test FAIL at forward-seek caption; close/reopen stage was not reached.
+- Failure screenshot shows a loading indicator, target label 15 s, and old
+  burned-in video frame. An optimistic target label is not completed seek evidence.
+- Expose seek pending/success/error through playback-time accessibility value.
+  Test waits for successful completion, sampled time, no loading/error, and paused
+  state before exact caption assertions. Timeout still fails, with diagnostics.
+- No change to AVPlayer seek policy or watchdog; simulator seek-stall cause remains
+  unresolved until focused reproduction. No system Accessibility bundles modified.
+- New check-subtitle-seek-mac.sh selects only the failing subtitle test.
+- PASS: local structure and shell syntax. NOT TESTED: new Apple compilation,
+  UI test and VoiceOver behavior; no claim that playback engine stall is fixed.
