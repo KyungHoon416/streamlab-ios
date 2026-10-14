@@ -405,3 +405,18 @@ StreamLabUITests-Runner.app is the XCTest runner, not a duplicate production app
   Accessibility audit assertions remain unchanged; no clipping issue is ignored.
 - PASS local project-structure validation. NOT TESTED: this change's Xcode build,
   targeted large-text audit, full regression and manual accessibility/layout review.
+
+### Automated regression baseline and real HLS audio QA source (2026-10-14 KST)
+
+- User RESULTS(20261014-004947).txt: fixtures, both structure checks, bootstrap,
+  Core, simulator-build, ui-tests and warning-free all PASS on the prior revision.
+  The report leaves manual accessibility, runtime diagnostics, layouts and
+  Instruments NOT TESTED for that run. It does not prove real HLS listening.
+- Add a separate Apple trailer HLS source with English / English (DVS), a distinct
+  progress key, and shared native HLS subtitle/audio loading and retry paths.
+  Bundled SRT cues must never be used for either HLS source.
+- PASS: master fetch and inspection (en-US regular + DVS); local structure check.
+  NOT TESTED: new revision Xcode build/UI tests, audible switching, real multilingual
+  HLS restoration. Same-language rendition persistence remains unimplemented.
+- Docs/HLS_AUDIO_QA.md defines the manual comparison and prevents conflating track
+  selection metadata with audible output or English DVS with another language.

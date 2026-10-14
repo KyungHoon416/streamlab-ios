@@ -289,3 +289,15 @@ real HLS alternate-audio playback are NOT TESTED until executed.
 See ADR 0013. Real audio QA: choose an available HLS audio language, close/reopen,
 check selection and listen; switch profile; try a video without that language, then
 return to one that supports it. Do not count silent demo tests as audio validation.
+
+### Real HLS alternate audio check
+
+Run the app normally, then **데모 재생 → … → HLS 오디오 비교 · 영어 / 화면 해설**.
+In **자막 및 오디오**, compare English with English (DVS). This Apple sample has
+English and audio description, not two spoken languages. See [listening steps and
+limitations](Docs/HLS_AUDIO_QA.md). Audio-description rendition restoration is not
+implemented; only language preferences are currently saved.
+
+User-supplied 2026-10-14 full verification reports all automated stages PASS
+(RESULTS(20261014-004947).txt), before this new source was added. New source Xcode
+build and actual HLS listening remain NOT TESTED here.

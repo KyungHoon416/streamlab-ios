@@ -7,10 +7,17 @@ import StreamLabDomain
 @MainActor final class PlaybackModel: ObservableObject {
     enum Source: String, CaseIterable, Identifiable {
         case bundled = "오프라인 데모", hls = "HLS 스트리밍"
+        case hlsAudio = "HLS 오디오 비교 · 영어 / 화면 해설"
         case episode1 = "연속 재생 데모 · 1화"
         case episode2 = "연속 재생 데모 · 2화"
         case episode3 = "연속 재생 데모 · 3화"
         var id: String { rawValue }
+        var isHLS: Bool {
+            switch self {
+            case .hls, .hlsAudio: true
+            default: false
+            }
+        }
         var nextEpisode: Source? {
             switch self {
             case .episode1: .episode2
@@ -22,6 +29,7 @@ import StreamLabDomain
             switch self {
             case .bundled: "bundled-demo-v1"
             case .hls: "apple-bipbop-v1"
+            case .hlsAudio: "apple-trailer-audio-v1"
             case .episode1: "demo-series-episode-1-v1"
             case .episode2: "demo-series-episode-2-v1"
             case .episode3: "demo-series-episode-3-v1"
@@ -31,6 +39,7 @@ import StreamLabDomain
             switch self {
             case .bundled, .episode1, .episode2, .episode3: Bundle.module.url(forResource: "playback-demo", withExtension: "mp4")
             case .hls: URL(string: "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8")
+            case .hlsAudio: URL(string: "https://devstreaming-cdn.apple.com/videos/streaming/examples/adv_dv_atmos/main.m3u8")
             }
         }
     }
@@ -402,7 +411,7 @@ import StreamLabDomain
     }
 
     private func prepareSubtitles(player: AVPlayer, ticket: Int) {
-        if source != .hls {
+        if !source.isHLS {
             for (id, label) in [("ko", "한국어 · 데모"), ("en", "English · Demo")] {
                 guard let url = Bundle.module.url(forResource: "playback-demo-\(id)", withExtension: "srt"),
                       let text = try? String(contentsOf: url, encoding: .utf8) else { continue }
@@ -450,7 +459,7 @@ import StreamLabDomain
     }
 
     func retrySubtitles() {
-        guard session.isActive, let player, source == .hls, !subtitlesLoading else { return }
+        guard session.isActive, let player, source.isHLS, !subtitlesLoading else { return }
         subtitleTask?.cancel()
         subtitleMessage = ""
         prepareSubtitles(player: player, ticket: generation)
@@ -516,7 +525,7 @@ import StreamLabDomain
                 self.audioLoading = false
                 self.audioGroup = group
                 guard let group else {
-                    self.audioMessage = self.source == .hls ? "선택 가능한 대체 오디오 트랙이 없습니다." : "이 데모 영상은 무음입니다."
+                    self.audioMessage = self.source.isHLS ? "선택 가능한 대체 오디오 트랙이 없습니다." : "이 데모 영상은 무음입니다."
                     return
                 }
                 self.audioOptions = []
