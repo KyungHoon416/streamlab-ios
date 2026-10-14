@@ -332,3 +332,11 @@ same title and HLS source across Alex and Jamie. New code is not yet Xcode-teste
 
 Playback elapsed time and duration use `HH:MM:SS / HH:MM:SS` (for example,
 `00:00:20 / 00:01:38`); scrubbing previews use the same format.
+
+### Focused UI regression recovery
+
+Run `caffeinate -i bash scripts/check-ui-recovery-mac.sh` to check subtitle
+restoration and the 60-cycle navigation soak. Results, logs and xcresult are
+written to `Docs/Validation/ui-recovery-*`. Each test has a 900-second allowance;
+a timeout remains a failure, never a pass or an automatic retry. Core tests
+passed in the separately supplied 15b3168 run; this script does not rerun them.

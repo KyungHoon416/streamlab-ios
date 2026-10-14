@@ -502,3 +502,20 @@ StreamLabUITests-Runner.app is the XCTest runner, not a duplicate production app
   restoration on exit. This is not a full automated regression PASS.
 - Core correction: Xcode/Swift test execution NOT TESTED here (no Apple toolchain).
   Both UI failures remain unresolved; no full-suite PASS claimed.
+
+## 2026-10-15 — UI synchronization corrections (runtime validation pending)
+
+- User-uploaded Core rerun on 15b3168: PASS, 3 XCTest + 26 presentation +
+  7 catalog tests; warnings-as-errors build completed.
+- HUD lookup now rechecks the reveal button during the initial existence wait,
+  rather than waiting 12 seconds for a control hidden by the four-second timer.
+  Production auto-hide remains enabled and its dedicated test is unchanged.
+- Home detail entry waits for loading to finish and the back button to become
+  hittable before issuing another action. Back dismissal still must remove
+  detail-title within five seconds; no repeated back taps or relaxed assertions.
+- Back failures now attach screenshot and accessibility hierarchy. Long
+  animation-notification stalls remain an unconfirmed app/runner issue.
+- check-ui-recovery-mac.sh runs only the two failed tests, retains exit status
+  and xcresult, and caps each test at 900 seconds using XCTest time allowances.
+- PASS: local structure validation and shell syntax. NOT TESTED: Apple Swift
+  compilation and corrected UI execution here. Both UI issues require Mac rerun.

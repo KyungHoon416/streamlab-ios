@@ -320,8 +320,15 @@ import XCTest
 
     private func tap(_ element: XCUIElement, in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
         let reveal = app.buttons["playback-reveal-controls"]
-        if reveal.exists { reveal.tap() }
-        guard element.waitForExistence(timeout: 12) else {
+        // A single reveal check followed by a 12-second existence wait races
+        // the real four-second HUD timer. Recheck reveal while waiting instead.
+        var appeared = false
+        for _ in 0..<12 {
+            if reveal.exists && reveal.isHittable { reveal.tap() }
+            if element.waitForExistence(timeout: 1) { appeared = true; break }
+        }
+        guard appeared else {
+            captureFailure(app, name: "Target did not appear")
             XCTFail("Target did not appear: \(element)", file: file, line: line)
             return
         }
@@ -391,7 +398,18 @@ import XCTest
 
     private func openHomeDetail(_ app: XCUIApplication) {
         tap(app.descendants(matching: .any)["hero-detail"], in: app)
-        XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 5))
+        // The loading title exists before loading and push transitions complete.
+        let loaded = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true AND enabled == true"),
+            object: app.buttons["detail-retry"])
+        let ready = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true AND hittable == true"),
+            object: app.navigationBars.buttons["BackButton"])
+        guard XCTWaiter.wait(for: [loaded, ready], timeout: 12) == .completed else {
+            captureFailure(app, name: "Detail entry not ready")
+            XCTFail("Detail must finish loading and expose its back button")
+            return
+        }
     }
 
     private func openPlayback(_ app: XCUIApplication) {
@@ -431,8 +449,13 @@ import XCTest
         }
         button.tap()
         // Fail at the actual navigation boundary instead of cascading into profile taps.
-        expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: app.staticTexts["detail-title"])
-        waitForExpectations(timeout: 5)
+        let departed = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == false"), object: app.staticTexts["detail-title"])
+        guard XCTWaiter.wait(for: [departed], timeout: 5) == .completed else {
+            captureFailure(app, name: "Detail remained after back tap")
+            XCTFail("Detail remained after one back tap; navigation was not retried")
+            return
+        }
     }
 
     private func assertVisibleKidsRows(_ app: XCUIApplication) {
