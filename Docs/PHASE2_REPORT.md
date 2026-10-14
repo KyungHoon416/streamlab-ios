@@ -472,3 +472,15 @@ StreamLabUITests-Runner.app is the XCTest runner, not a duplicate production app
 - PASS: local project structure validator. NOT TESTED: new Swift tests, Xcode
   build, simulator regression and reported real HLS reproduction. Linux host has
   no Xcode. This is defensive hardening plus diagnostics, not a confirmed fix.
+
+## 2026-10-14 — Playback time display
+
+- User reports B starts near zero after the 6527114 update: manual PASS for that
+  reported A-to-B reproduction only; original root cause and full regression
+  remain unverified. No assertion that all profile-isolation cases are closed.
+- Render elapsed/scrubbing time and duration as HH:MM:SS, with unbounded hours,
+  zero-padding and safe handling of invalid/negative values. Slider VoiceOver
+  value uses Korean hours/minutes/seconds. Skip and countdown labels stay seconds.
+- Update existing UI test time expectations to the new display format.
+- PASS: project structure validation. NOT TESTED: Xcode build, updated UI tests
+  and device layout/VoiceOver for this revision (Xcode unavailable here).

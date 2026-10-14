@@ -329,3 +329,6 @@ Xcode console by `fresh profile=` or `restore profile=` (OSLog category
 `PlaybackProgress`) to identify the selected profile, title, source and position.
 After updating, run `caffeinate -i ./scripts/verify-mac.sh`, then reproduce with the
 same title and HLS source across Alex and Jamie. New code is not yet Xcode-tested.
+
+Playback elapsed time and duration use `HH:MM:SS / HH:MM:SS` (for example,
+`00:00:20 / 00:01:38`); scrubbing previews use the same format.

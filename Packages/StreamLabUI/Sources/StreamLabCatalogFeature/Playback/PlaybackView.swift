@@ -28,6 +28,22 @@ import StreamLabDesignSystem
         _model = StateObject(wrappedValue: PlaybackModel(titleID: titleID, session: session))
     }
 
+    private func timeParts(_ seconds: Double) -> (hours: Int, minutes: Int, seconds: Int) {
+        let total = max(0, Int(exactly: seconds.rounded(.down)) ?? 0)
+        return (total / 3600, (total % 3600) / 60, total % 60)
+    }
+
+    private func timeText(_ seconds: Double) -> String {
+        let value = timeParts(seconds)
+        return [value.hours, value.minutes, value.seconds]
+            .map { $0 < 10 ? "0\($0)" : String($0) }.joined(separator: ":")
+    }
+
+    private func spokenTime(_ seconds: Double) -> String {
+        let value = timeParts(seconds)
+        return "\(value.hours)시간 \(value.minutes)분 \(value.seconds)초"
+    }
+
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -255,7 +271,7 @@ import StreamLabDesignSystem
                 }
                 .frame(minHeight: 44)
                 .disabled(!model.canSeek)
-                .accessibilityValue("\(Int(model.position))초, 전체 \(Int(model.duration))초")
+                .accessibilityValue("\(spokenTime(scrubbing ? scrubPosition : model.position)), 전체 \(spokenTime(model.duration))")
                 .accessibilityAdjustableAction { direction in
                     revealControls()
                     switch direction {
@@ -267,7 +283,7 @@ import StreamLabDesignSystem
                 .accessibilityIdentifier("playback-position")
             }
             HStack(spacing: 12) {
-                Text("\(Int(scrubbing ? scrubPosition : model.position))초 / \(Int(model.duration))초")
+                Text("\(timeText(scrubbing ? scrubPosition : model.position)) / \(timeText(model.duration))")
                     .font(.caption).monospacedDigit()
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("playback-time")

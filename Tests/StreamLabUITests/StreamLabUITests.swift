@@ -89,7 +89,7 @@ import XCTest
         tap(app.buttons["playback-toggle"], in: app)
         expectPlayback("일시 정지", in: app)
         app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0.1667)
-        expectation(for: NSPredicate(format: "label MATCHES %@", "[4-6]초 / 30초"), evaluatedWith: app.staticTexts["playback-time"])
+        expectation(for: NSPredicate(format: "label MATCHES %@", "00:00:0[4-6] / 00:00:30"), evaluatedWith: app.staticTexts["playback-time"])
         waitForExpectations(timeout: 5)
         tap(app.buttons["playback-subtitles"], in: app)
         tap(app.buttons["playback-subtitle-ko"], in: app)
@@ -236,7 +236,7 @@ import XCTest
         expectPlayback("일시 정지", in: app)
         app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0.5)
         expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: app.buttons["playback-toggle"])
-        expectation(for: NSPredicate(format: "label MATCHES %@", "1[3-7]초 / 30초"), evaluatedWith: app.staticTexts["playback-time"])
+        expectation(for: NSPredicate(format: "label MATCHES %@", "00:00:1[3-7] / 00:00:30"), evaluatedWith: app.staticTexts["playback-time"])
         waitForExpectations(timeout: 5)
         closePlayback(app)
         app.terminate()
@@ -248,10 +248,10 @@ import XCTest
         expectPlayback("재생 중", in: app)
         tap(app.buttons["playback-toggle"], in: app)
         expectPlayback("일시 정지", in: app)
-        expectation(for: NSPredicate(format: "label MATCHES %@", "(1[3-9]|2[0-4])초 / 30초"), evaluatedWith: app.staticTexts["playback-time"])
+        expectation(for: NSPredicate(format: "label MATCHES %@", "00:00:(1[3-9]|2[0-4]) / 00:00:30"), evaluatedWith: app.staticTexts["playback-time"])
         waitForExpectations(timeout: 5)
         tap(app.buttons["playback-restart"], in: app)
-        expectation(for: NSPredicate(format: "label == %@", "0초 / 30초"), evaluatedWith: app.staticTexts["playback-time"])
+        expectation(for: NSPredicate(format: "label == %@", "00:00:00 / 00:00:30"), evaluatedWith: app.staticTexts["playback-time"])
         waitForExpectations(timeout: 5)
         closePlayback(app)
         openPlayback(app)
@@ -272,7 +272,7 @@ import XCTest
         expectPlayback("일시 정지", in: app)
         app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0.5)
         let seekReady = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: app.buttons["playback-toggle"])
-        let seekTime = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label MATCHES %@", "1[3-7]초 / 30초"), object: app.staticTexts["playback-time"])
+        let seekTime = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label MATCHES %@", "00:00:1[3-7] / 00:00:30"), object: app.staticTexts["playback-time"])
         guard XCTWaiter.wait(for: [seekReady, seekTime], timeout: 5) == .completed else {
             let time = app.staticTexts["playback-time"]
             let slider = app.sliders["playback-position"]
@@ -470,7 +470,7 @@ import XCTest
         expectPlayback("일시 정지", in: app)
         tap(app.buttons["playback-forward"], in: app)
         let time = app.staticTexts["playback-time"]
-        expectation(for: NSPredicate(format: "label MATCHES %@", "(1[0-9]|2[0-9]|30)초 / 30초"), evaluatedWith: time)
+        expectation(for: NSPredicate(format: "label MATCHES %@", "00:00:(1[0-9]|2[0-9]|30) / 00:00:30"), evaluatedWith: time)
         waitForExpectations(timeout: 10)
         closePlayback(app)
         back(app)
@@ -504,7 +504,7 @@ import XCTest
         XCTAssertTrue(slider.waitForExistence(timeout: 5))
         slider.adjust(toNormalizedSliderPosition: 0.5)
         let time = app.staticTexts["playback-time"]
-        expectation(for: NSPredicate(format: "label MATCHES %@", "1[3-7]초 / 30초"), evaluatedWith: time)
+        expectation(for: NSPredicate(format: "label MATCHES %@", "00:00:1[3-7] / 00:00:30"), evaluatedWith: time)
         waitForExpectations(timeout: 10)
         tap(app.buttons["playback-fit"], in: app)
         XCTAssertEqual(app.buttons["playback-fit"].value as? String, "화면 채우기")
