@@ -5,6 +5,7 @@ import StreamLabDomain
     public struct Preferences: Codable, Equatable, Sendable {
         public var subtitles: MediaLanguagePreference = .off
         public var audio: MediaLanguagePreference = .automatic
+        public var audioRole: AudioRole? = nil // Missing in v1 records: keep legacy language-only matching.
         public init() {}
     }
     private let defaults: UserDefaults
@@ -27,10 +28,11 @@ import StreamLabDomain
         save(value)
     }
 
-    public func setAudio(_ preference: MediaLanguagePreference) {
+    public func setAudio(_ preference: MediaLanguagePreference, role: AudioRole? = nil) {
         guard preference != .off else { return }
         var value = preferences
         value.audio = preference
+        value.audioRole = preference == .automatic ? nil : role
         save(value)
     }
 

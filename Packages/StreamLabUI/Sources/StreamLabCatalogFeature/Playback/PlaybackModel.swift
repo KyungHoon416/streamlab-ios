@@ -66,6 +66,7 @@ import StreamLabDomain
         let id: String
         let label: String
         var language: String? = nil
+        var audioRole: AudioRole = .standard
     }
     @Published private(set) var subtitleOptions: [SubtitleOption] = []
     @Published private(set) var selectedSubtitleID = "off"
@@ -489,8 +490,8 @@ import StreamLabDomain
             item.select(option, in: group)
             selectedAudioID = id
             if let language = audioOptions.first(where: { $0.id == id })?.language {
-                session.languages.setAudio(.language(language))
-                audioMessage = "선택한 오디오 언어를 이 프로필에 저장했습니다."
+                session.languages.setAudio(.language(language), role: option.hasMediaCharacteristic(.describesVideoForAccessibility) ? .audioDescription : .standard)
+                audioMessage = "선택한 오디오 언어와 종류를 이 프로필에 저장했습니다."
             } else {
                 audioMessage = "언어 정보가 없는 트랙입니다. 이번 영상에만 적용하며 기존 선호 언어는 유지합니다."
             }
@@ -498,10 +499,12 @@ import StreamLabDomain
     }
 
     private func applyAudioPreference(item: AVPlayerItem, group: AVMediaSelectionGroup) {
-        let preference = session.languages.preferences.audio
+        let preferences = session.languages.preferences
+        let preference = preferences.audio
         let defaultIndex = audioOptions.firstIndex { nativeAudio[$0.id] == group.defaultOption }
-        let index = MediaLanguageResolver.index(for: preference, languages: audioOptions.map(\.language),
-                                                defaultIndex: defaultIndex, allowsOff: false)
+        let index = AudioPreferenceResolver.index(for: preference, role: preferences.audioRole,
+                                                  languages: audioOptions.map(\.language),
+                                                  roles: audioOptions.map(\.audioRole), defaultIndex: defaultIndex)
         guard let index else { return }
         let id = audioOptions[index].id
         item.select(nativeAudio[id], in: group)
@@ -509,7 +512,10 @@ import StreamLabDomain
         audioMessage = ""
         if case .language(let language) = preference,
            MediaLanguageResolver.index(for: preference, languages: audioOptions.map(\.language), defaultIndex: nil, allowsOff: true) == nil {
-            audioMessage = "저장된 오디오 언어(\(language))가 없어 기본 트랙을 재생합니다. 선호 언어는 유지됩니다."
+            audioMessage = "저장된 오디오 언어(\(language))가 없어 기본 트랙을 재생합니다. 선호 설정은 유지됩니다."
+        } else if case .language = preference, let role = preferences.audioRole,
+                  audioOptions[index].audioRole != role {
+            audioMessage = "저장된 오디오 종류가 없어 같은 언어의 다른 트랙을 재생합니다. 선호 설정은 유지됩니다."
         }
     }
 
@@ -534,7 +540,8 @@ import StreamLabDomain
                     let id = "audio-\(index)"
                     self.nativeAudio[id] = option
                     self.audioOptions.append(SubtitleOption(id: id, label: option.displayName,
-                        language: MediaLanguageResolver.normalized(option.extendedLanguageTag ?? option.locale?.identifier)))
+                        language: MediaLanguageResolver.normalized(option.extendedLanguageTag ?? option.locale?.identifier),
+                        audioRole: option.hasMediaCharacteristic(.describesVideoForAccessibility) ? .audioDescription : .standard))
                 }
                 if self.audioOptions.isEmpty { self.audioMessage = "선택 가능한 오디오 트랙이 없습니다." }
                 self.applyAudioPreference(item: item, group: group)

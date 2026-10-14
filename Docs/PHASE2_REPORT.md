@@ -438,3 +438,18 @@ StreamLabUITests-Runner.app is the XCTest runner, not a duplicate production app
 - Prior source manual evidence: user reports audible English playback and added
   DVS narration after switching. PASS (user-reported manual listening), not an
   automated result. General HLS subtitle display has not yet been confirmed.
+
+### Audio role persistence (2026-10-14 KST)
+
+- User reports focused language UI TEST SUCCEEDED and custom panel manual layout,
+  selection and close behavior normal on the previous revision (9a18389).
+- Implement profile-scoped language + ordinary/audio-description preference.
+  Existing v1 JSON without role decodes without losing subtitle/audio settings.
+  Source fallback does not overwrite the preference; automatic clears role.
+- Add three Core tests covering migration/persistence/profile isolation/reset,
+  role matching after playlist reorder, and missing-role/language fallback.
+- PASS: local project structure. NOT TESTED here: Swift compilation, new Core tests,
+  Xcode/UI regression and actual HLS DVS restoration on this revision. No Swift or
+  Xcode executable is available in this environment.
+- ADR 0014 and HLS_AUDIO_QA steps 6–10 describe policy and manual acceptance checks.
+  Same-language same-role commentary differentiation remains unimplemented.

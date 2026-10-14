@@ -295,8 +295,8 @@ return to one that supports it. Do not count silent demo tests as audio validati
 Run the app normally, then **데모 재생 → … → HLS 오디오 비교 · 영어 / 화면 해설**.
 In **자막 및 오디오**, compare English with English (DVS). This Apple sample has
 English and audio description, not two spoken languages. See [listening steps and
-limitations](Docs/HLS_AUDIO_QA.md). Audio-description rendition restoration is not
-implemented; only language preferences are currently saved.
+limitations](Docs/HLS_AUDIO_QA.md). Audio description versus ordinary audio is saved with the profile language.
+Different commentary tracks sharing both language and role are not distinguished.
 
 User-supplied 2026-10-14 full verification reports all automated stages PASS
 (RESULTS(20261014-004947).txt), before this new source was added. New source Xcode
@@ -310,3 +310,12 @@ text sizes use one column. Choices apply immediately; use the top-right close
 button to return. Only tracks available in the current media are listed.
 Run `caffeinate -i bash scripts/check-languages-mac.sh` for the updated selection
 and close-flow tests. New panel Xcode/runtime validation is pending.
+
+### Audio description preference restoration
+
+Audio selection now persists language plus ordinary/audio-description role per
+profile. Missing roles temporarily fall back without overwriting the preference;
+기본 오디오 clears the explicit role. Legacy language-only settings remain readable.
+Run `caffeinate -i bash scripts/check-languages-mac.sh` for Core and existing language
+UI regression, then follow steps 6–10 in Docs/HLS_AUDIO_QA.md for real DVS restoration.
+The new role-specific Core tests and actual HLS restoration are NOT TESTED here.

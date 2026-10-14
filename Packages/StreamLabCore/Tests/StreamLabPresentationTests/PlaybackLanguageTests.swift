@@ -45,4 +45,64 @@ import StreamLabPresentation
         #expect(MediaLanguageResolver.normalized("und") == nil)
         #expect(MediaLanguageResolver.normalized(nil) == nil)
     }
+
+    @Test func migratesLegacyAndPersistsAudioRolePerProfile() throws {
+        struct Legacy: Encodable {
+            let subtitles: MediaLanguagePreference
+            let audio: MediaLanguagePreference
+        }
+        let name = "audio-role-tests-\(UUID())"
+        let defaults = try #require(UserDefaults(suiteName: name))
+        defer { defaults.removePersistentDomain(forName: name) }
+        let key = "streamlab.languages.v1." + Data("a".utf8).base64EncodedString()
+        defaults.set(try JSONEncoder().encode(Legacy(subtitles: .language("ko"), audio: .language("en-US"))), forKey: key)
+        let store = PlaybackLanguageStore(profileID: "a", defaults: defaults)
+        #expect(store.preferences.audio == .language("en-US"))
+        #expect(store.preferences.subtitles == .language("ko"))
+        #expect(store.preferences.audioRole == nil)
+        store.setAudio(.language("en-US"), role: .audioDescription)
+        let reopened = PlaybackLanguageStore(profileID: "a", defaults: defaults)
+        #expect(reopened.preferences.audioRole == .audioDescription)
+        #expect(reopened.preferences.subtitles == .language("ko"))
+        #expect(PlaybackLanguageStore(profileID: "b", defaults: defaults).preferences.audioRole == nil)
+        store.setAudio(.off, role: .standard)
+        #expect(store.preferences.audioRole == .audioDescription)
+        store.setAudio(.language("en-US"), role: .standard)
+        #expect(reopened.preferences.audioRole == .standard)
+        store.setAudio(.automatic)
+        #expect(reopened.preferences.audioRole == nil)
+        #expect(reopened.preferences.audio == .automatic)
+    }
+
+    @Test func audioRolesSurviveReorderingAndRespectLanguage() {
+        #expect(AudioPreferenceResolver.index(for: .language("en-US"), role: .audioDescription,
+            languages: ["en-US", "en-US"], roles: [.standard, .audioDescription], defaultIndex: 0) == 1)
+        #expect(AudioPreferenceResolver.index(for: .language("en_US"), role: .audioDescription,
+            languages: ["en-US", "en-US"], roles: [.audioDescription, .standard], defaultIndex: 1) == 0)
+        #expect(AudioPreferenceResolver.index(for: .language("en-US"), role: .standard,
+            languages: ["en-US", "en-US"], roles: [.audioDescription, .standard], defaultIndex: 0) == 1)
+        #expect(AudioPreferenceResolver.index(for: .language("en-US"), role: .audioDescription,
+            languages: ["ko", "en-US"], roles: [.audioDescription, .standard], defaultIndex: 0) == 1)
+        #expect(AudioPreferenceResolver.index(for: .automatic, role: nil,
+            languages: ["en-US", "en-US"], roles: [.audioDescription, .standard], defaultIndex: 1) == 1)
+        #expect(AudioPreferenceResolver.index(for: .language("en"), role: .audioDescription,
+            languages: [], roles: [], defaultIndex: 0) == nil)
+    }
+
+    @Test func missingRoleDoesNotEraseSavedSelection() throws {
+        let name = "audio-role-fallback-\(UUID())"
+        let defaults = try #require(UserDefaults(suiteName: name))
+        defer { defaults.removePersistentDomain(forName: name) }
+        let store = PlaybackLanguageStore(profileID: "a", defaults: defaults)
+        store.setAudio(.language("en-US"), role: .audioDescription)
+        let wanted = store.preferences
+        #expect(AudioPreferenceResolver.index(for: wanted.audio, role: wanted.audioRole,
+            languages: ["en-US"], roles: [.standard], defaultIndex: 0) == 0)
+        #expect(store.preferences == wanted)
+        #expect(AudioPreferenceResolver.index(for: wanted.audio, role: wanted.audioRole,
+            languages: ["ko"], roles: [.audioDescription], defaultIndex: 0) == 0)
+        #expect(store.preferences == wanted)
+        #expect(AudioPreferenceResolver.index(for: wanted.audio, role: wanted.audioRole,
+            languages: ["en-US", "en-US"], roles: [.standard, .audioDescription], defaultIndex: 0) == 1)
+    }
 }

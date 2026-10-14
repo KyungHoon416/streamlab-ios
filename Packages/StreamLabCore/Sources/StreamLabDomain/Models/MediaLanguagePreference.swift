@@ -33,3 +33,28 @@ public enum MediaLanguageResolver {
         return allowsOff ? nil : languages.indices.first
     }
 }
+
+/// Semantic role, independent of localized display names and playlist ordering.
+public enum AudioRole: String, Codable, Equatable, Sendable {
+    case standard
+    case audioDescription
+}
+
+public enum AudioPreferenceResolver {
+    public static func index(for preference: MediaLanguagePreference, role: AudioRole?,
+                             languages: [String?], roles: [AudioRole], defaultIndex: Int?) -> Int? {
+        let fallback = MediaLanguageResolver.index(for: preference, languages: languages,
+                                                   defaultIndex: defaultIndex, allowsOff: false)
+        guard case .language = preference, let role,
+              let languageIndex = MediaLanguageResolver.index(for: preference, languages: languages,
+                                                              defaultIndex: nil, allowsOff: true),
+              let language = MediaLanguageResolver.normalized(languages[languageIndex]) else { return fallback }
+        let candidates = languages.indices.filter {
+            MediaLanguageResolver.normalized(languages[$0]) == language
+                && roles.indices.contains($0) && roles[$0] == role
+        }
+        if let defaultIndex, candidates.contains(defaultIndex) { return defaultIndex }
+        // Missing roles fall back within the matching language, without rewriting the preference.
+        return candidates.first ?? languageIndex
+    }
+}
