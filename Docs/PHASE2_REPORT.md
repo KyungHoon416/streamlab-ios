@@ -484,3 +484,21 @@ StreamLabUITests-Runner.app is the XCTest runner, not a duplicate production app
 - Update existing UI test time expectations to the new display format.
 - PASS: project structure validation. NOT TESTED: Xcode build, updated UI tests
   and device layout/VoiceOver for this revision (Xcode unavailable here).
+
+## 2026-10-15 — Full regression failures and Core compile correction
+
+- Uploaded run 20261014T114911Z-OQGZXr: fixtures, project structure, bootstrap,
+  generated structure, simulator build and build-warning scan PASS.
+- Core FAIL before tests ran: PlaybackProgressTests.swift nested #require in
+  UserDefaults.set produced a redundant-require diagnostic with warnings-as-errors.
+  Replace it with guard-let and Issue.record on missing setup data; retain all
+  cross-profile rejection assertions. Do not disable warnings-as-errors.
+- UI FAIL: 24 executed, 22 passed, 2 failed. Navigation soak failed at cycle 47/60
+  waiting for detail-title to disappear, with roughly 1024-second stalls and an
+  animation-completion notification timeout earlier in the trace. Root cause open.
+- Subtitle selection/restoration failed finding playback-close after reopening.
+  Control auto-hide/test synchronization is a hypothesis, not a confirmed cause.
+- User manually confirmed playback landscape entry and original orientation
+  restoration on exit. This is not a full automated regression PASS.
+- Core correction: Xcode/Swift test execution NOT TESTED here (no Apple toolchain).
+  Both UI failures remain unresolved; no full-suite PASS claimed.

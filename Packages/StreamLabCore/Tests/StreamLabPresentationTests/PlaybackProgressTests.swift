@@ -29,7 +29,11 @@ import StreamLabPresentation
             "streamlab.progress.v1." + [profile, "same", "hls"]
                 .map { Data($0.utf8).base64EncodedString() }.joined(separator: ".")
         }
-        defaults.set(try #require(defaults.data(forKey: key("adult-a"))), forKey: key("adult-b"))
+        guard let savedRecord = defaults.data(forKey: key("adult-a")) else {
+            Issue.record("Profile A must have a saved record before testing cross-profile rejection")
+            return
+        }
+        defaults.set(savedRecord, forKey: key("adult-b"))
         #expect(b.position(titleID: "same", sourceID: "hls", duration: 98) == nil)
         #expect(b.recent().isEmpty)
         #expect(a.position(titleID: "same", sourceID: "hls", duration: 98) == 30)
