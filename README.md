@@ -301,3 +301,12 @@ implemented; only language preferences are currently saved.
 User-supplied 2026-10-14 full verification reports all automated stages PASS
 (RESULTS(20261014-004947).txt), before this new source was added. New source Xcode
 build and actual HLS listening remain NOT TESTED here.
+
+### Language selector layout
+
+The player now shows a dark rounded panel with **음성** on the left and **자막**
+on the right. Each column scrolls independently; narrow screens and accessibility
+text sizes use one column. Choices apply immediately; use the top-right close
+button to return. Only tracks available in the current media are listed.
+Run `caffeinate -i bash scripts/check-languages-mac.sh` for the updated selection
+and close-flow tests. New panel Xcode/runtime validation is pending.

@@ -81,6 +81,11 @@ import StreamLabDesignSystem
                 }
             }
         }
+        .allowsHitTesting(!subtitleSheet)
+        .accessibilityHidden(subtitleSheet)
+        .overlay {
+            if subtitleSheet { subtitleSelection }
+        }
         .background {
             PlaybackOrientation(landscape: landscape, session: orientationSession)
                 .frame(width: 0, height: 0)
@@ -91,7 +96,7 @@ import StreamLabDesignSystem
         .preferredColorScheme(.dark)
         .statusBarHidden(!controlsVisible)
         .sheet(isPresented: $sourceSheet) { sourceSelection }
-        .sheet(isPresented: $subtitleSheet, onDismiss: { revealControls() }) { subtitleSelection }
+
         .onAppear {
             guard !started else { return }
             started = true
@@ -313,87 +318,147 @@ import StreamLabDesignSystem
     }
 
     private var subtitleSelection: some View {
-        NavigationStack {
-            List {
-                Section {
-                    subtitleRow(id: "off", label: "끄기")
-                        .disabled(!model.canDisableSubtitles || model.subtitlesLoading)
-                    ForEach(model.subtitleOptions) { option in
-                        subtitleRow(id: option.id, label: option.label)
-                    }
-                } header: { Text("자막 언어") }
-                Section {
-                    if !model.audioOptions.isEmpty {
-                        audioRow(id: "automatic", label: "기본 오디오")
-                        ForEach(model.audioOptions) { option in
-                            audioRow(id: option.id, label: option.label)
+        GeometryReader { geometry in
+            let columns = geometry.size.width >= 650 && !textSize.isAccessibilitySize
+            ZStack {
+                Color.black.opacity(0.9).ignoresSafeArea()
+                VStack(spacing: 0) {
+                    HStack {
+                        Spacer()
+                        Button {
+                            closeLanguageSelection()
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.title3)
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
                         }
-                    }
-                    if model.audioLoading { ProgressView("오디오 목록을 불러오는 중…") }
-                    if !model.audioMessage.isEmpty {
-                        Text(model.audioMessage)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityIdentifier("playback-audio-message")
-                    }
-                    if model.audioLoadFailed {
-                        Button("오디오 목록 다시 시도") { model.retryAudio() }
-                            .accessibilityIdentifier("playback-audio-retry")
-                    }
-                } header: { Text("오디오 언어") }
-                if model.subtitlesLoading {
-                    ProgressView("자막 목록을 불러오는 중…")
-                }
-                if !model.subtitleMessage.isEmpty {
-                    Text(model.subtitleMessage)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityIdentifier("playback-subtitle-message")
-                }
-                if model.subtitleLoadFailed {
-                    Button("자막 목록 다시 시도") { model.retrySubtitles() }
-                        .accessibilityIdentifier("playback-subtitle-retry")
-                }
-            }
-            .accessibilityIdentifier("playback-language-list")
-            .navigationTitle("자막 및 오디오")
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("완료") { subtitleSheet = false; revealControls() }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("자막 및 오디오 닫기")
                         .accessibilityIdentifier("playback-subtitle-done")
+                    }
+                    .padding(.horizontal, 12).padding(.top, 8)
+                    if columns {
+                        HStack(alignment: .top, spacing: 28) {
+                            languageColumn("음성", id: "playback-audio-list") { audioChoices }
+                            languageColumn("자막", id: "playback-subtitle-list") { subtitleChoices }
+                        }
+                        .padding(.horizontal, 28).padding(.bottom, 20)
+                    } else {
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 24) {
+                                Text("음성").font(.title3.bold()).accessibilityAddTraits(.isHeader)
+                                audioChoices
+                                Divider().overlay(.white.opacity(0.15))
+                                Text("자막").font(.title3.bold()).accessibilityAddTraits(.isHeader)
+                                subtitleChoices
+                            }.padding(.horizontal, 20).padding(.bottom, 20)
+                        }
+                        .accessibilityIdentifier("playback-language-list")
+                    }
                 }
+                .frame(maxWidth: 1100)
+                .frame(height: max(0, geometry.size.height - 32))
+                .background(Color(white: 0.075), in: RoundedRectangle(cornerRadius: 28))
+                .overlay(RoundedRectangle(cornerRadius: 28).stroke(.white.opacity(0.25)))
+                .padding(.horizontal, columns ? 24 : 12)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .foregroundStyle(.white)
+        .accessibilityAction(.escape) { closeLanguageSelection() }
+    }
+
+    private func closeLanguageSelection() {
+        subtitleSheet = false
+        revealControls()
+    }
+
+    private func languageColumn<Content: View>(_ title: String, id: String,
+                                               @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(title).font(.title3.bold()).accessibilityAddTraits(.isHeader)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 8) { content() }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .accessibilityIdentifier(id)
+        }.frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder private var audioChoices: some View {
+        if !model.audioOptions.isEmpty {
+            audioRow(id: "automatic", label: "기본 오디오")
+            ForEach(model.audioOptions) { option in
+                audioRow(id: option.id, label: option.label)
+            }
+        }
+        if model.audioLoading { ProgressView("오디오 목록을 불러오는 중…") }
+        if !model.audioMessage.isEmpty {
+            Text(model.audioMessage)
+                .fixedSize(horizontal: false, vertical: true)
+                .foregroundStyle(.white.opacity(0.7))
+                .accessibilityIdentifier("playback-audio-message")
+        }
+        if model.audioLoadFailed {
+            Button("오디오 목록 다시 시도") { model.retryAudio() }
+                .frame(minHeight: 44)
+                .accessibilityIdentifier("playback-audio-retry")
         }
     }
 
-    private func audioRow(id: String, label: String) -> some View {
-        Button {
-            model.selectAudio(id)
-        } label: {
-            HStack {
-                Text(label).fixedSize(horizontal: false, vertical: true)
-                Spacer()
-                if model.selectedAudioID == id { Image(systemName: "checkmark") }
-            }
-            .frame(minHeight: 44)
-            .contentShape(Rectangle())
+    @ViewBuilder private var subtitleChoices: some View {
+        subtitleRow(id: "off", label: "끄기")
+            .disabled(!model.canDisableSubtitles || model.subtitlesLoading)
+        ForEach(model.subtitleOptions) { option in
+            subtitleRow(id: option.id, label: option.label)
         }
+        if model.subtitlesLoading { ProgressView("자막 목록을 불러오는 중…") }
+        if !model.subtitleMessage.isEmpty {
+            Text(model.subtitleMessage)
+                .fixedSize(horizontal: false, vertical: true)
+                .foregroundStyle(.white.opacity(0.7))
+                .accessibilityIdentifier("playback-subtitle-message")
+        }
+        if model.subtitleLoadFailed {
+            Button("자막 목록 다시 시도") { model.retrySubtitles() }
+                .frame(minHeight: 44)
+                .accessibilityIdentifier("playback-subtitle-retry")
+        }
+    }
+
+    private func languageLabel(_ label: String, selected: Bool) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 14) {
+            Image(systemName: "checkmark")
+                .font(.body.weight(.semibold))
+                .opacity(selected ? 1 : 0)
+                .frame(width: 24)
+                .accessibilityHidden(true)
+            Text(label)
+                .font(.body.weight(selected ? .semibold : .regular))
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
+        .foregroundStyle(selected ? .white : .white.opacity(0.65))
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+        .contentShape(Rectangle())
+    }
+
+    private func audioRow(id: String, label: String) -> some View {
+        Button { model.selectAudio(id) } label: {
+            languageLabel(label, selected: model.selectedAudioID == id)
+        }
+        .buttonStyle(.plain)
         .accessibilityValue(model.selectedAudioID == id ? "선택됨" : "")
         .accessibilityIdentifier("playback-audio-\(id)")
     }
 
     private func subtitleRow(id: String, label: String) -> some View {
-        Button {
-            model.selectSubtitle(id)
-            subtitleSheet = false
-            revealControls()
-        } label: {
-            HStack {
-                Text(label).fixedSize(horizontal: false, vertical: true)
-                Spacer()
-                if model.selectedSubtitleID == id { Image(systemName: "checkmark") }
-            }
-            .frame(minHeight: 44)
-            .contentShape(Rectangle())
+        Button { model.selectSubtitle(id) } label: {
+            languageLabel(label, selected: model.selectedSubtitleID == id)
         }
+        .buttonStyle(.plain)
         .accessibilityValue(model.selectedSubtitleID == id ? "선택됨" : "")
         .accessibilityIdentifier("playback-subtitle-\(id)")
     }

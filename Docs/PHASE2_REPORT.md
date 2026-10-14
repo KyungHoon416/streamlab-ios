@@ -420,3 +420,21 @@ StreamLabUITests-Runner.app is the XCTest runner, not a duplicate production app
   HLS restoration. Same-language rendition persistence remains unimplemented.
 - Docs/HLS_AUDIO_QA.md defines the manual comparison and prevents conflating track
   selection metadata with audible output or English DVS with another language.
+
+### Custom language panel (2026-10-14 KST)
+
+- User requested the supplied two-column dark language selector reference.
+- Replace the native subtitle sheet with an in-player modal overlay: audio left,
+  subtitles right, independent scrolling, leading checkmarks, muted unselected
+  labels and a fixed top-right close button. Portrait/narrow layouts and
+  accessibility text sizes use a single scrolling column. Underlying playback
+  controls are excluded from touch/accessibility while the panel is open.
+- Choices apply immediately and keep the panel open; close or VoiceOver escape
+  returns to playback controls. No invented language tracks or decorative divider
+  separating arbitrary languages. Loading/error/retry states remain available.
+- Existing language UI tests now assert selected state and explicit close behavior.
+- PASS: local structure validation. NOT TESTED here: Xcode build, focused UI tests,
+  rendered layout, panel VoiceOver traversal and full regression on this revision.
+- Prior source manual evidence: user reports audible English playback and added
+  DVS narration after switching. PASS (user-reported manual listening), not an
+  automated result. General HLS subtitle display has not yet been confirmed.
