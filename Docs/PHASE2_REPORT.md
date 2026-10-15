@@ -2,6 +2,21 @@
 
 2026-10-12 사용자 승인으로 시작했다. 아래 날짜별 항목은 당시 검증 이력이다.
 
+## PiP Swift 6 프로토콜 격리 수정 — 2026-10-15
+
+사용자 제공 RESULTS(20261015-023645).txt: FAIL pip-regression exit=65.
+ui-tests 로그는 PlaybackPictureInPicture의 AVPictureInPictureControllerDelegate
+conformance가 nonisolated 요구와 충돌해 빌드가 실패했음을 보여준다.
+UI 테스트는 실행 전에 취소되었으므로 테스트 assertion 실패가 아니다.
+
+컴파일러가 제시한 isolated conformance를 적용해 프로토콜 채택에도 @MainActor를
+명시했다. 객체 상태와 delegate 설치는 계속 MainActor에 한정한다.
+Swift 6 strict concurrency / warnings-as-errors를 유지하며 @preconcurrency나
+@unchecked Sendable로 검사를 우회하지 않는다. isolated conformance 문법은
+Swift 6.2 이상 컴파일러가 필요하며 사용자 도구는 Swift 6.4다.
+수정 후 구조 검사 PASS. Xcode 재빌드·UI 테스트·PiP 런타임은 NOT TESTED.
+같은 scripts/check-pip-mac.sh로 재검증한다.
+
 ## PiP 구현 추가 — 2026-10-15
 
 - HLS에서 AVPictureInPictureController + 기존 AVPlayerLayer로 작은 화면 재생을 요청한다.

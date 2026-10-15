@@ -3,7 +3,9 @@ import Foundation
 
 /// The presented player keeps ownership of its layer while PiP is outside the app.
 /// Never dismiss the SwiftUI cover to start PiP: restoration returns to that same player.
-@MainActor final class PlaybackPictureInPicture: NSObject, AVPictureInPictureControllerDelegate {
+// AVKit imports this delegate as nonisolated in Xcode 27. The conformance,
+// not only the class, must be isolated. All delegate installation happens on MainActor.
+@MainActor final class PlaybackPictureInPicture: NSObject, @MainActor AVPictureInPictureControllerDelegate {
     private var controller: AVPictureInPictureController?
     private weak var layer: AVPlayerLayer?
     private(set) var isRunning = false

@@ -31,3 +31,12 @@ SwiftUI overlay SRT는 AVPlayerLayer 출력이 아니므로 번들/에피소드 
 
 - https://developer.apple.com/documentation/avkit/adopting-picture-in-picture-in-a-custom-player
 - https://developer.apple.com/documentation/avkit/avpictureinpicturecontroller
+
+## Swift 6 SDK 경계 수정 (2026-10-15)
+
+Xcode 27은 AVPictureInPictureControllerDelegate를 nonisolated로 가져온다.
+클래스의 @MainActor만으로는 프로토콜 적합성 검사가 통과하지 않으므로
+채택 위치에 @MainActor를 명시한다 (Swift 6.2+ isolated conformance).
+프로토콜 사용/설치는 MainActor에서만 수행하며 컴파일러의 동시성 검사를 유지한다.
+사용자 첫 PiP 실행은 빌드 단계에서 실패했으며 수정 후 Mac 검증은 대기 중이다.
+근거: https://docs.swift.org/compiler/documentation/diagnostics/conformance-isolation
