@@ -6,8 +6,7 @@ import StreamLabDomain
     @StateObject private var model: CatalogScreenModel
     @ObservedObject private var myList: MyListStore
     @StateObject private var playbackOrientation = PlaybackOrientationSession()
-    @State private var showsPlayback = false
-    @State private var playbackSource: PlaybackModel.Source = .bundled
+    @State private var playbackSource: PlaybackModel.Source?
     @State private var episodePositions: [String: Double] = [:]
     private let session: CatalogSession
     @Environment(\.scenePhase) private var phase
@@ -107,10 +106,10 @@ import StreamLabDomain
         .background(StreamLabTheme.background)
         .navigationTitle("콘텐츠 상세")
         .navigationBarTitleDisplayMode(.inline)
-        .fullScreenCover(isPresented: $showsPlayback, onDismiss: { playbackOrientation.finish(); refreshEpisodeProgress() }) {
+        .fullScreenCover(item: $playbackSource, onDismiss: { playbackOrientation.finish(); refreshEpisodeProgress() }) { selectedSource in
             if let title = model.store.detail {
-                PlaybackView(titleID: title.id, title: title.name, session: session, orientationSession: playbackOrientation, initialSource: playbackSource)
-                    .id("\(session.id.uuidString):\(title.id)")
+                PlaybackView(titleID: title.id, title: title.name, session: session, orientationSession: playbackOrientation, initialSource: selectedSource)
+                    .id("\(session.id.uuidString):\(title.id):\(selectedSource.id)")
             }
         }
         .onAppear { model.appear(phase: phase); refreshEpisodeProgress() }
@@ -123,10 +122,9 @@ import StreamLabDomain
     }
 
     private func openPlayback(_ source: PlaybackModel.Source) {
-        guard session.isActive, !showsPlayback else { return }
-        playbackSource = source
+        guard session.isActive, playbackSource == nil else { return }
         playbackOrientation.begin()
-        showsPlayback = true
+        playbackSource = source
     }
 
     private func refreshEpisodeProgress() {

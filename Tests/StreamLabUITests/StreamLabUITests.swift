@@ -48,7 +48,7 @@ import XCTest
         playbackReturnFrame = app.frame
         second.tap()
         expectPlayback("재생 중", in: app)
-        XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("2화"))
+        XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("2화"), "Expected episode 2, actual: \(app.staticTexts["playback-source-label"].label)")
         tap(app.buttons["playback-toggle"], in: app)
         expectPlayback("일시 정지", in: app)
         app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0.1667)
@@ -62,7 +62,7 @@ import XCTest
         second.tap()
         XCTAssertTrue(app.staticTexts["playback-resumed"].waitForExistence(timeout: 10))
         expectPlayback("재생 중", in: app)
-        XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("2화"))
+        XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("2화"), "Expected episode 2, actual: \(app.staticTexts["playback-source-label"].label)")
         closePlayback(app)
     }
 
@@ -106,7 +106,7 @@ import XCTest
         expectPlayback("재생 완료", in: app)
         tap(app.buttons["playback-next-now"], in: app)
         expectPlayback("재생 중", in: app)
-        XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("2화"))
+        XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("2화"), "Expected episode 2, actual: \(app.staticTexts["playback-source-label"].label)")
         closePlayback(app)
     }
 
@@ -177,7 +177,7 @@ import XCTest
         finishEpisode(app)
         tap(app.buttons["playback-next-now"], in: app)
         expectPlayback("재생 중", in: app)
-        XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("2화"))
+        XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("2화"), "Expected episode 2, actual: \(app.staticTexts["playback-source-label"].label)")
         XCTAssertEqual(app.buttons["playback-subtitles"].value as? String, "English · Demo")
         closePlayback(app)
         app.terminate()

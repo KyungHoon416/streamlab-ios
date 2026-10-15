@@ -2,6 +2,22 @@
 
 2026-10-12 사용자 승인으로 시작했다. 아래 날짜별 항목은 당시 검증 이력이다.
 
+## 회차 선택 및 홈 Dynamic Type 재검증 — 2026-10-15 18:30 KST
+
+사용자 RESULTS(20261015-093039).txt / ui-tests(20261015-093040).log:
+FAIL detail-episodes exit=65, 2개 실행 2개 실패.
+회차 식별자는 이번 실행에서 발견되며 2화 버튼 탭 후 재생 중까지 도달했다.
+51행에서 playback-source-label의 2화 검사가 실패했다. 진도 저장 검증은 도달하지 못했다.
+최대 글자 감사는 홈 home-category-추천에서 dynamicType 부분 미지원으로 실패했다.
+
+- 상세의 Bool 표시 + 별도 Source 상태를 optional Source 기반 fullScreenCover(item:)로 통합.
+  선택 소스를 cover 인자로 전달하고 플레이어 identity에 포함해 초기 소스 캡처 불일치를 방지.
+- 홈 카테고리는 글자 크기에 따른 ScrollView/VStack 교체 대신 ViewThatFits로 가로/세로 배치.
+  버튼에 semantic headline 폰트를 적용. 감사 실패 무시/제외는 하지 않는다.
+- 회차 소스 assertion에 실제 label을 추가해 재실패 시 원인을 확인 가능하게 했다.
+- PASS: 구조 검사. NOT TESTED: 수정 후 Swift 컴파일, UI 및 Dynamic Type 감사.
+  이전 최대 글자 PASS와 달리 이번 실행은 FAIL이며 재실행 전 해결 확정하지 않는다.
+
 ## 회차 목록 첫 실행 결과 및 접근성 식별자 보정 — 2026-10-15
 
 사용자 RESULTS(20261015-080516).txt: FAIL detail-episodes exit=65.

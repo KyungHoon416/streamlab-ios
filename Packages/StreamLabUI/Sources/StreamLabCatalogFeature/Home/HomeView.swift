@@ -177,32 +177,30 @@ import StreamLabDesignSystem
         }
     }
 
-    @ViewBuilder private var categoryPicker: some View {
-        if textSize.isAccessibilitySize {
-            // Keep every category label within the viewport at accessibility sizes.
-            VStack(spacing: 12) {
-                categoryButtons
-            }.padding(.horizontal, 20)
-        } else {
-            ScrollView(.horizontal) {
-                HStack(spacing: 12) { categoryButtons }
-                    .padding(.horizontal, 20)
-            }.scrollIndicators(.hidden)
+    private var categoryPicker: some View {
+        // Keep the same accessibility elements when Dynamic Type changes.
+        // Wrapping is driven by available space instead of replacing the subtree.
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 12) { categoryButtons }
+                .fixedSize(horizontal: true, vertical: false)
+            VStack(spacing: 12) { categoryButtons }
         }
+        .padding(.horizontal, 20)
     }
 
     private var categoryButtons: some View {
         ForEach(Category.allCases, id: \.self) { value in
             Button { category = value } label: {
-                Text(value.rawValue).font(.headline)
+                Text(value.rawValue)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 22).padding(.vertical, 8)
-                    .frame(maxWidth: textSize.isAccessibilitySize ? .infinity : nil, minHeight: 44)
+                    .frame(minHeight: 44)
                     .background(category == value ? StreamLabTheme.accent : StreamLabTheme.surface,
                                 in: RoundedRectangle(cornerRadius: 22))
             }
             .buttonStyle(.plain)
             .accessibilityAddTraits(category == value ? [.isSelected] : [])
+            .font(.headline)
             .accessibilityIdentifier("home-category-\(value.rawValue)")
         }
     }
