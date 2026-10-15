@@ -1,5 +1,19 @@
 # 원본 과제 진행 체크리스트 — 2026-10-15
 
+## 최신 결과 — 2026-10-15 18:35 KST
+
+RESULTS(20261015-093546).txt 및 ui-tests(20261015-093546).log:
+- PASS testDetailEpisodeSelectionAndProgress (43.434초): 2화 선택, seek, 진행 표시,
+  다른 회차 기록 분리 및 재진입 복원 검사 통과.
+- FAIL testLargeTextAccessibilityAudit (11.800초): 홈 home-category-나의 리스트,
+  Text clipped. 총 2개 중 1개 실패, exit=65.
+- ViewThatFits 후보 측정 대신 AnyLayout으로 동일 카테고리 버튼의 축을 전환하고
+  접근성 크기에서 가용 너비/다중 행/내용 높이를 사용하도록 보정.
+- 수정 후 구조 검사 PASS. Mac 컴파일/접근성 재실행 NOT TESTED.
+- 전체 회귀, HLS 알림/네트워크 변화, 실기기 PiP는 이번 실행 범위 밖이다.
+
+
+
 기준: Netflix_iOS_과제.docx 8쪽 원문. Phase 번호와 과제 A/B/C/D는 서로 다른 구분이다.
 아래는 구현/검증 현황이며 루브릭 점수나 전체 완료율이 아니다. 세부 요구사항 전체를
 충족하고 최신 코드에서 검증한 영역만 완료로 취급한다. 과거 PASS는 최신 회귀 PASS가 아니다.

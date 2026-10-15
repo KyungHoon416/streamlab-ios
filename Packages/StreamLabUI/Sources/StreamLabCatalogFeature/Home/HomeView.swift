@@ -178,31 +178,36 @@ import StreamLabDesignSystem
     }
 
     private var categoryPicker: some View {
-        // Keep the same accessibility elements when Dynamic Type changes.
-        // Wrapping is driven by available space instead of replacing the subtree.
-        ViewThatFits(in: .horizontal) {
-            HStack(spacing: 12) { categoryButtons }
-                .fixedSize(horizontal: true, vertical: false)
-            VStack(spacing: 12) { categoryButtons }
-        }
-        .padding(.horizontal, 20)
-    }
-
-    private var categoryButtons: some View {
-        ForEach(Category.allCases, id: \.self) { value in
-            Button { category = value } label: {
-                Text(value.rawValue)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 22).padding(.vertical, 8)
-                    .frame(minHeight: 44)
-                    .background(category == value ? StreamLabTheme.accent : StreamLabTheme.surface,
-                                in: RoundedRectangle(cornerRadius: 22))
+        // AnyLayout preserves button identity while changing the layout axis.
+        let layout = textSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+            : AnyLayout(HStackLayout(spacing: 12))
+        return ScrollView(.horizontal) {
+            layout {
+                ForEach(Category.allCases, id: \.self) { value in
+                    Button { category = value } label: {
+                        Text(value.rawValue)
+                            .font(.headline)
+                            .lineLimit(nil)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: textSize.isAccessibilitySize ? .infinity : nil, alignment: .leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .frame(minHeight: 44, alignment: .leading)
+                            .background(category == value ? StreamLabTheme.accent : StreamLabTheme.surface,
+                                        in: RoundedRectangle(cornerRadius: 22))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(category == value ? [.isSelected] : [])
+                    .accessibilityIdentifier("home-category-\(value.rawValue)")
+                }
             }
-            .buttonStyle(.plain)
-            .accessibilityAddTraits(category == value ? [.isSelected] : [])
-            .font(.headline)
-            .accessibilityIdentifier("home-category-\(value.rawValue)")
+            .containerRelativeFrame(.horizontal, alignment: .leading)
         }
+        .scrollDisabled(textSize.isAccessibilitySize)
+        .scrollIndicators(.hidden)
+        .padding(.horizontal, 20)
     }
 
     private var savedContents: some View {
