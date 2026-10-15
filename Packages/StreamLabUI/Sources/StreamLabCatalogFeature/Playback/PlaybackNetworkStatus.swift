@@ -1,35 +1,40 @@
 import Combine
 import Dispatch
 import Network
+import OSLog
 import SwiftUI
 
 /// Shared by the app root and presented players. A path is not a server reachability test.
 @MainActor public final class NetworkConnectionStatus: ObservableObject {
     @Published public private(set) var connected: Bool?
     private var generation = 0
+    private var monitor: NWPathMonitor?
+    private let log = Logger(subsystem: "com.example.streamlab.demo", category: "NetworkStatus")
 
     public init() {}
 
-    public func observe(active: Bool) async {
+    /// Owned by the root StateObject, never by a disappearing view's task.
+    public func start(refresh: Bool = false) {
+        guard monitor == nil || refresh else { return }
         generation &+= 1
         let ticket = generation
-        guard active, !Task.isCancelled else { return }
-        let monitor = NWPathMonitor()
-        let (updates, continuation) = AsyncStream<Bool>.makeStream(bufferingPolicy: .bufferingNewest(1))
-        monitor.pathUpdateHandler = { path in
-            continuation.yield(path.status == .satisfied)
+        monitor?.cancel()
+        let next = NWPathMonitor()
+        monitor = next
+        log.notice("Network observation started, generation \(ticket)")
+        next.pathUpdateHandler = { [weak self] path in
+            let available = path.status == .satisfied
+            Task { @MainActor [weak self] in
+                guard let self, self.generation == ticket else { return }
+                self.connected = available
+                self.log.notice("Network path available: \(available), generation \(ticket)")
+            }
         }
-        monitor.start(queue: DispatchQueue(label: "streamlab.network"))
-        defer {
-            monitor.cancel()
-            continuation.finish()
-        }
-        // Cancellation ends the stream iteration; a new foreground task gets a fresh path.
-        for await available in updates {
-            guard !Task.isCancelled, generation == ticket else { return }
-            connected = available
-        }
+        next.start(queue: DispatchQueue(label: "streamlab.network"))
     }
+
+    deinit { monitor?.cancel() }
+
 }
 
 @MainActor public struct NetworkConnectionBanner: View {

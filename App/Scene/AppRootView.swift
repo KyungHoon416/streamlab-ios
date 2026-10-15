@@ -34,7 +34,10 @@ import StreamLabDesignSystem
             }
         }
         .environmentObject(network)
-        .task(id: phase == .active) { await network.observe(active: phase == .active) }
+        .onAppear { network.start() }
+        .onChange(of: phase) { _, value in
+            if value == .active { network.start(refresh: true) }
+        }
         .tint(StreamLabTheme.accent)
         .onAppear { startupLog.notice("[Startup] SwiftUI root appeared") }
     }

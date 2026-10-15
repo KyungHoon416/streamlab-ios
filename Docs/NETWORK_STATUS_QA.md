@@ -44,3 +44,11 @@ RESULTS.txt와 실패 시 ui-tests.log를 보관한다.
 
 연결 끊기/복구를 각 화면에서 3회 반복하고 기기/OS와 함께 결과를 기록한다.
 참고: https://developer.apple.com/documentation/network/nwpathmonitor
+
+## 전체 화면 잔류 배너 재검증
+
+monitor는 root StateObject가 소유하며 view task/onDisappear에서 취소하지 않는다.
+HLS 플레이어를 연 상태로 연결 끊기/복구를 3회 반복한다. 복구 시 플레이어를
+닫지 않고 배너가 사라져야 한다. 이 검증은 현재 NOT TESTED다.
+재발하면 Xcode 콘솔에서 `Network path available` 및 `Network observation started`
+로그를 복사한다. 영상 재생만으로 외부 서버 재접속 성공을 확정하지 않는다.
