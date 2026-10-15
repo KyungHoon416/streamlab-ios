@@ -2,6 +2,28 @@
 
 2026-10-12 사용자 승인으로 시작했다. 아래 날짜별 항목은 당시 검증 이력이다.
 
+## PiP 구현 추가 — 2026-10-15
+
+- HLS에서 AVPictureInPictureController + 기존 AVPlayerLayer로 작은 화면 재생을 요청한다.
+- 전체 화면 cover를 유지해 같은 플레이어로 복귀한다. PiP X는 일시정지/진행 저장,
+  앱의 닫기·소스 변경·프로필 invalidate는 PiP와 기존 AVPlayer를 정리한다.
+- 명시적 버튼으로만 시작한다. 일반 백그라운드 진입은 기존대로 일시정지한다.
+- AVAudioSession playback/moviePlayback 및 Info.plist background audio를 추가했다.
+- 네이티브 PiP의 재생/정지 상태를 샘플링하며 시작 지연 10초를 취소한다.
+- 오프라인 데모 SRT는 SwiftUI overlay이므로 PiP 대상에서 제외했다.
+- 구조 검사 PASS. Apple SDK가 없는 Linux 작성 환경에서 Xcode 빌드, Swift 6 타입 검사,
+  UI 테스트, 실제 PiP/자막/오디오/복귀/메모리는 모두 NOT TESTED.
+- 기존 자막 seek, 일반 백그라운드 일시정지, 이어보기 회귀 테스트를 묶은
+  scripts/check-pip-mac.sh를 추가했다. 이 스크립트 PASS가 실제 PiP PASS를 의미하지 않는다.
+- [ADR 0015](ADR/0015-hls-picture-in-picture.md), [수동 QA](PIP_QA.md) 참조.
+
+### PiP 추가 전 사용자 HLS 수동 확인
+
+2026-10-15 시뮬레이터에서 인터넷 끊김 시 오류 표시, 재연결 후 재시도 버튼으로
+실제 영상 재생, 오류 상태에서 닫고 다시 열어 재생 성공을 보고했다: 해당 항목 PASS (사용자 보고).
+오류 후 화면 방향 복원, 뒤에서 소리 없음, 로딩 중 닫기, 버튼 없는 자동 복구는 NOT TESTED.
+이번 PiP 수정 후 재검증 결과와 혼동하지 않는다.
+
 ## 최신 검증 상태 — 2026-10-15
 
 사용자 제공 `RESULTS(20261014-172104).txt`에서 fixtures, project-structure,

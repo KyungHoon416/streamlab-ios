@@ -1,3 +1,8 @@
+> PiP 구현 추가 (2026-10-15): HLS 플레이어의 작은 화면 버튼, 복귀/종료, 백그라운드 오디오를 연결했습니다.
+> **새 코드의 Xcode 빌드·UI 테스트·실제 PiP는 NOT TESTED**입니다. 아래 전체 PASS는 PiP 추가 전 결과입니다.
+> 먼저 `caffeinate -i bash scripts/check-pip-mac.sh` 실행 후 [PiP 수동 검증](Docs/PIP_QA.md)을 진행합니다.
+> 오프라인 데모의 SwiftUI SRT 자막은 PiP에서 제공하지 않으므로 해당 소스에서는 PiP 버튼을 비활성화합니다.
+
 > 최신 검증 (2026-10-15): 사용자 제공 전체 RESULTS에서 Fixture·구조·생성·Core·
 > Simulator 빌드·UI 테스트·빌드 경고 검사 모두 PASS. 아래 날짜별 기록은 당시 상태입니다.
 > 실제 HLS 네트워크 복구는 [검증 절차](Docs/HLS_RECOVERY_QA.md)에 따라 별도 확인합니다.

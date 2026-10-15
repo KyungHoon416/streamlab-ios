@@ -59,6 +59,11 @@ import StreamLabDomain
     }
 
     @Published private(set) var player: AVPlayer?
+    let pictureInPicture = PlaybackPictureInPicture()
+    @Published private(set) var pipPossible = false
+    @Published private(set) var pipRunning = false
+    @Published private(set) var pipMessage = ""
+    private var playbackAllowed: Bool { foreground || pictureInPicture.isRunning }
     @Published private(set) var status: Status = .idle
     @Published private(set) var position: Double = 0
     @Published private(set) var duration: Double = 0
@@ -128,6 +133,14 @@ import StreamLabDomain
         self.titleID = titleID
         self.session = session
         session.register(self)
+        pictureInPicture.onStop = { [weak self] in
+            guard let self else { return }
+            self.wantsPlayback = false
+            self.player?.pause()
+            self.saveProgress()
+            self.pipRunning = false
+        }
+        pictureInPicture.onFailure = { [weak self] message in self?.pipMessage = message }
     }
 
     var canSeek: Bool {
@@ -169,6 +182,13 @@ import StreamLabDomain
         #endif
         attempted = true
         guard let url else { fail("데모 영상을 찾을 수 없습니다. 다시 시도해 주세요."); return }
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback)
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            fail("오디오 재생을 준비하지 못했습니다. 다시 시도해 주세요.")
+            return
+        }
         let player = AVPlayer(url: url)
         self.player = player
         player.appliesMediaSelectionCriteriaAutomatically = false
@@ -189,6 +209,13 @@ import StreamLabDomain
 
     private func sample(ticket: Int) -> Bool {
         guard generation == ticket, session.isActive, let player, let item = player.currentItem else { return false }
+        pictureInPicture.checkStartTimeout()
+        pipPossible = source.isHLS && pictureInPicture.possible && !isSeeking && item.status == .readyToPlay
+        pipRunning = pictureInPicture.isRunning
+        if pipRunning, !isSeeking {
+            // Native PiP transport controls modify AVPlayer directly.
+            wantsPlayback = player.timeControlStatus != .paused
+        }
         if item.status == .failed {
             fail("영상을 재생할 수 없습니다. 연결 상태를 확인하고 다시 시도해 주세요.")
             return false
@@ -232,7 +259,7 @@ import StreamLabDomain
         if item.status != .readyToPlay || (wantsPlayback && player.timeControlStatus == .waitingToPlayAtSpecifiedRate) {
             status = .loading
             if waitingSince == nil { waitingSince = Date() }
-            if foreground, let waitingSince, Date().timeIntervalSince(waitingSince) > 30 {
+            if playbackAllowed, let waitingSince, Date().timeIntervalSince(waitingSince) > 30 {
                 fail("영상 로딩 시간이 초과되었습니다. 다시 시도해 주세요.")
                 return false
             }
@@ -325,7 +352,7 @@ import StreamLabDomain
                 if self.restoringPosition { self.resumeMessage = "저장된 위치에서 이어보는 중" }
             }
             self.restoringPosition = false
-            self.wantsPlayback = completed && resumeAfterSeek && self.foreground && self.foregroundGeneration == foregroundTicket
+            self.wantsPlayback = completed && resumeAfterSeek && self.playbackAllowed && self.foregroundGeneration == foregroundTicket
             if self.wantsPlayback { player.play() } else { player.pause() }
             if !completed { self.seekMessage = "재생 위치 이동이 취소되었습니다. 다시 시도해 주세요." }
             _ = self.sample(ticket: ticket)
@@ -335,7 +362,7 @@ import StreamLabDomain
     func setForeground(_ active: Bool) {
         foreground = active
         waitingSince = nil
-        if !active {
+        if !active && !pictureInPicture.isRunning {
             cancelNextEpisode()
             foregroundGeneration += 1
             wantsPlayback = false
@@ -344,6 +371,18 @@ import StreamLabDomain
             waitingSince = nil
         }
         // Returning to the foreground never starts audio/video automatically.
+    }
+
+    func togglePictureInPicture() {
+        guard session.isActive, foreground else { return }
+        pipMessage = ""
+        if pictureInPicture.isRunning {
+            pictureInPicture.restore()
+        } else if source.isHLS && pipPossible {
+            cancelNextEpisode()
+            pictureInPicture.start()
+        }
+        pipRunning = pictureInPicture.isRunning
     }
 
     func saveProgress() {
@@ -361,6 +400,10 @@ import StreamLabDomain
     }
 
     func stop() {
+        pictureInPicture.invalidate()
+        pipPossible = false
+        pipRunning = false
+        pipMessage = ""
         autoAdvance.reset()
         nextEpisodeStarted = nil
         nextEpisodeSeconds = nil
@@ -389,6 +432,7 @@ import StreamLabDomain
         player?.currentItem?.cancelPendingSeeks()
         player?.replaceCurrentItem(with: nil)
         player = nil
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         isSeeking = false
         position = 0; duration = 0
         waitingSince = nil

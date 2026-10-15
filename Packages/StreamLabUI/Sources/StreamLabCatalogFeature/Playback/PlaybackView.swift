@@ -48,7 +48,7 @@ import StreamLabDesignSystem
         GeometryReader { geometry in
             ZStack {
                 Color.black.ignoresSafeArea()
-                PlayerSurface(player: model.player, fillsScreen: fillsScreen)
+                PlayerSurface(player: model.player, fillsScreen: fillsScreen, pictureInPicture: model.pictureInPicture)
                     .ignoresSafeArea()
                     .accessibilityHidden(true)
                 // A full-screen accessible Button must not coexist with the controls:
@@ -182,6 +182,15 @@ import StreamLabDesignSystem
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            if model.pictureInPicture.supported {
+                iconButton(model.pipRunning ? "전체 화면으로 복귀" : "작은 화면으로 재생",
+                           symbol: model.pipRunning ? "pip.exit" : "pip.enter", id: "playback-pip") {
+                    revealControls()
+                    model.togglePictureInPicture()
+                }
+                .disabled(!model.pipRunning && !model.pipPossible)
+                .accessibilityHint(source.isHLS ? "다른 앱을 사용하는 동안 영상을 작은 창으로 재생합니다." : "HLS 영상에서 사용할 수 있습니다.")
+            }
             iconButton("영상 소스 선택", symbol: "ellipsis", id: "playback-source") {
                 model.cancelNextEpisode()
                 sourceSheet = true
@@ -192,6 +201,14 @@ import StreamLabDesignSystem
     private var transport: some View {
         VStack(spacing: 12) {
             subtitleCaption
+            if model.pipRunning {
+                Text("작은 화면에서 재생 중")
+                    .accessibilityIdentifier("playback-pip-active")
+            }
+            if !model.pipMessage.isEmpty {
+                Text(model.pipMessage).fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("playback-pip-error")
+            }
             if model.status == .ended, let next = model.source.nextEpisode {
                 VStack(spacing: 8) {
                     Text(next.rawValue).font(.headline)
