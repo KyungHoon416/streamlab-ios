@@ -28,6 +28,7 @@ import StreamLabDesignSystem
                 ProfileSelectionView { profile in
                     session = CatalogSession(profile: profile, repository: repository)
                 }
+                .safeAreaInset(edge: .top, spacing: 0) { ProfileNetworkBanner() }
             }
         }
         .tint(StreamLabTheme.accent)
