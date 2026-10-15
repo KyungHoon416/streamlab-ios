@@ -1,3 +1,8 @@
+> 최신 검증 (2026-10-15): 사용자 제공 전체 RESULTS에서 Fixture·구조·생성·Core·
+> Simulator 빌드·UI 테스트·빌드 경고 검사 모두 PASS. 아래 날짜별 기록은 당시 상태입니다.
+> 실제 HLS 네트워크 복구는 [검증 절차](Docs/HLS_RECOVERY_QA.md)에 따라 별도 확인합니다.
+> 이번 자동 실행에서 수동 접근성·기기별 화면·런타임 경고·Instruments는 NOT TESTED입니다.
+
 # StreamLab — SwiftUI Phase 2 재생
 
 비공식 학습·포트폴리오 프로젝트입니다. Netflix 공식 채용 과제나 제품이 아닙니다.

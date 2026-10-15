@@ -1,6 +1,23 @@
-# Phase 2 첫 구현 — 데모 재생
+# Phase 2 — 재생 구현 및 검증 이력
 
-2026-10-12. 사용자 승인으로 시작했다. Phase 2 전체 완료 보고서가 아니라 재생 첫 구현과 검증 대기 내역이다.
+2026-10-12 사용자 승인으로 시작했다. 아래 날짜별 항목은 당시 검증 이력이다.
+
+## 최신 검증 상태 — 2026-10-15
+
+사용자 제공 `RESULTS(20261014-172104).txt`에서 fixtures, project-structure,
+bootstrap, generated-project-structure, core, simulator-build, ui-tests,
+warning-free 모두 exit=0 / PASS 확인. 작성 환경에서 실행한 결과가 아니다.
+해당 요약 파일에는 실행 SHA와 테스트 개수가 없으므로 그 정보는 단정하지 않는다.
+앞서 제공된 Core 개별 실행은 36개 PASS, 화면 왕복은 60회 PASS,
+subtitle-seek-iKAhvy 자막 재검증은 1개/0 failures (72.348초) PASS이다.
+
+기존 실패들은 후속 재검증 및 전체 자동 gate에서 통과했다. 간헐적
+시뮬레이터 지연의 근본 원인을 특정하거나 재발 불가를 보장하지 않는다.
+최신 전체 실행의 수동 VoiceOver, Dynamic Type, 런타임 경고, 기기별 화면,
+Instruments는 NOT TESTED다. 이전 수동 확인은 별도 이력으로 유지한다.
+
+다음 작업: [실제 HLS 네트워크 복구 검증](HLS_RECOVERY_QA.md).
+이 문서 갱신에서 앱 코드는 바꾸지 않았다. Phase 2 전체 완료 선언은 아니다.
 
 ## 구현
 - 상세 화면에서 전체 화면 SwiftUI 플레이어를 연다.
