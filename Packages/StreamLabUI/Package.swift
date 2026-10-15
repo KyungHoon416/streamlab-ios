@@ -19,9 +19,11 @@ let package = Package(
             .product(name: "StreamLabDomain", package: "StreamLabCore")
         ]),
         .target(name: "StreamLabCatalogFeature", dependencies: [
+            .product(name: "StreamLabCatalogData", package: "StreamLabCore"),
             "StreamLabDesignSystem",
             .product(name: "StreamLabPresentation", package: "StreamLabCore"),
             .product(name: "StreamLabDomain", package: "StreamLabCore")
         ], resources: [.process("Resources")])
     ]
 )
+

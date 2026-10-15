@@ -23,12 +23,12 @@ import StreamLabDesignSystem
     @Environment(\.dynamicTypeSize) private var textSize
     private let title: String
 
-    init(titleID: String, title: String, session: CatalogSession, orientationSession: PlaybackOrientationSession, initialSource: PlaybackModel.Source = .bundled, onCancelFailure: (@MainActor () -> Void)? = nil) {
+    init(titleID: String, title: String, session: CatalogSession, orientationSession: PlaybackOrientationSession, initialSource: PlaybackModel.Source = .bundled, syncDeviceID: String? = nil, onCancelFailure: (@MainActor () -> Void)? = nil) {
         self.onCancelFailure = onCancelFailure
         _source = State(initialValue: initialSource)
         self.title = title
         self.orientationSession = orientationSession
-        _model = StateObject(wrappedValue: PlaybackModel(titleID: titleID, session: session))
+        _model = StateObject(wrappedValue: PlaybackModel(titleID: titleID, session: session, syncDeviceID: syncDeviceID))
     }
 
     private func timeParts(_ seconds: Double) -> (hours: Int, minutes: Int, seconds: Int) {
@@ -265,6 +265,10 @@ import StreamLabDesignSystem
                         .buttonStyle(StreamLabButtonStyle())
                         .accessibilityIdentifier("playback-next-now")
                 }
+            }
+            if !model.syncMessage.isEmpty {
+                Text(model.syncMessage).font(.caption).fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("playback-sync-status")
             }
             if !model.resumeMessage.isEmpty {
                 Text(model.resumeMessage).font(.caption)

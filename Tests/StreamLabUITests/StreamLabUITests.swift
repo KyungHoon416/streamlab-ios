@@ -785,6 +785,44 @@ import XCTest
         closePlayback(app)
     }
 
+    func testMockDevicesRestorePlaybackAndRestart() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=sync-\(UUID().uuidString)"]
+        app.launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        func selectDevice(_ device: String) {
+            tap(app.buttons["sync-device-\(device)"], in: app)
+            let open = app.buttons["playback-open"]
+            for _ in 0..<12 {
+                if open.exists && open.isHittable { break }
+                app.scrollViews["detail-scroll"].swipeDown()
+            }
+        }
+        selectDevice("A")
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("일시 정지", in: app)
+        tap(app.buttons["playback-forward"], in: app)
+        guard waitForPausedSeek(app, timePattern: "00:00:1[0-9].*") else { return }
+        closePlayback(app)
+        selectDevice("B")
+        openPlayback(app)
+        XCTAssertTrue(app.staticTexts["playback-resumed"].waitForExistence(timeout: 12))
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("일시 정지", in: app)
+        XCTAssertTrue(app.staticTexts["playback-time"].label.hasPrefix("00:00:1"))
+        tap(app.buttons["playback-restart"], in: app)
+        guard waitForPausedSeek(app, timePattern: "00:00:00.*") else { return }
+        closePlayback(app)
+        selectDevice("A")
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        XCTAssertFalse(app.staticTexts["playback-resumed"].exists)
+        closePlayback(app)
+    }
+
     func testPlaybackCloseDuringAuthorizationAndReopenForKids() {
         let app = launch(slow: true)
         choose("kids-a", in: app)

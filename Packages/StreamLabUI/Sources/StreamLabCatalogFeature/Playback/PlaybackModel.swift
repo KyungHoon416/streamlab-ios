@@ -3,6 +3,7 @@ import Combine
 import Foundation
 import OSLog
 import StreamLabDomain
+import StreamLabPresentation
 
 /// Owns one player for one presentation and one profile session.
 @MainActor final class PlaybackModel: ObservableObject {
@@ -164,6 +165,11 @@ import StreamLabDomain
     @Published private(set) var failureIsMediaReset = false
     private var mediaResetObserver: PlaybackMediaResetObserver?
     private var audioSessionOwner: UUID?
+    private let syncDeviceID: String?
+    private var syncedProgress: SyncedPlaybackProgress?
+    private var syncRestartPending = false
+    @Published private(set) var syncMessage = ""
+
     #if DEBUG
     private var injectedMediaReset = false
     #endif
@@ -214,7 +220,8 @@ import StreamLabDomain
         #endif
     }
 
-    init(titleID: String, session: CatalogSession) {
+    init(titleID: String, session: CatalogSession, syncDeviceID: String? = nil) {
+        self.syncDeviceID = syncDeviceID
         self.titleID = titleID
         self.session = session
         session.register(self)
@@ -229,7 +236,7 @@ import StreamLabDomain
     }
 
     var canSeek: Bool {
-        player?.currentItem?.status == .readyToPlay && duration > 0 && !isSeeking
+        player?.currentItem?.status == .readyToPlay && duration > 0 && !isSeeking && !syncRestartPending
     }
 
     func load(_ source: Source? = nil) {
@@ -262,6 +269,13 @@ import StreamLabDomain
                 guard let title, title.canView(in: profile) else {
                     self.fail("이 프로필에서는 재생할 수 없는 콘텐츠입니다.")
                     return
+                }
+                if let deviceID = self.syncDeviceID {
+                    let identity = ProgressIdentity(profileID: profile.id, titleID: id, sourceID: self.source.progressID)
+                    let progress = await PlaybackSyncDemo.coordinator.open(identity: identity, deviceID: deviceID)
+                    guard !Task.isCancelled, self.generation == ticket, self.session.isActive else { return }
+                    self.syncedProgress = progress
+                    self.syncMessage = "가상 기기 \(deviceID) · 서버 진도 불러옴"
                 }
                 self.prepare(ticket: ticket)
             } catch {
@@ -351,7 +365,7 @@ import StreamLabDomain
         }
         if needsInitialPosition && item.status == .readyToPlay && duration > 0 {
             needsInitialPosition = false
-            if progressEnabled, let saved = session.progress.position(titleID: titleID, sourceID: source.progressID, duration: duration) {
+            if progressEnabled, let saved = initialProgressPosition() {
                 #if DEBUG
                 progressLog.notice("restore profile=\(self.session.profile.id, privacy: .private) title=\(self.titleID, privacy: .private) source=\(self.source.progressID, privacy: .public) seconds=\(saved, privacy: .private)")
                 #endif
@@ -428,6 +442,7 @@ import StreamLabDomain
     }
 
     func togglePlayback() {
+        guard !syncRestartPending else { return }
         guard session.isActive, foreground, let player else { return }
         if status == .ended { seek(to: 0, playAfterSeek: true); return }
         progressReady = true
@@ -508,18 +523,55 @@ import StreamLabDomain
         pipRunning = pictureInPicture.isRunning
     }
 
+    private func initialProgressPosition() -> Double? {
+        if syncDeviceID != nil {
+            guard let saved = syncedProgress?.snapshot.position, saved >= 1,
+                  saved < duration - min(5, duration * 0.05) else { return nil }
+            return saved
+        }
+        return session.progress.position(titleID: titleID, sourceID: source.progressID, duration: duration)
+    }
+
     func saveProgress() {
-        guard progressEnabled, session.isActive, progressReady, !isSeeking,
+        guard progressEnabled, session.isActive, progressReady, !isSeeking, !syncRestartPending,
               let player, let item = player.currentItem, item.status == .readyToPlay else { return }
-        session.progress.save(titleID: titleID, sourceID: source.progressID,
-                              position: player.currentTime().seconds, duration: item.duration.seconds)
+        let seconds = player.currentTime().seconds
+        if syncDeviceID != nil {
+            if let syncedProgress, seconds.isFinite, seconds >= 0 {
+                PlaybackSyncDemo.coordinator.submit(.checkpoint(seconds), to: syncedProgress)
+                if syncedProgress.conflicted { syncMessage = "다른 기기의 진도가 변경되었습니다. 닫았다 다시 열어 주세요." }
+            }
+        } else {
+            session.progress.save(titleID: titleID, sourceID: source.progressID,
+                                  position: seconds, duration: item.duration.seconds)
+        }
         lastProgressSave = .now
     }
 
     func restartFromBeginning() {
-        guard canSeek else { return }
-        resumeMessage = ""
-        seek(to: 0)
+        guard canSeek, !syncRestartPending else { return }
+        guard let syncedProgress else {
+            resumeMessage = ""
+            seek(to: 0)
+            return
+        }
+        syncRestartPending = true
+        player?.pause()
+        wantsPlayback = false
+        let ticket = generation
+        let write = PlaybackSyncDemo.coordinator.submit(.restart, to: syncedProgress)
+        Task { @MainActor [weak self] in
+            let reply = await write.value
+            guard let self, self.generation == ticket, self.session.isActive else { return }
+            self.syncRestartPending = false
+            guard reply?.accepted == true else {
+                self.syncMessage = "진도가 변경되어 초기화하지 못했습니다. 닫았다 다시 열어 주세요."
+                return
+            }
+            self.resumeMessage = ""
+            self.syncMessage = "처음부터 보기 · 서버 진도 초기화됨"
+            self.seek(to: 0)
+        }
     }
 
     func stop() {
@@ -533,6 +585,9 @@ import StreamLabDomain
         nextEpisodeStarted = nil
         nextEpisodeSeconds = nil
         saveProgress()
+        syncedProgress = nil
+        syncRestartPending = false
+        syncMessage = ""
         needsInitialPosition = true
         progressReady = false
         restoringPosition = false

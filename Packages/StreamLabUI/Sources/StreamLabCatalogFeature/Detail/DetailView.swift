@@ -7,6 +7,7 @@ import StreamLabDomain
     @ObservedObject private var myList: MyListStore
     @StateObject private var playbackOrientation = PlaybackOrientationSession()
     @State private var playbackSource: PlaybackModel.Source?
+    @State private var syncDeviceID = ""
     @State private var episodePositions: [String: Double] = [:]
     private let session: CatalogSession
     @Environment(\.scenePhase) private var phase
@@ -78,6 +79,19 @@ import StreamLabDomain
                     }
                     .padding(20).frame(maxWidth: .infinity, alignment: .leading)
                     .background(StreamLabTheme.surface, in: RoundedRectangle(cornerRadius: 18))
+                    #if DEBUG
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("기기 간 이어보기 테스트 · Mock").font(.headline)
+                        Text("같은 프로필에서 A로 시청한 뒤 B를 선택하세요. 서버는 앱 종료 시 초기화됩니다.")
+                            .font(.caption).fixedSize(horizontal: false, vertical: true)
+                        ForEach(["", "A", "B"], id: \.self) { device in
+                            Button(device.isEmpty ? "기존 로컬 저장" : "가상 기기 \(device)") { syncDeviceID = device }
+                                .buttonStyle(.bordered)
+                                .accessibilityIdentifier("sync-device-\(device.isEmpty ? "local" : device)")
+                                .accessibilityValue(syncDeviceID == device ? "선택됨" : "선택 안 됨")
+                        }
+                    }
+                    #endif
                     DetailEpisodeSection(title: title, positions: episodePositions, onSelect: openPlayback)
                     Text("오리지널 Mock 콘텐츠 · 재생 버튼은 테스트 영상을 엽니다.")
                         .font(.callout).foregroundStyle(.secondary)
@@ -108,7 +122,7 @@ import StreamLabDomain
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(item: $playbackSource, onDismiss: { playbackOrientation.finish(); refreshEpisodeProgress() }) { selectedSource in
             if let title = model.store.detail {
-                PlaybackView(titleID: title.id, title: title.name, session: session, orientationSession: playbackOrientation, initialSource: selectedSource)
+                PlaybackView(titleID: title.id, title: title.name, session: session, orientationSession: playbackOrientation, initialSource: selectedSource, syncDeviceID: syncDeviceID.isEmpty ? nil : syncDeviceID)
                     .id("\(session.id.uuidString):\(title.id):\(selectedSource.id)")
             }
         }

@@ -1,5 +1,20 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## A3 플레이어 연동 · 가상 기기 A/B — 2026-10-16
+
+직전 30b9e54의 Core 56개와 A3 시뮬레이션 8개는 사용자 Mac 로그에서 PASS 확인.
+이번 변경은 Debug 상세 화면의 가상 기기 A/B 선택을 실제 AVPlayer 진도 저장/복원에 연결한다.
+로컬 저장은 기존 UserDefaults 경로를 유지하고 Mock 모드는 서버 값만 사용한다.
+앱 내 두 가상 기기는 프로세스 공용 Mock을 공유하며 프로필/작품/회차 키를 분리한다.
+닫기 저장 후 다음 열기 순서, FIFO 체크포인트→restart, 충돌 이후 저장 차단 Core 테스트 3개와
+A 재생→B 복원→restart→A 초기화 UI 테스트 1개를 추가했다.
+
+이번 변경: 구조/shell PASS. Swift/Core/Xcode/UI NOT TESTED.
+실제 기기 간 네트워크, 서버 영속 저장, 홈 계속 시청 레일의 서버 연동은 아직 미구현.
+30초 로컬 영상으로 UI 검증하며 정확한 25:40은 기존 Core 테스트에서 검증한다.
+실행: `caffeinate -i bash scripts/check-progress-playback-mac.sh`
+
+
 ## A3 기기 간 진도 복원 Mock — 2026-10-16
 
 - 도메인 계약, actor 서버 Mock, 기기별 클라이언트 구현.
