@@ -1,3 +1,7 @@
+> HLS 네트워크 안내 추가 (2026-10-15): 연결 끊김/복구 및 영상 요청 실패를 상단에 표시합니다.
+> 연결 복구로 자동 재생하지 않습니다. 구조 검사 PASS, 새 코드의 Xcode 빌드·UI/수동 검증은 NOT TESTED입니다.
+> [네트워크 배너 검증](Docs/NETWORK_STATUS_QA.md)을 참고하세요. 아래 항목은 이전 변경 이력입니다.
+
 > PiP 구현 추가 (2026-10-15): HLS 플레이어의 작은 화면 버튼, 복귀/종료, 백그라운드 오디오를 연결했습니다.
 > **새 코드의 Xcode 빌드·UI 테스트·실제 PiP는 NOT TESTED**입니다. 아래 전체 PASS는 PiP 추가 전 결과입니다.
 > 먼저 `caffeinate -i bash scripts/check-pip-mac.sh` 실행 후 [PiP 수동 검증](Docs/PIP_QA.md)을 진행합니다.
