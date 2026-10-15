@@ -2,7 +2,6 @@ import SwiftUI
 import StreamLabDesignSystem
 
 @MainActor struct PlaybackView: View {
-    @StateObject private var network = PlaybackNetworkStatus()
     @StateObject private var model: PlaybackModel
     private let orientationSession: PlaybackOrientationSession
     @State private var source: PlaybackModel.Source = .bundled
@@ -98,7 +97,7 @@ import StreamLabDesignSystem
                 }
             }
         }
-        .safeAreaInset(edge: .top, spacing: 0) { networkBanner }
+        .safeAreaInset(edge: .top, spacing: 0) { NetworkConnectionBanner() }
         .allowsHitTesting(!subtitleSheet)
         .accessibilityHidden(subtitleSheet)
         .overlay {
@@ -122,7 +121,6 @@ import StreamLabDesignSystem
             model.load(source)
         }
         .onDisappear { model.stop(); orientationSession.stopRequests() }
-        .task(id: source.isHLS) { await network.observe(enabled: source.isHLS) }
         .onChange(of: source) { _, value in
             scrubbing = false
             revealControls()
@@ -139,10 +137,6 @@ import StreamLabDesignSystem
         }
         .onChange(of: model.status) { _, value in
             if value != .playing { revealControls() }
-            if value == .playing { network.clearRecovery() }
-        }
-        .onChange(of: network.connected) { _, connected in
-            if connected == true && model.status == .playing { network.clearRecovery() }
         }
         .onChange(of: voiceOver) { _, _ in revealControls() }
         .onChange(of: textSize) { _, _ in revealControls() }
@@ -151,41 +145,6 @@ import StreamLabDesignSystem
             do { try await Task.sleep(for: .seconds(4)) } catch { return }
             guard !Task.isCancelled, mayHide else { return }
             controlsVisible = false
-        }
-    }
-
-    private var networkMessage: String? {
-        guard source.isHLS else { return nil }
-        // A path hint is not a playback failure. Buffered playback may also be healthy.
-        if model.status == .playing && !model.isSeeking { return nil }
-        if case .failed = model.status {
-            return "영상을 불러오지 못했습니다. 네트워크와 영상 서버 상태를 확인하고 다시 시도해주세요."
-        }
-        if network.connected == false {
-            return "사용 가능한 네트워크 경로가 감지되지 않습니다. 연결 상태를 확인해주세요."
-        }
-        if network.recovered && model.status != .playing {
-            return "네트워크 연결이 복구되었습니다. 영상 연결을 보장하지는 않습니다. 재생을 확인해주세요."
-        }
-        return nil
-    }
-
-    private var networkBannerColor: Color {
-        if case .failed = model.status { return Color.red.opacity(0.85) }
-        return Color(white: 0.16)
-    }
-
-    @ViewBuilder private var networkBanner: some View {
-        if let message = networkMessage {
-            // An inset reserves space instead of covering close/transport controls.
-            Text(message)
-                .font(.caption)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 16).padding(.vertical, 8)
-                .foregroundStyle(.white)
-                .background(networkBannerColor)
-                .accessibilityIdentifier("playback-network-banner")
         }
     }
 

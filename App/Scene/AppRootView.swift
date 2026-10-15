@@ -7,6 +7,8 @@ import StreamLabProfileFeature
 import StreamLabDesignSystem
 
 @MainActor struct AppRootView: View {
+    @StateObject private var network = NetworkConnectionStatus()
+    @Environment(\.scenePhase) private var phase
     @State private var session: CatalogSession?
     private let repository: MockCatalogRepository
     private let startupLog = Logger(subsystem: "com.example.streamlab.demo", category: "Startup")
@@ -28,8 +30,11 @@ import StreamLabDesignSystem
                 ProfileSelectionView { profile in
                     session = CatalogSession(profile: profile, repository: repository)
                 }
+                .safeAreaInset(edge: .top, spacing: 0) { NetworkConnectionBanner() }
             }
         }
+        .environmentObject(network)
+        .task(id: phase == .active) { await network.observe(active: phase == .active) }
         .tint(StreamLabTheme.accent)
         .onAppear { startupLog.notice("[Startup] SwiftUI root appeared") }
     }
@@ -63,6 +68,7 @@ import StreamLabDesignSystem
             }
             .tabItem { Label("검색", systemImage: "magnifyingglass") }
         }
+        .safeAreaInset(edge: .top, spacing: 0) { NetworkConnectionBanner() }
     }
 
     @ToolbarContentBuilder private var profileToolbar: some ToolbarContent {
@@ -74,3 +80,4 @@ import StreamLabDesignSystem
         }
     }
 }
+
