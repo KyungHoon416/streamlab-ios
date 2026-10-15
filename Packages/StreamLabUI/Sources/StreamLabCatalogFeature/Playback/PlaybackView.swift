@@ -182,15 +182,15 @@ import StreamLabDesignSystem
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            if model.pictureInPicture.supported {
-                iconButton(model.pipRunning ? "전체 화면으로 복귀" : "작은 화면으로 재생",
-                           symbol: model.pipRunning ? "pip.exit" : "pip.enter", id: "playback-pip") {
-                    revealControls()
-                    model.togglePictureInPicture()
-                }
-                .disabled(!model.pipRunning && !model.pipPossible)
-                .accessibilityHint(source.isHLS ? "다른 앱을 사용하는 동안 영상을 작은 창으로 재생합니다." : "HLS 영상에서 사용할 수 있습니다.")
+            iconButton(model.pipRunning ? "전체 화면으로 복귀" : "작은 화면으로 재생",
+                       symbol: model.pipRunning ? "pip.exit" : "pip.enter", id: "playback-pip") {
+                revealControls()
+                model.togglePictureInPicture()
             }
+            .disabled(!model.pictureInPicture.supported || (!model.pipRunning && !model.pipPossible))
+            .accessibilityHint(pipAvailabilityMessage.isEmpty
+                ? "먼저 이 버튼을 누른 뒤 홈으로 이동하면 작은 창에서 재생합니다."
+                : pipAvailabilityMessage)
             iconButton("영상 소스 선택", symbol: "ellipsis", id: "playback-source") {
                 model.cancelNextEpisode()
                 sourceSheet = true
@@ -198,9 +198,29 @@ import StreamLabDesignSystem
         }
     }
 
+    private var pipAvailabilityMessage: String {
+        if !model.pictureInPicture.supported {
+            return "현재 실행 환경에서는 PiP를 지원하지 않습니다. PiP를 지원하는 실제 iPhone 또는 iPad에서 확인해 주세요."
+        }
+        if !source.isHLS {
+            return "PiP는 HLS 영상에서 사용할 수 있습니다."
+        }
+        if !model.pipRunning && !model.pipPossible {
+            return "PiP 준비 중입니다. 영상이 재생된 뒤에도 버튼이 비활성화되어 있으면 실행 환경과 재생 상태를 확인해 주세요."
+        }
+        return ""
+    }
+
     private var transport: some View {
         VStack(spacing: 12) {
             subtitleCaption
+            if !pipAvailabilityMessage.isEmpty {
+                Text(pipAvailabilityMessage)
+                    .font(.caption)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("playback-pip-availability")
+            }
             if model.pipRunning {
                 Text("작은 화면에서 재생 중")
                     .accessibilityIdentifier("playback-pip-active")
