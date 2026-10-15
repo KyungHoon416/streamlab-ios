@@ -21,9 +21,15 @@ public struct StreamLabButtonStyle: ButtonStyle {
     }
 }
 
-public struct CatalogArtwork: View {
+@MainActor public struct CatalogArtwork: View {
     let title: CatalogTitle
+    @State private var loaded: DecodedArtwork?
+    @State private var loadedURL: URL?
+    @State private var generation = UUID()
     public init(title: CatalogTitle) { self.title = title }
+    private var url: URL? {
+        title.artworkURL ?? Bundle.module.url(forResource: "poster-\(abs(title.visualSeed % 6))", withExtension: "png")
+    }
     public var body: some View {
         let hue = Double(title.visualSeed % 360) / 360
         ZStack {
@@ -32,8 +38,35 @@ public struct CatalogArtwork: View {
                 .font(.largeTitle)
                 .foregroundStyle(.white.opacity(0.75))
         }
+        .overlay {
+            if loadedURL == url, let loaded {
+                GeometryReader { geometry in
+                    Image(decorative: loaded.image, scale: 1)
+                        .resizable().scaledToFill()
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .clipped()
+                }
+            }
+        }
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .accessibilityHidden(true)
+        .task(id: url) {
+            let ticket = UUID()
+            generation = ticket
+            loaded = nil; loadedURL = nil
+            guard let requested = url else { return }
+            do {
+                let image = try await ArtworkPipeline.shared.image(for: requested)
+                guard !Task.isCancelled, generation == ticket, requested == url else { return }
+                loadedURL = requested; loaded = image
+            } catch {
+                // Keep the existing offline placeholder. No failed image replaces another title.
+            }
+        }
+        .onDisappear {
+            generation = UUID()
+            loaded = nil; loadedURL = nil
+        }
     }
 }
 
@@ -76,3 +109,4 @@ public struct LoadingCard: View {
         .padding(24)
     }
 }
+

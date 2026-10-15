@@ -1,5 +1,23 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## A1 이미지 비동기 로딩·메모리 캐시 — 2026-10-16
+
+CatalogArtwork가 실제 PNG를 비동기로 읽고 ImageIO로 최대 720px 다운샘플링한다.
+6개 자체 생성 추상 PNG Fixture를 2,000개 콘텐츠의 visualSeed로 재사용한다.
+선택적 artworkURL이 있으면 HTTPS 로더를 사용하고 없으면 번들 이미지로 오프라인 동작한다.
+로딩/실패 시 기존 그라데이션·아이콘 placeholder를 유지한다.
+
+원본 16MiB LRU, 이미지 1개 최대 8MiB, 디코딩 이미지 24MiB LRU.
+동일 URL 요청은 합치며 마지막 구독자 취소 시 작업을 취소한다. 이전 세대의 완료는 무시한다.
+SwiftUI task(id:)와 generation 검사로 화면 이탈/이미지 변경 후 늦은 UI 반영을 막는다.
+이 수치는 캐시 자체의 한도이며 표시 중 이미지, URLSession 캐시 등 전체 프로세스 메모리 한도는 아니다.
+
+Core 캐시/취소 테스트 5개 추가. 구조/shell PASS. Swift/Core/Xcode/UI NOT TESTED.
+실제 HTTPS 서버/시각 QA/Instruments 메모리 측정도 NOT TESTED.
+검증: `caffeinate -i bash scripts/check-artwork-mac.sh`
+직전 4836ed2 사용자 로그: Core 59개 + A3 실제 플레이어 UI 1개 PASS.
+
+
 ## A3 플레이어 연동 · 가상 기기 A/B — 2026-10-16
 
 직전 30b9e54의 Core 56개와 A3 시뮬레이션 8개는 사용자 Mac 로그에서 PASS 확인.

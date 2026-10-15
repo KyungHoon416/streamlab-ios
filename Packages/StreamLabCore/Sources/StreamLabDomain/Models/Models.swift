@@ -47,6 +47,7 @@ public struct CatalogTitle: Codable, Identifiable, Sendable, Hashable {
     public let durationMinutes: Int
     public let kind: MediaKind
     public let rating: ContentRating
+    public let artworkURL: URL?
     public let visualSeed: Int
     public let popularity: Int
 
@@ -122,3 +123,4 @@ public protocol CatalogRepository: Sendable {
     func search(_ query: String, profile: ViewerProfile, after cursor: String?, limit: Int) async throws -> CatalogPage
     func detail(id: String, profile: ViewerProfile) async throws -> CatalogTitle?
 }
+
