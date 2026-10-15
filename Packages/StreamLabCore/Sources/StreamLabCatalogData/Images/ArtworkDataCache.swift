@@ -43,7 +43,7 @@ public actor ArtworkDataCache {
                         let result: Result<Data, any Error>
                         do { result = .success(try await loader(url)) }
                         catch { result = .failure(error) }
-                        self?.finish(url, generation: generation, result: result)
+                        await self?.finish(url, generation: generation, result: result)
                     }
                     pending[url] = Pending(generation: generation, task: task, waiters: [waiter: continuation])
                 }

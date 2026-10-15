@@ -1,5 +1,15 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## 이미지 캐시 actor 호출 수정 — 2026-10-16
+
+사용자 core(9).log에서 ArtworkDataCache.swift:46의 actor-isolated finish 호출에
+await 누락이 확인되어 Core 컴파일 FAIL(exit=1). UI 테스트는 실행되지 않았다.
+Task 완료 지점에서 await로 캐시 actor에 진입하도록 수정했다.
+generation 검사/구독자 취소/캐시 제한은 기존대로 유지한다.
+수정 후 구조 검사 PASS. Swift 컴파일/Core/UI 재실행은 NOT TESTED.
+재검증: scripts/check-artwork-mac.sh.
+
+
 ## A1 이미지 비동기 로딩·메모리 캐시 — 2026-10-16
 
 CatalogArtwork가 실제 PNG를 비동기로 읽고 ImageIO로 최대 720px 다운샘플링한다.
