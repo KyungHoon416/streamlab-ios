@@ -428,3 +428,15 @@ caffeinate -i bash scripts/check-hls-episodes-mac.sh
 RESULTS.txt, ui-tests.log, qoe.log를 확인하세요.
 일반 회귀에서는 실 네트워크 테스트를 skip합니다. 이 전용 스크립트에서만 실행하며,
 두 테스트가 실제 passed인지도 확인합니다. 수동 항목: Docs/HLS_EPISODES_QA.md.
+
+
+### 미디어 서비스 리셋·재시도 한도 검증
+
+```bash
+caffeinate -i bash scripts/check-media-recovery-mac.sh
+```
+
+리셋 알림 주입/사용자 복구와 최대 3회 재시도 정책을 확인합니다.
+RESULTS.txt, core.log, ui-tests.log, qoe.log를 수집합니다.
+실제 OS 데몬 재시작이나 실기기 검증을 대신하지 않습니다.
+정책 및 수동 검증: Docs/ADR/0019-media-reset-and-bounded-retry.md.

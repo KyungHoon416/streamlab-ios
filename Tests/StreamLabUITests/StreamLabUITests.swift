@@ -731,6 +731,47 @@ import XCTest
         XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 5))
     }
 
+    func testMediaResetRequiresUserRetryAndRecreatesPlayback() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=reset-\(UUID())",
+                               "--ui-test-disable-resume", "--ui-test-media-reset-once"]
+        app.launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        let alert = app.alerts["영상을 불러올 수 없습니다"]
+        XCTAssertTrue(alert.waitForExistence(timeout: 20))
+        XCTAssertTrue(alert.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "미디어 서비스")).firstMatch.exists)
+        XCTAssertTrue(alert.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "남은 재시도: 3회")).firstMatch.exists)
+        alert.buttons["재시도"].tap()
+        expectPlayback("재생 중", in: app)
+        XCTAssertFalse(alert.exists)
+        closePlayback(app)
+    }
+
+    func testPlaybackRetryBudgetStopsAfterThreeRetries() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=retry-budget-\(UUID())",
+                               "--ui-test-disable-resume", "--ui-test-resource-always-missing"]
+        app.launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        for remaining in [3, 2, 1] {
+            let count = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "label == %@", "남은 재시도: \(remaining)회"),
+                object: app.staticTexts["playback-retry-remaining"])
+            XCTAssertEqual(XCTWaiter.wait(for: [count], timeout: 10), .completed)
+            tap(app.buttons["playback-retry"], in: app)
+        }
+        let exhausted = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "label == %@", "남은 재시도: 0회"),
+            object: app.staticTexts["playback-retry-remaining"])
+        XCTAssertEqual(XCTWaiter.wait(for: [exhausted], timeout: 10), .completed)
+        XCTAssertFalse(app.buttons["playback-retry"].isEnabled)
+        closePlayback(app)
+    }
+
     func testPlaybackRetryAfterMissingResource() {
         let app = XCUIApplication()
         app.launchArguments.append("--playback-missing-resource-once")

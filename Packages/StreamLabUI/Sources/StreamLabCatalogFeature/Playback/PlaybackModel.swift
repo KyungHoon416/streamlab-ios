@@ -160,6 +160,30 @@ import StreamLabDomain
         diagnosticAttempt = nil
     }
 
+    @Published private(set) var retryBudget = PlaybackRetryBudget()
+    @Published private(set) var failureIsMediaReset = false
+    private var mediaResetObserver: PlaybackMediaResetObserver?
+    #if DEBUG
+    private var injectedMediaReset = false
+    #endif
+    var canRetryPlayback: Bool {
+        guard session.isActive, foreground, case .failed = status else { return false }
+        return retryBudget.remaining > 0
+    }
+
+    func retryPlayback() {
+        guard canRetryPlayback, retryBudget.consume() else { return }
+        load()
+    }
+
+    private func handleMediaReset(ticket: Int) {
+        guard generation == ticket, session.isActive, diagnosticAttempt != nil else { return }
+        // Never read/reset a potentially invalid player position into saved progress.
+        progressReady = false
+        if status == .ended { stop(); return }
+        fail("기기의 미디어 서비스가 재시작되었습니다. 재시도를 눌러 재생을 복구해 주세요.", mediaReset: true)
+    }
+
     private var generation = 0
     private var loadTask: Task<Void, Never>?
     private var sampleTask: Task<Void, Never>?
@@ -209,8 +233,12 @@ import StreamLabDomain
 
     func load(_ source: Source? = nil) {
         stop()
-        if let source { self.source = source }
+        if let source {
+            self.source = source
+            retryBudget.reset()
+        }
         guard session.isActive else { return }
+        failureIsMediaReset = false
         diagnostics.begin(at: ProcessInfo.processInfo.systemUptime)
         diagnosticAttempt = UUID()
         lastObservedBitrate = nil
@@ -218,6 +246,11 @@ import StreamLabDomain
         status = .loading
         wantsPlayback = foreground
         let ticket = generation
+        mediaResetObserver = PlaybackMediaResetObserver { [weak self] in
+            Task { @MainActor [weak self] in
+                self?.handleMediaReset(ticket: ticket)
+            }
+        }
         let repository = session.repository
         let profile = session.profile
         let id = titleID
@@ -240,7 +273,8 @@ import StreamLabDomain
     private func prepare(ticket: Int) {
         var url = source.url
         #if DEBUG
-        if !attempted && ProcessInfo.processInfo.arguments.contains("--playback-missing-resource-once") {
+        if ProcessInfo.processInfo.arguments.contains("--ui-test-resource-always-missing") ||
+            (!attempted && ProcessInfo.processInfo.arguments.contains("--playback-missing-resource-once")) {
             url = nil
         }
         #endif
@@ -339,6 +373,13 @@ import StreamLabDomain
             }
         }
         sampleDiagnostics(item: item, player: player)
+        #if DEBUG
+        if !injectedMediaReset, status == .playing, position >= 1,
+           ProcessInfo.processInfo.arguments.contains("--ui-test-media-reset-once") {
+            injectedMediaReset = true
+            NotificationCenter.default.post(name: AVAudioSession.mediaServicesWereResetNotification, object: nil)
+        }
+        #endif
         if status == .ended, source.nextEpisode != nil, foreground, wantsPlayback {
             if autoAdvance.state == .idle {
                 autoAdvance.start()
@@ -469,6 +510,7 @@ import StreamLabDomain
     }
 
     func stop() {
+        mediaResetObserver = nil
         finishDiagnostics()
         pictureInPicture.invalidate()
         pipPossible = false
@@ -724,9 +766,10 @@ import StreamLabDomain
         prepareAudio(player: player, ticket: generation)
     }
 
-    private func fail(_ message: String) {
+    private func fail(_ message: String, mediaReset: Bool = false) {
         if diagnosticAttempt != nil { observePlayback(.failed) }
         stop()
+        failureIsMediaReset = mediaReset
         status = .failed(message)
     }
 

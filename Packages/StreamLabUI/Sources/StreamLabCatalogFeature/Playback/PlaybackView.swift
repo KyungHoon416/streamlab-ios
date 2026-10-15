@@ -124,10 +124,11 @@ import StreamLabDesignSystem
             }
             Button("재시도") {
                 revealControls()
-                model.load()
+                model.retryPlayback()
             }
+            .disabled(!model.canRetryPlayback)
         } message: {
-            Text("인터넷 연결을 확인하고 다시 시도해주세요. 영상 서버 문제일 수도 있습니다.\n\n\(model.status.label)")
+            Text("\(model.status.label)\n\n남은 재시도: \(model.retryBudget.remaining)회. 모두 사용하면 플레이어를 닫고 다시 열어 주세요.")
         }
 
         .onAppear {
@@ -153,7 +154,7 @@ import StreamLabDesignSystem
         }
         .onChange(of: model.status) { _, value in
             if value != .playing { revealControls() }
-            if case .failed = value, model.source.isHLS {
+            if case .failed = value, model.source.isHLS || model.failureIsMediaReset {
                 showsPlaybackFailure = true
             }
         }
@@ -288,9 +289,12 @@ import StreamLabDesignSystem
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("playback-status")
             if case .failed = model.status {
-                Button("재생 다시 시도") { revealControls(); model.load() }
+                Button("재생 다시 시도") { revealControls(); model.retryPlayback() }
                     .buttonStyle(StreamLabButtonStyle())
                     .accessibilityIdentifier("playback-retry")
+                    .disabled(!model.canRetryPlayback)
+                Text("남은 재시도: \(model.retryBudget.remaining)회")
+                    .accessibilityIdentifier("playback-retry-remaining")
             } else {
                 HStack(spacing: 32) {
                     iconButton("10초 뒤로", symbol: "gobackward.10", id: "playback-backward", size: 56) {
