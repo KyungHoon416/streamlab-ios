@@ -1,5 +1,22 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## 오디오 세션 비동기 큐 처리 — 2026-10-15
+
+사용자 제공 db001a0 검증 로그: Core 48개(15 XCTest + 26 + 7 Swift Testing),
+UI 4개 PASS. QoE rejected transition 0. 단, UI 로그에서 AVAudioSession
+메인 스레드 응답성 경고 4회 발견. 이 결과는 경고 없음 PASS가 아니다.
+
+수정: process-wide PlaybackAudioSession 직렬 큐에서 category/activation/deactivation을
+처리한다. 플레이어는 활성화 성공 후 MainActor에서 생성하며 generation/session/UUID를
+검사한다. stop은 즉시 UI/플레이어를 정리하고 비동기 release를 제출한다.
+이전 재생의 release는 소유 UUID가 다르면 새 재생을 비활성화하지 않는다.
+iOS 18 호환 API를 유지하며 메인 큐를 동기 대기시키지 않는다.
+
+check-media-recovery-mac.sh에 실제 UI 로그의 오디오 메인 스레드 경고 검사를 추가했다.
+수정 후: 구조·shell 구문 PASS. Xcode 빌드, Core/UI, 런타임 경고 제거 NOT TESTED.
+실제 OS 리셋/실기기 PiP/전체 회귀 및 HLS 회차 테스트도 아직 미검증이다.
+
+
 ## 미디어 리셋·재시도 한도 — 2026-10-15
 
 리셋 알림의 generation/session 검사, 기존 플레이어/Task/PiP 정리,

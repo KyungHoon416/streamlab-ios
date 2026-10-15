@@ -163,6 +163,7 @@ import StreamLabDomain
     @Published private(set) var retryBudget = PlaybackRetryBudget()
     @Published private(set) var failureIsMediaReset = false
     private var mediaResetObserver: PlaybackMediaResetObserver?
+    private var audioSessionOwner: UUID?
     #if DEBUG
     private var injectedMediaReset = false
     #endif
@@ -280,13 +281,25 @@ import StreamLabDomain
         #endif
         attempted = true
         guard let url else { fail("데모 영상을 찾을 수 없습니다. 다시 시도해 주세요."); return }
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback)
-            try AVAudioSession.sharedInstance().setActive(true)
-        } catch {
-            fail("오디오 재생을 준비하지 못했습니다. 다시 시도해 주세요.")
-            return
+        let owner = UUID()
+        audioSessionOwner = owner
+        PlaybackAudioSession.shared.activate(owner: owner) { [weak self] succeeded in
+            Task { @MainActor [weak self] in
+                guard let self, self.generation == ticket, self.session.isActive,
+                      self.audioSessionOwner == owner else {
+                    PlaybackAudioSession.shared.release(owner: owner)
+                    return
+                }
+                guard succeeded else {
+                    self.fail("오디오 재생을 준비하지 못했습니다. 다시 시도해 주세요.")
+                    return
+                }
+                self.preparePlayer(url: url, ticket: ticket)
+            }
         }
+    }
+
+    private func preparePlayer(url: URL, ticket: Int) {
         let player = AVPlayer(url: url)
         self.player = player
         player.appliesMediaSelectionCriteriaAutomatically = false
@@ -544,7 +557,10 @@ import StreamLabDomain
         player?.currentItem?.cancelPendingSeeks()
         player?.replaceCurrentItem(with: nil)
         player = nil
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        if let owner = audioSessionOwner {
+            audioSessionOwner = nil
+            PlaybackAudioSession.shared.release(owner: owner)
+        }
         isSeeking = false
         position = 0; duration = 0
         waitingSince = nil
@@ -774,6 +790,7 @@ import StreamLabDomain
     }
 
     deinit {
+        if let owner = audioSessionOwner { PlaybackAudioSession.shared.release(owner: owner) }
         audioTask?.cancel()
         subtitleTask?.cancel()
         loadTask?.cancel()

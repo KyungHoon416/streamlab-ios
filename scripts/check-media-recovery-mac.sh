@@ -60,6 +60,15 @@ if [ "$diagnostics_result" -eq 0 ] && grep -q 'summary attempt=' "$run_dir/qoe.l
 else
   echo 'NOT TESTED: QoE summary log unavailable; inspect Xcode console' >> "$run_dir/RESULTS.txt"
 fi
+# UI success alone does not mean runtime-warning-free.
+if grep -Eq 'AVAudioSession.*UI unresponsiveness|This method can lead to UI unresponsiveness' "$run_dir/ui-tests.log"; then
+  echo 'FAIL audio-session main-thread runtime warning' >> "$run_dir/RESULTS.txt"
+  result=1
+elif [ "$result" -eq 0 ]; then
+  echo 'PASS no audio-session main-thread warning observed in UI test log' >> "$run_dir/RESULTS.txt"
+else
+  echo 'NOT TESTED: audio-session runtime warning gate requires completed tests' >> "$run_dir/RESULTS.txt"
+fi
 echo 'NOT TESTED: real-device HLS TTFF p50/p95, network stall metrics, actual OS media service reset (notification injection only), native PiP and full regression suite' >> "$run_dir/RESULTS.txt"
 tail -n 35 "$run_dir/ui-tests.log"
 echo "Results: $run_dir/RESULTS.txt"

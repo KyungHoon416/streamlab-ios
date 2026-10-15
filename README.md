@@ -1,4 +1,21 @@
 > 상세 화면 업데이트: 대표 이미지의 데모 미리보기, 데모 시즌 1의 회차 1~3 목록,
+
+## 오디오 세션 비동기 큐 처리 — 2026-10-15
+
+사용자 제공 db001a0 검증 로그: Core 48개(15 XCTest + 26 + 7 Swift Testing),
+UI 4개 PASS. QoE rejected transition 0. 단, UI 로그에서 AVAudioSession
+메인 스레드 응답성 경고 4회 발견. 이 결과는 경고 없음 PASS가 아니다.
+
+수정: process-wide PlaybackAudioSession 직렬 큐에서 category/activation/deactivation을
+처리한다. 플레이어는 활성화 성공 후 MainActor에서 생성하며 generation/session/UUID를
+검사한다. stop은 즉시 UI/플레이어를 정리하고 비동기 release를 제출한다.
+이전 재생의 release는 소유 UUID가 다르면 새 재생을 비활성화하지 않는다.
+iOS 18 호환 API를 유지하며 메인 큐를 동기 대기시키지 않는다.
+
+check-media-recovery-mac.sh에 실제 UI 로그의 오디오 메인 스레드 경고 검사를 추가했다.
+수정 후: 구조·shell 구문 PASS. Xcode 빌드, Core/UI, 런타임 경고 제거 NOT TESTED.
+실제 OS 리셋/실기기 PiP/전체 회귀 및 HLS 회차 테스트도 아직 미검증이다.
+
 > 회차별 이어보기 진행률을 연결했습니다. 세 회차는 같은 30초 무음 테스트 영상입니다.
 > 미리보기는 전체 화면 재생이며 실제 예고편/다중 시즌은 아직 없습니다.
 > 구조·스크립트 구문 PASS, Xcode/실제 UI NOT TESTED.
