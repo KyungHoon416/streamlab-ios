@@ -401,3 +401,15 @@ QoE summary 수집 성공은 성능 임계치 통과를 뜻하지 않습니다.
 first_frame_ready_seconds는 250ms 주기의 레이어 render-ready 관측값이며 정밀 TTFF가 아닙니다.
 실기기 HLS 20회 p50/p95와 네트워크 stall 계측은 별도 진행해야 합니다.
 설계/한계: Docs/ADR/0017-playback-observation-and-qoe.md.
+
+
+### 선택할 수 없는 자막·음성 대체 처리
+
+```bash
+caffeinate -i bash scripts/check-track-fallback-mac.sh
+```
+
+Core 및 자막 fallback/복원/프로필 격리 UI 테스트를 실행합니다.
+RESULTS.txt, core.log, ui-tests.log를 확인하세요.
+UI 누락 언어 fixture는 Debug 번들 데모 전용입니다. 실제 HLS의 트랙 로딩 장애
+검증을 대체하지 않습니다. 정책은 Docs/ADR/0018-track-fallback.md에 기록합니다.

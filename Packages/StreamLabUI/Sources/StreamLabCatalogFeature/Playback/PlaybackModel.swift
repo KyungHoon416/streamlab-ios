@@ -505,15 +505,24 @@ import StreamLabDomain
     }
 
     var subtitleLabel: String {
-        subtitleOptions.first(where: { $0.id == selectedSubtitleID })?.label ?? "끄기"
+        selectedSubtitleID == "unavailable" ? "사용 불가" :
+            subtitleOptions.first(where: { $0.id == selectedSubtitleID })?.label ?? "끄기"
     }
 
     func selectSubtitle(_ id: String, persist: Bool = true) {
         guard session.isActive, let item = player?.currentItem else { return }
         guard id == "off" || subtitleOptions.contains(where: { $0.id == id }) else { return }
         if let group = subtitleGroup {
-            guard id != "off" || group.allowsEmptySelection else { return }
-            item.select(nativeSubtitles[id], in: group)
+            if id == "off" {
+                guard group.allowsEmptySelection else { return }
+                item.select(nil, in: group)
+            } else {
+                guard let option = nativeSubtitles[id], option.isPlayable else {
+                    subtitleMessage = "이 자막은 현재 선택할 수 없습니다. 목록을 다시 불러와 주세요."
+                    return
+                }
+                item.select(option, in: group)
+            }
         }
         selectedSubtitleID = id
         if persist {
@@ -536,6 +545,11 @@ import StreamLabDomain
     private func prepareSubtitles(player: AVPlayer, ticket: Int) {
         if !source.isHLS {
             for (id, label) in [("ko", "한국어 · 데모"), ("en", "English · Demo")] {
+                #if DEBUG
+                // Deterministic missing-language fixture; never affects production/HLS.
+                if source == .episode2 && id == "ko" &&
+                    ProcessInfo.processInfo.arguments.contains("--ui-test-missing-korean-episode") { continue }
+                #endif
                 guard let url = Bundle.module.url(forResource: "playback-demo-\(id)", withExtension: "srt"),
                       let text = try? String(contentsOf: url, encoding: .utf8) else { continue }
                 let cues = SubRip.parse(text)
@@ -551,6 +565,10 @@ import StreamLabDomain
         subtitleLoadFailed = false
         subtitleOptions = []
         nativeSubtitles = [:]
+        subtitleGroup = nil
+        selectedSubtitleID = "off"
+        subtitleText = ""
+        canDisableSubtitles = true
         subtitlesLoading = true
         // Only the weak model is captured across loading. Results are bound to this item/session.
         subtitleTask = Task { [weak self] in
@@ -560,8 +578,8 @@ import StreamLabDomain
                       self.session.isActive, self.player?.currentItem === item else { return }
                 self.subtitlesLoading = false
                 self.subtitleGroup = group
-                guard let group, !group.options.isEmpty else {
-                    self.subtitleMessage = "이 영상에 제공되는 자막이 없습니다."
+                guard let group else {
+                    self.subtitleMessage = "이 영상에 제공되는 자막이 없습니다. 저장된 선호 언어는 유지됩니다."
                     return
                 }
                 for (index, option) in group.options.filter({ $0.isPlayable }).enumerated() {
@@ -570,6 +588,12 @@ import StreamLabDomain
                     self.subtitleOptions.append(SubtitleOption(id: id, label: option.displayName, language: MediaLanguageResolver.normalized(option.extendedLanguageTag ?? option.locale?.identifier)))
                 }
                 self.canDisableSubtitles = group.allowsEmptySelection
+                guard !self.subtitleOptions.isEmpty else {
+                    if group.allowsEmptySelection { item.select(nil, in: group) }
+                    self.selectedSubtitleID = "unavailable"
+                    self.subtitleMessage = "재생 가능한 자막 트랙이 없습니다. 저장된 선호 언어는 유지됩니다."
+                    return
+                }
                 self.restoreSubtitles()
 
             } catch {
@@ -608,7 +632,7 @@ import StreamLabDomain
         if id == "automatic" {
             session.languages.setAudio(.automatic)
             applyAudioPreference(item: item, group: group)
-        } else if let option = nativeAudio[id] {
+        } else if let option = nativeAudio[id], option.isPlayable {
             item.select(option, in: group)
             selectedAudioID = id
             if let language = audioOptions.first(where: { $0.id == id })?.language {
@@ -627,9 +651,18 @@ import StreamLabDomain
         let index = AudioPreferenceResolver.index(for: preference, role: preferences.audioRole,
                                                   languages: audioOptions.map(\.language),
                                                   roles: audioOptions.map(\.audioRole), defaultIndex: defaultIndex)
-        guard let index else { return }
+        guard let index else {
+            selectedAudioID = "unavailable"
+            audioMessage = "재생 가능한 대체 오디오 트랙이 없습니다. 저장된 선호 설정은 유지됩니다."
+            return
+        }
         let id = audioOptions[index].id
-        item.select(nativeAudio[id], in: group)
+        guard let option = nativeAudio[id], option.isPlayable else {
+            selectedAudioID = "unavailable"
+            audioMessage = "이 오디오는 현재 선택할 수 없습니다. 목록을 다시 불러와 주세요."
+            return
+        }
+        item.select(option, in: group)
         selectedAudioID = preference == .automatic ? "automatic" : id
         audioMessage = ""
         if case .language(let language) = preference,
@@ -645,6 +678,10 @@ import StreamLabDomain
         guard let item = player.currentItem else { return }
         audioLoading = true
         audioLoadFailed = false
+        audioGroup = nil
+        audioOptions = []
+        nativeAudio = [:]
+        selectedAudioID = "automatic"
         audioTask = Task { [weak self] in
             do {
                 let group = try await item.asset.loadMediaSelectionGroup(for: .audible)

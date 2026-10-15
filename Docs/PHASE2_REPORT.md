@@ -1,5 +1,22 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## A2 트랙 대체 처리 보강 — 2026-10-15
+
+이전 bf55787 사용자 첨부 검증: Core XCTest 8개 + Swift Testing 7개 PASS,
+선택 UI 4개 PASS, QoE 요약/invalid_transitions=0 확인.
+이는 이번 변경의 통과 근거가 아니라 이전 버전 검증 이력이다.
+
+이번 변경: native 선택 직전 isPlayable 확인, 빈 playable 목록 안내, 재요청 시
+이전 그룹/목록 제거. 선호 언어는 fallback으로 덮어쓰지 않는다.
+TrackFallbackTests 4개 및 없는 한국어→복원→재실행→B 프로필 분리 UI 테스트 추가.
+PASS 구조 검사/스크립트 구문. NOT TESTED Swift/Core/UI 실행, 실제 HLS 트랙 장애 통합 검증.
+
+남은 A 순서: 트랙 대체 검증 → 실제 HLS 회차 → 네트워크 재시도 한도/미디어 서비스
+리셋 → 상태 전이 효과 통합/QoE 실측 → A1 이미지 로더 → A3 revision 서버 Mock.
+A 전체 완료로 표시하지 않는다.
+
+
+
 ## A2 계측 추가 — 2026-10-15
 
 사용자 보고: check-detail-episodes-mac.sh TEST SUCCEEDED, 이후 프로필 전용 오프라인
