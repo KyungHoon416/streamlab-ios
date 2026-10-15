@@ -36,6 +36,36 @@ import XCTest
         expectPlayback("재생 완료", in: app)
     }
 
+    func testDetailEpisodeSelectionAndProgress() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=streamlab-detail-episodes-\(UUID())"]
+        app.launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        let second = app.buttons["detail-episode-2"]
+        guard revealDetailElement(second, in: app) else { return }
+        XCTAssertEqual(second.value as? String, "이어보기 기록 없음")
+        playbackReturnFrame = app.frame
+        second.tap()
+        expectPlayback("재생 중", in: app)
+        XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("2화"))
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("일시 정지", in: app)
+        app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0.1667)
+        guard waitForPausedSeek(app, timePattern: "00:00:0[4-6] / 00:00:30") else { return }
+        closePlayback(app)
+        guard revealDetailElement(second, in: app) else { return }
+        XCTAssertTrue((second.value as? String ?? "").contains("초부터 이어보기"))
+        XCTAssertEqual(app.buttons["detail-episode-1"].value as? String, "이어보기 기록 없음")
+        XCTAssertEqual(app.buttons["detail-episode-3"].value as? String, "이어보기 기록 없음")
+        playbackReturnFrame = app.frame
+        second.tap()
+        XCTAssertTrue(app.staticTexts["playback-resumed"].waitForExistence(timeout: 10))
+        expectPlayback("재생 중", in: app)
+        XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("2화"))
+        closePlayback(app)
+    }
+
     func testDemoEpisodesAdvanceAndStopAtFinalEpisode() {
         let app = launch()
         choose("adult-a", in: app)

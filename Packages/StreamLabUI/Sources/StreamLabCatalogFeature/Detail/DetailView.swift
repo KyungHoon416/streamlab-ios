@@ -7,6 +7,8 @@ import StreamLabDomain
     @ObservedObject private var myList: MyListStore
     @StateObject private var playbackOrientation = PlaybackOrientationSession()
     @State private var showsPlayback = false
+    @State private var playbackSource: PlaybackModel.Source = .bundled
+    @State private var episodePositions: [String: Double] = [:]
     private let session: CatalogSession
     @Environment(\.scenePhase) private var phase
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -22,11 +24,10 @@ import StreamLabDomain
             VStack(alignment: .leading, spacing: 20) {
                 if let title = model.store.detail {
                     if dynamicTypeSize.isAccessibilitySize {
-                        CatalogArtwork(title: title).frame(height: 230)
+                        previewArtwork(title)
                         originalLabel
                     } else {
-                        CatalogArtwork(title: title)
-                            .frame(height: 230)
+                        previewArtwork(title)
                             .overlay(alignment: .bottomLeading) {
                                 originalLabel.padding(16)
                             }
@@ -57,8 +58,7 @@ import StreamLabDomain
                         }
                     }
                     Button {
-                        playbackOrientation.begin()
-                        showsPlayback = true
+                        openPlayback(.bundled)
                     } label: {
                         Label {
                             Text("데모 영상 재생")
@@ -79,6 +79,7 @@ import StreamLabDomain
                     }
                     .padding(20).frame(maxWidth: .infinity, alignment: .leading)
                     .background(StreamLabTheme.surface, in: RoundedRectangle(cornerRadius: 18))
+                    DetailEpisodeSection(title: title, positions: episodePositions, onSelect: openPlayback)
                     Text("오리지널 Mock 콘텐츠 · 재생 버튼은 테스트 영상을 엽니다.")
                         .font(.callout).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -106,15 +107,54 @@ import StreamLabDomain
         .background(StreamLabTheme.background)
         .navigationTitle("콘텐츠 상세")
         .navigationBarTitleDisplayMode(.inline)
-        .fullScreenCover(isPresented: $showsPlayback, onDismiss: { playbackOrientation.finish() }) {
+        .fullScreenCover(isPresented: $showsPlayback, onDismiss: { playbackOrientation.finish(); refreshEpisodeProgress() }) {
             if let title = model.store.detail {
-                PlaybackView(titleID: title.id, title: title.name, session: session, orientationSession: playbackOrientation)
+                PlaybackView(titleID: title.id, title: title.name, session: session, orientationSession: playbackOrientation, initialSource: playbackSource)
                     .id("\(session.id.uuidString):\(title.id)")
             }
         }
-        .onAppear { model.appear(phase: phase) }
+        .onAppear { model.appear(phase: phase); refreshEpisodeProgress() }
+        .onChange(of: model.store.detail?.id) { _, _ in refreshEpisodeProgress() }
         .onDisappear { model.disappear() }
-        .onChange(of: phase) { _, value in model.setPhase(value) }
+        .onChange(of: phase) { _, value in
+            model.setPhase(value)
+            if value == .active { refreshEpisodeProgress() }
+        }
+    }
+
+    private func openPlayback(_ source: PlaybackModel.Source) {
+        guard session.isActive, !showsPlayback else { return }
+        playbackSource = source
+        playbackOrientation.begin()
+        showsPlayback = true
+    }
+
+    private func refreshEpisodeProgress() {
+        guard session.isActive, let title = model.store.detail else {
+            episodePositions = [:]
+            return
+        }
+        episodePositions = Dictionary(uniqueKeysWithValues: DetailEpisodeSection.sources.compactMap { source -> (String, Double)? in
+            guard let position = session.progress.position(titleID: title.id, sourceID: source.progressID, duration: 30) else { return nil }
+            return (source.progressID, position)
+        })
+    }
+
+    private func previewArtwork(_ title: CatalogTitle) -> some View {
+        Button { openPlayback(.bundled) } label: {
+            CatalogArtwork(title: title)
+                .frame(height: 230)
+                .overlay {
+                    Label("데모 미리보기", systemImage: "play.circle.fill")
+                        .font(.headline)
+                        .padding(12)
+                        .background(.black.opacity(0.8), in: Capsule())
+                        .foregroundStyle(.white)
+                }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("데모 미리보기 재생")
+        .accessibilityIdentifier("detail-preview")
     }
 
     private var originalLabel: some View {
