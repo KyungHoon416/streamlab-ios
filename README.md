@@ -413,3 +413,18 @@ Core 및 자막 fallback/복원/프로필 격리 UI 테스트를 실행합니다
 RESULTS.txt, core.log, ui-tests.log를 확인하세요.
 UI 누락 언어 fixture는 Debug 번들 데모 전용입니다. 실제 HLS의 트랙 로딩 장애
 검증을 대체하지 않습니다. 정책은 Docs/ADR/0018-track-fallback.md에 기록합니다.
+
+
+### 실제 HLS 테스트 시즌 (2화)
+
+플레이어 영상 소스에서 HLS 테스트 시즌 1화/2화를 선택하세요.
+기존 공개 샘플을 연결한 검증용 시즌이며 실제 작품 회차는 아닙니다.
+인터넷 연결 후 아래 명령을 실행합니다.
+
+```bash
+caffeinate -i bash scripts/check-hls-episodes-mac.sh
+```
+
+RESULTS.txt, ui-tests.log, qoe.log를 확인하세요.
+일반 회귀에서는 실 네트워크 테스트를 skip합니다. 이 전용 스크립트에서만 실행하며,
+두 테스트가 실제 passed인지도 확인합니다. 수동 항목: Docs/HLS_EPISODES_QA.md.

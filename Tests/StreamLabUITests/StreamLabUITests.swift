@@ -66,6 +66,77 @@ import XCTest
         closePlayback(app)
     }
 
+    private func openHLSEpisode(_ number: Int, in app: XCUIApplication) {
+        tap(app.buttons["playback-source"], in: app)
+        tap(app.buttons["source-hls-series-episode-\(number)-v1"], in: app)
+        let playing = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "label == %@", "재생 중"),
+            object: app.staticTexts["playback-status"])
+        guard XCTWaiter.wait(for: [playing], timeout: 45) == .completed else {
+            captureFailure(app, name: "HLS episode did not start")
+            XCTFail("Real HLS episode failed to start; inspect network and alert")
+            return
+        }
+    }
+
+    private func finishHLSEpisode(_ app: XCUIApplication) {
+        let reveal = app.buttons["playback-reveal-controls"]
+        if reveal.exists && reveal.isHittable { reveal.tap() }
+        let slider = app.sliders["playback-position"]
+        XCTAssertTrue(slider.waitForExistence(timeout: 10))
+        slider.adjust(toNormalizedSliderPosition: 1)
+        let ended = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "재생 완료"),
+                                              object: app.staticTexts["playback-status"])
+        XCTAssertEqual(XCTWaiter.wait(for: [ended], timeout: 45), .completed)
+    }
+
+    func testRealHLSEpisodesAutoAdvanceAndFinalStop() throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["STREAMLAB_TEST_REAL_HLS"] == "1",
+                          "External HLS integration is opt-in; run check-hls-episodes-mac.sh")
+        let app = launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        openHLSEpisode(1, in: app)
+        finishHLSEpisode(app)
+        let second = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "label CONTAINS %@", "HLS 테스트 시즌 · 2화"),
+            object: app.staticTexts["playback-source-label"])
+        XCTAssertEqual(XCTWaiter.wait(for: [second], timeout: 45), .completed)
+        let playing = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "재생 중"),
+                                                object: app.staticTexts["playback-status"])
+        XCTAssertEqual(XCTWaiter.wait(for: [playing], timeout: 45), .completed)
+        finishHLSEpisode(app)
+        XCTAssertFalse(app.buttons["playback-next-now"].exists)
+        XCTAssertFalse(app.staticTexts["playback-next-countdown"].exists)
+        closePlayback(app)
+    }
+
+    func testRealHLSEpisodeProgressRestoresIndependently() throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["STREAMLAB_TEST_REAL_HLS"] == "1",
+                          "External HLS integration is opt-in; run check-hls-episodes-mac.sh")
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=hls-episodes-\(UUID())"]
+        app.launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        openHLSEpisode(1, in: app)
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("일시 정지", in: app)
+        tap(app.buttons["playback-forward"], in: app)
+        let settled = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "enabled == true"), object: app.buttons["playback-forward"])
+        XCTAssertEqual(XCTWaiter.wait(for: [settled], timeout: 15), .completed)
+        openHLSEpisode(2, in: app)
+        XCTAssertFalse(app.staticTexts["playback-resumed"].exists)
+        openHLSEpisode(1, in: app)
+        XCTAssertTrue(app.staticTexts["playback-resumed"].waitForExistence(timeout: 10))
+        closePlayback(app)
+    }
+
     func testDemoEpisodesAdvanceAndStopAtFinalEpisode() {
         let app = launch()
         choose("adult-a", in: app)

@@ -1,5 +1,24 @@
 # 원본 과제 진행 체크리스트 — 2026-10-15
 
+## HLS 테스트 시즌 연결 — 2026-10-15
+
+이전 48ec545 검증: 사용자 core(5).log XCTest 12개 + Swift Testing 33개 PASS,
+트랙 fallback/자막 UI 2개 PASS. 실제 HLS 누락 트랙은 여전히 NOT TESTED.
+
+새 구현: 플레이어 소스 메뉴에 HLS 테스트 시즌 1~2화. 기존 Apple 공개 샘플
+bipbop 및 오디오 비교 URL을 재사용하되 고유 progressID로 로컬 진도를 분리.
+1화 종료 시 기존 10초 카운트다운/취소/지금 재생을 거쳐 2화 이동.
+2화에는 nextEpisode가 없으므로 마지막 종료. HLS 실패 알림/PiP 정책도 재사용.
+실제 작품 회차/신규 콘텐츠 업로드/상세 회차 목록 서버화는 이번 범위가 아니다.
+
+새 opt-in UI 2개: 실제 HLS 종료 seek/자동 이동/마지막 종료,
+회차 간 새 진도/저장 위치 복원. 외부 서버 접속 실패는 실패로 남긴다.
+전용 스크립트는 두 테스트의 passed 로그까지 확인하여 skip을 성공 처리하지 않는다.
+PASS 구조/스크립트 구문. NOT TESTED 새 Swift 빌드/UI 실재생, 장시간 자연 종료,
+실기기/네트워크 단절 중 회차 전환. Docs/HLS_EPISODES_QA.md 참조.
+
+
+
 ## A2 트랙 대체 처리 보강 — 2026-10-15
 
 이전 bf55787 사용자 첨부 검증: Core XCTest 8개 + Swift Testing 7개 PASS,

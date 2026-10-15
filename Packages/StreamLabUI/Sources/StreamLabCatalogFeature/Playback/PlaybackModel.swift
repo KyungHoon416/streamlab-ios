@@ -12,10 +12,12 @@ import StreamLabDomain
         case episode1 = "연속 재생 데모 · 1화"
         case episode2 = "연속 재생 데모 · 2화"
         case episode3 = "연속 재생 데모 · 3화"
+        case hlsEpisode1 = "HLS 테스트 시즌 · 1화"
+        case hlsEpisode2 = "HLS 테스트 시즌 · 2화"
         var id: String { rawValue }
         var isHLS: Bool {
             switch self {
-            case .hls, .hlsAudio: true
+            case .hls, .hlsAudio, .hlsEpisode1, .hlsEpisode2: true
             default: false
             }
         }
@@ -23,6 +25,7 @@ import StreamLabDomain
             switch self {
             case .episode1: .episode2
             case .episode2: .episode3
+            case .hlsEpisode1: .hlsEpisode2
             default: nil
             }
         }
@@ -34,13 +37,15 @@ import StreamLabDomain
             case .episode1: "demo-series-episode-1-v1"
             case .episode2: "demo-series-episode-2-v1"
             case .episode3: "demo-series-episode-3-v1"
+            case .hlsEpisode1: "hls-series-episode-1-v1"
+            case .hlsEpisode2: "hls-series-episode-2-v1"
             }
         }
         var url: URL? {
             switch self {
             case .bundled, .episode1, .episode2, .episode3: Bundle.module.url(forResource: "playback-demo", withExtension: "mp4")
-            case .hls: URL(string: "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8")
-            case .hlsAudio: URL(string: "https://devstreaming-cdn.apple.com/videos/streaming/examples/adv_dv_atmos/main.m3u8")
+            case .hls, .hlsEpisode1: URL(string: "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8")
+            case .hlsAudio, .hlsEpisode2: URL(string: "https://devstreaming-cdn.apple.com/videos/streaming/examples/adv_dv_atmos/main.m3u8")
             }
         }
     }
