@@ -387,3 +387,17 @@ For the remaining subtitle seek failure, run
 `caffeinate -i bash scripts/check-subtitle-seek-mac.sh`. This checks actual seek
 completion before time and caption assertions, retaining failure diagnostics in
 `Docs/Validation/subtitle-seek-*`. A seek timeout still fails the test.
+
+
+### A2 재생 상태 관측 및 QoE 검증
+
+```bash
+caffeinate -i bash scripts/check-playback-qoe-mac.sh
+```
+
+Core 전이/계측 테스트와 회차·재시도·빠른 닫기·seek timeout UI 테스트를 실행합니다.
+출력 폴더의 RESULTS.txt, core.log, ui-tests.log, qoe.log를 확인하세요.
+QoE summary 수집 성공은 성능 임계치 통과를 뜻하지 않습니다.
+first_frame_ready_seconds는 250ms 주기의 레이어 render-ready 관측값이며 정밀 TTFF가 아닙니다.
+실기기 HLS 20회 p50/p95와 네트워크 stall 계측은 별도 진행해야 합니다.
+설계/한계: Docs/ADR/0017-playback-observation-and-qoe.md.

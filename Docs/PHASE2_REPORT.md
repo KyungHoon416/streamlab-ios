@@ -1,5 +1,21 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## A2 계측 추가 — 2026-10-15
+
+사용자 보고: check-detail-episodes-mac.sh TEST SUCCEEDED, 이후 프로필 전용 오프라인
+배너/홈·상세 로컬 탐색/HLS 취소·재시도 5개 수동 항목 정상. 사용자 보고 PASS로 기록하며
+새 계측 코드나 전체 회귀가 통과했다는 근거로 사용하지 않는다.
+
+구현: PlaybackDiagnostics 관측 상태 reducer, 초기 대기/seek 제외 rebuffer 횟수·시간,
+first-frame-ready 관측 지연, 실패/무효 전이, access-log observed bitrate,
+종료 시 익명 attempt 요약. 실제 AVPlayer 명령 전체의 상태 머신 재구성은 아직 아니다.
+Core 결정적 테스트 5개 및 scripts/check-playback-qoe-mac.sh 추가.
+PASS: 프로젝트 구조 검사, 스크립트 구문 검사.
+NOT TESTED: Swift 컴파일/Core/UI 테스트, 실기기 HLS 계측, 최신 전체 회귀.
+A2 전체 완료 아님: 미디어 서비스 리셋, 정밀 성능 보고 및 전체 상태 효과 검증은 남아 있다.
+
+
+
 ## 최신 결과 — 2026-10-15 18:35 KST
 
 RESULTS(20261015-093546).txt 및 ui-tests(20261015-093546).log:

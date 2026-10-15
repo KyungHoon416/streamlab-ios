@@ -51,7 +51,7 @@ import StreamLabDesignSystem
         GeometryReader { geometry in
             ZStack {
                 Color.black.ignoresSafeArea()
-                PlayerSurface(player: model.player, fillsScreen: fillsScreen, pictureInPicture: model.pictureInPicture)
+                PlayerSurface(player: model.player, fillsScreen: fillsScreen, pictureInPicture: model.pictureInPicture, onLayerAvailable: model.attachVideoLayer)
                     .ignoresSafeArea()
                     .accessibilityHidden(true)
                 // A full-screen accessible Button must not coexist with the controls:

@@ -100,6 +100,61 @@ import StreamLabDomain
     private let titleID: String
     private let session: CatalogSession
     private let progressLog = Logger(subsystem: "com.example.streamlab.demo", category: "PlaybackProgress")
+    private var diagnostics = PlaybackDiagnostics()
+    private weak var videoLayer: AVPlayerLayer?
+    private var diagnosticAttempt: UUID?
+    private var lastObservedBitrate: Double?
+    private let qoeLog = Logger(subsystem: "com.example.streamlab.demo", category: "PlaybackQoE")
+
+    func attachVideoLayer(_ layer: AVPlayerLayer) { videoLayer = layer }
+
+    private func observePlayback(_ next: PlaybackDiagnostics.State) {
+        let previous = diagnostics.state
+        let accepted = diagnostics.observe(next, at: ProcessInfo.processInfo.systemUptime,
+                                           generation: diagnostics.generation)
+        guard previous != next else { return }
+        qoeLog.notice("transition from=\(previous.rawValue, privacy: .public) to=\(next.rawValue, privacy: .public) accepted=\(accepted)")
+    }
+
+    private func sampleDiagnostics(item: AVPlayerItem, player: AVPlayer) {
+        guard diagnosticAttempt != nil else { return }
+        if item.status == .readyToPlay && diagnostics.state == .preparing {
+            observePlayback(.ready)
+        }
+        if diagnostics.state != .preparing {
+            if isSeeking { observePlayback(.seeking) }
+            else {
+                switch status {
+                case .playing: observePlayback(.playing)
+                case .paused: observePlayback(.paused)
+                case .loading: observePlayback(.buffering)
+                case .ended: observePlayback(.ended)
+                case .idle, .failed: break
+                }
+            }
+        }
+        if let layer = videoLayer, layer.player === player, layer.isReadyForDisplay {
+            let hadFrame = diagnostics.firstFrameSeconds != nil
+            diagnostics.frameReady(at: ProcessInfo.processInfo.systemUptime, generation: diagnostics.generation)
+            if !hadFrame, let seconds = diagnostics.firstFrameSeconds {
+                qoeLog.notice("first_frame_ready_seconds=\(seconds)")
+            }
+        }
+        if let bitrate = item.accessLog()?.events.last?.observedBitrate,
+           bitrate.isFinite, bitrate > 0, bitrate != lastObservedBitrate {
+            lastObservedBitrate = bitrate
+            qoeLog.notice("observed_bitrate_bps=\(bitrate)")
+        }
+    }
+
+    private func finishDiagnostics() {
+        guard let attempt = diagnosticAttempt else { return }
+        diagnostics.finish(at: ProcessInfo.processInfo.systemUptime)
+        let frame = diagnostics.firstFrameSeconds.map { String($0) } ?? "not-observed"
+        qoeLog.notice("summary attempt=\(attempt.uuidString, privacy: .public) first_frame_ready_seconds=\(frame, privacy: .public) rebuffer_count=\(self.diagnostics.rebufferCount) rebuffer_seconds=\(self.diagnostics.rebufferSeconds) failures=\(self.diagnostics.failureCount) invalid_transitions=\(self.diagnostics.invalidTransitionCount)")
+        diagnosticAttempt = nil
+    }
+
     private var generation = 0
     private var loadTask: Task<Void, Never>?
     private var sampleTask: Task<Void, Never>?
@@ -151,6 +206,10 @@ import StreamLabDomain
         stop()
         if let source { self.source = source }
         guard session.isActive else { return }
+        diagnostics.begin(at: ProcessInfo.processInfo.systemUptime)
+        diagnosticAttempt = UUID()
+        lastObservedBitrate = nil
+        qoeLog.notice("attempt_started")
         status = .loading
         wantsPlayback = foreground
         let ticket = generation
@@ -235,18 +294,21 @@ import StreamLabDomain
         duration = seconds.isFinite && seconds > 0 ? seconds : 0
         let current = player.currentTime().seconds
         if !isSeeking { position = current.isFinite ? max(0, current) : 0 }
+        if item.status == .readyToPlay && diagnostics.state == .preparing {
+            observePlayback(.ready)
+        }
         if needsInitialPosition && item.status == .readyToPlay && duration > 0 {
             needsInitialPosition = false
             if progressEnabled, let saved = session.progress.position(titleID: titleID, sourceID: source.progressID, duration: duration) {
                 #if DEBUG
-                progressLog.notice("restore profile=\(self.session.profile.id, privacy: .public) title=\(self.titleID, privacy: .public) source=\(self.source.progressID, privacy: .public) seconds=\(saved)")
+                progressLog.notice("restore profile=\(self.session.profile.id, privacy: .private) title=\(self.titleID, privacy: .private) source=\(self.source.progressID, privacy: .public) seconds=\(saved, privacy: .private)")
                 #endif
                 restoringPosition = true
                 seek(to: saved)
                 return true
             }
             #if DEBUG
-            progressLog.notice("fresh profile=\(self.session.profile.id, privacy: .public) title=\(self.titleID, privacy: .public) source=\(self.source.progressID, privacy: .public) seconds=0")
+            progressLog.notice("fresh profile=\(self.session.profile.id, privacy: .private) title=\(self.titleID, privacy: .private) source=\(self.source.progressID, privacy: .public) seconds=0")
             #endif
             if source.isHLS {
                 // No saved record for this profile: explicitly position the VOD at zero.
@@ -271,6 +333,7 @@ import StreamLabDomain
                 status = player.rate > 0 ? .playing : .paused
             }
         }
+        sampleDiagnostics(item: item, player: player)
         if status == .ended, source.nextEpisode != nil, foreground, wantsPlayback {
             if autoAdvance.state == .idle {
                 autoAdvance.start()
@@ -328,6 +391,7 @@ import StreamLabDomain
         seekStarted = .now
         seekMessage = ""
         isSeeking = true
+        observePlayback(.seeking)
         if !resumeAfterSeek { player.pause() }
         position = destination
         subtitleText = ""
@@ -400,6 +464,7 @@ import StreamLabDomain
     }
 
     func stop() {
+        finishDiagnostics()
         pictureInPicture.invalidate()
         pipPossible = false
         pipRunning = false
@@ -618,6 +683,7 @@ import StreamLabDomain
     }
 
     private func fail(_ message: String) {
+        if diagnosticAttempt != nil { observePlayback(.failed) }
         stop()
         status = .failed(message)
     }

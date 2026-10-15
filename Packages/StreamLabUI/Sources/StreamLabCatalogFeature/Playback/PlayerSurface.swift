@@ -7,6 +7,7 @@ import UIKit
     let player: AVPlayer?
     let fillsScreen: Bool
     let pictureInPicture: PlaybackPictureInPicture
+    let onLayerAvailable: @MainActor (AVPlayerLayer) -> Void
 
     func makeCoordinator() -> PlaybackPictureInPicture { pictureInPicture }
 
@@ -21,6 +22,7 @@ import UIKit
     func updateUIView(_ view: SurfaceView, context: Context) {
         view.playerLayer.player = player
         view.playerLayer.videoGravity = fillsScreen ? .resizeAspectFill : .resizeAspect
+        onLayerAvailable(view.playerLayer)
         if player != nil { pictureInPicture.attach(view.playerLayer) }
     }
 
