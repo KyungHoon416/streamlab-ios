@@ -9,6 +9,8 @@ import StreamLabDesignSystem
     @State private var category: Category = .recommended
     @StateObject private var playbackOrientation = PlaybackOrientationSession()
     @State private var playbackTitle: CatalogTitle?
+    @State private var cancelledPlaybackTitleID: String?
+    @State private var showsCancelledPlaybackDetail = false
     @State private var playbackSource: PlaybackModel.Source = .bundled
     @State private var recent: [RecentItem] = []
     @State private var recentRefresh = UUID()
@@ -91,9 +93,17 @@ import StreamLabDesignSystem
         .fullScreenCover(item: $playbackTitle, onDismiss: {
             playbackOrientation.finish()
             recentRefresh = UUID()
+            if cancelledPlaybackTitleID != nil { showsCancelledPlaybackDetail = true }
         }) { title in
-            PlaybackView(titleID: title.id, title: title.name, session: session, orientationSession: playbackOrientation, initialSource: playbackSource)
+            PlaybackView(titleID: title.id, title: title.name, session: session, orientationSession: playbackOrientation, initialSource: playbackSource,
+                         onCancelFailure: { cancelledPlaybackTitleID = title.id })
                 .id("\(session.id.uuidString):\(title.id)")
+        }
+        .navigationDestination(isPresented: $showsCancelledPlaybackDetail) {
+            if let id = cancelledPlaybackTitleID { DetailView(id: id, session: session) }
+        }
+        .onChange(of: showsCancelledPlaybackDetail) { _, showing in
+            if !showing { cancelledPlaybackTitleID = nil }
         }
         .task(id: recentRefresh) { await refreshRecent() }
         .onAppear { recentRefresh = UUID(); myList.refresh(); model.appear(phase: phase) }

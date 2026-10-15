@@ -15,13 +15,16 @@ import StreamLabDesignSystem
     @State private var landscape = true
     @State private var interaction = 0
     @State private var started = false
+    @State private var showsPlaybackFailure = false
+    private let onCancelFailure: (@MainActor () -> Void)?
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var phase
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOver
     @Environment(\.dynamicTypeSize) private var textSize
     private let title: String
 
-    init(titleID: String, title: String, session: CatalogSession, orientationSession: PlaybackOrientationSession, initialSource: PlaybackModel.Source = .bundled) {
+    init(titleID: String, title: String, session: CatalogSession, orientationSession: PlaybackOrientationSession, initialSource: PlaybackModel.Source = .bundled, onCancelFailure: (@MainActor () -> Void)? = nil) {
+        self.onCancelFailure = onCancelFailure
         _source = State(initialValue: initialSource)
         self.title = title
         self.orientationSession = orientationSession
@@ -97,7 +100,6 @@ import StreamLabDesignSystem
                 }
             }
         }
-        .safeAreaInset(edge: .top, spacing: 0) { NetworkConnectionBanner() }
         .allowsHitTesting(!subtitleSheet)
         .accessibilityHidden(subtitleSheet)
         .overlay {
@@ -113,6 +115,20 @@ import StreamLabDesignSystem
         .preferredColorScheme(.dark)
         .statusBarHidden(!controlsVisible)
         .sheet(isPresented: $sourceSheet) { sourceSelection }
+        .alert("영상을 불러올 수 없습니다", isPresented: $showsPlaybackFailure) {
+            Button("취소", role: .cancel) {
+                model.stop()
+                orientationSession.stopRequests()
+                onCancelFailure?()
+                dismiss()
+            }
+            Button("재시도") {
+                revealControls()
+                model.load()
+            }
+        } message: {
+            Text("인터넷 연결을 확인하고 다시 시도해주세요. 영상 서버 문제일 수도 있습니다.\n\n\(model.status.label)")
+        }
 
         .onAppear {
             guard !started else { return }
@@ -137,6 +153,9 @@ import StreamLabDesignSystem
         }
         .onChange(of: model.status) { _, value in
             if value != .playing { revealControls() }
+            if case .failed = value, model.source.isHLS {
+                showsPlaybackFailure = true
+            }
         }
         .onChange(of: voiceOver) { _, _ in revealControls() }
         .onChange(of: textSize) { _, _ in revealControls() }
