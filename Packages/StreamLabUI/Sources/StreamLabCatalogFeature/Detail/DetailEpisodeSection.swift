@@ -34,13 +34,12 @@ import StreamLabDesignSystem
                     }
                 }
                 .buttonStyle(.plain)
-                .padding(14)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(StreamLabTheme.surface, in: RoundedRectangle(cornerRadius: 16))
-                .accessibilityElement(children: .ignore)
                 .accessibilityLabel("데모 \(index + 1)화 재생, 30초")
                 .accessibilityValue(progressLabel(source))
                 .accessibilityIdentifier("detail-episode-\(index + 1)")
+                .padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(StreamLabTheme.surface, in: RoundedRectangle(cornerRadius: 16))
             }
         }
     }

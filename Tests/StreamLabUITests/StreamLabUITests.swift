@@ -819,7 +819,8 @@ import XCTest
     private func revealDetailElement(_ element: XCUIElement, in app: XCUIApplication) -> Bool {
         let scroll = app.scrollViews["detail-scroll"]
         guard scroll.waitForExistence(timeout: 5), element.waitForExistence(timeout: 5) else {
-            XCTFail("Missing detail scroll container or checkpoint: \(element.identifier)")
+            captureFailure(app, name: "Missing detail scroll container or checkpoint")
+            XCTFail("Missing detail scroll container or checkpoint; see captured hierarchy")
             return false
         }
 

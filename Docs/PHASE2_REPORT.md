@@ -2,6 +2,21 @@
 
 2026-10-12 사용자 승인으로 시작했다. 아래 날짜별 항목은 당시 검증 이력이다.
 
+## 회차 목록 첫 실행 결과 및 접근성 식별자 보정 — 2026-10-15
+
+사용자 RESULTS(20261015-080516).txt: FAIL detail-episodes exit=65.
+ui-tests(20261015-080516).log: 총 2개, 1개 실패.
+- testLargeTextAccessibilityAudit: PASS (68.735초).
+- testDetailEpisodeSelectionAndProgress: FAIL (28.483초). 재생 시작 전에
+  detail-episode-2 Button을 찾지 못했다. 회차 진행 복원은 아직 검증되지 않았다.
+
+실패 계층에는 이름이 합쳐진 1/2/3화 Button이 있으나 지정한 identifier는 없다.
+카드 장식 후 붙인 accessibilityElement(children: .ignore)를 제거하고 Button에
+label/value/identifier를 직접 적용한 뒤 장식을 붙이도록 수정한다.
+테스트의 식별자 검증을 우회하거나 텍스트 매칭으로 바꾸지 않는다.
+누락 진단에서도 없는 element.identifier를 읽지 않고 계층/스크린샷을 저장한다.
+PASS: 수정 후 구조 검사. NOT TESTED: 수정 후 Xcode 및 같은 UI 테스트 재실행.
+
 ## 상세 미리보기 및 데모 회차 목록 — 2026-10-15
 
 - 대표 아트워크에 데모 미리보기 버튼을 추가했다. 자동/인라인 재생이 아닌 기존
