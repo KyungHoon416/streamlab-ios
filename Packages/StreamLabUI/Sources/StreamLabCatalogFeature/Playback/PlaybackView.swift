@@ -156,16 +156,23 @@ import StreamLabDesignSystem
 
     private var networkMessage: String? {
         guard source.isHLS else { return nil }
-        if network.connected == false {
-            return "네트워크 연결이 끊겼습니다. 이미 불러온 구간은 계속 재생할 수 있습니다."
-        }
+        // A path hint is not a playback failure. Buffered playback may also be healthy.
+        if model.status == .playing && !model.isSeeking { return nil }
         if case .failed = model.status {
             return "영상을 불러오지 못했습니다. 네트워크와 영상 서버 상태를 확인하고 다시 시도해주세요."
+        }
+        if network.connected == false {
+            return "사용 가능한 네트워크 경로가 감지되지 않습니다. 연결 상태를 확인해주세요."
         }
         if network.recovered && model.status != .playing {
             return "네트워크 연결이 복구되었습니다. 영상 연결을 보장하지는 않습니다. 재생을 확인해주세요."
         }
         return nil
+    }
+
+    private var networkBannerColor: Color {
+        if case .failed = model.status { return Color.red.opacity(0.85) }
+        return Color(white: 0.16)
     }
 
     @ViewBuilder private var networkBanner: some View {
@@ -177,7 +184,7 @@ import StreamLabDesignSystem
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 16).padding(.vertical, 8)
                 .foregroundStyle(.white)
-                .background(network.connected == false ? Color.red.opacity(0.85) : Color(white: 0.16))
+                .background(networkBannerColor)
                 .accessibilityIdentifier("playback-network-banner")
         }
     }
