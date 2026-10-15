@@ -1,5 +1,19 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## A3 기기 간 진도 복원 Mock — 2026-10-16
+
+- 도메인 계약, actor 서버 Mock, 기기별 클라이언트 구현.
+- 25:40 복원, revision 충돌 거절, restart=0 새 revision, UUID 중복 처리.
+- 지연/역전 응답, 같은 revision 동시 쓰기, 프로필/콘텐츠/회차 격리 자동 테스트 8개 추가.
+- 구조/shell 검사 PASS. Swift/Core 실행은 NOT TESTED.
+- 기존 AVPlayer/UserDefaults에 연결한 것은 아님. 실제 기기 간 네트워크와 영속 서버는 미구현.
+- 실행: `caffeinate -i bash scripts/check-progress-sync-mac.sh`
+- 설계: Docs/ADR/0021-multi-device-progress-revisions.md
+
+직전 af5a25e 사용자 로그: Core PASS, 미디어 복구 UI 4개 PASS,
+오디오 메인 스레드 경고 미관측 PASS. 실제 OS 리셋/실기기 성능/전체 회귀는 NOT TESTED.
+
+
 ## 오디오 세션 비동기 큐 처리 — 2026-10-15
 
 사용자 제공 db001a0 검증 로그: Core 48개(15 XCTest + 26 + 7 Swift Testing),
