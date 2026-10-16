@@ -1,5 +1,40 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B1 최근 검색어 영속 저장·전송 연결 — 2026-10-16
+
+선행 검증: 사용자 RESULTS/core/ui-tests(20261016-092940) 대조 완료.
+Core 84 PASS (XCTest 15 + Swift Testing 62 + Catalog 7), UI 4 PASS/0 FAIL,
+236.677초. 홈 이어보기 50.729초, 찜 50.716초, 재실행·재시작 68.600초,
+Mock 전송 실패 중 복원 66.633초. environment 미첨부로 커밋 SHA는 추가 확정하지 않는다.
+이 결과는 앞선 진도 구현의 실행 근거이며 아래 새 변경의 PASS가 아니다.
+
+최근 검색 구현:
+- RecentSearchStore가 기존 DurableMutationStore/MockMutationServer를 재사용한다.
+  account/profile별 독립 journal, 검색 전용 Mock revision stream 및 영속 receipt 사용.
+- 검색 입력 중에는 기록하지 않고 명시적 submit 또는 최근 검색어 재선택 때 저장한다.
+  앞뒤/연속 공백 정규화, Unicode NFC, 대소문자 무시 중복 제거, 최신순 20개,
+  항목당 100자 제한. 저장 실패 시 기존 표시를 유지하고 오류 문구를 표시한다.
+- 기존 검색/결과/더 보기/로딩은 유지한다. 빈 검색어일 때 기존 결과 ScrollView 상단에
+  최근 검색어/다시 검색/개별 삭제/전체 삭제를 추가한다. 터치 영역 44pt 이상과
+  별도 접근성 이름을 부여했다. 실제 VoiceOver/최대 글자 크기는 아직 미검증.
+- 변경 snapshot과 전송 요청을 원자적으로 저장하며 전체 삭제는 nil tombstone이다.
+  앱 재진입/변경 때 Mock 전송, 실패 시 요청 유지. 프로필 전환은 취소/invalidate.
+  DEBUG progress-suite namespace를 검색에도 사용하여 테스트 간 기록을 분리한다.
+- Core 테스트 7개 추가: 정규화/중복/순서, 크기 제한, 오프라인 재생성 및 ACK 유실,
+  개별/전체 삭제, scope/무효 세션, 쓰기 실패, 손상 snapshot 보존.
+- UI 2개 추가: 일반 및 Mock 오프라인에서 입력 중 미저장/submit/재검색/프로필 격리/
+  개별 삭제 후 재실행/전체 삭제 후 재실행. 기존 검색 페이지네이션도 함께 검사한다.
+
+PASS: 프로젝트 구조, 2,000 fixture, shell 문법 및 diff 공백 검사.
+NOT TESTED: 신규 Swift 컴파일/Core 테스트/iOS 빌드/UI 실행 (현재 호스트에 Xcode 없음).
+Mac: `caffeinate -i bash scripts/check-recent-searches-mac.sh`
+Core 전체 후 검색 UI 3개를 실행한다.
+
+B1 전체 완료 아님: 실제 계정 로그인/로그아웃과 계정 전체 로컬 데이터 삭제,
+원격 상태 다운로드 및 실제 네트워크 복구는 남아 있다. B2 충돌 해결·backoff,
+B3 인증, queue/receipt 용량 관리, 실기기 성능·전원 유실·전체 회귀도 미완료/미검증이다.
+
+
 ## B1 재생 진도 영속 큐 연결 — 2026-10-16
 
 이전 사용자 RESULTS(20261016-085506).txt: PASS Core/B1 journal tests,

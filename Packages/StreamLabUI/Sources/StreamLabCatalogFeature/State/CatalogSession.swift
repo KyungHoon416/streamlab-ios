@@ -11,9 +11,12 @@ import StreamLabCatalogData
     let myList: MyListStore
     let languages: PlaybackLanguageStore
     let progress: PlaybackProgressStore
+    let recentSearches: RecentSearchStore
     public private(set) var isActive = true
     private var stores: [WeakStore] = []
     private var players: [WeakPlayer] = []
+    private var searchSyncTask: Task<Void, Never>?
+    private static var searchServer: MockMutationServer?
     private var progressSyncTask: Task<Void, Never>?
     private static var progressServer: MockMutationServer?
 
@@ -41,6 +44,32 @@ import StreamLabCatalogData
             } catch {
                 // Preserve the request for the next checkpoint/session launch.
                 // Timed retry and conflict resolution belong to B2.
+            }
+        }
+    }
+
+    private static func searchTransport() throws -> MockMutationServer {
+        if let searchServer { return searchServer }
+        let url = try DurableMutationStore.defaultDirectory().appendingPathComponent("search-mock-server.json")
+        let server = try MockMutationServer(storageURL: url)
+        searchServer = server
+        return server
+    }
+
+    private func scheduleSearchSync() {
+        guard isActive, searchSyncTask == nil else { return }
+        let recentSearches = self.recentSearches
+        searchSyncTask = Task { [weak self] in
+            defer { self?.searchSyncTask = nil }
+            do {
+                #if DEBUG
+                if ProcessInfo.processInfo.arguments.contains("--ui-test-mutation-offline") {
+                    throw URLError(.notConnectedToInternet)
+                }
+                #endif
+                try await recentSearches.flush(using: Self.searchTransport())
+            } catch {
+                // Keep pending history changes for the next submit or session launch.
             }
         }
     }
@@ -76,8 +105,11 @@ import StreamLabCatalogData
         self.languages = PlaybackLanguageStore(profileID: profile.id, defaults: progressDefaults)
         self.progress = PlaybackProgressStore(profileID: profile.id, defaults: progressDefaults,
                                               durable: true, accountID: progressAccount)
+        self.recentSearches = RecentSearchStore(profileID: profile.id, accountID: progressAccount)
+        self.recentSearches.onMutation = { [weak self] in self?.scheduleSearchSync() }
         self.progress.onMutation = { [weak self] in self?.scheduleProgressSync() }
         scheduleProgressSync()
+        scheduleSearchSync()
     }
 
     func makeStore() -> CatalogStore {
@@ -94,6 +126,9 @@ import StreamLabCatalogData
         progressSyncTask?.cancel()
         progressSyncTask = nil
         progress.invalidate()
+        searchSyncTask?.cancel()
+        searchSyncTask = nil
+        recentSearches.invalidate()
         myList.invalidate()
         for reference in players { reference.value?.stop() }
         players.removeAll()

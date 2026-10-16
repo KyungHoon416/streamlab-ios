@@ -1222,6 +1222,69 @@ import XCTest
         XCTAssertEqual(saved.value as? String, "추가 안 됨")
     }
 
+    func testRecentSearchesPersistAndIsolateProfiles() {
+        exerciseRecentSearchHistory(mockOffline: false)
+    }
+
+    func testRecentSearchesPersistWithOfflineMutationTransport() {
+        exerciseRecentSearchHistory(mockOffline: true)
+    }
+
+    private func exerciseRecentSearchHistory(mockOffline: Bool) {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=recent-search-\(UUID())"]
+        if mockOffline { app.launchArguments.append("--ui-test-mutation-offline") }
+        app.launch()
+        choose("adult-a", in: app)
+        app.tabBars.buttons["검색"].tap()
+        let field = app.textFields["catalog-search-field"]
+        XCTAssertTrue(field.waitForExistence(timeout: 10))
+        field.tap()
+        field.typeText("액션")
+        tap(app.buttons["clear-search"], in: app)
+        XCTAssertFalse(app.buttons["recent-search-term-액션"].exists,
+                       "Typing without submission must not create history")
+        field.tap()
+        field.typeText("액션\n")
+        tap(app.buttons["clear-search"], in: app)
+        let action = app.buttons["recent-search-term-액션"]
+        XCTAssertTrue(action.waitForExistence(timeout: 5))
+        tap(action, in: app)
+        XCTAssertEqual(field.value as? String, "액션")
+        tap(app.buttons["clear-search"], in: app)
+        field.tap()
+        field.typeText("드라마\n")
+        tap(app.buttons["clear-search"], in: app)
+        XCTAssertTrue(app.buttons["recent-search-term-드라마"].waitForExistence(timeout: 5))
+        tap(app.buttons["switch-profile"], in: app)
+        choose("adult-b", in: app)
+        app.tabBars.buttons["검색"].tap()
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["recent-search-clear-all"].exists)
+        XCTAssertFalse(action.exists)
+        tap(app.buttons["switch-profile"], in: app)
+        choose("adult-a", in: app)
+        app.tabBars.buttons["검색"].tap()
+        XCTAssertTrue(action.waitForExistence(timeout: 5))
+        tap(app.buttons["recent-search-delete-액션"], in: app)
+        XCTAssertFalse(action.exists)
+        app.terminate()
+        app.launch()
+        choose("adult-a", in: app)
+        app.tabBars.buttons["검색"].tap()
+        XCTAssertTrue(app.buttons["recent-search-term-드라마"].waitForExistence(timeout: 5))
+        XCTAssertFalse(action.exists)
+        tap(app.buttons["recent-search-clear-all"], in: app)
+        XCTAssertFalse(app.buttons["recent-search-term-드라마"].exists)
+        app.terminate()
+        app.launch()
+        choose("adult-a", in: app)
+        app.tabBars.buttons["검색"].tap()
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["recent-search-clear-all"].exists)
+        XCTAssertFalse(app.staticTexts["recent-search-error"].exists)
+    }
+
     func testSearchPaginationAndProfileSwitch() {
         let app = launch()
         choose("adult-a", in: app)

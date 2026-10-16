@@ -1,13 +1,17 @@
 import SwiftUI
 import StreamLabDomain
 import StreamLabDesignSystem
+import StreamLabPresentation
 
 @MainActor public struct SearchView: View {
     @StateObject private var model: CatalogScreenModel
     @State private var query = ""
+    @ObservedObject private var recentSearches: RecentSearchStore
+    @FocusState private var searchFocused: Bool
     @Environment(\.scenePhase) private var phase
 
     public init(session: CatalogSession) {
+        _recentSearches = ObservedObject(wrappedValue: session.recentSearches)
         _model = StateObject(wrappedValue: CatalogScreenModel(session: session, screen: .search))
     }
 
@@ -28,6 +32,11 @@ import StreamLabDesignSystem
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .submitLabel(.search)
+                    .focused($searchFocused)
+                    .onSubmit {
+                        recentSearches.record(query)
+                        searchFocused = false
+                    }
                     .accessibilityIdentifier("catalog-search-field")
                 if !query.isEmpty {
                     Button { query = "" } label: { Image(systemName: "xmark.circle.fill").frame(minWidth: 44, minHeight: 44) }
@@ -47,6 +56,13 @@ import StreamLabDesignSystem
                 .accessibilityIdentifier("search-result-count")
             ScrollView {
                 LazyVStack(spacing: 12) {
+                    if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        recentSearchSection
+                    }
+                    if let error = recentSearches.persistenceError {
+                        Text(error).font(.callout).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("recent-search-error")
+                    }
                     ForEach(model.store.items) { title in
                         NavigationLink(value: title.id) {
                             HStack(alignment: .top, spacing: 16) {
@@ -95,7 +111,7 @@ import StreamLabDesignSystem
         .background(StreamLabTheme.background)
         .navigationTitle("검색")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear { model.appear(phase: phase) }
+        .onAppear { recentSearches.refresh(); model.appear(phase: phase) }
         .onDisappear { model.disappear() }
         .onChange(of: query) { _, value in model.search(value) }
         .onChange(of: phase) { _, value in model.setPhase(value) }
@@ -107,4 +123,43 @@ import StreamLabDesignSystem
             }
         }
     }
+
+    @ViewBuilder private var recentSearchSection: some View {
+        if !recentSearches.terms.isEmpty {
+            HStack {
+                Text("최근 검색어").font(.headline)
+                    .accessibilityAddTraits(.isHeader)
+                Spacer()
+                Button("전체 삭제") { recentSearches.clear() }
+                    .frame(minHeight: 44)
+                    .accessibilityLabel("최근 검색어 전체 삭제")
+                    .accessibilityIdentifier("recent-search-clear-all")
+            }
+            ForEach(recentSearches.terms, id: \.self) { term in
+                HStack(spacing: 8) {
+                    Button {
+                        query = term
+                        recentSearches.record(term)
+                        searchFocused = false
+                    } label: {
+                        Label(term, systemImage: "clock")
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("\(term) 다시 검색")
+                    .accessibilityIdentifier("recent-search-term-\(term)")
+                    Button { recentSearches.remove(term) } label: {
+                        Image(systemName: "xmark").frame(width: 44, height: 44)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("최근 검색어 \(term) 삭제")
+                    .accessibilityIdentifier("recent-search-delete-\(term)")
+                }
+            }
+        }
+    }
+
 }
