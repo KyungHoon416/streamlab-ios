@@ -1,5 +1,22 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## 전체 회귀 3개 실패에 대한 스크롤 검증 수정 — 2026-10-16
+
+사용자 RESULTS(20261016-034909): Fixture/구조/bootstrap/Core/빌드/경고 PASS,
+UI FAIL(exit65). UI 로그: 33개 중 4개 외부 HLS opt-in skip, 실패 3개, 나머지 26개 PASS.
+별도 실행에서 통과한 HLS 테스트를 이번 전체 실행의 PASS로 세지 않는다.
+
+실패 지점: 자막 복원에서 offscreen 3화 소스, 나의 리스트에서 카테고리 전환 후 히어로,
+최대 글자 크기에서 playback-toggle 접근. 소스 선택에 목록 내 양방향 스크롤 helper를 재사용하고,
+추천 복귀 후 홈 스크롤 안에서 히어로를 찾는다. 플레이어 helper는 ScrollView 컨테이너 자체의
+isHittable을 스크롤 선행조건으로 쓰지 않고 관측된 viewport 안에서만 드래그한다.
+버튼 탭은 여전히 해당 버튼의 exists/isHittable 확인 후 수행한다. 실패 시 화면/트리를 첨부한다.
+assertion 제거나 대기시간 연장은 하지 않았다. 실제 앱 UI 문제가 모두 없다고 단정하지 않는다.
+
+구조/shell PASS. 수정 후 Swift/Xcode/UI NOT TESTED.
+먼저 scripts/check-regression-fixes-mac.sh의 3개를 재검증한 뒤 전체 verify-mac.sh를 실행한다.
+
+
 ## 실기기 첫 프레임 측정 및 보고서 도구 — 2026-10-16
 
 attempt_started/summary에 동일 attempt UUID와 source ID를 기록해 로컬/HLS 시도를 분리한다.

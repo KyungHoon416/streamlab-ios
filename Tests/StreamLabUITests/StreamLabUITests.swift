@@ -67,10 +67,10 @@ import XCTest
     }
 
     private func openHLSEpisode(_ number: Int, in app: XCUIApplication) {
-        openHLSSource("hls-series-episode-\(number)-v1", in: app)
+        openPlaybackSource("hls-series-episode-\(number)-v1", in: app)
     }
 
-    private func openHLSSource(_ sourceID: String, in app: XCUIApplication) {
+    private func openPlaybackSource(_ sourceID: String, in app: XCUIApplication) {
         tap(app.buttons["playback-source"], in: app)
         let list = app.descendants(matching: .any).matching(identifier: "playback-source-list").firstMatch
         guard list.waitForExistence(timeout: 10) else {
@@ -307,7 +307,7 @@ import XCTest
         openHomeDetail(app)
         openPlayback(app)
         expectPlayback("재생 중", in: app)
-        openHLSSource("apple-trailer-audio-v1", in: app)
+        openPlaybackSource("apple-trailer-audio-v1", in: app)
         tap(app.buttons["playback-subtitles"], in: app)
         let dvs = audioRoleRow("화면 해설", in: app)
         guard dvs.waitForExistence(timeout: 30) else {
@@ -321,7 +321,7 @@ import XCTest
 
         // This other Apple master contains ordinary English but no DVS rendition.
         // Nothing is removed from AVMediaSelectionGroup by a test launch flag.
-        openHLSSource("apple-bipbop-standard-v1", in: app)
+        openPlaybackSource("apple-bipbop-standard-v1", in: app)
         tap(app.buttons["playback-subtitles"], in: app)
         let fallback = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "exists == true AND label CONTAINS %@", "저장된 오디오 종류가 없어"),
@@ -336,7 +336,7 @@ import XCTest
         tap(app.buttons["playback-subtitle-done"], in: app)
         expectPlayback("재생 중", in: app)
 
-        openHLSSource("apple-trailer-audio-v1", in: app)
+        openPlaybackSource("apple-trailer-audio-v1", in: app)
         tap(app.buttons["playback-subtitles"], in: app)
         expectAudioSelected(audioRoleRow("화면 해설", in: app), in: app, name: "DVS restored after fallback")
         tap(app.buttons["playback-subtitle-done"], in: app)
@@ -347,7 +347,7 @@ import XCTest
         openHomeDetail(app)
         openPlayback(app)
         expectPlayback("재생 중", in: app)
-        openHLSSource("apple-trailer-audio-v1", in: app)
+        openPlaybackSource("apple-trailer-audio-v1", in: app)
         tap(app.buttons["playback-subtitles"], in: app)
         expectAudioSelected(audioRoleRow("화면 해설", in: app), in: app, name: "DVS restored after relaunch")
         tap(app.buttons["playback-subtitle-done"], in: app)
@@ -358,7 +358,7 @@ import XCTest
         openHomeDetail(app)
         openPlayback(app)
         expectPlayback("재생 중", in: app)
-        openHLSSource("apple-trailer-audio-v1", in: app)
+        openPlaybackSource("apple-trailer-audio-v1", in: app)
         tap(app.buttons["playback-subtitles"], in: app)
         expectAudioSelected(app.buttons["playback-audio-automatic"], in: app, name: "Fresh profile default audio")
         XCTAssertNotEqual(audioRoleRow("화면 해설", in: app).value as? String, "선택됨")
@@ -424,16 +424,14 @@ import XCTest
         tap(app.buttons["playback-subtitles"], in: app)
         tap(app.buttons["playback-subtitle-ko"], in: app)
         tap(app.buttons["playback-subtitle-done"], in: app)
-        tap(app.buttons["playback-source"], in: app)
-        tap(app.buttons["source-demo-series-episode-2-v1"], in: app)
+        openPlaybackSource("demo-series-episode-2-v1", in: app)
         expectPlayback("재생 중", in: app)
         tap(app.buttons["playback-subtitles"], in: app)
         XCTAssertFalse(app.buttons["playback-subtitle-ko"].exists)
         XCTAssertEqual(app.buttons["playback-subtitle-off"].value as? String, "선택됨")
         XCTAssertTrue(app.staticTexts["playback-subtitle-message"].label.contains("선호 언어는 유지"))
         tap(app.buttons["playback-subtitle-done"], in: app)
-        tap(app.buttons["playback-source"], in: app)
-        tap(app.buttons["source-demo-series-episode-3-v1"], in: app)
+        openPlaybackSource("demo-series-episode-3-v1", in: app)
         expectPlayback("재생 중", in: app)
         tap(app.buttons["playback-subtitles"], in: app)
         XCTAssertEqual(app.buttons["playback-subtitle-ko"].value as? String, "선택됨")
@@ -722,12 +720,9 @@ import XCTest
             // Auto-hide can occur during snapshot queries; re-resolve on every attempt.
             if reveal.exists && reveal.isHittable { reveal.tap() }
             if element.exists && element.isHittable { break }
-            let controls = app.scrollViews["playback-controls-scroll"]
+            let controls = app.descendants(matching: .any).matching(identifier: "playback-controls-scroll").firstMatch
             if playerTarget {
-                let ready = XCTNSPredicateExpectation(
-                    predicate: NSPredicate(format: "exists == true AND hittable == true"), object: controls)
-                guard XCTWaiter.wait(for: [ready], timeout: 1) == .completed,
-                      element.exists else {
+                guard controls.exists, element.exists else {
                     // A new loop rechecks the reveal button. Still bounded by eight attempts.
                     continue
                 }
@@ -738,8 +733,16 @@ import XCTest
                     XCTFail("Player controls or target have no usable frame", file: file, line: line)
                     return
                 }
-                if target.maxY <= viewport.minY { controls.swipeDown() }
-                else if target.minY >= viewport.maxY { controls.swipeUp() }
+                // A container need not be a hittable accessibility element to scroll.
+                // Use only coordinates within its observed viewport, never the detail beneath.
+                let start = app.coordinate(withNormalizedOffset: .zero)
+                    .withOffset(CGVector(dx: viewport.midX - app.frame.minX, dy: viewport.midY - app.frame.minY))
+                let distance = min(180, viewport.height * 0.35)
+                if target.midY < viewport.minY + 24 {
+                    start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: distance)))
+                } else if target.midY > viewport.maxY - 24 {
+                    start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -distance)))
+                }
                 else {
                     // A visible but unhittable button may still be transitioning.
                     // Do not guess a swipe direction or send gestures to the underlying detail.
@@ -1116,6 +1119,21 @@ import XCTest
         XCTAssertTrue(app.descendants(matching: .any)
             .matching(NSPredicate(format: "identifier BEGINSWITH %@ AND identifier != %@", "my-list-", "my-list-empty")).firstMatch.exists)
         tap(app.buttons["home-category-추천"], in: app)
+        // The category rebuild can retain the previous LazyVStack scroll offset.
+        let home = app.scrollViews["home-catalog"]
+        for _ in 0..<5 {
+            if saved.exists && saved.isHittable { break }
+            home.swipeDown()
+        }
+        for _ in 0..<5 {
+            if saved.exists && saved.isHittable { break }
+            home.swipeUp()
+        }
+        guard saved.exists && saved.isHittable else {
+            captureFailure(app, name: "Hero My List unreachable after category change")
+            XCTFail("Hero My List must remain reachable after returning to recommendations")
+            return
+        }
         tap(saved, in: app)
         XCTAssertEqual(saved.value as? String, "추가 안 됨")
     }
