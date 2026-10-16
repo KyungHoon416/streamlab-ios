@@ -1,5 +1,26 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 재시도 및 UI 회귀 검증 통과 — 2026-10-16
+
+사용자 core/environment/RESULTS/ui-tests(20261016-112319) 네 파일을 대조했다.
+실행 HEAD: 77f67022713a7ecf3c0383f4355c1eb36dd4cc66.
+Xcode 27.0 (27A266a), Swift 6.4, arm64 Mac 및 iPhone Simulator 환경.
+project.pbxproj/StreamLab-Memory.xcscheme 로컬 변경과 별도 프로젝트 폴더가 있는
+작업 트리에서 실행했으므로 깨끗한 checkout의 재현 결과와 구분한다.
+
+- Core 103 PASS: XCTest 15 + Presentation Swift Testing 81 + Catalog 7.
+- B2 신규 5개 모두 PASS: 429/503/timeout 혼합 및 대기값/요청 보존,
+  ACK 유실 중복 효과 방지, terminal 오류 중단, 예산 소진 후 큐 복원,
+  backoff 중 취소 후 추가 전송 없음. Core 로그 error/warning 없음.
+- UI 3 PASS/0 FAIL/306.631초, TEST SUCCEEDED.
+  일반 로그아웃 124.725초, Mock 오프라인 로그아웃 128.752초,
+  기존 찜 영속 저장/프로필 격리 53.154초.
+
+이번 결과는 주입한 오류/sleeper/random 기반 Core 재시도 검증과 기존 UI 회귀다.
+실제 HTTP/네트워크 복구, 409 병합/원격 snapshot 동기화, 실제 인증/토큰 폐기,
+전원 유실, 로그아웃 VoiceOver/최대 글자 크기, 전체 회귀는 완료로 처리하지 않는다.
+아래의 미실행 표기는 구현 당시 이력이며 이번 로그가 재시도 단계의 실행 근거다.
+
 ## B2 첫 단계 — 제한된 전송 재시도 — 2026-10-16
 
 과제 원문 B2/F07의 429 Retry-After, 지수 백오프, jitter, 상한, 취소 처리를 시작했다.
