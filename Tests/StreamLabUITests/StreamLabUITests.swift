@@ -1279,7 +1279,12 @@ import XCTest
         tap(app.buttons["clear-search"], in: app)
         XCTAssertTrue(app.buttons["recent-search-term-드라마"].waitForExistence(timeout: 5))
         tap(app.buttons["account-logout"], in: app)
-        tap(app.buttons["confirm-logout"], in: app)
+        let logoutDialog = app.sheets["로그아웃하면 이 기기의 모든 프로필 기록이 삭제됩니다."]
+        XCTAssertTrue(logoutDialog.waitForExistence(timeout: 5))
+        // SwiftUI exposes the confirmation action as nested AX buttons on some iOS versions.
+        // Scope to the visible dialog and select the first representation of that action.
+        let confirmLogout = logoutDialog.buttons.matching(identifier: "confirm-logout").firstMatch
+        tap(confirmLogout, in: app)
         let signIn = app.buttons["demo-sign-in"]
         XCTAssertTrue(signIn.waitForExistence(timeout: 10))
         expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: signIn)

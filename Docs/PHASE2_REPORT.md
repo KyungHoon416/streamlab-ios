@@ -1,5 +1,22 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## 로그아웃 UI 확인 버튼 선택 수정 — 2026-10-16
+
+사용자 core/RESULTS/ui-tests(20261016-102548) 대조: Core 98 PASS
+(XCTest 15 + Swift Testing 76 + Catalog 7), UI 1 PASS/2 FAIL/187.188초.
+기존 찜 프로필 격리 테스트는 PASS. 로그아웃 일반/Mock 오프라인 테스트는 모두
+확인 버튼 클릭 전에 `Multiple matching elements found`로 실패했다.
+로그의 Sheet 안에 같은 confirm-logout 식별자를 가진 부모/자식 Button이 노출되었다.
+따라서 이 결과로 로그아웃 삭제·재실행 UI 동작을 통과 처리하지 않는다.
+환경 로그 미첨부로 실행 커밋 SHA는 확정하지 않는다.
+
+확인 대화상자의 표시를 기다린 뒤 그 Sheet 내부의 confirm-logout 첫 표현을 선택하도록
+해당 테스트만 수정했다. 기존 공통 tap의 존재/터치 가능 검사와 로그아웃 이후 검증,
+앱 코드 및 UI는 유지했다.
+로컬 검증: 프로젝트 구조, 2,000 fixture, shell 문법, diff 공백 검사 PASS.
+수정 후 Swift/iOS UI 실행은 Xcode가 없어 미검증이며 Mac 재실행이 필요하다.
+`caffeinate -i bash scripts/check-account-logout-mac.sh`
+
 ## B1 데모 계정 로그아웃 및 로컬 기록 삭제 — 2026-10-16
 
 선행 사용자 core/RESULTS/ui-tests(20261016-094326) 대조: Core 91 PASS
