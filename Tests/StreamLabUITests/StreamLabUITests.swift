@@ -605,8 +605,18 @@ import XCTest
     }
 
     func testPlaybackResumeAfterRelaunchAndRestart() {
+        exercisePlaybackResumeAfterRelaunch(mockOffline: false)
+    }
+
+    func testPlaybackResumeWithOfflineMutationTransport() {
+        exercisePlaybackResumeAfterRelaunch(mockOffline: true)
+    }
+
+    private func exercisePlaybackResumeAfterRelaunch(mockOffline: Bool) {
         let app = XCUIApplication()
-        app.launchArguments = ["--ui-test-progress-suite=streamlab-uitest-\(UUID())"]
+        app.launchArguments = ["--ui-test-progress-suite=streamlab-uitest-\(UUID())",
+                               "--ui-test-keep-playback-controls"]
+        if mockOffline { app.launchArguments.append("--ui-test-mutation-offline") }
         app.launch()
         choose("adult-a", in: app)
         openHomeDetail(app)

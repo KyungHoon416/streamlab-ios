@@ -610,6 +610,7 @@ import StreamLabPresentation
         } else {
             session.progress.save(titleID: titleID, sourceID: source.progressID,
                                   position: seconds, duration: item.duration.seconds)
+            syncMessage = session.progress.persistenceError ?? ""
         }
         lastProgressSave = .now
     }

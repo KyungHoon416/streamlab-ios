@@ -1,5 +1,41 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B1 재생 진도 영속 큐 연결 — 2026-10-16
+
+이전 사용자 RESULTS(20261016-085506).txt: PASS Core/B1 journal tests,
+PASS My List UI. 원본 Core/UI 로그와 environment는 이 실행에 첨부되지 않아
+실행 커밋/개별 소요 시간/개별 테스트 수는 추가 확정하지 않는다.
+이는 앞선 찜 구현 검증이며 아래 새 변경의 실행 결과가 아니다.
+
+- PlaybackProgressStore에 DurableMutationStore를 재사용하는 저장 모드 추가.
+  앱 CatalogSession은 이 모드를 사용한다. 기존 재생 위치 조건/이어보기 정렬/완료 판정 유지.
+- 진도 snapshot과 immutable 요청을 함께 저장하고 완료/처음부터 보기는 nil 삭제 요청으로
+  전송한다. ACK가 와도 로컬 이어보기 기록은 유지하고 대기 요청만 제거한다.
+- 기존 UserDefaults 기록은 최초 journal 생성 때만 이관한다. 계정 정보가 없는 구형 기록은
+  local-demo 계정만 이관할 수 있다. 원본 보존, 삭제된 진도의 재이관 방지.
+- 찜과 진도는 서로 다른 journal/Mock 서버 파일 및 revision stream을 사용한다.
+  큐 엔진과 MockMutationServer 코드를 재사용하며 별도 큐 구현은 만들지 않는다.
+  실제 다중 기기 A3 coordinator/demo 경로는 유지한다.
+- 진입/성공한 checkpoint 저장 때 Mock 전송을 시도한다. 프로필 전환은 마지막 진도 저장 후
+  작업 취소/invalidate. 늦은 callback의 추가 진도 저장을 막는다.
+  저장 오류는 기존 playback syncMessage에 표시하며 UserDefaults로 조용히 우회하지 않는다.
+- DEBUG progress-suite를 journal의 테스트 전용 account namespace에도 적용한다.
+  기존 릴리스 UI는 유지한다. 오프라인 Mock UI 시나리오는 전송만 차단하며 영상은 로컬 fixture다.
+- 신규 Core 테스트 8개: 오프라인/재생성 복구, 완료·재시작 삭제, 일회성 이관,
+  account/profile/title/source 격리, 잘못된 수치, 저장 실패, 무효 세션, ACK 후 이어보기.
+  기존 재실행/재시작 UI 흐름을 재사용한 오프라인 Mock UI 테스트 1개 추가.
+
+PASS: 프로젝트 구조, 2,000 fixtures, shell 문법, diff 공백 검사.
+NOT TESTED: 새 Swift 컴파일/Core 테스트/iOS 빌드/UI 실행 (현재 호스트에 Apple 도구 없음).
+Mac: `caffeinate -i bash scripts/check-durable-progress-mac.sh`
+Core 전체 실행 후 재실행·재시작/오프라인 Mock/홈 이어보기/찜 회귀 UI 4개를 실행한다.
+
+미완료: 최근 검색 큐, 실제 계정 로그인/로그아웃 삭제, 원격 상태 다운로드,
+B2 충돌 해결·429 재시도/온라인 감지, B3 인증, 전체 회귀 및 실기기 성능.
+진도는 기존 5초/이벤트 저장 주기를 유지하며 queue/Mock receipt 크기 제한과
+디스크 IO 성능은 아직 해결하지 않았다. 파일 원자성은 전원 유실 fsync 보장이 아니다.
+
+
 ## B1 Core 빌드 실패 수정 — 2026-10-16 17:44 KST
 
 사용자 실행 49a70ce / Xcode 27.0 / Swift 6.4:
