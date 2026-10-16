@@ -68,7 +68,8 @@ import StreamLabCatalogData
                     throw URLError(.notConnectedToInternet)
                 }
                 #endif
-                try await recentSearches.flush(using: RetryingMutationTransport(base: Self.searchTransport()))
+                let server = try Self.searchTransport()
+                try await recentSearches.flush(using: RetryingMutationTransport(base: server), snapshots: server)
             } catch {
                 // Keep pending history changes for the next submit or session launch.
             }
