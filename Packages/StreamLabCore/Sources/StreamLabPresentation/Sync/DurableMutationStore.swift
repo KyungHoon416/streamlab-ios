@@ -105,7 +105,7 @@ import StreamLabDomain
     }
 
     private static func append(key: String, value: Data?, to next: inout Journal) {
-        next.pending.append(DurableMutation(id: UUID(), scope: scope, deviceID: next.deviceID,
+        next.pending.append(DurableMutation(id: UUID(), scope: next.scope, deviceID: next.deviceID,
             sequence: next.nextSequence, baseRevision: next.revision + UInt64(next.pending.count),
             key: key, value: value))
         next.nextSequence += 1

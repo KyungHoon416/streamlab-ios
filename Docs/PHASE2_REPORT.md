@@ -1,5 +1,22 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B1 Core 빌드 실패 수정 — 2026-10-16 17:44 KST
+
+사용자 실행 49a70ce / Xcode 27.0 / Swift 6.4:
+RESULTS(20261016-084341).txt, environment(20261016-084342).txt,
+core(20261016-084342).log 확인. Core 컴파일 FAIL exit=1; 테스트 실행 전 중단.
+My List UI는 Core 선행 조건 실패로 NOT TESTED이며 UI 로그가 없는 것이 정상이다.
+
+DurableMutationStore.append를 static으로 분리하면서 인스턴스 scope 참조가 남았다.
+요청의 scope를 전달된 journal의 next.scope에서 읽도록 수정한다.
+기존 UI와 저장 형식은 변경하지 않는다.
+
+PASS: 프로젝트 구조 검증 및 diff 공백 검사.
+NOT TESTED: 수정 후 Swift 컴파일/Core 11개 신규 테스트 및 My List UI 실행.
+Apple 도구가 없는 현재 환경에서 컴파일 성공을 주장하지 않는다.
+동일 check-durable-my-list-mac.sh를 다시 실행해야 한다.
+
+
 ## B1 첫 구현 — 찜 목록 영속 journal 및 재전송 Mock (2026-10-16)
 
 기존 UI, 재생/진도/A3 경로를 유지하고 MyListStore 저장 계층만 교체했다.
