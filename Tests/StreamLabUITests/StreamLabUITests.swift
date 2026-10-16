@@ -137,6 +137,19 @@ import XCTest
         }
         expectPlayback("일시 정지", in: app)
         tap(app.buttons["playback-toggle"], in: app)
+        // The slider is in the footer. Bring the header back into the visible
+        // accessibility viewport before observing the next episode's source label.
+        let source = app.staticTexts["playback-source-label"]
+        let controls = app.scrollViews["playback-controls-scroll"]
+        for _ in 0..<4 {
+            if source.exists && source.isHittable { break }
+            controls.swipeDown()
+        }
+        guard source.exists && source.isHittable else {
+            captureFailure(app, name: "HLS source header offscreen")
+            XCTFail("Episode header must be visible before waiting for automatic advance")
+            return
+        }
         // Let the real HLS item reach its end naturally; do not inject an ended state.
     }
 
@@ -157,7 +170,10 @@ import XCTest
             object: app.staticTexts["playback-source-label"])
         guard XCTWaiter.wait(for: [second], timeout: 45) == .completed else {
             captureFailure(app, name: "HLS automatic episode transition failed")
-            XCTFail("Episode 1 must automatically advance to episode 2 after natural end")
+            let status = app.staticTexts["playback-status"]
+            let time = app.staticTexts["playback-time"]
+            let source = app.staticTexts["playback-source-label"]
+            XCTFail("Episode 1 must automatically advance to episode 2. status=\(status.exists ? status.label : "offscreen"), time=\(time.exists ? time.label : "offscreen"), source=\(source.exists ? source.label : "offscreen")")
             return
         }
         let playing = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "재생 중"),

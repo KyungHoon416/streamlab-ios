@@ -164,6 +164,8 @@ import StreamLabPresentation
     @Published private(set) var retryBudget = PlaybackRetryBudget()
     @Published private(set) var failureIsMediaReset = false
     private var mediaResetObserver: PlaybackMediaResetObserver?
+    private var itemEndObserver: PlaybackItemEndObserver?
+    private var itemReachedEnd = false
     private var audioSessionOwner: UUID?
     private let syncDeviceID: String?
     private var syncedProgress: SyncedPlaybackProgress?
@@ -316,18 +318,35 @@ import StreamLabPresentation
     private func preparePlayer(url: URL, ticket: Int) {
         let player = AVPlayer(url: url)
         self.player = player
+        observeItemEnd(ticket: ticket)
         player.appliesMediaSelectionCriteriaAutomatically = false
         prepareSubtitles(player: player, ticket: ticket)
         prepareAudio(player: player, ticket: ticket)
         // Wait for item readiness and restore its position before starting playback.
         waitingSince = Date()
-        // No KVO/notification/periodic-time observer crosses actor boundaries.
+        // Sampling and notification effects are isolated to MainActor.
         // Weak ownership is released before every suspension.
         sampleTask = Task { [weak self] in
             while !Task.isCancelled {
                 guard self?.sample(ticket: ticket) == true else { return }
                 do { try await Task.sleep(for: .milliseconds(250)) }
                 catch { return }
+            }
+        }
+    }
+
+    private func observeItemEnd(ticket: Int) {
+        itemEndObserver = nil
+        guard let item = player?.currentItem else { return }
+        let seekTicket = seekGeneration
+        itemEndObserver = PlaybackItemEndObserver(item: item) { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self, self.generation == ticket,
+                      self.seekGeneration == seekTicket, self.session.isActive,
+                      !self.isSeeking else { return }
+                self.itemReachedEnd = true
+                self.qoeLog.notice("item_end source=\(self.source.progressID, privacy: .public) position=\(self.position) duration=\(self.duration)")
+                _ = self.sample(ticket: ticket)
             }
         }
     }
@@ -353,6 +372,7 @@ import StreamLabPresentation
             wantsPlayback = false
             player.pause()
             item.cancelPendingSeeks()
+            observeItemEnd(ticket: ticket)
             restoringPosition = false
             seekMessage = "재생 위치 이동이 지연되어 취소했습니다. 다시 이동하거나 재생해 주세요."
         }
@@ -384,7 +404,12 @@ import StreamLabPresentation
             progressReady = true
             if foreground && wantsPlayback { player.play() }
         }
-        if item.status != .readyToPlay || (wantsPlayback && player.timeControlStatus == .waitingToPlayAtSpecifiedRate) {
+        // The actual end notification is authoritative even if HLS duration and
+        // the last presented sample differ, or timeControlStatus is still waiting.
+        if itemReachedEnd && !isSeeking {
+            waitingSince = nil
+            status = .ended
+        } else if item.status != .readyToPlay || (wantsPlayback && player.timeControlStatus == .waitingToPlayAtSpecifiedRate) {
             status = .loading
             if waitingSince == nil { waitingSince = Date() }
             if playbackAllowed, let waitingSince, Date().timeIntervalSince(waitingSince) > 30 {
@@ -456,6 +481,8 @@ import StreamLabPresentation
         autoAdvance.reset()
         nextEpisodeStarted = nil
         nextEpisodeSeconds = nil
+        itemEndObserver = nil
+        itemReachedEnd = false
         let destination = min(duration, max(0, seconds))
         let ticket = generation
         seekGeneration += 1
@@ -490,6 +517,7 @@ import StreamLabPresentation
                 if self.restoringPosition { self.resumeMessage = "저장된 위치에서 이어보는 중" }
             }
             self.restoringPosition = false
+            self.observeItemEnd(ticket: ticket)
             self.wantsPlayback = completed && resumeAfterSeek && self.playbackAllowed && self.foregroundGeneration == foregroundTicket
             if self.wantsPlayback { player.play() } else { player.pause() }
             if !completed { self.seekMessage = "재생 위치 이동이 취소되었습니다. 다시 시도해 주세요." }
@@ -576,6 +604,8 @@ import StreamLabPresentation
 
     func stop() {
         mediaResetObserver = nil
+        itemEndObserver = nil
+        itemReachedEnd = false
         finishDiagnostics()
         pictureInPicture.invalidate()
         pipPossible = false

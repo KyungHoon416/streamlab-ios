@@ -1,5 +1,23 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## HLS 종료 알림 연결 및 회차 헤더 가시성 — 2026-10-16
+
+사용자 RESULTS(20261016-010628): Core PASS, 회차별 진도 복원 PASS,
+자동 회차 전환 FAIL(exit65), QoE 수집 PASS. 종료 직전 시킹/일시정지 검사는 통과했으나
+2화 label 대기가 실패했다. 로그만으로 실제 종료 미감지와 화면 밖 label을 구분할 수 없다.
+
+AVPlayerItem.didPlayToEndTimeNotification을 해당 item에 한정하여 관찰한다.
+MainActor에서 재생 generation/seek generation/프로필 활성 상태를 확인하고 종료를 기록한다.
+HLS 종료 시각과 duration 차이에 의존하지 않고 종료 상태 및 기존 카운트다운을 처리한다.
+seek/stop에서 종료 상태와 observer를 해제하고 seek 완료/취소 watchdog 후 다시 등록한다.
+기존 시간 비교 fallback은 유지한다. item_end 진단 로그를 추가했다.
+
+UI 테스트는 footer에서 시킹한 후 컨트롤을 위로 스크롤해 회차 헤더의 가시성을 확인한다.
+실패 시 status/time/source와 screenshot/접근성 트리를 남긴다. timeout 연장이나 assertion 제거는 없다.
+수정 후 구조 검사 PASS. Swift 컴파일/Xcode/HLS UI 재실행 NOT TESTED.
+재검증: `caffeinate -i bash scripts/check-hls-episodes-mac.sh`.
+
+
 ## HLS 자동 다음 회차 테스트 관측 보강 — 2026-10-16
 
 사용자 RESULTS(20261016-004915): Core PASS, HLS 회차별 진도 복원 PASS,
