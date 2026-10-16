@@ -1,5 +1,28 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## 대상 회귀 3개 통과 — 2026-10-16 15:50 KST
+
+사용자 environment(7).txt: eb9ce50d52810127a3a025554b104b52c8916b55,
+Xcode 27.0 (27A266a), iOS Simulator. Xcode 프로젝트/메모리 scheme 로컬 수정 존재.
+입력 RESULTS(20261016-065034).txt / ui-tests(20261016-065031).log 대조 결과:
+
+- Core PASS exit=0 (제공 요약 기준, Core 원본 로그 미첨부).
+- testMissingSubtitleFallsBackAndRestoresWithoutChangingOtherProfile PASS 100.812초.
+- testMyListPersistsAndIsolatesProfiles PASS 52.909초.
+- testPlaybackLargeTextControls PASS 32.354초.
+- 대상 UI 3개 실행, 실패 0개, skip 없음, 186.076초. regression-fixes exit=0.
+- QoE 수집 PASS, 관측된 전이 거부 없음 (요약 기준; 성능 목표 달성 아님).
+
+추천 전환 실패는 이번 대상 회귀에서 해소됐다. 이미지 터치 제외/카드 영역 보정 후
+저장/프로필 격리/재실행 복원/추천 복귀/찜 해제 assertion이 모두 통과했다.
+원인의 모든 내부 경로가 증명됐거나 전체 앱이 검증됐다는 뜻은 아니다.
+
+다음: scripts/verify-mac.sh로 전체 회귀. 장식 이미지의 터치 제외가 홈/검색/상세의
+상위 Button/NavigationLink 접근에 영향을 주지 않는지 기존 UI 전체 테스트로 확인한다.
+실제 재생 불가 트랙/오디오 역할 대체, 실기기 HLS QoE, 실제 OS 리셋, 전체 PiP 및
+전체 회귀는 이번 실행 범위 밖이며 NOT TESTED를 유지한다.
+
+
 ## 최신 수정 실행 결과 및 이미지 터치 영역 보정 — 2026-10-16
 
 사용자 environment(6).txt에서 ce0824a / Xcode 27.0 (27A266a) 실행 확인.
