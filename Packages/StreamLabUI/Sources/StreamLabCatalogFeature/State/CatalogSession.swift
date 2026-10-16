@@ -40,10 +40,10 @@ import StreamLabCatalogData
                     throw URLError(.notConnectedToInternet)
                 }
                 #endif
-                try await progress.flush(using: Self.progressTransport())
+                try await progress.flush(using: RetryingMutationTransport(base: Self.progressTransport()))
             } catch {
                 // Preserve the request for the next checkpoint/session launch.
-                // Timed retry and conflict resolution belong to B2.
+                // Retry budget exhausted or terminal error; conflict resolution is still pending.
             }
         }
     }
@@ -67,7 +67,7 @@ import StreamLabCatalogData
                     throw URLError(.notConnectedToInternet)
                 }
                 #endif
-                try await recentSearches.flush(using: Self.searchTransport())
+                try await recentSearches.flush(using: RetryingMutationTransport(base: Self.searchTransport()))
             } catch {
                 // Keep pending history changes for the next submit or session launch.
             }

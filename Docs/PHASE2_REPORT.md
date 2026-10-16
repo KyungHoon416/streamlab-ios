@@ -1,5 +1,31 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 첫 단계 — 제한된 전송 재시도 — 2026-10-16
+
+과제 원문 B2/F07의 429 Retry-After, 지수 백오프, jitter, 상한, 취소 처리를 시작했다.
+RetryingMutationTransport를 찜·진도·최근 검색의 기존 FIFO 전송에 연결했다.
+요청당 최초 1회 + 재시도 최대 3회이며 immutable envelope 전체를 유지한다.
+일시적 URL 오류 및 명시적인 HTTP 429/503 오류만 재시도한다.
+기본 대기는 equal jitter로 0.5~1, 1~2, 2~4초다. Retry-After는 최소 대기값이며
+30초 초과/음수/비유한 값이면 현재 전송을 종료하고 큐를 보존한다. 긴 서버 대기를
+짧게 잘라 조기 재전송하지 않는다. 409/401/알 수 없는 오류는 그대로 전달한다.
+취소는 send 전, 응답 후, 대기 전후에 확인하며 기존 세션 전환/로그아웃 취소를 따른다.
+
+Core 테스트 5개 추가: 혼합 장애와 정확한 envelope/대기값, ACK 유실 시 효과 1회,
+terminal 오류/긴 Retry-After 중단, 예산 소진 후 journal 재실행 복원, 대기 중 취소.
+실제 sleep 대신 주입한 sleeper/random으로 재현한다.
+로컬 PASS: 프로젝트 구조, fixture 2,000개, shell 문법, diff 공백 검사.
+NOT TESTED: Swift 컴파일/Core 실행/iOS 실행 (현재 호스트에 Apple toolchain 없음).
+Mac: `caffeinate -i bash scripts/check-mutation-retry-mac.sh`
+전체 Core의 B2 suite 성공 후 앱 빌드 및 기존 로그아웃/찜 UI 3개를 실행한다.
+
+남은 B2: 서버 snapshot 다운로드와 409 optimistic UI 조정/명시적 병합,
+찜 동시 변경 수렴, 진도의 restart action semantics 통합, 온라인 복귀 감지.
+이번 작업을 B2 전체 완료로 간주하지 않는다. 실제 HTTP adapter와 Retry-After 헤더
+파싱은 아직 없으며 오류는 transport 경계에서 주입한다. 기존 UI offline flag는
+전송 자체를 차단하는 B1 검증용이고 새 재시도 테스트를 대신하지 않는다.
+재시도 예산은 요청/flush 호출 단위이며 재실행·새 변경 시 새 예산을 사용한다.
+
 ## 로그아웃 UI 재검증 통과 — 2026-10-16
 
 사용자 RESULTS/ui-tests(20261016-104751) 대조: UI 3 PASS/0 FAIL,

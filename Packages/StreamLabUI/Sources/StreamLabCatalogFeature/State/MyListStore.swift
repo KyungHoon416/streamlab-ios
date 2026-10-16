@@ -92,10 +92,10 @@ import StreamLabCatalogData
                     throw URLError(.notConnectedToInternet)
                 }
                 #endif
-                try await queue.flush(using: Self.transport())
+                try await queue.flush(using: RetryingMutationTransport(base: Self.transport()))
             } catch {
                 // Local save already succeeded. Retain requests for the next refresh,
-                // change, or session launch. B2 retry scheduling is a separate step.
+                // change, or session launch after the bounded retry budget is exhausted.
             }
         }
     }
