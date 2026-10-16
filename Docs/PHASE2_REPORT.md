@@ -1,5 +1,28 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 찜 충돌 처리 검증 통과 및 UI 지연 관측 — 2026-10-17
+
+사용자 core/environment/RESULTS/ui-tests(20261016-153837) 네 파일 대조.
+실행 HEAD 319f795c6c2293e62d02626178cae0f9c7d19cbf,
+Xcode 27.0 (27A266a), Swift 6.4, arm64 Mac/iPhone Simulator.
+프로젝트 및 Memory 스킴 로컬 변경과 별도 프로젝트 폴더가 있는 작업 트리에서 실행했다.
+
+- Core 109 PASS: XCTest 15 + Presentation Swift Testing 87 + Catalog 7.
+  새 B2 server wins reconciliation 6개 모두 PASS. Core error/warning 없음.
+- UI 3 PASS/0 FAIL, TEST SUCCEEDED. 일반 로그아웃 2761.863초,
+  Mock 오프라인 로그아웃 2023.444초, 기존 찜 1717.620초.
+- UI 총 6502.927초(약 108분 23초). 직전 306.631초보다 현저히 길다.
+  기존 찜 테스트 시작 시 idle 대기 뒤 1025.34초 간격과
+  `App event loop idle notification not received, will attempt to continue.` 관측.
+  hero-detail 존재 확인 및 최근 검색 버튼 확인에도 각각 약 1004초/932초 간격이 있다.
+  테스트 assertion 통과와 별개로 실행 지연 원인은 미확인이다. 이 로그만으로
+  호스트 절전/시뮬레이터 정지/앱 event loop 문제 중 하나로 단정하지 않는다.
+  다음 실행 시 환경 상태와 지연 재현 여부를 함께 확인해야 한다.
+
+찜 서버 우선 충돌 수렴/경쟁 안전성은 Core 검증, 앱 연결은 기존 UI 회귀 근거로
+구분한다. 두 기기 충돌 UI 시연, 진도/검색 충돌, 항목별 병합, 실제 네트워크 복구,
+전체 회귀 및 성능 검증을 완료 처리하지 않는다. 이번 변경은 검증 보고서만 갱신했다.
+
 ## B2 409 첫 단계 — 찜 서버 우선 수렴 — 2026-10-16
 
 찜에 명시적인 whole-profile server-wins 규칙을 적용했다. 서버가 먼저 수락한
