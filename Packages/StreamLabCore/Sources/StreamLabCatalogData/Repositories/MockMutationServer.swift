@@ -10,6 +10,7 @@ public actor MockMutationServer: MutationTransport {
         var records: [MutationScope: [String: Data]] = [:]
         var sequences: [Device: UInt64] = [:]
         var receipts: [UUID: Receipt] = [:]
+        var revokedDevices: Set<UUID>? = nil // Optional to decode existing mock files.
     }
     private var state = State()
     private let storageURL: URL?
@@ -22,6 +23,9 @@ public actor MockMutationServer: MutationTransport {
     }
 
     public func send(_ mutation: DurableMutation) throws -> UInt64 {
+        guard !(state.revokedDevices ?? []).contains(mutation.deviceID) else {
+            throw MutationQueueError.inactive
+        }
         if let receipt = state.receipts[mutation.id] {
             guard receipt.mutation == mutation else { throw MutationQueueError.reusedID }
             return receipt.revision
@@ -41,13 +45,38 @@ public actor MockMutationServer: MutationTransport {
         updated.revisions[mutation.scope] = next
         updated.sequences[device] = mutation.sequence
         updated.receipts[mutation.id] = Receipt(mutation: mutation, revision: next)
+        try persist(updated)
+        state = updated
+        return next
+    }
+
+    /// Local demo cleanup, not deletion of a production account on a remote server.
+    /// Retain only revoked random device IDs so late sends cannot recreate erased data.
+    public func forgetAccount(_ accountID: String, revoking devices: Set<UUID>) throws {
+        var updated = state
+        var revoked = updated.revokedDevices ?? []
+        revoked.formUnion(devices)
+        for device in updated.sequences.keys where device.scope.accountID == accountID {
+            revoked.insert(device.id)
+        }
+        for receipt in updated.receipts.values where receipt.mutation.scope.accountID == accountID {
+            revoked.insert(receipt.mutation.deviceID)
+        }
+        updated.revokedDevices = revoked
+        updated.records = updated.records.filter { $0.key.accountID != accountID }
+        updated.revisions = updated.revisions.filter { $0.key.accountID != accountID }
+        updated.sequences = updated.sequences.filter { $0.key.scope.accountID != accountID }
+        updated.receipts = updated.receipts.filter { $0.value.mutation.scope.accountID != accountID }
+        try persist(updated)
+        state = updated
+    }
+
+    private func persist(_ updated: State) throws {
         if let storageURL {
             try FileManager.default.createDirectory(at: storageURL.deletingLastPathComponent(),
                                                    withIntermediateDirectories: true)
             try JSONEncoder().encode(updated).write(to: storageURL, options: .atomic)
         }
-        state = updated
-        return next
     }
 
     public func values(for scope: MutationScope) -> [String: Data] { state.records[scope, default: [:]] }

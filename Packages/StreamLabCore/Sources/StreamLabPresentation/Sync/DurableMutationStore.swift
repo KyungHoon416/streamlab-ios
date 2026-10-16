@@ -13,6 +13,12 @@ import StreamLabDomain
         var values: [String: Data] = [:]
         var pending: [DurableMutation] = []
     }
+    private final class WeakStore {
+        weak var value: DurableMutationStore?
+        init(_ value: DurableMutationStore) { self.value = value }
+    }
+    private static var instances: [WeakStore] = []
+    private let directory: URL
     private let url: URL
     private let scope: MutationScope
     private var journal: Journal
@@ -28,14 +34,9 @@ import StreamLabDomain
     public init(directory: URL, scope: MutationScope,
                 seed: @autoclosure () throws -> [String: Data] = [:]) throws {
         self.scope = scope
-        // Separate path components with URL-safe encoding, including empty IDs.
-        func component(_ value: String) -> String {
-            "s" + Data(value.utf8).base64EncodedString()
-                .replacingOccurrences(of: "/", with: "_")
-                .replacingOccurrences(of: "+", with: "-")
-        }
-        url = directory.appendingPathComponent(component(scope.accountID), isDirectory: true)
-            .appendingPathComponent(component(scope.profileID) + ".json")
+        self.directory = directory.standardizedFileURL
+        url = Self.accountDirectory(directory: directory, accountID: scope.accountID)
+            .appendingPathComponent(Self.component(scope.profileID) + ".json")
         journal = Journal(scope: scope, deviceID: UUID())
         if FileManager.default.fileExists(atPath: url.path) {
             journal = try read()
@@ -46,6 +47,34 @@ import StreamLabDomain
             }
             try persist(journal)
         }
+        Self.instances.removeAll { $0.value == nil }
+        Self.instances.append(WeakStore(self))
+    }
+
+    private static func component(_ value: String) -> String {
+        "s" + Data(value.utf8).base64EncodedString()
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "+", with: "-")
+    }
+
+    public static func accountDirectory(directory: URL, accountID: String) -> URL {
+        directory.appendingPathComponent(component(accountID), isDirectory: true)
+    }
+
+    /// Revoke all live stores for this account before deleting any files. Includes
+    /// stores retained by old tasks after a profile switch; other accounts stay active.
+    public static func revokeAccount(_ accountID: String, directories: [URL]) -> Set<UUID> {
+        let roots = Set(directories.map { $0.standardizedFileURL.path })
+        var devices = Set<UUID>()
+        instances.removeAll { $0.value == nil }
+        for entry in instances {
+            guard let store = entry.value, store.scope.accountID == accountID,
+                  roots.contains(store.directory.path) else { continue }
+            devices.insert(store.journal.deviceID)
+            store.active = false
+            store.journal = Journal(scope: store.scope, deviceID: store.journal.deviceID)
+        }
+        return devices
     }
 
     public var values: [String: Data] { journal.values }

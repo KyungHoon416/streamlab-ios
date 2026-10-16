@@ -92,16 +92,10 @@ import StreamLabCatalogData
     public init(profile: ViewerProfile, repository: any CatalogRepository) {
         self.profile = profile
         self.repository = repository
-        self.myList = MyListStore(profile: profile)
-        var progressDefaults = UserDefaults.standard
-        var progressAccount = "local-demo"
-        #if DEBUG
-        if let argument = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix("--ui-test-progress-suite=") }),
-           let suite = UserDefaults(suiteName: String(argument.dropFirst("--ui-test-progress-suite=".count))) {
-            progressDefaults = suite
-            progressAccount = "ui-test-" + String(argument.dropFirst("--ui-test-progress-suite=".count))
-        }
-        #endif
+        let configuration = CatalogAccount.configuration()
+        let progressDefaults = configuration.defaults
+        let progressAccount = configuration.id
+        self.myList = MyListStore(profile: profile, defaults: progressDefaults, accountID: progressAccount)
         self.languages = PlaybackLanguageStore(profileID: profile.id, defaults: progressDefaults)
         self.progress = PlaybackProgressStore(profileID: profile.id, defaults: progressDefaults,
                                               durable: true, accountID: progressAccount)
@@ -120,20 +114,34 @@ import StreamLabCatalogData
     }
 
     /// Called synchronously BEFORE replacing the SwiftUI subtree.
-    public func invalidate() {
-        for reference in players { reference.value?.saveProgress() }
+    public func invalidate(saveProgress: Bool = true) {
+        if saveProgress {
+            for reference in players { reference.value?.saveProgress() }
+        }
         isActive = false
         progressSyncTask?.cancel()
-        progressSyncTask = nil
         progress.invalidate()
         searchSyncTask?.cancel()
-        searchSyncTask = nil
         recentSearches.invalidate()
+        languages.invalidate()
         myList.invalidate()
         for reference in players { reference.value?.stop() }
         players.removeAll()
         for reference in stores { reference.value?.invalidate() }
         stores.removeAll()
     }
+
+    func waitForSync() async {
+        await progressSyncTask?.value
+        await searchSyncTask?.value
+        await myList.waitForSync()
+    }
+
+    static func clearMockAccount(_ accountID: String, devices: Set<UUID>) async throws {
+        try await MyListStore.clearMockAccount(accountID, devices: devices)
+        try await progressTransport().forgetAccount(accountID, revoking: devices)
+        try await searchTransport().forgetAccount(accountID, revoking: devices)
+    }
+
 }
 

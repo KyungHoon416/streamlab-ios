@@ -10,6 +10,7 @@ import StreamLabDomain
     }
     private let defaults: UserDefaults
     private let key: String
+    private var active = true
 
     public init(profileID: String, defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -17,7 +18,7 @@ import StreamLabDomain
     }
 
     public var preferences: Preferences {
-        guard let data = defaults.data(forKey: key),
+        guard active, let data = defaults.data(forKey: key),
               let value = try? JSONDecoder().decode(Preferences.self, from: data) else { return Preferences() }
         return value
     }
@@ -36,7 +37,10 @@ import StreamLabDomain
         save(value)
     }
 
+    public func invalidate() { active = false }
+
     private func save(_ value: Preferences) {
+        guard active else { return }
         guard let data = try? JSONEncoder().encode(value) else { return }
         defaults.set(data, forKey: key)
     }

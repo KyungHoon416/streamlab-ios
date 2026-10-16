@@ -1222,6 +1222,104 @@ import XCTest
         XCTAssertEqual(saved.value as? String, "추가 안 됨")
     }
 
+    func testLogoutClearsAllProfilesAndStaysSignedOutAfterRelaunch() {
+        exerciseAccountLogout(mockOffline: false)
+    }
+
+    func testLogoutClearsPendingOfflineChanges() {
+        exerciseAccountLogout(mockOffline: true)
+    }
+
+    private func exerciseAccountLogout(mockOffline: Bool) {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=logout-\(UUID())",
+                               "--ui-test-keep-playback-controls"]
+        if mockOffline { app.launchArguments.append("--ui-test-mutation-offline") }
+        app.launch()
+        choose("adult-a", in: app)
+        let saved = app.buttons["hero-my-list"]
+        XCTAssertTrue(saved.waitForExistence(timeout: 5))
+        XCTAssertEqual(saved.value as? String, "추가 안 됨")
+        tap(saved, in: app)
+        XCTAssertEqual(saved.value as? String, "추가됨")
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("일시 정지", in: app)
+        app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0.5)
+        expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: app.buttons["playback-toggle"])
+        expectation(for: NSPredicate(format: "label MATCHES %@", "00:00:1[3-7] / 00:00:30"), evaluatedWith: app.staticTexts["playback-time"])
+        waitForExpectations(timeout: 5)
+        closePlayback(app)
+        back(app)
+        let continueCard = app.buttons.matching(NSPredicate(format:
+            "identifier BEGINSWITH %@ AND identifier != %@", "continue-", "continue-retry")).firstMatch
+        for _ in 0..<5 {
+            if continueCard.exists { break }
+            app.scrollViews["home-catalog"].swipeUp()
+        }
+        XCTAssertTrue(continueCard.waitForExistence(timeout: 5), "Establish saved progress before logout")
+        app.tabBars.buttons["검색"].tap()
+        let field = app.textFields["catalog-search-field"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        field.typeText("액션\n")
+        tap(app.buttons["clear-search"], in: app)
+        XCTAssertTrue(app.buttons["recent-search-term-액션"].waitForExistence(timeout: 5))
+        tap(app.buttons["switch-profile"], in: app)
+        choose("adult-b", in: app)
+        app.tabBars.buttons["홈"].tap()
+        XCTAssertTrue(saved.waitForExistence(timeout: 5))
+        tap(saved, in: app)
+        XCTAssertEqual(saved.value as? String, "추가됨")
+        app.tabBars.buttons["검색"].tap()
+        field.tap()
+        field.typeText("드라마\n")
+        tap(app.buttons["clear-search"], in: app)
+        XCTAssertTrue(app.buttons["recent-search-term-드라마"].waitForExistence(timeout: 5))
+        tap(app.buttons["account-logout"], in: app)
+        tap(app.buttons["confirm-logout"], in: app)
+        let signIn = app.buttons["demo-sign-in"]
+        XCTAssertTrue(signIn.waitForExistence(timeout: 10))
+        expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: signIn)
+        waitForExpectations(timeout: 10)
+        XCTAssertFalse(app.staticTexts["logout-error"].exists)
+        app.terminate()
+        app.launch()
+        XCTAssertTrue(signIn.waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["profile-adult-a"].exists)
+        tap(signIn, in: app)
+        for profile in ["adult-a", "adult-b"] {
+            choose(profile, in: app)
+            app.tabBars.buttons["홈"].tap()
+            XCTAssertTrue(saved.waitForExistence(timeout: 5))
+            XCTAssertEqual(saved.value as? String, "추가 안 됨")
+            let emptyProgress = app.staticTexts["continue-empty"]
+            for _ in 0..<5 {
+                if emptyProgress.exists { break }
+                app.scrollViews["home-catalog"].swipeUp()
+            }
+            XCTAssertTrue(emptyProgress.waitForExistence(timeout: 5))
+            app.tabBars.buttons["검색"].tap()
+            XCTAssertTrue(field.waitForExistence(timeout: 5))
+            XCTAssertFalse(app.buttons["recent-search-clear-all"].exists)
+            tap(app.buttons["switch-profile"], in: app)
+        }
+        // A fresh session must still persist changes after cleanup (no stale rejection).
+        choose("adult-a", in: app)
+        app.tabBars.buttons["검색"].tap()
+        field.tap()
+        field.typeText("새 검색\n")
+        tap(app.buttons["clear-search"], in: app)
+        XCTAssertTrue(app.buttons["recent-search-term-새 검색"].waitForExistence(timeout: 5))
+        app.terminate()
+        app.launch()
+        choose("adult-a", in: app)
+        app.tabBars.buttons["검색"].tap()
+        XCTAssertTrue(app.buttons["recent-search-term-새 검색"].waitForExistence(timeout: 5))
+    }
+
     func testRecentSearchesPersistAndIsolateProfiles() {
         exerciseRecentSearchHistory(mockOffline: false)
     }

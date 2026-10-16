@@ -24,13 +24,13 @@ import StreamLabCatalogData
     }
     private let snapshotKey = "my-list"
 
-    init(profile: ViewerProfile, defaults: UserDefaults = .standard) {
+    init(profile: ViewerProfile, defaults: UserDefaults = .standard, accountID: String = "local-demo") {
         self.profile = profile
         do {
             // The app currently has profile selection, not authenticated accounts.
-            let scope = MutationScope(accountID: "local-demo", profileID: profile.id)
+            let scope = MutationScope(accountID: accountID, profileID: profile.id)
             queue = try DurableMutationStore(directory: DurableMutationStore.defaultDirectory(),
-                                             scope: scope, seed: legacySeed(defaults: defaults))
+                                             scope: scope, seed: accountID == "local-demo" ? legacySeed(defaults: defaults) : [:])
             items = try read()
             scheduleSync()
         } catch {
@@ -72,9 +72,14 @@ import StreamLabCatalogData
     func invalidate() {
         active = false
         syncTask?.cancel()
-        syncTask = nil
         queue?.invalidate()
         items = []
+    }
+
+    func waitForSync() async { await syncTask?.value }
+
+    static func clearMockAccount(_ accountID: String, devices: Set<UUID>) async throws {
+        try await transport().forgetAccount(accountID, revoking: devices)
     }
 
     private func scheduleSync() {

@@ -1,5 +1,45 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B1 데모 계정 로그아웃 및 로컬 기록 삭제 — 2026-10-16
+
+선행 사용자 core/RESULTS/ui-tests(20261016-094326) 대조: Core 91 PASS
+(XCTest 15 + Swift Testing 69 + Catalog 7), UI 3 PASS/0 FAIL/173.585초.
+최근 검색 일반 72.939초, Mock 오프라인 72.294초, 기존 검색 페이지네이션 28.352초.
+실행 environment 미첨부로 SHA는 추가 확정하지 않는다. 아래 변경의 실행 결과는 아니다.
+
+이번 구현:
+- 실제 인증 서버가 없는 앱에 명시적 데모 계정 로그아웃/데모 시작 흐름 추가.
+  툴바의 로그아웃 확인 후 모든 프로필의 찜·진도·최근 검색 journal과 pending 요청,
+  해당 계정 defaults의 구형 찜/진도/언어 선호를 삭제한다. 프로필 전환은 기록 유지.
+- My List도 기존 progress/search와 같은 계정 namespace를 사용하도록 정리했다.
+  일반 앱은 local-demo, DEBUG 테스트는 독립 UserDefaults suite/account를 사용한다.
+- AccountLocalData는 디스크에 signed-out marker를 먼저 기록한다. 삭제 도중 앱이
+  종료되면 다음 실행에서도 signed-out 상태이며, 정리 완료 전 데모 진입을 차단한다.
+  삭제 실패는 표시하고 재시도한다. marker 제거는 cleanup 성공 후 명시적 데모 시작 때만.
+- 삭제 전 전송 작업 취소, player/catalog/언어 저장소 무효화. Weak registry로 이전 프로필
+  작업이 붙잡고 있는 journal도 account+directory 범위로 무효화하고 메모리 projection 삭제.
+  늦은 ACK/저장 callback이 삭제한 파일을 다시 만들지 못하도록 한다.
+- 로컬 Mock 서버의 계정 records/revisions/sequences/receipts도 제거한다. 이전 device UUID만
+  거부 목록에 보관해 늦은 요청 재생성을 막고 새 UUID의 세션은 revision 0부터 시작한다.
+  실제 원격 계정 삭제 API가 아니다. A3 인메모리 데모도 새 coordinator로 교체한다.
+- Core 테스트 7개 추가: 전체 profile/store 삭제와 다른 계정 보존, 중단 후 재실행,
+  삭제 실패/재시도, Mock 서버 재실행 후 오래된 요청 거부, 반복 revoke, 늦은 ACK,
+  무효 언어 저장소 callback. UI 일반/오프라인 2개는 A/B 기록 생성→로그아웃→재실행→
+  재진입 후 기록 없음→새 검색 기록 저장을 검증한다. 기존 찜 프로필 전환 회귀도 실행.
+
+PASS: 프로젝트 구조, 2,000 fixture, shell 문법, diff 공백 검사.
+NOT TESTED: 새 Swift 컴파일/Core 테스트/iOS 빌드/UI 실행 (현재 호스트에 Xcode 없음).
+Mac: `caffeinate -i bash scripts/check-account-logout-mac.sh`
+Core 전체 후 로그아웃 UI 2개와 기존 찜 UI 1개를 실행한다.
+
+미완료/미검증: 실제 인증·토큰 폐기/Keychain(B3/C), 실제 네트워크 복구,
+원격 상태 다운로드, B2 conflict/backoff, queue/receipt/revoked-ID 용량 관리,
+로그아웃 화면 VoiceOver/최대 글자 크기, 전원 유실 fsync 내구성, 전체 회귀.
+계정 defaults는 계정별 suite를 주입하는 계약이며 실제 여러 계정 로그인 UI는 없다.
+삭제 실패를 성공으로 처리하지 않는다. OS/파일 권한 문제로 marker 작성 자체가 실패한
+경우에는 현재 프로세스의 진입은 차단하지만 재실행 상태 보존까지 보장할 수 없다.
+
+
 ## B1 최근 검색어 영속 저장·전송 연결 — 2026-10-16
 
 선행 검증: 사용자 RESULTS/core/ui-tests(20261016-092940) 대조 완료.
