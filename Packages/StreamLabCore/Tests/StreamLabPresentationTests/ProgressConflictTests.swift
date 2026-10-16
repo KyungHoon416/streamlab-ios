@@ -6,7 +6,7 @@ import StreamLabCatalogData
 
 @Suite("B2 durable progress conflict")
 @MainActor struct ProgressConflictTests {
-    struct Fixture {
+    @MainActor struct Fixture {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         func store(_ device: String) -> PlaybackProgressStore {
             PlaybackProgressStore(profileID: "adult-a", durable: true,

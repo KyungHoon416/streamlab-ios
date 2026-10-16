@@ -1,5 +1,19 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## 진도 충돌 테스트 Fixture actor 격리 수정 — 2026-10-17
+
+사용자가 첨부한 붙여넣은 마크다운(3).md의 실행 로그 확인:
+check-progress-conflict-mac.sh의 Core 빌드가 exit=1로 중단되었다.
+ProgressConflictTests.swift:12에서 nonisolated Fixture.store가 @MainActor인
+PlaybackProgressStore initializer를 동기 호출한 것이 컴파일 오류 원인이다.
+바깥 테스트 타입의 @MainActor는 내부 타입 Fixture의 메서드에 자동 적용되지 않는다.
+기존 DurablePlaybackProgressTests의 Fixture와 동일하게 @MainActor를 명시했다.
+앱 코드/충돌 정책/UI는 변경하지 않았다. Core 테스트 실행 및 후속 UI는 미검증이다.
+
+로컬 PASS: 프로젝트 구조, fixture 2,000개, 스크립트 문법, diff 공백 검사.
+Swift 재컴파일은 현재 호스트에 Apple toolchain이 없어 Mac 재실행이 필요하다.
+`caffeinate -i bash scripts/check-progress-conflict-mac.sh`
+
 ## B2 진도 충돌 및 명시적 오프라인 재시작 — 2026-10-17
 
 DurableMutation에 optional restartPlayback intent를 추가했다. 기존 journal/receipt는
