@@ -68,7 +68,25 @@ import XCTest
 
     private func openHLSEpisode(_ number: Int, in app: XCUIApplication) {
         tap(app.buttons["playback-source"], in: app)
-        tap(app.buttons["source-hls-series-episode-\(number)-v1"], in: app)
+        let list = app.descendants(matching: .any).matching(identifier: "playback-source-list").firstMatch
+        guard list.waitForExistence(timeout: 10) else {
+            captureFailure(app, name: "Source sheet did not appear")
+            XCTFail("Source list must appear before selecting an HLS episode")
+            return
+        }
+        let episode = app.buttons["source-hls-series-episode-\(number)-v1"]
+        // SwiftUI List virtualizes offscreen rows, especially in landscape.
+        // Search inside the sheet instead of waiting for a row that has not been materialized.
+        for _ in 0..<8 {
+            if episode.exists && episode.isHittable { break }
+            list.swipeUp()
+        }
+        guard episode.exists && episode.isHittable else {
+            captureFailure(app, name: "HLS source unreachable after list scroll")
+            XCTFail("HLS episode \(number) must be reachable in the source list")
+            return
+        }
+        episode.tap()
         let playing = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "label == %@", "재생 중"),
             object: app.staticTexts["playback-status"])

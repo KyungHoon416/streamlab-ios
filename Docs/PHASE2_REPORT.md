@@ -1,5 +1,15 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## HLS 테스트 소스 목록 스크롤 수정 — 2026-10-16
+
+사용자 RESULTS(20261016-003040): Core PASS, HLS UI 2개 FAIL(exit65).
+두 테스트 모두 source-hls-series-episode-1-v1을 찾지 못해 실제 HLS 검증 전 중단됐다.
+소스 ID는 일치한다. 기존 helper는 offscreen List 행의 존재만 기다려 스크롤하지 않았다.
+영상 소스 List에 식별자를 추가하고 sheet 등장 확인 후 해당 목록 안에서 최대 8회
+스크롤해 행의 존재/탭 가능 여부를 확인한다. 재생 검증 assertion과 timeout은 유지한다.
+수정 후 구조 PASS. Xcode/UI 및 실제 HLS 재생은 NOT TESTED. check-hls-episodes-mac.sh로 재검증.
+
+
 ## 이미지 캐시 actor 호출 수정 — 2026-10-16
 
 사용자 core(9).log에서 ArtworkDataCache.swift:46의 actor-isolated finish 호출에

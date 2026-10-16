@@ -569,6 +569,7 @@ import StreamLabDesignSystem
                     Text("모든 작품은 선택한 테스트 소스를 재생합니다. 오프라인 데모는 30초 무음이며 HLS는 인터넷 연결이 필요합니다. 오디오 비교 소스는 영어 일반 음성과 영어 화면 해설(DVS)을 제공합니다. 서로 다른 언어의 더빙은 아닙니다. 소스별로 저장된 위치에서 이어봅니다. 연속 재생 데모 1~3화는 동일한 영상을 사용하며 화별 진행 기록은 분리됩니다. HLS 테스트 시즌은 공개 샘플 2개를 연결한 검증용 구성으로 실제 작품의 회차가 아닙니다. 1화는 테스트 패턴, 2화는 오디오 비교 샘플이며 마지막 화에서는 자동 재생이 멈춥니다.")
                 }
             }
+            .accessibilityIdentifier("playback-source-list")
             .navigationTitle("영상 소스")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
