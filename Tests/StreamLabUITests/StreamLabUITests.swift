@@ -642,7 +642,8 @@ import XCTest
 
     func testHomeContinueWatchingUsesSavedProgress() {
         let app = XCUIApplication()
-        app.launchArguments = ["--ui-test-progress-suite=streamlab-home-uitest-\(UUID())"]
+        app.launchArguments = ["--ui-test-progress-suite=streamlab-home-uitest-\(UUID())",
+                               "--ui-test-keep-playback-controls"]
         app.launch()
         choose("adult-a", in: app)
         openHomeDetail(app)
@@ -672,8 +673,27 @@ import XCTest
         XCTAssertTrue(card.waitForExistence(timeout: 10))
         let returnFrame = app.frame
         tap(card, in: app)
-        XCTAssertTrue(app.staticTexts["playback-resumed"].waitForExistence(timeout: 10))
+        guard app.buttons["playback-close"].waitForExistence(timeout: 10) else {
+            print("Continue Watching presentation failure: \(app.debugDescription)")
+            captureFailure(app, name: "Continue Watching did not open playback")
+            XCTFail("Continue Watching card must present the player")
+            return
+        }
+        guard app.staticTexts["playback-resumed"].waitForExistence(timeout: 10) else {
+            print("Continue Watching restore failure: \(app.debugDescription)")
+            captureFailure(app, name: "Continue Watching missing restored progress")
+            XCTFail("Presented player must report restored progress")
+            return
+        }
         expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("일시 정지", in: app)
+        guard let restoredTime = playbackTimes(app), restoredTime.position >= 13,
+              restoredTime.position < restoredTime.duration else {
+            captureFailure(app, name: "Continue Watching incorrect restored position")
+            XCTFail("Continue Watching must resume from the saved position, not zero")
+            return
+        }
         tap(app.buttons["playback-close"], in: app)
         let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.buttons["playback-close"])
         let restored = XCTNSPredicateExpectation(predicate: NSPredicate(format: "frame == %@", NSValue(cgRect: returnFrame)), object: app)

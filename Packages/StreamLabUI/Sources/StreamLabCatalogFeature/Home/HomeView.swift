@@ -169,7 +169,10 @@ import StreamLabDesignSystem
                                 Text("\(Int(item.entry.position))초 / \(Int(item.entry.duration))초 · \(item.source.rawValue)")
                                     .font(.caption).foregroundStyle(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
-                            }.frame(width: 210, alignment: .leading)
+                            }
+                            .frame(width: 210, alignment: .leading)
+                            .contentShape(Rectangle())
+                            .accessibilityElement(children: .ignore)
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("\(item.title.name), \(item.title.rating.rawValue), \(Int(item.entry.position / item.entry.duration * 100))퍼센트 시청, 이어보기")

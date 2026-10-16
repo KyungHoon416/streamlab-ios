@@ -1,5 +1,26 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## 전체 회귀 28개 통과 및 계속 시청 보정 — 2026-10-16 16:32 KST
+
+사용자 environment(8).txt: fb622802 / Xcode 27.0 / Swift 6.4, 로컬 Xcode 설정 변경 존재.
+RESULTS(20261016-073159).txt, ui-tests(20261016-073200).log:
+Fixture/구조/bootstrap/Core/Simulator 빌드/경고 검사 PASS (요약 기준).
+UI 33개: 28 PASS, 4 외부 HLS opt-in SKIP, 1 FAIL, 총 1941.904초.
+나의 리스트 52.001초, 최대 글자 접근성 69.128초, navigation soak 475.553초 PASS.
+SKIP된 HLS 검증과 실기기/수동/성능 검증은 PASS에 포함하지 않는다.
+
+FAIL testHomeContinueWatchingUsesSavedProgress (44.684초), 675행 playback-resumed 미발견.
+카드 탭 후 화면 진입 여부를 구분하는 assertion/계층 출력이 없어 원인 확정 불가.
+계속 시청 카드에도 실제 label layout 기준 contentShape와 접근성 자식 제외를 적용한다.
+기존 카드의 작품명/등급/진도/이어보기 label은 Button에 그대로 유지한다.
+테스트는 기존 테스트 전용 HUD 유지 플래그를 사용하여 자동 숨김을 분리하고,
+화면 진입/복원 안내/실제 재생 위치/회전 복귀/프로필 B 격리를 각각 검사한다.
+제품의 자동 숨김 정책과 별도 자동 숨김 테스트는 변경하지 않는다.
+
+로컬 구조/fixture/shell/diff 검사 PASS. 수정 후 Swift/Xcode/UI NOT TESTED (Linux).
+먼저 scripts/check-home-playback-mac.sh로 실패한 1개만 재검증한다.
+
+
 ## 대상 회귀 3개 통과 — 2026-10-16 15:50 KST
 
 사용자 environment(7).txt: eb9ce50d52810127a3a025554b104b52c8916b55,
