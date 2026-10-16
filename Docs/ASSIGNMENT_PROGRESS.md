@@ -1,5 +1,27 @@
 # 원본 과제 진행 체크리스트 — 2026-10-15
 
+## 자막 대체 검증 PASS · 다음 검증: 실제 HLS 오디오 역할 대체 — 2026-10-16
+
+사용자 RESULTS(20261016-013618): Core/HLS 자막 대체/QoE 수집 PASS.
+근거: Docs/Validation/hls-tracks-20261016/RESULTS.txt. 요약 제공 기준이며 원본 xcresult는 미첨부.
+기존 자막 누락/복원/프로필 격리 테스트와 실제 HLS 자막 선호 유지 테스트가 통과한 결과다.
+
+일반 영어만 제공하는 Apple HLS 소스를 추가했다. 원격 master 조회에서 en 일반 음성만
+선언되고 DVS characteristic이 없음을 확인했다. 기존 DVS 소스는 en-US와 화면 해설을 선언한다.
+manifest 조회는 재생 PASS를 의미하지 않는다. 오디오 행에는 실제 AVFoundation 역할에 따라
+'일반 음성'/'화면 해설'을 표시한다. 저장 및 fallback 로직은 기존 구현을 재사용한다.
+
+새 UI 테스트: DVS 선택 → 일반 영어 소스의 같은 언어/다른 역할 대체 안내와 선택 확인 →
+DVS 소스로 복귀 시 복원 → 앱 재실행 복원 → 새 프로필 B의 기본 오디오 확인.
+실제 native 트랙을 사용하며 목록을 제거하는 주입 플래그는 사용하지 않는다.
+기존 HLS 자막 테스트와 함께 실행한다. Core에는 en-US DVS → en 일반 음성 사례를 추가했다.
+검증 명령: `caffeinate -i bash scripts/check-hls-audio-fallback-mac.sh`.
+
+구조/shell PASS. 새 Core/Xcode/UI 테스트 NOT TESTED.
+자동 검증은 목록/선택/재생 상태를 확인하며 실제 해설 청취 증명은 아니다.
+재생 불가 트랙, 실제 OS 리셋, 실기기 QoE/PiP, 전체 회귀는 NOT TESTED 유지.
+
+
 ## HLS 회차 검증 통과 · 다음 검증: 네이티브 자막 누락 — 2026-10-16
 
 사용자가 제공한 RESULTS(20261016-011640).txt를 근거로 Core/HLS 회차 UI/QoE 수집 PASS.

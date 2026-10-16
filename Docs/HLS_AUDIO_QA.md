@@ -48,3 +48,25 @@ manifest inspection or a selected checkmark as proof of audible output.
   multi-language HLS: NOT TESTED; this sample cannot establish those results.
 - DVS/standard role restoration: implemented; new Core tests and manual HLS restoration NOT TESTED here.
 - Distinguishing multiple commentary tracks of the same language/role: NOT IMPLEMENTED.
+
+## Native role fallback validation — 2026-10-16
+
+The source picker now also offers `HLS 오디오 비교 · 일반 영어만`:
+https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8
+
+On 2026-10-16 the fetched master advertised English (en) across three audio codec
+ groups and no describes-video characteristic. The existing DVS master advertised
+English/English (DVS), en-US, including public.accessibility.describes-video.
+These are live external dependencies; an upstream change or unavailable playable
+option must fail the fixture precondition, not be counted as PASS.
+
+Run `caffeinate -i bash scripts/check-hls-audio-fallback-mac.sh` with internet.
+It executes Core tests plus native HLS role fallback/restoration/profile isolation
+and the prior native missing-subtitle test. Skipped required tests do not pass.
+New Core/Xcode/UI execution: NOT TESTED here; structure/shell checks: PASS.
+
+Listening check: on profile A choose the DVS source and an audio row marked 화면 해설.
+Switch to 일반 영어만 and confirm ordinary sound plus the temporary role-fallback
+notice. Return to the DVS source and confirm both its checkmark and audible narration
+at a known narration interval. Then relaunch and repeat; profile B must retain its
+own setting. UI selection assertions alone do not prove decoded/audible output.

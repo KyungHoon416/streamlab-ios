@@ -478,7 +478,7 @@ import StreamLabDesignSystem
         if !model.audioOptions.isEmpty {
             audioRow(id: "automatic", label: "기본 오디오")
             ForEach(model.audioOptions) { option in
-                audioRow(id: option.id, label: option.label)
+                audioRow(id: option.id, label: option.label + (option.audioRole == .audioDescription ? " · 화면 해설" : " · 일반 음성"))
             }
         }
         if model.audioLoading { ProgressView("오디오 목록을 불러오는 중…") }

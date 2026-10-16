@@ -89,6 +89,14 @@ import StreamLabPresentation
             languages: [], roles: [], defaultIndex: 0) == nil)
     }
 
+    @Test func regionalDVSPreferenceFallsBackToGenericEnglishAndReturnsToDVS() {
+        // The real masters advertise en-US for the DVS sample and en for standard audio.
+        #expect(AudioPreferenceResolver.index(for: .language("en-US"), role: .audioDescription,
+            languages: ["fr", "en"], roles: [.standard, .standard], defaultIndex: 0) == 1)
+        #expect(AudioPreferenceResolver.index(for: .language("en-US"), role: .audioDescription,
+            languages: ["en-US", "en-US"], roles: [.standard, .audioDescription], defaultIndex: 0) == 1)
+    }
+
     @Test func missingRoleDoesNotEraseSavedSelection() throws {
         let name = "audio-role-fallback-\(UUID())"
         let defaults = try #require(UserDefaults(suiteName: name))

@@ -67,6 +67,10 @@ import XCTest
     }
 
     private func openHLSEpisode(_ number: Int, in app: XCUIApplication) {
+        openHLSSource("hls-series-episode-\(number)-v1", in: app)
+    }
+
+    private func openHLSSource(_ sourceID: String, in app: XCUIApplication) {
         tap(app.buttons["playback-source"], in: app)
         let list = app.descendants(matching: .any).matching(identifier: "playback-source-list").firstMatch
         guard list.waitForExistence(timeout: 10) else {
@@ -74,16 +78,23 @@ import XCTest
             XCTFail("Source list must appear before selecting an HLS episode")
             return
         }
-        let episode = app.buttons["source-hls-series-episode-\(number)-v1"]
+        let episode = app.buttons["source-\(sourceID)"]
         // SwiftUI List virtualizes offscreen rows, especially in landscape.
         // Search inside the sheet instead of waiting for a row that has not been materialized.
         for _ in 0..<8 {
             if episode.exists && episode.isHittable { break }
             list.swipeUp()
         }
+        // The sheet may preserve an offset from the previously selected source.
+        if !(episode.exists && episode.isHittable) {
+            for _ in 0..<8 {
+                list.swipeDown()
+                if episode.exists && episode.isHittable { break }
+            }
+        }
         guard episode.exists && episode.isHittable else {
             captureFailure(app, name: "HLS source unreachable after list scroll")
-            XCTFail("HLS episode \(number) must be reachable in the source list")
+            XCTFail("HLS source \(sourceID) must be reachable in the source list")
             return
         }
         episode.tap()
@@ -268,6 +279,90 @@ import XCTest
         tap(app.buttons["playback-next-now"], in: app)
         expectPlayback("재생 중", in: app)
         XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("2화"), "Expected episode 2, actual: \(app.staticTexts["playback-source-label"].label)")
+        closePlayback(app)
+    }
+
+    private func audioRoleRow(_ role: String, in app: XCUIApplication) -> XCUIElement {
+        app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@ AND label CONTAINS %@", "playback-audio-audio-", role)).firstMatch
+    }
+
+    private func expectAudioSelected(_ row: XCUIElement, in app: XCUIApplication, name: String) {
+        let selected = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true AND value == %@", "선택됨"), object: row)
+        guard XCTWaiter.wait(for: [selected], timeout: 30) == .completed else {
+            captureFailure(app, name: name)
+            XCTFail("Expected selected native audio row: \(name)")
+            return
+        }
+        XCTAssertFalse(app.buttons["playback-audio-retry"].exists,
+                       "Audio-list load failure cannot count as successful fallback")
+    }
+
+    func testRealHLSAudioRoleFallbackRestoresDVSAndIsolatesProfiles() throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["STREAMLAB_TEST_REAL_HLS"] == "1",
+                          "Run check-hls-audio-fallback-mac.sh with internet connected")
+        let app = launch(keepPlaybackControls: true)
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        openHLSSource("apple-trailer-audio-v1", in: app)
+        tap(app.buttons["playback-subtitles"], in: app)
+        let dvs = audioRoleRow("화면 해설", in: app)
+        guard dvs.waitForExistence(timeout: 30) else {
+            captureFailure(app, name: "HLS DVS fixture unavailable")
+            XCTFail("The real HLS fixture must expose a playable audio-description track")
+            return
+        }
+        tap(dvs, in: app)
+        expectAudioSelected(dvs, in: app, name: "DVS selection")
+        tap(app.buttons["playback-subtitle-done"], in: app)
+
+        // This other Apple master contains ordinary English but no DVS rendition.
+        // Nothing is removed from AVMediaSelectionGroup by a test launch flag.
+        openHLSSource("apple-bipbop-standard-v1", in: app)
+        tap(app.buttons["playback-subtitles"], in: app)
+        let fallback = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true AND label CONTAINS %@", "저장된 오디오 종류가 없어"),
+            object: app.staticTexts["playback-audio-message"])
+        guard XCTWaiter.wait(for: [fallback], timeout: 30) == .completed else {
+            captureFailure(app, name: "Native HLS audio-role fallback missing")
+            XCTFail("Expected same-language role fallback; inspect track list and external fixture")
+            return
+        }
+        expectAudioSelected(audioRoleRow("일반 음성", in: app), in: app, name: "Standard audio fallback")
+        XCTAssertFalse(audioRoleRow("화면 해설", in: app).exists)
+        tap(app.buttons["playback-subtitle-done"], in: app)
+        expectPlayback("재생 중", in: app)
+
+        openHLSSource("apple-trailer-audio-v1", in: app)
+        tap(app.buttons["playback-subtitles"], in: app)
+        expectAudioSelected(audioRoleRow("화면 해설", in: app), in: app, name: "DVS restored after fallback")
+        tap(app.buttons["playback-subtitle-done"], in: app)
+        closePlayback(app)
+        app.terminate()
+        app.launch() // Same unique defaults suite, so restoration is actually exercised.
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        openHLSSource("apple-trailer-audio-v1", in: app)
+        tap(app.buttons["playback-subtitles"], in: app)
+        expectAudioSelected(audioRoleRow("화면 해설", in: app), in: app, name: "DVS restored after relaunch")
+        tap(app.buttons["playback-subtitle-done"], in: app)
+        closePlayback(app)
+        app.terminate()
+        app.launch()
+        choose("adult-b", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        openHLSSource("apple-trailer-audio-v1", in: app)
+        tap(app.buttons["playback-subtitles"], in: app)
+        expectAudioSelected(app.buttons["playback-audio-automatic"], in: app, name: "Fresh profile default audio")
+        XCTAssertNotEqual(audioRoleRow("화면 해설", in: app).value as? String, "선택됨")
+        tap(app.buttons["playback-subtitle-done"], in: app)
         closePlayback(app)
     }
 
