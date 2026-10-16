@@ -1,5 +1,21 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## HLS 자동 다음 회차 테스트 관측 보강 — 2026-10-16
+
+사용자 RESULTS(20261016-004915): Core PASS, HLS 회차별 진도 복원 PASS,
+자동 다음 회차 FAIL(재생 완료 label 대기 timeout), QoE 수집 PASS.
+로그만으로 실제 종료 실패와 일시적인 UI 상태 미관측을 구분할 수 없다.
+
+테스트를 일시정지 → 종료 10초 전 시킹 → 실제 잔여 1~25초 확인 → 재생으로 변경했다.
+첫 회차는 잠깐 표시되는 종료 label 대신 실제 2화 자동 선택과 재생을 검증한다.
+마지막 회차는 종료 상태와 다음 회차 버튼/카운트다운 부재를 그대로 검증한다.
+DEBUG 전용 인자로 해당 테스트에서만 HUD 자동 숨김을 막는다. 재생 상태, 종료,
+카운트다운, 외부 HLS URL은 조작하지 않는다. 실패 단계별 화면/접근성 트리도 첨부한다.
+
+수정 후 프로젝트 구조 검사 PASS. Swift 컴파일/Xcode/HLS UI 재실행은 NOT TESTED.
+`caffeinate -i bash scripts/check-hls-episodes-mac.sh`로 재검증한다.
+
+
 ## HLS 테스트 소스 목록 스크롤 수정 — 2026-10-16
 
 사용자 RESULTS(20261016-003040): Core PASS, HLS UI 2개 FAIL(exit65).

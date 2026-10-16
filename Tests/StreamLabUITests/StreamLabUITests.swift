@@ -97,37 +97,93 @@ import XCTest
         }
     }
 
-    private func finishHLSEpisode(_ app: XCUIApplication) {
-        let reveal = app.buttons["playback-reveal-controls"]
-        if reveal.exists && reveal.isHittable { reveal.tap() }
+    private func playbackTimes(_ app: XCUIApplication) -> (position: Double, duration: Double)? {
+        let parts = app.staticTexts["playback-time"].label.split(separator: "/")
+        guard parts.count == 2 else { return nil }
+        func seconds(_ text: Substring) -> Double? {
+            let fields = text.trimmingCharacters(in: .whitespaces).split(separator: ":")
+            guard (2...3).contains(fields.count) else { return nil }
+            let values = fields.compactMap { Double($0) }
+            guard values.count == fields.count else { return nil }
+            return values.reduce(0) { $0 * 60 + $1 }
+        }
+        guard let position = seconds(parts[0]), let duration = seconds(parts[1]), duration > 0 else { return nil }
+        return (position, duration)
+    }
+
+    private func playLastSecondsOfHLSEpisode(_ app: XCUIApplication) {
+        // Seek while paused so the position can be verified before the end/countdown.
+        // A normalized slider target alone does not prove where AVPlayer actually landed.
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("일시 정지", in: app)
+        guard let before = playbackTimes(app), before.duration > 20 else {
+            captureFailure(app, name: "HLS duration unavailable")
+            XCTFail("Expected a finite HLS duration greater than 20 seconds")
+            return
+        }
         let slider = app.sliders["playback-position"]
         XCTAssertTrue(slider.waitForExistence(timeout: 10))
-        slider.adjust(toNormalizedSliderPosition: 1)
-        let ended = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "재생 완료"),
-                                              object: app.staticTexts["playback-status"])
-        XCTAssertEqual(XCTWaiter.wait(for: [ended], timeout: 45), .completed)
+        slider.adjust(toNormalizedSliderPosition: CGFloat((before.duration - 10) / before.duration))
+        let settled = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == %@", "재생 위치 확인됨"),
+            object: app.staticTexts["playback-time"])
+        guard XCTWaiter.wait(for: [settled], timeout: 15) == .completed,
+              let after = playbackTimes(app),
+              after.duration - after.position > 0,
+              after.duration - after.position <= 25 else {
+            captureFailure(app, name: "HLS end seek did not land near end")
+            XCTFail("Expected 1–25 seconds remaining after seek; actual: \(app.staticTexts["playback-time"].label)")
+            return
+        }
+        expectPlayback("일시 정지", in: app)
+        tap(app.buttons["playback-toggle"], in: app)
+        // Let the real HLS item reach its end naturally; do not inject an ended state.
     }
 
     func testRealHLSEpisodesAutoAdvanceAndFinalStop() throws {
         try XCTSkipUnless(ProcessInfo.processInfo.environment["STREAMLAB_TEST_REAL_HLS"] == "1",
                           "External HLS integration is opt-in; run check-hls-episodes-mac.sh")
-        let app = launch()
+        let app = launch(keepPlaybackControls: true)
         choose("adult-a", in: app)
         openHomeDetail(app)
         openPlayback(app)
         expectPlayback("재생 중", in: app)
         openHLSEpisode(1, in: app)
-        finishHLSEpisode(app)
+        playLastSecondsOfHLSEpisode(app)
+        // Assert the automatic transition itself, not the transient ended label
+        // that disappears when the five-second countdown completes.
         let second = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "label CONTAINS %@", "HLS 테스트 시즌 · 2화"),
             object: app.staticTexts["playback-source-label"])
-        XCTAssertEqual(XCTWaiter.wait(for: [second], timeout: 45), .completed)
+        guard XCTWaiter.wait(for: [second], timeout: 45) == .completed else {
+            captureFailure(app, name: "HLS automatic episode transition failed")
+            XCTFail("Episode 1 must automatically advance to episode 2 after natural end")
+            return
+        }
         let playing = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "재생 중"),
                                                 object: app.staticTexts["playback-status"])
-        XCTAssertEqual(XCTWaiter.wait(for: [playing], timeout: 45), .completed)
-        finishHLSEpisode(app)
+        guard XCTWaiter.wait(for: [playing], timeout: 45) == .completed else {
+            captureFailure(app, name: "HLS second episode did not play")
+            XCTFail("Automatically selected episode 2 must actually play")
+            return
+        }
+        playLastSecondsOfHLSEpisode(app)
+        let ended = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "재생 완료"),
+                                              object: app.staticTexts["playback-status"])
+        guard XCTWaiter.wait(for: [ended], timeout: 45) == .completed else {
+            captureFailure(app, name: "HLS final episode did not end")
+            XCTFail("The final HLS episode must reach the ended state")
+            return
+        }
+        let staysEnded = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "label != %@", "재생 완료"),
+            object: app.staticTexts["playback-status"])
+        staysEnded.isInverted = true
+        XCTAssertEqual(XCTWaiter.wait(for: [staysEnded], timeout: 6), .completed,
+                       "Final episode must remain ended beyond the auto-advance countdown")
         XCTAssertFalse(app.buttons["playback-next-now"].exists)
         XCTAssertFalse(app.staticTexts["playback-next-countdown"].exists)
+        XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("HLS 테스트 시즌 · 2화"))
         closePlayback(app)
     }
 
@@ -477,11 +533,12 @@ import XCTest
         XCTAssertFalse(card.exists)
     }
 
-    private func launch(largeText: Bool = false, slow: Bool = false) -> XCUIApplication {
+    private func launch(largeText: Bool = false, slow: Bool = false, keepPlaybackControls: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments.append("--ui-test-progress-suite=streamlab-uitest-\(UUID())")
         if largeText { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
         if slow { app.launchArguments.append("--ui-test-slow-catalog") }
+        if keepPlaybackControls { app.launchArguments.append("--ui-test-keep-playback-controls") }
         app.launchArguments.append("--ui-test-disable-resume")
         app.launch()
         return app

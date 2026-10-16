@@ -169,7 +169,12 @@ import StreamLabDesignSystem
     }
 
     private var mayHide: Bool {
-        model.status == .playing && !model.isSeeking && !scrubbing && !interactingWithControls && !sourceSheet && !subtitleSheet
+        #if DEBUG
+        // Keep real playback state observable during the opt-in HLS end-to-end test.
+        // This changes only HUD visibility, never player state or episode timing.
+        if ProcessInfo.processInfo.arguments.contains("--ui-test-keep-playback-controls") { return false }
+        #endif
+        return model.status == .playing && !model.isSeeking && !scrubbing && !interactingWithControls && !sourceSheet && !subtitleSheet
             && !voiceOver && !textSize.isAccessibilitySize && phase == .active
     }
 
