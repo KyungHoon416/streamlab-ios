@@ -1088,6 +1088,33 @@ import XCTest
         closePlayback(app)
     }
 
+    private func selectHomeCategory(_ name: String, in app: XCUIApplication) {
+        let button = app.buttons["home-category-\(name)"]
+        let picker = app.scrollViews["home-category-scroll"]
+        guard picker.waitForExistence(timeout: 5), button.waitForExistence(timeout: 5) else {
+            captureFailure(app, name: "Home category picker missing")
+            XCTFail("Category picker and requested button must exist")
+            return
+        }
+        // A partially clipped chip can be hittable without its center being visible.
+        // Reveal it in the horizontal picker, never by scrolling the whole screen.
+        for _ in 0..<4 {
+            let viewport = picker.frame.intersection(app.frame)
+            let frame = button.frame
+            if viewport.contains(CGPoint(x: frame.midX, y: frame.midY)) && button.isHittable { break }
+            if frame.midX < viewport.minX { picker.swipeRight() }
+            else if frame.midX > viewport.maxX { picker.swipeLeft() }
+            else { break }
+        }
+        guard button.isHittable,
+              picker.frame.intersection(app.frame).contains(CGPoint(x: button.frame.midX, y: button.frame.midY)) else {
+            captureFailure(app, name: "Home category outside picker viewport")
+            XCTFail("Category button must be visible inside its picker")
+            return
+        }
+        button.tap()
+    }
+
     func testMyListPersistsAndIsolatesProfiles() {
         let app = launch()
         choose("adult-a", in: app)
@@ -1115,7 +1142,7 @@ import XCTest
         app.launch()
         choose("adult-a", in: app)
         XCTAssertEqual(saved.value as? String, "추가됨")
-        tap(app.buttons["home-category-나의 리스트"], in: app)
+        selectHomeCategory("나의 리스트", in: app)
         let savedCategory = app.buttons["home-category-나의 리스트"]
         let savedSelected = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "isSelected == true"), object: savedCategory)
@@ -1134,11 +1161,12 @@ import XCTest
             XCTFail("Saved content must appear after My List category is selected")
             return
         }
-        tap(app.buttons["home-category-추천"], in: app)
+        selectHomeCategory("추천", in: app)
         let recommended = app.buttons["home-category-추천"]
         let selected = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "isSelected == true"), object: recommended)
         guard XCTWaiter.wait(for: [selected], timeout: 5) == .completed else {
+            print("Recommendations selection failure: \(app.debugDescription)")
             captureFailure(app, name: "Recommendations category not selected")
             XCTFail("Recommendations must be selected after leaving My List")
             return

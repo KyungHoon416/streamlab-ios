@@ -200,6 +200,8 @@ import StreamLabDesignSystem
                             .frame(minHeight: 44, alignment: .leading)
                             .background(category == value ? StreamLabTheme.accent : StreamLabTheme.surface,
                                         in: RoundedRectangle(cornerRadius: 22))
+                            // Plain buttons must hit-test the padded chip, including its empty area.
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityAddTraits(category == value ? [.isSelected] : [])
@@ -208,6 +210,7 @@ import StreamLabDesignSystem
             }
             .containerRelativeFrame(.horizontal, alignment: .leading)
         }
+        .accessibilityIdentifier("home-category-scroll")
         .scrollDisabled(textSize.isAccessibilitySize)
         .scrollIndicators(.hidden)
         .padding(.horizontal, 20)

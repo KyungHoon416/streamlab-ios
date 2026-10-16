@@ -1,5 +1,33 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## 작업 재개 및 카테고리 탭 보정 — 2026-10-16
+
+기준 HEAD: ee4c30c. 새로 개발하지 않고 기존 구현과 첨부 과제, 최신 로그를 대조했다.
+ADR-0006의 사용자 요청에 따라 현재 앱은 SwiftUI이며 과거 대화 제목에 맞춰
+UIKit/Storyboard로 되돌리지 않는다. Core, UI 스타일, 저장 데이터는 유지한다.
+
+최신 입력 RESULTS(20261016-053954)(2).txt / ui-tests(20261016-053954)(2).log:
+- Core PASS (제공된 요약 기준; 이번 환경에서 재실행한 결과가 아님).
+- 자막 누락/복원/프로필 격리 PASS (100.052초).
+- 최대 글자 플레이어 PASS (32.272초).
+- 나의 리스트 FAIL (51.658초): 1143행 추천 선택 확인. 저장 목록 선택과 카드 조회는 통과.
+- QoE 수집 PASS 및 관측된 전이 거부 없음. 성능 목표 충족의 근거는 아니다.
+
+추천 버튼 tap 이벤트 이후 isSelected 대기가 실패했다. 첨부 xcresult 화면/계층은
+없어 실제 히트 영역 문제와 SwiftUI 상태/접근성 갱신 문제 중 원인을 확정할 수 없다.
+Plain 카테고리 버튼의 패딩 전체에 contentShape를 지정했다. UI 테스트는 카테고리
+ScrollView 안에서 버튼 중앙이 보이도록 가로 스크롤하고 탭한다. 기존 선택 상태,
+저장 카드, 프로필 격리, 재실행 복원 assertion과 제한시간은 유지한다.
+추천 선택 실패 시 계층을 텍스트 로그에도 남긴다. 무조건 성공 처리나 재탭은 하지 않는다.
+
+이번 검증 PASS: validate-project.py, validate-fixtures.py (2,000개), 대상 shell 구문,
+git diff --check. 현재 Linux에 Swift/Xcode가 없어 Swift 컴파일/Core/UI 재실행은 NOT TESTED.
+수정 효과는 Mac 재실행 전까지 미확인이다.
+
+재검증: `caffeinate -i bash scripts/check-regression-fixes-mac.sh`.
+세 항목 통과 후 `caffeinate -i bash scripts/verify-mac.sh`로 전체 회귀한다.
+
+
 ## 나의 리스트 전환 대기 검증 — 2026-10-16 14:23 KST
 
 사용자 RESULTS(20261016-052259), ui-tests(20261016-052300): Core PASS,
