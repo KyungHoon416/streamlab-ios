@@ -1,5 +1,27 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 진도 충돌·재시작 검증 통과 — 2026-10-17
+
+사용자 core/ui-tests(20261016-233227), environment/RESULTS(20261016-233226) 대조.
+실행 HEAD 097217c970513497f9ff4b4721c23bfcf6d1773a.
+Xcode 27.0 (27A266a), Swift 6.4, arm64 Mac/iPhone Simulator.
+프로젝트/Memory 스킴 로컬 변경 및 별도 프로젝트 폴더가 있는 작업 트리에서 실행했다.
+
+- Core 115 PASS: XCTest 15 + Presentation Swift Testing 93 + Catalog 7.
+  Fixture MainActor 컴파일 오류 해소. Core 로그 error/warning 없음.
+- 새 B2 진도 충돌 6개 전부 PASS: 과거 checkpoint 차단, 오프라인 restart와 후속 진도
+  재실행/충돌 복원, 0초 checkpoint 구분, ACK 유실 효과 1회, 반복 409 상한/큐 보존,
+  기존 envelope 디코딩 호환.
+- UI 4 PASS/0 FAIL, TEST SUCCEEDED, 총 238.894초.
+  홈 이어보기 53.218초, 찜 52.555초, 재생 재실행/처음부터 보기 66.054초,
+  Mock 오프라인 재생 복원 67.067초.
+- 이전 108분 UI 지연과 idle notification 미수신 문구는 이번 실행에서 재현되지 않았다.
+  환경/앱 중 원인을 확정하거나 지연 문제 해결로 단정하지 않는다.
+
+진도 충돌과 재시작 의도 보존은 Core 테스트, 앱 연결은 해당 UI 회귀 결과로 구분한다.
+실제 네트워크 복구, 전원 유실, 두 기기 충돌 UI, 최근 검색 충돌, 전체 회귀는 미검증.
+이번 변경은 결과 기록만 추가했으며 앱 코드는 변경하지 않았다.
+
 ## 진도 충돌 테스트 Fixture actor 격리 수정 — 2026-10-17
 
 사용자가 첨부한 붙여넣은 마크다운(3).md의 실행 로그 확인:
