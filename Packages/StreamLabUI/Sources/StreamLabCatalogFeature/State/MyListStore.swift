@@ -92,7 +92,10 @@ import StreamLabCatalogData
                     throw URLError(.notConnectedToInternet)
                 }
                 #endif
-                try await queue.flush(using: RetryingMutationTransport(base: Self.transport()))
+                let server = try Self.transport()
+                try await queue.flush(using: RetryingMutationTransport(base: server), serverWins: server)
+                guard let self, self.active else { return }
+                self.items = try self.read()
             } catch {
                 // Local save already succeeded. Retain requests for the next refresh,
                 // change, or session launch after the bounded retry budget is exhausted.

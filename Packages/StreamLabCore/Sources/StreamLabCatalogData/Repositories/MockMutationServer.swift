@@ -2,7 +2,7 @@ import Foundation
 import StreamLabDomain
 
 /// Local mock transport, not a network backend. Optional disk state preserves receipts across relaunch.
-public actor MockMutationServer: MutationTransport {
+public actor MockMutationServer: MutationTransport, MutationSnapshotSource {
     private struct Device: Codable, Hashable { let scope: MutationScope; let id: UUID }
     private struct Receipt: Codable { let mutation: DurableMutation; let revision: UInt64 }
     private struct State: Codable {
@@ -77,6 +77,11 @@ public actor MockMutationServer: MutationTransport {
                                                    withIntermediateDirectories: true)
             try JSONEncoder().encode(updated).write(to: storageURL, options: .atomic)
         }
+    }
+
+    public func snapshot(for scope: MutationScope) -> MutationSnapshot {
+        MutationSnapshot(scope: scope, revision: state.revisions[scope, default: 0],
+                         values: state.records[scope, default: [:]])
     }
 
     public func values(for scope: MutationScope) -> [String: Data] { state.records[scope, default: [:]] }

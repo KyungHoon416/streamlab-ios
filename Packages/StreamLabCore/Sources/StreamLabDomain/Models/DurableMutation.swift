@@ -41,3 +41,19 @@ public protocol MutationTransport: Sendable {
     /// Return the committed revision; throw on conflict/offline/auth/rate limit.
     func send(_ mutation: DurableMutation) async throws -> UInt64
 }
+
+/// Revision and values are read atomically for exactly one account/profile.
+public struct MutationSnapshot: Sendable {
+    public let scope: MutationScope
+    public let revision: UInt64
+    public let values: [String: Data]
+    public init(scope: MutationScope, revision: UInt64, values: [String: Data]) {
+        self.scope = scope
+        self.revision = revision
+        self.values = values
+    }
+}
+
+public protocol MutationSnapshotSource: Sendable {
+    func snapshot(for scope: MutationScope) async throws -> MutationSnapshot
+}

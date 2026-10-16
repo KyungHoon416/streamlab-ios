@@ -99,7 +99,8 @@ import StreamLabDomain
 
     /// FIFO, single-flight. Failures/cancellation retain the exact request for retry.
     /// Conflict policy and scheduling/backoff are deliberately owned by the caller.
-    public func flush(using transport: any MutationTransport) async throws {
+    public func flush(using transport: any MutationTransport,
+                      serverWins snapshots: (any MutationSnapshotSource)? = nil) async throws {
         guard active else { throw MutationQueueError.inactive }
         guard !flushing else { return }
         flushing = true
@@ -107,8 +108,22 @@ import StreamLabDomain
         while active {
             try Task.checkCancellation()
             try refresh()
-            guard let head = journal.pending.first else { return }
-            let revision = try await transport.send(head)
+            guard let head = journal.pending.first else {
+                if let snapshots { try await adoptServerSnapshot(from: snapshots) }
+                return
+            }
+            let attemptedSequence = journal.nextSequence
+            let revision: UInt64
+            do {
+                revision = try await transport.send(head)
+            } catch MutationQueueError.conflict(let currentRevision) {
+                guard let snapshots else { throw MutationQueueError.conflict(currentRevision: currentRevision) }
+                guard try read().nextSequence == attemptedSequence else {
+                    throw MutationQueueError.invalidReceipt
+                }
+                try await adoptServerSnapshot(from: snapshots, minimumRevision: currentRevision)
+                return // Server wins the rejected batch; never automatically resubmit stale intent.
+            }
             try Task.checkCancellation()
             guard active else { throw MutationQueueError.inactive }
             var next = try read()
@@ -119,6 +134,28 @@ import StreamLabDomain
             try persist(next)
             journal = next
         }
+    }
+
+    /// Opt-in whole-profile server-wins policy, used by My List only.
+    /// New local edits made during the fetch must survive; caller can retry reconciliation.
+    private func adoptServerSnapshot(from source: any MutationSnapshotSource,
+                                     minimumRevision: UInt64 = 0) async throws {
+        try Task.checkCancellation()
+        guard active else { throw MutationQueueError.inactive }
+        let before = try read()
+        let snapshot = try await source.snapshot(for: scope)
+        try Task.checkCancellation()
+        guard active else { throw MutationQueueError.inactive }
+        var next = try read()
+        guard snapshot.scope == scope, snapshot.revision >= minimumRevision,
+              snapshot.revision >= next.revision,
+              next.nextSequence == before.nextSequence, next.pending == before.pending,
+              next.revision == before.revision else { throw MutationQueueError.invalidReceipt }
+        next.values = snapshot.values
+        next.revision = snapshot.revision
+        next.pending = []
+        try persist(next) // Projection + rejection of stale batch commit together.
+        journal = next
     }
 
     /// Profile switch retains queued work; a late response cannot acknowledge it.

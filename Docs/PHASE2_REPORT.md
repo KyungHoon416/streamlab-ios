@@ -1,5 +1,34 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 409 첫 단계 — 찜 서버 우선 수렴 — 2026-10-16
+
+찜에 명시적인 whole-profile server-wins 규칙을 적용했다. 서버가 먼저 수락한
+버전을 유지하고, 409가 발생한 오래된 로컬 배치를 서버 snapshot으로 교체한다.
+자동 rebase/재전송으로 오래된 찜 설정을 되살리지 않는다. 다음 명시적 사용자 변경은
+수신한 revision을 기준으로 새 mutation을 만든다. 진도/검색은 이 정책에 opt-in하지 않는다.
+
+MockMutationServer의 snapshot은 scope/revision/values를 같은 actor 시점에서 읽는다.
+DurableMutationStore는 기존 flush의 single-flight 안에서 snapshot을 받으며,
+서버 우선 처리는 선택 인자다. pending이 비어 있어도 최신 snapshot을 받아 수렴한다.
+요청 중 또는 snapshot 대기 중 새 로컬 변경이 있으면 교체를 거부하고 큐를 보존한다.
+다음 refresh/변경/세션 시작에서 재시도할 수 있다. 잘못된 scope/역행 revision/취소/
+무효 세션은 반영하지 않는다. snapshot과 pending 제거는 한 journal 교체로 커밋한다.
+찜의 게시 목록은 성공한 동기화 후 다시 읽어 optimistic 상태를 조정한다.
+
+Core 테스트 6개: A/B 경쟁→수렴→재실행→새 의도 반영, snapshot 중 새 편집,
+로그아웃 중 늦은 snapshot, 다른 scope/과거 revision, opt-in 없는 기존 충돌 보존,
+send 중 추가 편집 후 409. 기존 코드/UI 레이아웃과 요청 envelope는 유지했다.
+로컬 PASS: 구조 검사, 2,000 fixture, shell 문법, diff 공백.
+NOT TESTED: 이번 Swift 컴파일/Core/iOS 실행 (Apple toolchain 없음).
+Mac: `caffeinate -i bash scripts/check-mutation-conflict-mac.sh`
+전체 Core에서 새 suite 완료를 확인한 뒤 기존 로그아웃/찜 UI 3개를 실행한다.
+UI 테스트 3개 자체는 두 기기 409 주입 테스트가 아니며 충돌 경쟁은 Core에서 검증한다.
+
+제한: 찜 전체 snapshot 단위로 서버가 이기므로 같은 배치의 비충돌 항목도 서버 상태를
+따른다. 항목별 intent 병합은 아직 아니다. 진도 restart semantics와 최근 검색 충돌,
+실제 HTTP snapshot/409 adapter, 자동 온라인 감지, 1,000회 seeded chaos는 남아 있다.
+B2 전체 완료로 처리하지 않는다.
+
 ## B2 재시도 및 UI 회귀 검증 통과 — 2026-10-16
 
 사용자 core/environment/RESULTS/ui-tests(20261016-112319) 네 파일을 대조했다.
