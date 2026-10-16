@@ -23,6 +23,7 @@ import StreamLabDomain
     private let durable: Bool
     private var queue: DurableMutationStore?
     private var active = true
+    public private(set) var requiresReload = false
     public private(set) var persistenceError: String?
     public var onMutation: (@MainActor () -> Void)?
     public var pendingMutations: [DurableMutation] { queue?.pending ?? [] }
@@ -88,9 +89,31 @@ import StreamLabDomain
         }
     }
 
-    public func flush(using transport: any MutationTransport) async throws {
+    public func flush(using transport: any MutationTransport,
+                      snapshots: (any MutationSnapshotSource)? = nil) async throws {
         guard active, let queue else { throw MutationQueueError.inactive }
-        try await queue.flush(using: transport)
+        let before = queue.reconciliationCount
+        defer {
+            if active, queue.reconciliationCount != before {
+                requiresReload = true
+                persistenceError = "다른 기기의 진도가 반영되었습니다. 프로필을 다시 선택하거나 처음부터 보기를 선택해 주세요."
+            }
+        }
+        try await queue.flush(using: transport, serverWins: snapshots, preservePlaybackRestarts: true)
+    }
+
+    /// Explicit action survives offline relaunch and cannot be confused with a zero checkpoint.
+    public func restart(titleID: String, sourceID: String) {
+        guard active else { return }
+        do {
+            if durable {
+                guard let queue else { throw MutationQueueError.inactive }
+                try queue.set(nil, forKey: key(titleID: titleID, sourceID: sourceID), intent: .restartPlayback)
+            } else { defaults.removeObject(forKey: key(titleID: titleID, sourceID: sourceID)) }
+            requiresReload = false
+            persistenceError = nil
+            onMutation?()
+        } catch { persistenceError = "처음부터 보기 상태를 저장하지 못했습니다. 다시 시도해 주세요." }
     }
 
     public func invalidate() {
@@ -147,6 +170,7 @@ import StreamLabDomain
     }
 
     public func save(titleID: String, sourceID: String, position: Double, duration: Double) {
+        guard !requiresReload else { return }
         guard active, position.isFinite, duration.isFinite, duration > 0, position >= 0 else { return }
         let key = key(titleID: titleID, sourceID: sourceID)
         do {

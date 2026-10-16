@@ -40,7 +40,8 @@ import StreamLabCatalogData
                     throw URLError(.notConnectedToInternet)
                 }
                 #endif
-                try await progress.flush(using: RetryingMutationTransport(base: Self.progressTransport()))
+                let server = try Self.progressTransport()
+                try await progress.flush(using: RetryingMutationTransport(base: server), snapshots: server)
             } catch {
                 // Preserve the request for the next checkpoint/session launch.
                 // Retry budget exhausted or terminal error; conflict resolution is still pending.

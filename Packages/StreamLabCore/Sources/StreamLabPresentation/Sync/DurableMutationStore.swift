@@ -24,6 +24,7 @@ import StreamLabDomain
     private var journal: Journal
     private var active = true
     private var flushing = false
+    public private(set) var reconciliationCount = 0
 
     public static func defaultDirectory() throws -> URL {
         try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
@@ -85,14 +86,14 @@ import StreamLabDomain
         journal = try read()
     }
 
-    public func set(_ value: Data?, forKey key: String) throws {
+    public func set(_ value: Data?, forKey key: String, intent: MutationIntent? = nil) throws {
         guard active else { throw MutationQueueError.inactive }
         var next = try read()
         guard next.nextSequence < UInt64.max,
               next.revision < UInt64.max - UInt64(next.pending.count) else {
             throw MutationQueueError.exhausted
         }
-        Self.append(key: key, value: value, to: &next)
+        Self.append(key: key, value: value, intent: intent, to: &next)
         try persist(next)
         journal = next // Publish only after the atomic replacement succeeds.
     }
@@ -100,11 +101,13 @@ import StreamLabDomain
     /// FIFO, single-flight. Failures/cancellation retain the exact request for retry.
     /// Conflict policy and scheduling/backoff are deliberately owned by the caller.
     public func flush(using transport: any MutationTransport,
-                      serverWins snapshots: (any MutationSnapshotSource)? = nil) async throws {
+                      serverWins snapshots: (any MutationSnapshotSource)? = nil,
+                      preservePlaybackRestarts: Bool = false) async throws {
         guard active else { throw MutationQueueError.inactive }
         guard !flushing else { return }
         flushing = true
         defer { flushing = false }
+        var conflicts = 0
         while active {
             try Task.checkCancellation()
             try refresh()
@@ -121,8 +124,12 @@ import StreamLabDomain
                 guard try read().nextSequence == attemptedSequence else {
                     throw MutationQueueError.invalidReceipt
                 }
-                try await adoptServerSnapshot(from: snapshots, minimumRevision: currentRevision)
-                return // Server wins the rejected batch; never automatically resubmit stale intent.
+                guard conflicts < 3 else { throw MutationQueueError.conflict(currentRevision: currentRevision) }
+                try await adoptServerSnapshot(from: snapshots, minimumRevision: currentRevision,
+                                              preserveRestarts: preservePlaybackRestarts)
+                conflicts += 1
+                if preservePlaybackRestarts, !journal.pending.isEmpty { continue }
+                return
             }
             try Task.checkCancellation()
             guard active else { throw MutationQueueError.inactive }
@@ -136,10 +143,10 @@ import StreamLabDomain
         }
     }
 
-    /// Opt-in whole-profile server-wins policy, used by My List only.
+    /// Opt-in server snapshot reconciliation, with explicit progress restart preservation.
     /// New local edits made during the fetch must survive; caller can retry reconciliation.
     private func adoptServerSnapshot(from source: any MutationSnapshotSource,
-                                     minimumRevision: UInt64 = 0) async throws {
+                                     minimumRevision: UInt64 = 0, preserveRestarts: Bool = false) async throws {
         try Task.checkCancellation()
         guard active else { throw MutationQueueError.inactive }
         let before = try read()
@@ -151,11 +158,33 @@ import StreamLabDomain
               snapshot.revision >= next.revision,
               next.nextSequence == before.nextSequence, next.pending == before.pending,
               next.revision == before.revision else { throw MutationQueueError.invalidReceipt }
+        // Preserve only the last explicit restart per key and its subsequent local events.
+        // A conflict definitively rejects the old head; new envelopes receive new IDs/sequences.
+        var restartOffsets: [String: Int] = [:]
+        if preserveRestarts {
+            for (index, item) in next.pending.enumerated() where item.intent == .restartPlayback {
+                restartOffsets[item.key] = index
+            }
+        }
+        let retained = next.pending.enumerated().compactMap { index, item -> DurableMutation? in
+            guard let start = restartOffsets[item.key], index >= start else { return nil }
+            return item
+        }
+        guard UInt64(retained.count) < UInt64.max - next.nextSequence,
+              snapshot.revision <= UInt64.max - UInt64(retained.count) else {
+            throw MutationQueueError.exhausted
+        }
         next.values = snapshot.values
         next.revision = snapshot.revision
         next.pending = []
+        for item in retained {
+            Self.append(key: item.key, value: item.value, intent: item.intent, to: &next)
+        }
         try persist(next) // Projection + rejection of stale batch commit together.
         journal = next
+        if retained.isEmpty, before.values != snapshot.values || before.revision != snapshot.revision {
+            reconciliationCount += 1
+        }
     }
 
     /// Profile switch retains queued work; a late response cannot acknowledge it.
@@ -170,10 +199,10 @@ import StreamLabDomain
         journal = Journal(scope: scope, deviceID: UUID())
     }
 
-    private static func append(key: String, value: Data?, to next: inout Journal) {
+    private static func append(key: String, value: Data?, intent: MutationIntent? = nil, to next: inout Journal) {
         next.pending.append(DurableMutation(id: UUID(), scope: next.scope, deviceID: next.deviceID,
             sequence: next.nextSequence, baseRevision: next.revision + UInt64(next.pending.count),
-            key: key, value: value))
+            key: key, value: value, intent: intent))
         next.nextSequence += 1
         next.values[key] = value
     }

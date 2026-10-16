@@ -1,5 +1,38 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 진도 충돌 및 명시적 오프라인 재시작 — 2026-10-17
+
+DurableMutation에 optional restartPlayback intent를 추가했다. 기존 journal/receipt는
+intent 없이 디코딩되며 기존 mutation ID/필드가 변하지 않는다. 일반 0초 checkpoint나
+완료 tombstone은 명시적 재시작과 구분한다. 실제 플레이어의 처음부터 보기 버튼은
+seek 전에 restart를 영속 저장하며 저장 실패 시 seek하지 않고 기존 오류 문구로 알린다.
+
+진도 동기화에 snapshot/409 처리를 연결했다. 일반 과거 checkpoint 배치는 서버 우선으로
+조정한다. 충돌 배치에 명시적 restart가 있으면 key별 마지막 restart 및 그 이후의
+로컬 이벤트만 보존하고 서버 revision 위에 새 ID/sequence로 원자적으로 재구성한다.
+기존 요청은 수정하지 않는다. 409로 거절된 요청만 재구성하며 ACK 유실은 같은 요청을
+재전송한다. 재구성 후 앱 종료에도 새 queue가 유지된다. 한 flush에서 충돌 조정은
+최대 3회이며 추가 충돌은 pending을 보존한 채 종료한다.
+
+서버 상태로 교체된 현재 세션은 requiresReload로 checkpoint 저장을 차단하여 기존
+플레이어 위치가 다시 서버를 덮지 않게 한다. 프로필 재선택(새 세션) 또는 명시적
+처음부터 보기로 재개한다. 로컬 restart 이후의 진도를 보존해 재구성한 경우에는
+동일 로컬 재생 흐름을 유지한다. 기기 시간이나 max(position)으로 순서를 결정하지 않는다.
+앱 레이아웃은 유지하며 진도 저장/재시작 경로와 동기화 연결만 변경했다.
+
+Core 테스트 6개 추가: 오래된 진도 거절/후속 저장 차단, 오프라인 restart→후속 진도→
+재실행→충돌 복구, 0초 checkpoint와 restart 구분, restart ACK 유실, 반복 409 상한과
+디스크 보존, 구형 envelope 호환. 기존 snapshot 편집/로그아웃 race 테스트도 유지한다.
+로컬 PASS: 구조, 2,000 fixture, shell 문법, diff 공백.
+NOT TESTED: Swift 컴파일/Core/iOS 실행 (현재 호스트에 Apple toolchain 없음).
+Mac: `caffeinate -i bash scripts/check-progress-conflict-mac.sh`
+전체 Core 및 재생 복원/restart, offline, 홈 이어보기, 찜 UI 회귀 4개를 실행한다.
+UI 회귀는 두 기기 409 주입 시연을 대체하지 않는다.
+
+남은 범위: 최근 검색 충돌, 찜 항목별 병합, 실제 HTTP/온라인 복귀, seeded chaos,
+UI 실행 지연 원인/전체 회귀/실기기 성능. 명시적 restart는 재연결 시점에 서버 위에
+적용하는 정책이며 기기 간 실제 사용자 동작 시각의 선후를 추정하지 않는다.
+
 ## B2 찜 충돌 처리 검증 통과 및 UI 지연 관측 — 2026-10-17
 
 사용자 core/environment/RESULTS/ui-tests(20261016-153837) 네 파일 대조.

@@ -9,6 +9,9 @@ public struct MutationScope: Codable, Hashable, Sendable {
     }
 }
 
+/// Explicit user action, distinct from an ordinary checkpoint/tombstone.
+public enum MutationIntent: String, Codable, Sendable { case restartPlayback }
+
 /// An immutable retry envelope. Retries must reuse every field, including the ID.
 public struct DurableMutation: Codable, Equatable, Sendable {
     public let id: UUID
@@ -18,9 +21,10 @@ public struct DurableMutation: Codable, Equatable, Sendable {
     public let baseRevision: UInt64
     public let key: String
     public let value: Data?
+    public let intent: MutationIntent?
 
     public init(id: UUID, scope: MutationScope, deviceID: UUID, sequence: UInt64,
-                baseRevision: UInt64, key: String, value: Data?) {
+                baseRevision: UInt64, key: String, value: Data?, intent: MutationIntent? = nil) {
         self.id = id
         self.scope = scope
         self.deviceID = deviceID
@@ -28,6 +32,7 @@ public struct DurableMutation: Codable, Equatable, Sendable {
         self.baseRevision = baseRevision
         self.key = key
         self.value = value
+        self.intent = intent
     }
 }
 

@@ -618,6 +618,11 @@ import StreamLabPresentation
     func restartFromBeginning() {
         guard canSeek, !syncRestartPending else { return }
         guard let syncedProgress else {
+            session.progress.restart(titleID: titleID, sourceID: source.progressID)
+            if let error = session.progress.persistenceError {
+                syncMessage = error
+                return
+            }
             resumeMessage = ""
             seek(to: 0)
             return
