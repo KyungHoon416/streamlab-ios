@@ -1,5 +1,19 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## 실기기 첫 프레임 측정 및 보고서 도구 — 2026-10-16
+
+attempt_started/summary에 동일 attempt UUID와 source ID를 기록해 로컬/HLS 시도를 분리한다.
+측정 정의는 기존 load 시작 → first-frame-ready 관측이며 실제 디스플레이 시각은 아니다.
+Docs/TTFF_QA.md에 실기기 20회 절차, Docs/TTFF_REPORT_TEMPLATE.md에 미측정 보고서 양식을 추가했다.
+scripts/summarize-ttff.py는 source별 원본 로그를 samples.csv/REPORT.md로 변환하고 nearest-rank
+p50/p95, 실패/미관측/누락을 기록한다. 동일 attempt 중복 제거, 충돌/잘못된 숫자 거부.
+성능 목표가 제공되지 않았으므로 성능 PASS를 자동 판정하지 않는다.
+Python 집계 테스트 3개/구조 PASS. 변경된 Swift 빌드와 실기기 시간 측정 NOT TESTED.
+
+사용자 실기기 PiP 보고: 홈 직접 이동 자동 진입, PiP 영상·음성 지속, X로 음성 중지 PASS.
+아이폰 모델/iOS 미제공. 전체 화면 복귀/자동 시작 OFF/시스템 리셋은 이 보고로 검증되지 않았다.
+
+
 ## 실기기 자동 PiP 전환 수정 — 2026-10-16
 
 사용자 실기기 확인: PiP 버튼 진입 시 끊김 없음. 시스템 자동 시작 설정이 켜져 있어도

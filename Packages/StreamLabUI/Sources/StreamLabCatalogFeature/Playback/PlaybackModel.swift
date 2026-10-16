@@ -160,7 +160,7 @@ import StreamLabPresentation
         guard let attempt = diagnosticAttempt else { return }
         diagnostics.finish(at: ProcessInfo.processInfo.systemUptime)
         let frame = diagnostics.firstFrameSeconds.map { String($0) } ?? "not-observed"
-        qoeLog.notice("summary attempt=\(attempt.uuidString, privacy: .public) first_frame_ready_seconds=\(frame, privacy: .public) rebuffer_count=\(self.diagnostics.rebufferCount) rebuffer_seconds=\(self.diagnostics.rebufferSeconds) failures=\(self.diagnostics.failureCount) invalid_transitions=\(self.diagnostics.invalidTransitionCount)")
+        qoeLog.notice("summary attempt=\(attempt.uuidString, privacy: .public) source=\(self.source.progressID, privacy: .public) first_frame_ready_seconds=\(frame, privacy: .public) rebuffer_count=\(self.diagnostics.rebufferCount) rebuffer_seconds=\(self.diagnostics.rebufferSeconds) failures=\(self.diagnostics.failureCount) invalid_transitions=\(self.diagnostics.invalidTransitionCount)")
         diagnosticAttempt = nil
     }
 
@@ -256,9 +256,10 @@ import StreamLabPresentation
         guard session.isActive else { return }
         failureIsMediaReset = false
         diagnostics.begin(at: ProcessInfo.processInfo.systemUptime)
-        diagnosticAttempt = UUID()
+        let attempt = UUID()
+        diagnosticAttempt = attempt
         lastObservedBitrate = nil
-        qoeLog.notice("attempt_started")
+        qoeLog.notice("attempt_started attempt=\(attempt.uuidString, privacy: .public) source=\(self.source.progressID, privacy: .public)")
         status = .loading
         wantsPlayback = foreground
         let ticket = generation
