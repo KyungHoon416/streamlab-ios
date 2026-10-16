@@ -1,5 +1,28 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## 실제 HLS 오디오 역할 대체 및 자막 선호 검증 통과 — 2026-10-16 17:25 KST
+
+사용자 environment(10).txt: 319d0727333074fbe06a0730ef9411e17614f5f2,
+Xcode 27.0 (27A266a), Simulator, 로컬 Xcode 프로젝트/scheme 수정 존재.
+RESULTS(20261016-082443).txt 및 ui-tests(20261016-082443).log 대조:
+
+- Core PASS exit=0 (요약 기준, Core 원본 로그 미첨부).
+- testRealHLSAudioRoleFallbackRestoresDVSAndIsolatesProfiles PASS 125.878초.
+- testRealHLSMissingSubtitlePreservesPreference PASS 53.630초.
+- UI 2개 실행, 실패 0개, skip 없음. 총 179.508초, hls-audio-fallback exit=0.
+- QoE 수집 및 관측된 전이 거부 없음 PASS (요약 기준; 성능 목표 판정 아님).
+
+외부 HLS의 네이티브 트랙 목록을 이용한 일반 음성 대체/DVS 선호 복원/프로필 격리와
+자막 누락 시 선호 유지의 자동 UI 검증 근거다. 실제 DVS 음성 청취 증거는 아니다.
+재생 불가 native 트랙, 실기기 HLS QoE, 실제 OS 리셋, 전체 PiP 및 최신 전체 회귀는
+여전히 별도 미확인이다. A2 전체 완료나 전체 과제 완료로 표시하지 않는다.
+
+이전 전체 회귀의 계속 시청 실패는 68331c9 대상 실행에서 통과했고,
+이번 HLS 2개도 개별 통과했다. 서로 다른 실행을 합쳐 전체 회귀 PASS로 계산하지 않는다.
+다음 구현 우선순위는 B1 영속 mutation 큐/로컬 우선 저장이며 기존 찜/진도 저장과
+A3 revision/idempotency Mock을 재사용한다. 실기기 성능 계측은 별도 진행 항목으로 유지한다.
+
+
 ## 계속 시청 대상 테스트 통과 — 2026-10-16 17:01 KST
 
 environment(9).txt: 68331c93dc4e8e4d4d6af0d0293c0527f8dc757d,
