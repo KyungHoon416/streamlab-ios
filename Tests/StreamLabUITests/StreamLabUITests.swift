@@ -1119,7 +1119,17 @@ import XCTest
         XCTAssertTrue(app.descendants(matching: .any)
             .matching(NSPredicate(format: "identifier BEGINSWITH %@ AND identifier != %@", "my-list-", "my-list-empty")).firstMatch.exists)
         tap(app.buttons["home-category-추천"], in: app)
-        // The category rebuild can retain the previous LazyVStack scroll offset.
+        let recommended = app.buttons["home-category-추천"]
+        let selected = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "isSelected == true"), object: recommended)
+        guard XCTWaiter.wait(for: [selected], timeout: 5) == .completed else {
+            captureFailure(app, name: "Recommendations category not selected")
+            XCTFail("Recommendations must be selected after leaving My List")
+            return
+        }
+        XCTAssertTrue(saved.waitForExistence(timeout: 5),
+                      "Returning to recommendations must recreate the hero action")
+        // Reveal the action within the newly created category scroll view.
         let home = app.scrollViews["home-catalog"]
         for _ in 0..<5 {
             if saved.exists && saved.isHittable { break }

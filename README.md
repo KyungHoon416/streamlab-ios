@@ -647,3 +647,9 @@ caffeinate -i bash scripts/check-media-recovery-mac.sh
 RESULTS.txt, core.log, ui-tests.log, qoe.log를 수집합니다.
 실제 OS 데몬 재시작이나 실기기 검증을 대신하지 않습니다.
 정책 및 수동 검증: Docs/ADR/0019-media-reset-and-bounded-retry.md.
+
+### 2026-10-16 대상 회귀 재검증
+
+최근 3개 대상 중 자막 복원/큰 글자 플레이어는 PASS, 나의 리스트는 FAIL입니다.
+카테고리별 홈 스크롤 identity를 분리해 추천 복귀 시 상단과 히어로를 다시 구성합니다.
+수정 후 Xcode/UI는 NOT TESTED이며 `bash scripts/check-regression-fixes-mac.sh`로 확인합니다.

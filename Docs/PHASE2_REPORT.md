@@ -1,5 +1,21 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## 카테고리 복귀 후 히어로 접근 수정 — 2026-10-16
+
+사용자 RESULTS(20261016-041607) 및 ui-tests 로그: Core PASS, 대상 UI 3개 중
+자막 누락/복원 PASS, 최대 글자 플레이어 PASS, 나의 리스트 FAIL. QoE 수집 PASS,
+관측된 전이 거부 없음(성능 합격 판정 아님). 전체 회귀는 이번 실행에서 NOT TESTED.
+
+추천 복귀 후 10회 스크롤에도 hero-my-list가 AX 트리에 나타나지 않았다.
+로그만으로 실제 화면/SwiftUI 내부 원인을 확정할 수 없다. HomeView의 카테고리별
+ScrollView identity를 분리하여 전환 시 LazyVStack과 스크롤 위치를 새로 구성한다.
+모델, 저장 목록, 재생 presentation 상태는 이 identity 경계 밖에 유지한다.
+UI 테스트는 추천 isSelected와 히어로 존재를 각각 확인해 선택 실패와 렌더링 실패를 구분한다.
+
+수정 후 구조 검사 PASS. Xcode 빌드 및 대상 UI 재실행 NOT TESTED(현재 Linux 환경).
+동일 check-regression-fixes-mac.sh로 재검증하고 세 항목 PASS 후 전체 검증한다.
+
+
 ## 전체 회귀 3개 실패에 대한 스크롤 검증 수정 — 2026-10-16
 
 사용자 RESULTS(20261016-034909): Fixture/구조/bootstrap/Core/빌드/경고 PASS,

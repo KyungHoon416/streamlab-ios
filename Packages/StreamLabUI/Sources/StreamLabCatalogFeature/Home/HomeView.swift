@@ -85,6 +85,9 @@ import StreamLabDesignSystem
             }
             .padding(.bottom, 24)
         }
+        // Each category owns its scroll/layout identity. Keep the model and
+        // presentation state outside this boundary so switching does not reload data.
+        .id(category)
         .accessibilityIdentifier("home-catalog")
         .background(PlaybackPresenterScene(session: playbackOrientation).frame(width: 0, height: 0))
         .background(StreamLabTheme.background)
