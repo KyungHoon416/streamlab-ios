@@ -1,5 +1,25 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## 계속 시청 대상 테스트 통과 — 2026-10-16 17:01 KST
+
+environment(9).txt: 68331c93dc4e8e4d4d6af0d0293c0527f8dc757d,
+Xcode 27.0 (27A266a), Simulator. 로컬 Xcode 프로젝트/scheme 수정 존재.
+RESULTS(20261016-080105).txt 및 ui-tests(20261016-080105).log:
+testHomeContinueWatchingUsesSavedProgress PASS 51.525초, 1개 실행/실패 0개,
+home-playback exit=0. 화면 진입, 복원 안내, 저장 위치 이상에서 재생, 닫기/방향 복귀,
+프로필 B의 빈 계속 시청 목록 검증 통과. HUD 유지 테스트 플래그를 사용한 실행이다.
+이미지 터치 범위와 HUD 동기화를 함께 변경했으므로 어느 하나만이 원인이었다고 단정하지 않는다.
+
+이번 실행은 Core/전체 UI/수동 실기기 검증을 수행하지 않았다. 이전 전체 실행은
+28 PASS/4 SKIP/1 FAIL이며, 그 유일한 실패 항목이 이번 대상 실행에서 통과한 것이다.
+이를 최신 전체 회귀 PASS로 합산하지 않는다.
+
+다음 검증은 이전 전체 실행에서 SKIP된 실제 HLS 오디오 역할 대체 및 자막 선호 복원:
+`caffeinate -i bash scripts/check-hls-audio-fallback-mac.sh`.
+실제 외부 샘플 HLS 연결 필요. 자동 UI는 선택/복원/재생 상태를 검사하며 실제 음성 청취,
+재생 불가 트랙, 실기기 성능, 실제 OS 리셋, 전체 PiP/최신 전체 회귀는 별도 미확인이다.
+
+
 ## 전체 회귀 28개 통과 및 계속 시청 보정 — 2026-10-16 16:32 KST
 
 사용자 environment(8).txt: fb622802 / Xcode 27.0 / Swift 6.4, 로컬 Xcode 설정 변경 존재.
