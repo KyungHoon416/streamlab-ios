@@ -271,6 +271,52 @@ import XCTest
         closePlayback(app)
     }
 
+    func testRealHLSMissingSubtitlePreservesPreference() throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["STREAMLAB_TEST_REAL_HLS"] == "1",
+                          "External HLS integration is opt-in; run check-hls-tracks-mac.sh")
+        let app = launch(keepPlaybackControls: true)
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-subtitles"], in: app)
+        tap(app.buttons["playback-subtitle-ko"], in: app)
+        XCTAssertEqual(app.buttons["playback-subtitle-ko"].value as? String, "선택됨")
+        tap(app.buttons["playback-subtitle-done"], in: app)
+
+        // Real AVAsset media-selection loading; no injected missing-language flag.
+        openHLSEpisode(1, in: app)
+        tap(app.buttons["playback-subtitles"], in: app)
+        let message = app.staticTexts["playback-subtitle-message"]
+        let fallback = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true AND label CONTAINS %@", "선호 언어는 유지"),
+            object: message)
+        guard XCTWaiter.wait(for: [fallback], timeout: 30) == .completed else {
+            captureFailure(app, name: "Real HLS missing subtitle fallback")
+            XCTFail("Expected missing Korean subtitle guidance after real HLS track loading; actual: \(message.exists ? message.label : "no message"). Check network or upstream fixture changes.")
+            return
+        }
+        XCTAssertFalse(app.buttons["playback-subtitle-retry"].exists,
+                       "A failed track-list request must not count as missing-language fallback")
+        XCTAssertFalse(app.buttons["playback-subtitle-ko"].exists,
+                       "The local sidecar track must not leak into HLS playback")
+        let selected = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@ AND value == %@", "playback-subtitle-", "선택됨"))
+        XCTAssertEqual(selected.count, 1, "Fallback must select one native subtitle or the off option")
+        tap(app.buttons["playback-subtitle-done"], in: app)
+        expectPlayback("재생 중", in: app)
+        closePlayback(app)
+
+        // Reopening the bundled source must restore the original preference.
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-subtitles"], in: app)
+        XCTAssertEqual(app.buttons["playback-subtitle-ko"].value as? String, "선택됨",
+                       "HLS fallback must not overwrite the profile's stored Korean preference")
+        tap(app.buttons["playback-subtitle-done"], in: app)
+        closePlayback(app)
+    }
+
     func testMissingSubtitleFallsBackAndRestoresWithoutChangingOtherProfile() {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=track-fallback-\(UUID())",

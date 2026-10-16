@@ -1,5 +1,25 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## HLS 회차 검증 통과 · 다음 검증: 네이티브 자막 누락 — 2026-10-16
+
+사용자가 제공한 RESULTS(20261016-011640).txt를 근거로 Core/HLS 회차 UI/QoE 수집 PASS.
+HLS 전용 스크립트는 자동 다음 회차·최종 종료와 회차별 진도 복원 두 테스트가 실제 passed인지 검사한다.
+근거 보관: Docs/Validation/hls-episodes-20261016/RESULTS.txt (사용자 제공 요약, 원본 xcresult 미첨부).
+QoE PASS는 수집 및 관측된 상태 전이 오류 없음이며 성능 목표 달성을 뜻하지 않는다.
+이 결과가 위 항목에 대한 이전 NOT TESTED/FAIL 이력을 대체한다. 전체 회귀 PASS는 아니다.
+
+다음 자동 테스트는 로컬에서 한국어 선호 저장 → 실제 외부 HLS의 네이티브 자막 목록 조회 →
+한국어 미제공 안내 및 단일 대체 선택 → 실제 재생 유지 → 로컬 복귀 후 한국어 복원을 검사한다.
+트랙 조회 실패를 대체 성공으로 인정하지 않는다. 자막 제거 주입 플래그는 사용하지 않는다.
+기존 로컬 누락/복원/프로필 격리 테스트도 함께 실행하고 두 테스트의 passed를 확인한다.
+외부 Apple HLS의 제공 트랙이 변경되면 Fixture 전제 실패로 조사하며 skip/PASS로 우회하지 않는다.
+
+추가 파일: scripts/check-hls-tracks-mac.sh. 실행은 인터넷 연결 후:
+`caffeinate -i bash scripts/check-hls-tracks-mac.sh`
+새 코드 구조/shell 검사 PASS. 새 Swift/Xcode/HLS 자막 UI 검증 NOT TESTED.
+네이티브 재생 불가 트랙 및 오디오 역할 대체, 실기기 QoE/실제 OS 리셋/PiP/전체 회귀는 여전히 NOT TESTED.
+
+
 ## HLS 종료 알림 연결 및 회차 헤더 가시성 — 2026-10-16
 
 사용자 RESULTS(20261016-010628): Core PASS, 회차별 진도 복원 PASS,

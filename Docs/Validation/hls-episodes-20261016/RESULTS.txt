@@ -1,0 +1,4 @@
+PASS core exit=0
+PASS hls-episodes exit=0
+PASS QoE summary collected; no rejected transitions observed (not a performance threshold assertion)
+NOT TESTED: native HLS missing/unplayable track integration, real-device HLS QoE, media reset, PiP and full regression
