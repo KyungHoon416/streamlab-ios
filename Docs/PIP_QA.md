@@ -44,3 +44,27 @@ caffeinate -i bash scripts/check-pip-mac.sh
 PiP 버튼은 지원 여부와 관계없이 표시한다. 미지원이면 비활성화하고 해당 안내를 표시한다.
 시뮬레이터에서 미지원 안내가 나오거나 계속 준비 중이면 모델/OS와 화면을 기록하고 실제 기기에서도 확인한다.
 버튼 자체가 없으면 최신 소스를 빌드한 앱인지 먼저 확인한다. 홈으로 나가기만 해서는 자동 PiP가 시작되지 않는다.
+
+## Automatic PiP on device — 2026-10-16 (supersedes explicit-only behavior)
+
+The app now enables AVKit automatic PiP for actively playing HLS. On scene inactivity,
+it allows up to two seconds for the system's willStart callback before pausing if
+PiP did not start. It never calls startPictureInPicture to force automatic entry.
+Inactive/active changes without PiP (for example Control Center) eventually pause;
+foreground return does not resume automatically. A started transition retains the
+existing ten-second failure watchdog. Stop/source changes cancel pending handoffs.
+
+Manual validation (all new behavior NOT TESTED until device results are provided):
+1. Record commit, iPhone model and iOS version. Enable automatic PiP in system settings.
+2. Play an HLS video, wait until playing/PiP available, then go directly Home without
+   tapping PiP. Confirm a floating video and continuous audio/video.
+3. Restore the app from PiP; close the player and confirm audio stops.
+4. Repeat automatic entry, then close the floating window with X; confirm audio stops.
+5. Pause before going Home; confirm no automatic playback starts.
+6. Disable system automatic PiP and repeat: no forced PiP, playback pauses within the
+   short handoff allowance. Re-enable afterward. Check PiP button entry still works.
+7. Open and close Control Center while playing; check that no invisible audio persists
+   without a player/PiP, and paused playback does not restart by itself.
+
+Simulator fallback regression: `caffeinate -i bash scripts/check-pip-mac.sh`.
+This script does not certify native automatic PiP. Structure validation PASS only.

@@ -10,12 +10,19 @@ import Foundation
     private weak var layer: AVPlayerLayer?
     private(set) var isRunning = false
     private var restoring = false
+    private var automaticStartEnabled = false
     private var startRequested: ContinuousClock.Instant?
     var onStop: (() -> Void)?
     var onFailure: ((String) -> Void)?
 
     var supported: Bool { AVPictureInPictureController.isPictureInPictureSupported() }
     var possible: Bool { controller?.isPictureInPicturePossible == true }
+    var canStartAutomatically: Bool { automaticStartEnabled && possible }
+
+    func setAutomaticStartEnabled(_ enabled: Bool) {
+        automaticStartEnabled = enabled
+        controller?.canStartPictureInPictureAutomaticallyFromInline = enabled
+    }
 
     func attach(_ layer: AVPlayerLayer) {
         guard self.layer !== layer else { return }
@@ -24,8 +31,8 @@ import Foundation
         guard supported else { return }
         let controller = AVPictureInPictureController(playerLayer: layer)
         controller?.delegate = self
-        // Explicit button only; ordinary backgrounding must still pause.
-        controller?.canStartPictureInPictureAutomaticallyFromInline = false
+        // AVKit decides whether the user/system permits automatic PiP.
+        controller?.canStartPictureInPictureAutomaticallyFromInline = automaticStartEnabled
         self.controller = controller
     }
 
@@ -65,6 +72,7 @@ import Foundation
     func pictureInPictureControllerWillStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
         guard pictureInPictureController === controller else { return }
         isRunning = true
+        if startRequested == nil { startRequested = .now }
     }
 
     func pictureInPictureControllerDidStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {

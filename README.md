@@ -1,4 +1,21 @@
 
+## 실기기 자동 PiP 전환 수정 — 2026-10-16
+
+사용자 실기기 확인: PiP 버튼 진입 시 끊김 없음. 시스템 자동 시작 설정이 켜져 있어도
+홈으로 직접 이동하면 일시정지. 기존 코드가 canStartPictureInPictureAutomaticallyFromInline을
+false로 설정하고 scene inactive 즉시 pause하던 동작을 확인했다.
+
+재생 중인 HLS에 자동 시작을 허용한다. scene 전환 시 PiP가 가능하면 최대 2초간
+AVKit의 자동 시작을 기다리고, 시작되지 않으면 pause한다. 앱이 직접 자동 start를 강제하지 않는다.
+시스템 설정/지원 여부는 AVKit이 결정한다. 일반 로컬 재생/일시정지/시킹은 즉시 pause 경로를 유지한다.
+전환 대기는 stop/프로필 세션 종료/소스 변경/앱 복귀에서 취소하고 generation 검사로 늦은 작업을 막는다.
+PiP willStart부터 기존 10초 시작 watchdog을 적용한다. PiP 닫기/실패 시 음성도 중지한다.
+
+구조 검사 PASS. 수정 후 Xcode/UI 및 실기기 자동 PiP는 NOT TESTED.
+기존 수동 버튼 진입 성공은 사용자 보고 범위의 PASS이며 자동 진입 성공으로 확대하지 않는다.
+시뮬레이터 회귀: scripts/check-pip-mac.sh. 실기기 재검증: Docs/PIP_QA.md 최신 항목.
+
+
 ## 자막 대체 검증 PASS · 다음 검증: 실제 HLS 오디오 역할 대체 — 2026-10-16
 
 사용자 RESULTS(20261016-013618): Core/HLS 자막 대체/QoE 수집 PASS.

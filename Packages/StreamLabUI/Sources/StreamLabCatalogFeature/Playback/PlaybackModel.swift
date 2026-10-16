@@ -208,6 +208,7 @@ import StreamLabPresentation
     #endif
     private var foreground = true
     private var foregroundGeneration = 0
+    private var automaticPiPTask: Task<Void, Never>?
     private var wantsPlayback = true
     private var waitingSince: Date?
     private var attempted = false
@@ -232,6 +233,8 @@ import StreamLabPresentation
         session.register(self)
         pictureInPicture.onStop = { [weak self] in
             guard let self else { return }
+            self.automaticPiPTask?.cancel()
+            self.automaticPiPTask = nil
             self.wantsPlayback = false
             self.player?.pause()
             self.saveProgress()
@@ -357,6 +360,9 @@ import StreamLabPresentation
     private func sample(ticket: Int) -> Bool {
         guard generation == ticket, session.isActive, let player, let item = player.currentItem else { return false }
         pictureInPicture.checkStartTimeout()
+        if foreground {
+            pictureInPicture.setAutomaticStartEnabled(source.isHLS && wantsPlayback && !isSeeking && player.rate > 0)
+        }
         pipPossible = source.isHLS && pictureInPicture.possible && !isSeeking && item.status == .readyToPlay
         pipRunning = pictureInPicture.isRunning
         if pipRunning, !isSeeking {
@@ -528,18 +534,46 @@ import StreamLabPresentation
         }
     }
 
+    private func pauseOutsidePictureInPicture() {
+        foregroundGeneration += 1
+        wantsPlayback = false
+        pictureInPicture.setAutomaticStartEnabled(false)
+        player?.pause()
+        saveProgress()
+        waitingSince = nil
+    }
+
     func setForeground(_ active: Bool) {
+        guard foreground != active else { return }
+        let hadPendingAutomaticPiP = automaticPiPTask != nil
+        automaticPiPTask?.cancel()
+        automaticPiPTask = nil
         foreground = active
         waitingSince = nil
-        if !active && !pictureInPicture.isRunning {
-            cancelNextEpisode()
-            foregroundGeneration += 1
-            wantsPlayback = false
-            player?.pause()
-            saveProgress()
-            waitingSince = nil
+        if active {
+            // Returning during an unsuccessful handoff must not resume invisible audio.
+            if hadPendingAutomaticPiP && !pictureInPicture.isRunning {
+                pauseOutsidePictureInPicture()
+            }
+            return
         }
-        // Returning to the foreground never starts audio/video automatically.
+        cancelNextEpisode()
+        guard !pictureInPicture.isRunning else { return }
+        guard source.isHLS, wantsPlayback, !isSeeking, (player?.rate ?? 0) > 0,
+              pictureInPicture.canStartAutomatically else {
+            pauseOutsidePictureInPicture()
+            return
+        }
+        // scenePhase can become inactive before AVKit's willStart delegate arrives.
+        // Do not call startPictureInPicture here: the system owns automatic entry.
+        let ticket = generation
+        automaticPiPTask = Task { [weak self] in
+            do { try await Task.sleep(for: .seconds(2)) } catch { return }
+            guard let self, !Task.isCancelled, self.generation == ticket,
+                  self.session.isActive, !self.foreground else { return }
+            self.automaticPiPTask = nil
+            if !self.pictureInPicture.isRunning { self.pauseOutsidePictureInPicture() }
+        }
     }
 
     func togglePictureInPicture() {
@@ -606,6 +640,9 @@ import StreamLabPresentation
     }
 
     func stop() {
+        automaticPiPTask?.cancel()
+        automaticPiPTask = nil
+        pictureInPicture.setAutomaticStartEnabled(false)
         mediaResetObserver = nil
         itemEndObserver = nil
         itemReachedEnd = false
@@ -878,6 +915,7 @@ import StreamLabPresentation
     }
 
     deinit {
+        automaticPiPTask?.cancel()
         if let owner = audioSessionOwner { PlaybackAudioSession.shared.release(owner: owner) }
         audioTask?.cancel()
         subtitleTask?.cancel()
