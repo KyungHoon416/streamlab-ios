@@ -1,5 +1,27 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## 최신 수정 실행 결과 및 이미지 터치 영역 보정 — 2026-10-16
+
+사용자 environment(6).txt에서 ce0824a / Xcode 27.0 (27A266a) 실행 확인.
+RESULTS(20261016-064036).txt 및 ui-tests(20261016-064036).log:
+Core PASS (요약), 자막/프로필 격리 PASS 102.864초, 큰 글자 플레이어 PASS 32.169초.
+나의 리스트 FAIL 55.010초, 추천 선택 검사 1171행. 이전 보정으로 해결되지 않았다.
+QoE 수집 PASS이며 성능 합격을 뜻하지 않는다. 로컬 Xcode 설정 변경이 존재한다.
+
+실패 AX 트리: 추천 버튼 (20,128,65,47), 카테고리 스크롤 (20,116,362,71),
+저장 카드 (20,67,362,543.3). 저장 카드 및 이미지의 보고 영역이 카테고리와 겹친다.
+scaledToFill 이미지의 시각적 clipping만으로 상호작용 범위를 제한하지 못하는 것이
+유력한 원인이다. 실제 화면/탭 전달은 아직 확인 전이며 원인 확정으로 표시하지 않는다.
+
+장식 CatalogArtwork는 allowsHitTesting(false)로 터치 대상에서 제외한다.
+저장 카드 label은 최종 layout에 contentShape를 적용하고 접근성 자식 이미지 대신
+작품명/등급/장르의 단일 label을 제공한다. UI 배치/색/데이터/선택 assertion은 유지한다.
+기존 실패 테스트로 추천 선택, 히어로 재등장, 찜 해제를 다시 검증한다.
+
+로컬 구조/fixture/shell/diff 검사 PASS. Swift/Xcode/UI 실행 NOT TESTED (Linux).
+실행: caffeinate -i bash scripts/check-regression-fixes-mac.sh.
+
+
 ## 작업 재개 및 카테고리 탭 보정 — 2026-10-16
 
 기준 HEAD: ee4c30c. 새로 개발하지 않고 기존 구현과 첨부 과제, 최신 로그를 대조했다.

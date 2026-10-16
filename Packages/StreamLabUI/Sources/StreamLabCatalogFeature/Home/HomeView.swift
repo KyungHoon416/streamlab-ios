@@ -231,7 +231,12 @@ import StreamLabDesignSystem
                             CatalogArtwork(title: title).frame(height: 150)
                             Text(title.name).font(.headline).fixedSize(horizontal: false, vertical: true)
                             Text("\(title.rating.rawValue) · \(title.genre)").font(.subheadline)
-                        }.frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        // Bound interaction to layout, not the artwork's scaled image extent.
+                        .contentShape(Rectangle())
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel("\(title.name), \(title.rating.rawValue) · \(title.genre)")
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("my-list-\(title.id)")

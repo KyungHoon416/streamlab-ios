@@ -49,6 +49,8 @@ public struct StreamLabButtonStyle: ButtonStyle {
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 16))
+        // Artwork is decorative; scaled-to-fill pixels must never intercept nearby controls.
+        .allowsHitTesting(false)
         .accessibilityHidden(true)
         .task(id: url) {
             let ticket = UUID()
