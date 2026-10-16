@@ -1,5 +1,35 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B1 첫 구현 — 찜 목록 영속 journal 및 재전송 Mock (2026-10-16)
+
+기존 UI, 재생/진도/A3 경로를 유지하고 MyListStore 저장 계층만 교체했다.
+- 단일 원자적 파일에 로컬 snapshot과 FIFO pending mutation을 함께 기록한다.
+  성공적으로 저장한 뒤에만 화면 상태를 바꾼다. 읽기/쓰기 실패는 사용자에게 알린다.
+- account/profile 경로 분리, 재실행 시 같은 device ID/요청 ID/sequence/baseRevision 복원.
+  기존 UserDefaults 찜 목록은 최초 journal 생성 때 이관하고 원본은 보존한다.
+- 단일 실행 flush, ACK 후에만 dequeue. 오류/취소/409는 요청을 유지한다.
+  프로필 전환은 invalidate/cancel하며 늦은 응답이 저장소를 갱신하지 못한다.
+- 앱에서는 파일 기반 MockMutationServer에 연결했다. Mock의 receipt도 영속화하여
+  서버 처리 후 ACK 유실/앱 재실행에도 중복 적용하지 않는다. 실제 HTTP 서버가 아니다.
+  진입/refresh/찜 변경 시 재시도한다. DEBUG --ui-test-mutation-offline은 전송만 차단한다.
+- Core 테스트 11개 추가: 재생성 복구/FIFO, ACK 유실, Mock 재시작, 단일 flush 중 추가,
+  취소, 삭제 후 늦은 응답, ID 재사용/순서 위반, 오프라인/충돌, scope/이관/삭제,
+  journal 유실, 손상 파일 보존. 프로세스 객체 재생성 테스트이며 실제 강제종료 증거는 아니다.
+
+검증: 프로젝트 구조/2,000개 fixture 검증 PASS, shell 문법/diff 공백 검사 PASS.
+NOT TESTED: Swift 컴파일, Core 테스트 실행, 새 iOS 빌드, 찜 UI/접근성/전체 회귀.
+현재 실행 환경에 Swift/Xcode가 없다. Mac 실행:
+`caffeinate -i bash scripts/check-durable-my-list-mac.sh`
+Core 전체(경고 오류 처리/strict concurrency) 후 기존 찜 지속성·프로필 격리 UI를 실행한다.
+
+B1 전체 완료 아님: 진도/최근 검색 큐 연결, 실제 계정 인증/로그아웃 연결 및 계정 전체 삭제,
+서버 상태를 새 클라이언트에 가져오는 동기화는 남아 있다. 현재 account는 local-demo다.
+삭제 API는 단일 scope journal용이며 legacy 데이터/Mock 서버 데이터 삭제 UI는 아직 없다.
+409 병합/429 backoff/401 single-flight/온라인 복귀 감지는 B2/B3 작업이다.
+Mock receipt와 pending 작업의 용량 제한/정리, 파일 IO 성능 및 전원 유실 내구성도 미검증이다.
+파일 원자적 교체는 multi-process writer나 디스크 fsync 보장을 뜻하지 않는다.
+
+
 ## 실제 HLS 오디오 역할 대체 및 자막 선호 검증 통과 — 2026-10-16 17:25 KST
 
 사용자 environment(10).txt: 319d0727333074fbe06a0730ef9411e17614f5f2,

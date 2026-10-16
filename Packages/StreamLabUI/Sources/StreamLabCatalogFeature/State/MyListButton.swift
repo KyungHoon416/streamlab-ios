@@ -20,6 +20,14 @@ import StreamLabDomain
                 .background(.black.opacity(0.45), in: RoundedRectangle(cornerRadius: 12))
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(.white.opacity(0.4)))
         }
+        .alert("리스트 저장", isPresented: Binding(
+            get: { store.errorMessage != nil },
+            set: { if !$0 { store.errorMessage = nil } }
+        )) {
+            Button("확인", role: .cancel) { store.errorMessage = nil }
+        } message: {
+            Text(store.errorMessage ?? "")
+        }
         .buttonStyle(.plain)
         .accessibilityValue(store.contains(title) ? "추가됨" : "추가 안 됨")
     }
