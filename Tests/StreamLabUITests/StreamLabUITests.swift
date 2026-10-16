@@ -1116,8 +1116,24 @@ import XCTest
         choose("adult-a", in: app)
         XCTAssertEqual(saved.value as? String, "추가됨")
         tap(app.buttons["home-category-나의 리스트"], in: app)
-        XCTAssertTrue(app.descendants(matching: .any)
-            .matching(NSPredicate(format: "identifier BEGINSWITH %@ AND identifier != %@", "my-list-", "my-list-empty")).firstMatch.exists)
+        let savedCategory = app.buttons["home-category-나의 리스트"]
+        let savedSelected = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "isSelected == true"), object: savedCategory)
+        guard XCTWaiter.wait(for: [savedSelected], timeout: 5) == .completed else {
+            print("My List selection failure: \(app.debugDescription)")
+            captureFailure(app, name: "My List category not selected")
+            XCTFail("My List category must be selected before inspecting saved contents")
+            return
+        }
+        let savedCard = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier BEGINSWITH %@ AND identifier != %@",
+                                  "my-list-", "my-list-empty")).firstMatch
+        guard savedCard.waitForExistence(timeout: 5) else {
+            print("My List contents failure: \(app.debugDescription)")
+            captureFailure(app, name: "Saved content missing after category selection")
+            XCTFail("Saved content must appear after My List category is selected")
+            return
+        }
         tap(app.buttons["home-category-추천"], in: app)
         let recommended = app.buttons["home-category-추천"]
         let selected = XCTNSPredicateExpectation(
