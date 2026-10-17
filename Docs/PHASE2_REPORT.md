@@ -1,5 +1,26 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B3 HTTP 인증 통합 Mac 검증 통과 — 2026-10-17
+
+사용자 core/RESULTS(20261017-043227), environment(20261017-043228), server(2).log 대조.
+실행 HEAD ed9e409d87a8bf03649f682192fa7f087b7cf1d9.
+Xcode 27.0 (27A266a), Swift 6.4, Python 3.9.6. 프로젝트/Memory 스킴 로컬 변경이 있는 실행이다.
+
+- Core 실제 통과 157개: XCTest 15 + Presentation 135 + Catalog 7.
+  Presentation 요약 142개에는 이전 loopback loader/큐 테스트 skip 7개가 포함된다.
+- HTTP 인증 통합 신규 2개 모두 PASS, suite 0.080초.
+- 서버 성공 case: resource 401 8회, refresh 200 1회, resource 재전송 200 8회.
+- 서버 실패 case: resource 401 8회, refresh 500 1회, resource 재전송 0회.
+  8개 요청 종료 및 이후 요청의 추가 refresh 차단은 테스트 assertion으로 확인했다.
+- 기존 single-flight Core 검증 및 일반 큐/데이터별 충돌/가상 시계 카오스 각각 1,000 seed PASS.
+- Core 로그 error:/warning: 없음. 빌드 13.07초, Presentation Swift Testing 21.910초.
+- 판정: HTTP 인증 갱신 성공/실패 통합 검증 범위 통과, 다음 단계 진행 가능.
+  다음 우선순위는 C2 Keychain 토큰 저장소의 계정 격리/조회/갱신/삭제 및 실패 처리다.
+
+가짜 자격 증명과 로컬 HTTP 서버를 사용했다. TLS/실제 계정/Keychain/앱 로그인·로그아웃
+연결/iOS UI/B3·F02 전체 완료를 의미하지 않는다. 기존 loader/큐의 별도 PASS는 유지한다.
+이번 커밋은 결과 기록만 추가하므로 동일 테스트 재실행은 필요하지 않다.
+
 ## B3 로컬 HTTP 인증 통합 테스트 추가 — 2026-10-17
 
 이전 Core 155 및 single-flight 9개 PASS를 기준으로 실제 HTTP 응답을 사용하는 테스트 2개 추가.
