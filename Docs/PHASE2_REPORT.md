@@ -1,5 +1,24 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 HTTP mutation adapter Mac 검증 통과 — 2026-10-17
+
+사용자 core/environment(20261017-032855), RESULTS(20261017-032856) 대조.
+실행 HEAD a991ef91ff5a733cfe10ecededae6d4ea2a1a592, Xcode 27.0 (27A266a), Swift 6.4.
+프로젝트/Memory 스킴 로컬 변경이 있는 Mac 작업 트리 결과다.
+
+- Core 146 PASS: XCTest 15 + Presentation Swift Testing 124 + Catalog 7.
+- HTTP mutation adapter 신규 8개 모두 PASS, suite 0.151초.
+- 일반 큐/데이터별 충돌/가상 시계 카오스 각각 1,000 seed PASS.
+- Core 로그 error:/warning: 없음. 빌드 11.72초, Presentation Swift Testing 20.740초.
+- 판정: HTTP 요청 직렬화 및 주입 응답 변환 검증 통과, 다음 단계 진행 가능.
+- 다음 우선순위: 기본 URLSession loader의 전송 경계 검증(redirect 차단,
+  streaming 응답 상한, 전송 중 취소). 현재 테스트는 execute 주입을 사용하므로
+  기본 loader의 실제 동작을 검증한 것은 아니다.
+
+이번 결과는 iOS UI, 실제 HTTP 서버/TLS/네트워크 복구, 운영 인증,
+B2 전체 및 Part D 전체 완료를 의미하지 않는다. 앱 기본 연결은 Mock이다.
+이번 커밋은 검증 결과 기록만 추가하며 동일 테스트 재실행은 필요하지 않다.
+
 ## B2 HTTP mutation adapter 추가 — 2026-10-17
 
 이전 Core 138 및 가상 시계 1,000 seed PASS를 기준으로 다음 단계를 진행했다.
