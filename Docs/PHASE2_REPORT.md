@@ -1,5 +1,31 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 영속 큐 seed 기반 반복 검증 추가 — 2026-10-17
+
+과제의 랜덤 이벤트 순서 1,000회 재현 요구에 대한 첫 범위로 영속 큐 테스트를 추가한다.
+앱 동작/UI는 변경하지 않는다. MutationChaosTests의 단일 테스트가 seed 1...1000을
+순회하며 seed마다 24개 이벤트와 마지막 두 클라이언트 동시 전송을 수행한다.
+
+- 이벤트: 두 클라이언트 저장/삭제, 정상 동기화, 전송 전 오프라인, 커밋 후 ACK 유실,
+  클라이언트 journal 재실행, 디스크 기반 Mock 서버 재실행.
+- 매 seed에 async let 동시 전송 및 transport의 비동기 양보 지점을 포함한다.
+  의사 난수는 고정 LCG이고 실패 시 seed/이벤트 번호 순서를 출력한다.
+- 서버 snapshot과 별도로 수락된 요청 ID/revision/키별 최신 값을 기록하는 oracle로
+  중복 효과·receipt 변경·서버 상태 불일치를 검사한다. ACK 유실/오프라인의 요청 보존,
+  재실행의 journal 보존, 복구 후 양쪽 큐 비움/서버 수렴/추가 sync 무효과를 확인한다.
+- 기존 일반 server-wins 정책의 거절된 로컬 변경은 폐기될 수 있다. 이번 테스트는
+  찜 항목별 병합/진도 restart/검색 삭제 정책 전체의 랜덤 검증을 대체하지 않는다.
+- 실행: `bash scripts/check-mutation-chaos-mac.sh`. Core 전체와 chaos suite 및
+  `CHAOS PASS seeds=1000`을 모두 확인한다. 재현은
+  `STREAMLAB_CHAOS_SEED=42 bash scripts/check-mutation-chaos-mac.sh`처럼 실행한다.
+  seed 재현은 이벤트 순서 재현이며 OS의 세부 Task 스케줄까지 고정하지는 않는다.
+
+로컬 구조/fixture 2,000개/셸 구문/공백 검사 PASS. Swift 실행은 불가하여
+1,000개 seed 통과는 아직 확인되지 않았다. 이번 단계는 Core 테스트만 추가했으므로
+Mac 스크립트는 UI를 재실행하지 않는다. 결과물은 RESULTS.txt/environment.txt/core.log다.
+가상 시계 기반 backoff 카오스, Part D 10종 전체, 실제 HTTP/네트워크 복구,
+B2 나머지 불변식의 랜덤 검증은 남아 있다. 과제 전체 카오스 완료로 간주하지 않는다.
+
 ## B2 연결 복귀 스케줄링 Mac 검증 통과 — 2026-10-17
 
 사용자 core(20261017-022445), environment(20261017-022443),
