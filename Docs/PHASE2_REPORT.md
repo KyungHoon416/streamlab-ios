@@ -1,5 +1,32 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 데이터별 충돌 규칙 seed 반복 검증 추가 — 2026-10-17
+
+기존 일반 큐 1,000 seed 검증을 유지하고 DomainConflictChaosTests를 추가했다.
+단일 테스트 안에서 seed 1...1000으로 작업 순서와 다음 조건을 선택한다:
+같은/다른 찜 작품, 명시적 restart/일반 0초 checkpoint, 검색 개별/전체 삭제,
+restart 이후 후속 checkpoint 유무, 재구성 후 전송 전 실패/커밋 후 ACK 유실.
+
+- 매 seed에서 A 전송을 continuation으로 보류하고 B가 먼저 commit한 뒤 해제한다.
+  따라서 B의 새 revision과 A의 오래된 요청이 충돌하는 비동기 순서를 보장한다.
+- A의 재구성된 요청이 실패한 후 클라이언트와 디스크 Mock 서버를 재실행한다.
+  대기 요청/게시 snapshot이 그대로 복원되고 재전송 후 양쪽 큐가 비는지 확인한다.
+- 독립된 예상값: 다른 찜 작품은 모두 보존, 같은 작품은 B의 서버 상태 유지,
+  개별 검색 삭제는 새 서버 검색어 보존/전체 삭제는 비움, restart는 0 또는 후속 30,
+  일반 오래된 0초 checkpoint는 서버의 1400을 덮어쓰지 않음.
+- 이 테스트는 공통 큐의 충돌 정책을 함께 시험하기 위해 같은 scope에 세 키를 넣는다.
+  실제 앱의 별도 저장소/revision stream 구성 및 PlaybackProgressStore 값 변환은
+  기존 개별 테스트의 범위다. 이번 raw 진도 값은 정책 판별용이며 재생 엔진 검증이 아니다.
+- 실패 시 seed/선택 조건/작업 순서를 기록한다. `STREAMLAB_CHAOS_SEED=42`로 단일 seed 재현.
+  `bash scripts/check-domain-chaos-mac.sh`는 전체 Core와 신규 suite 및
+  `DOMAIN CHAOS PASS seeds=1000` 완료 표시를 확인한다.
+
+앱 코드/UI 변경 없음. 로컬 구조/fixture/셸 구문/공백 검사 PASS.
+Swift/Xcode 실행은 불가하여 신규 1,000 seed의 실제 통과 여부는 Mac 결과 대기다.
+결과 파일은 RESULTS.txt/environment.txt/core.log 3개다.
+실제 HTTP/네트워크 복구, fake clock 기반 retry 카오스, Part D 전체 및 B2 모든
+불변식 검증 완료로 간주하지 않는다.
+
 ## B2 영속 큐 1,000 seed Mac 검증 통과 — 2026-10-17
 
 사용자 core/environment/RESULTS(20261017-024812) 대조.
