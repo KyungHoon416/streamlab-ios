@@ -1,5 +1,24 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B3 인증 갱신 single-flight Core 구현 — 2026-10-17
+
+이전 HTTP 큐 통합 검증 통과를 기준으로 opt-in 인증 세션 actor/HTTP client를 추가했다.
+기존 앱 UI/Mock 흐름은 유지한다. 로그인·Keychain·실제 refresh endpoint 연결 완료는 아니다.
+
+- 같은 토큰의 401 동시 요청이 refresh 1회를 공유하고 요청당 1회만 재전송한다.
+- 늦은 이전 토큰 401은 갱신된 lease를 재사용한다. refresh 실패는 세션에 고정하여 폭주를 막는다.
+- waiter 개별 취소, 기본 15초 deadline, invalidate 시 대기자 종료 및 늦은 결과 거부.
+- HTTPS 동일 origin 제한, header용 토큰 검사, 토큰 로그/디스크 저장 없음.
+- 테스트 9개: 401 8건 성공/500 실패, 늦은 401, 개별 취소, refresh 중 로그아웃,
+  deadline, 두 번째 401 종료, 요청 중 로그아웃, 잘못된 origin/credential 차단.
+- provider/HTTP 응답은 주입한 Mock이며 실제 refresh HTTP 500 파싱은 별도 범위다.
+- 로컬 구조/2,000 fixture/셸 구문/공백 검사 PASS. Swift 컴파일·테스트는 Mac 로그 대기.
+- 실행: `bash scripts/check-auth-single-flight-mac.sh`.
+  RESULTS.txt/environment.txt/core.log 3개 확인 후 다음 단계를 결정한다.
+
+설계와 제한: ADR 0024. 네트워크 작업 자체의 취소는 호출 Task 수명주기 책임이며
+invalidate는 실행 중 응답의 게시를 거부한다. B3/F02/C2 전체 완료로 표시하지 않는다.
+
 ## B2 영속 큐 HTTP 통합 Mac 검증 통과 — 2026-10-17
 
 사용자 core/environment/RESULTS(20261017-040607), server(1).log 대조.
