@@ -1,5 +1,20 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 HTTP mutation adapter 추가 — 2026-10-17
+
+이전 Core 138 및 가상 시계 1,000 seed PASS를 기준으로 다음 단계를 진행했다.
+HTTPMutationTransport를 opt-in으로 추가하고 앱 UI 및 기본 Mock 연결은 유지한다.
+
+- POST mutation/snapshot, 요청 ID 헤더, 200 receipt 검증, 409 충돌 변환.
+- 429/503 Retry-After 정수/표준 날짜 파싱 및 기존 bounded retry 연결.
+- 잘못된 receipt/scope/revision, 비 HTTP 응답, 4 MiB 초과, 취소 처리.
+- HTTP adapter 테스트 8개 추가: 주입한 응답 기반이며 실제 서버 통신 테스트가 아니다.
+- 서버 계약은 Docs/MUTATION_HTTP_CONTRACT.md의 **초안**이다. 운영 서버/인증 미설정.
+- 로컬 프로젝트 구조/fixture/셸 구문/공백 검사 PASS.
+  Linux 환경이라 Swift 빌드·실행은 미검증. Mac 로그 확인 전 통과 처리하지 않는다.
+- Mac 실행: `bash scripts/check-http-mutation-mac.sh`.
+  RESULTS.txt, environment.txt, core.log를 검토한 뒤 다음 단계 진행 여부를 결정한다.
+
 ## B2 가상 시계 재시도 1,000 seed Mac 검증 통과 — 2026-10-17
 
 사용자 core/environment(20261017-031717), RESULTS(20261017-031718) 대조.
