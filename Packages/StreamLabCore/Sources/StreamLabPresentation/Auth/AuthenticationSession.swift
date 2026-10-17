@@ -5,7 +5,7 @@ public enum AuthenticationError: Error, Equatable {
 }
 
 /// One instance per signed-in account session. Create a new instance after explicit sign-in.
-/// Tokens are memory-only here; Keychain persistence is a separate integration boundary.
+/// Use restore(account:store:refresh:) for Keychain-backed sessions and logout() for deletion.
 public actor AuthenticationSession {
     public typealias Refresh = @Sendable () async throws -> String
     public typealias Deadline = @Sendable () async throws -> Void
@@ -15,6 +15,7 @@ public actor AuthenticationSession {
         var description: String { "AuthenticationLease(redacted)" }
         var debugDescription: String { description }
     }
+    private var logoutOperation: (@Sendable () async throws -> Void)?
     private var lease: Lease
     private var active = true
     private var failure: AuthenticationError?
@@ -26,6 +27,7 @@ public actor AuthenticationSession {
     private var waiters: [UUID: CheckedContinuation<Lease, any Error>] = [:]
     // Internal observation for deterministic concurrency tests; contains no credentials.
     var waitingCount: Int { waiters.count }
+    private(set) var completedRefreshCount = 0
 
     public init(token: String, refresh: @escaping Refresh,
                 deadline: @escaping Deadline = { try await Task.sleep(for: .seconds(15)) }) throws {
@@ -35,10 +37,42 @@ public actor AuthenticationSession {
         self.deadline = deadline
     }
 
-    private static func valid(_ token: String) -> Bool {
+    nonisolated static func valid(_ token: String) -> Bool {
         !token.isEmpty && token.utf8.allSatisfy {
             (65...90).contains($0) || (97...122).contains($0) || (48...57).contains($0)
                 || [45, 46, 95, 126, 43, 47, 61].contains($0)
+        }
+    }
+
+    /// Restores an existing account item. Explicit sign-in must save its token pair first.
+    /// Use a single shared store per service; refresh uses a separate unauthenticated transport.
+    public static func restore(account: String, store: KeychainTokenStore,
+                               refresh: @escaping @Sendable (String) async throws -> AccountTokens,
+                               deadline: @escaping Deadline = { try await Task.sleep(for: .seconds(15)) }) async throws -> AuthenticationSession? {
+        guard let (tokens, id) = try await store.openSession(account: account) else { return nil }
+        let session = try AuthenticationSession(token: tokens.accessToken, refresh: {
+            let current = try await store.sessionTokens(account: account, id: id)
+            let renewed = try await refresh(current.refreshToken)
+            try Task.checkCancellation()
+            guard renewed.isValid, Self.valid(renewed.accessToken) else { throw AuthenticationError.invalidCredential }
+            // Persist both rotated credentials before the session publishes its new lease.
+            try await store.saveSession(renewed, account: account, id: id)
+            return renewed.accessToken
+        }, deadline: deadline)
+        await session.setLogout { try await store.closeSession(account: account, id: id) }
+        return session
+    }
+
+    private func setLogout(_ operation: @escaping @Sendable () async throws -> Void) {
+        logoutOperation = operation
+    }
+
+    /// Invalidates immediately; reports Keychain deletion failure and permits a deletion retry.
+    /// Cleanup runs independently of caller cancellation. Retain this session to retry on failure.
+    public func logout() async throws {
+        invalidate()
+        if let operation = logoutOperation {
+            try await Task.detached { try await operation() }.value
         }
     }
 
@@ -94,6 +128,7 @@ public actor AuthenticationSession {
     }
 
     private func complete(_ id: UUID, result: Result<String, AuthenticationError>) {
+        completedRefreshCount += 1
         guard active, flightID == id else { return }
         flightID = nil
         refreshTask?.cancel(); refreshTask = nil

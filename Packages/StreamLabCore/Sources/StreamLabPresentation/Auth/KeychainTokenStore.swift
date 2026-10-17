@@ -59,6 +59,8 @@ struct SystemTokenKeychain: TokenKeychainBackend {
 
 /// One actor per service namespace. No plaintext fallback and no token logging.
 public actor KeychainTokenStore {
+    // Share one store actor per service. Grants serialize session writes with logout.
+    private var sessions: [String: (id: UUID, active: Bool)] = [:]
     private let service: String
     private let backend: any TokenKeychainBackend
     public init(service: String = "com.streamlab.authentication.tokens.v1") throws {
@@ -106,4 +108,38 @@ public actor KeychainTokenStore {
         let status = backend.delete(service: service, account: account)
         guard status == errSecSuccess || status == errSecItemNotFound else { throw TokenStoreError.status(status) }
     }
+
+    func openSession(account: String) throws -> (AccountTokens, UUID)? {
+        // A failed logout deletion must be retried, not silently restored in this process.
+        if sessions[account]?.active == false { throw AuthenticationError.invalidated }
+        guard let tokens = try read(account: account) else { return nil }
+        guard AuthenticationSession.valid(tokens.accessToken) else { throw AuthenticationError.invalidCredential }
+        let id = UUID()
+        sessions[account] = (id, true)
+        return (tokens, id)
+    }
+
+    func sessionTokens(account: String, id: UUID) throws -> AccountTokens {
+        guard sessions[account]?.id == id, sessions[account]?.active == true else {
+            throw AuthenticationError.invalidated
+        }
+        guard let tokens = try read(account: account) else { throw AuthenticationError.invalidated }
+        return tokens
+    }
+
+    func saveSession(_ tokens: AccountTokens, account: String, id: UUID) throws {
+        guard sessions[account]?.id == id, sessions[account]?.active == true else {
+            throw AuthenticationError.invalidated
+        }
+        // No suspension between the grant check and the synchronous Keychain write.
+        try save(tokens, account: account)
+    }
+
+    func closeSession(account: String, id: UUID) throws {
+        guard sessions[account]?.id == id else { return } // Never delete a newer session.
+        sessions[account] = (id, false) // Revoked even if Keychain deletion fails.
+        try delete(account: account)
+        sessions.removeValue(forKey: account)
+    }
+
 }

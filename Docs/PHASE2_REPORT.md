@@ -1,5 +1,22 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## C2 인증 세션 ↔ Keychain 연결 — 2026-10-17
+
+- 기존 single-flight 인증 세션에 Keychain 기반 restore/logout API 추가.
+- refresh token으로 갱신 후 access/refresh 쌍 저장 성공 뒤에만 새 lease 게시.
+- 저장소 actor에서 계정별 generation 검사와 동기 저장을 연속 실행.
+- 로그아웃은 메모리 무효화 → grant 폐기 → 정확한 계정 항목 삭제 순서.
+- 삭제 실패는 반환하고 grant는 폐기 상태 유지, 같은 세션 logout 재호출로 삭제 재시도.
+- 이전 세션의 늦은 저장/삭제가 새 세션 항목을 바꾸지 않도록 방어.
+- 정책 통합 테스트 8개 추가: 공유 갱신, 저장 실패, 늦은 응답/로그아웃,
+  삭제 실패/재시도, 세대 교체, 잘못된 bearer, timeout, 취소된 logout 호출.
+- 사용자 중앙 로딩 표시 개선 피드백 확인. 이번 변경은 앱 UI를 수정하지 않는다.
+- 로컬 diff 공백 및 실행 스크립트 bash 구문 검사 PASS. Swift/Xcode 미설치로 빌드/테스트 미실행.
+- Mac 실행: `caffeinate -i bash scripts/check-persisted-auth-mac.sh`.
+- 미완료: 앱 로그인/로그아웃 wiring, 실제 refresh endpoint, iOS 잠금 검증,
+  삭제 실패 후 프로세스 재시작에 대비한 영속 로그아웃 정책. ADR 0026 참조.
+
+
 ## 탐색 로딩 스피너 중앙 배치 — 2026-10-17
 
 사용자 좌우 두 번 탭 확인 중 로딩 표시가 재생 버튼 위에 나타나고 안내 영역이 밀린다는 피드백 반영.
