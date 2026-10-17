@@ -1,5 +1,27 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B3 인증 single-flight Mac 검증 통과 — 2026-10-17
+
+사용자 core(20261017-042004), environment/RESULTS(20261017-042003) 대조.
+실행 HEAD 116fc9a770dcbad573ffc19cf333eb2f466f0651, Xcode 27.0 (27A266a), Swift 6.4.
+프로젝트/Memory 스킴 로컬 변경이 있는 Mac 작업 트리 결과다.
+
+- Core 실제 통과 155개: XCTest 15 + Presentation 133 + Catalog 7.
+  Presentation 요약 140개에는 loopback 전용 테스트 skip 7개가 포함된다.
+  loader 3개/HTTP 큐 4개는 이전 별도 실행에서 PASS했으며 이번 실행의 통과 수에는 제외한다.
+- 인증 single-flight 신규 9개 모두 PASS, suite 0.006초.
+- 401 동시 8건 refresh 1회/동일 요청 재전송, refresh 500 모델에서 8건 모두 실패 종료,
+  늦은 401 재사용, 개별 취소, logout 중 refresh/요청 결과 차단, deadline,
+  두 번째 401 종료, origin/credential 거부 검증 통과.
+- 일반 큐/데이터별 충돌/가상 시계 카오스 각각 1,000 seed PASS.
+- Core 로그 error:/warning: 없음. 빌드 12.36초, Presentation Swift Testing 21.227초.
+- 판정: B3 single-flight Core 검증 범위 통과. 다음 단계 진행 가능.
+  다음 우선순위는 로컬 HTTP refresh endpoint를 통한 동시 401/실제 500 응답 통합 검증이다.
+
+응답/refresh provider를 주입한 테스트이며 실제 refresh endpoint, Keychain,
+앱 로그인/로그아웃 연결, iOS UI 및 B3/F02 전체 완료를 의미하지 않는다.
+이번 커밋은 검증 기록만 추가하므로 동일 테스트 재실행은 필요하지 않다.
+
 ## B3 인증 갱신 single-flight Core 구현 — 2026-10-17
 
 이전 HTTP 큐 통합 검증 통과를 기준으로 opt-in 인증 세션 actor/HTTP client를 추가했다.
