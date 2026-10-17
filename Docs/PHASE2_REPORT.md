@@ -1,5 +1,24 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## C2 Keychain 토큰 저장소 구현 — 2026-10-17
+
+이전 HTTP 인증 통합 Core 157 PASS를 기준으로 계정별 Keychain 저장 계층을 추가했다.
+기존 앱 UI/인증 세션 흐름은 유지하며 아직 앱 로그인/refresh/logout에 연결하지 않는다.
+
+- service/account별 generic-password 항목에 access/refresh token 쌍을 저장한다.
+- update → not-found일 때 add → duplicate일 때 update 1회. 삭제 후 재삽입하지 않는다.
+- WhenUnlockedThisDeviceOnly 및 synchronizable=false. 평문 파일/UserDefaults fallback 없음.
+- 조회 없음과 잠금/권한/entitlement 오류를 구분하고 손상 데이터도 오류로 반환한다.
+- 계정 범위를 지정한 삭제만 허용하며 토큰 description은 마스킹한다.
+- 주입 backend 단위 테스트 6개, 실제 Keychain 가짜 항목 lifecycle 테스트 1개 추가.
+- 실제 테스트는 UUID service 아래 fixture-a/b만 저장/조회/갱신/삭제하며 기존 항목을 조회하지 않는다.
+- 로컬 구조/fixture/셸 구문/공백 검사 PASS. Swift 및 실제 Keychain 실행은 Mac 로그 대기.
+
+실행: `bash scripts/check-keychain-mac.sh`.
+RESULTS.txt/environment.txt/core.log 3개 확인 후 다음 단계를 결정한다.
+Mac Keychain 권한 또는 잠금 오류가 발생하면 실패로 남긴다. iOS 잠금 상태/백업/entitlement
+검증, refresh 영속화/로그아웃 generation 경쟁 처리 및 C2 전체 완료는 별도다. ADR 0025 참조.
+
 ## B3 HTTP 인증 통합 Mac 검증 통과 — 2026-10-17
 
 사용자 core/RESULTS(20261017-043227), environment(20261017-043228), server(2).log 대조.
