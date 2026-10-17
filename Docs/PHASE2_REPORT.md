@@ -1,5 +1,26 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 찜 병합 및 로그아웃 재검증 통과 — 2026-10-17
+
+사용자 core/environment(20261017-015256), RESULTS(20261017-015257),
+ui-tests(20261017-015258) 로그 대조. 실행 HEAD fd9bf12bbddf8903f3eb26c2f05c5cbdb73f328f.
+Xcode 27.0 (27A266a), Swift 6.4, arm64 Mac/iPhone Simulator.
+프로젝트/Memory 스킴 로컬 변경 및 별도 프로젝트 폴더가 있는 작업 트리 결과다.
+
+- Core 129 PASS: XCTest 15 + Presentation Swift Testing 107 + Catalog 7.
+  신규 작품별 찜 병합 7개 모두 PASS. Core 로그 error/warning 없음.
+- UI 3 PASS/0 FAIL, TEST SUCCEEDED, 총 326.178초.
+  일반 로그아웃/재실행 145.175초, 오프라인 대기 변경 로그아웃 125.065초,
+  찜 저장/프로필 격리 55.939초. UI 빌드 로그 error:/warning: 없음.
+- 이전에 실패한 오프라인 로그아웃의 재생 위치 이동 준비 단계를 포함해 이번 실행은
+  끝까지 통과했다. 12초 대기 조정 후 재검증 통과이며 AVPlayer 탐색 지연의 근본 원인을
+  해결했다거나 간헐 지연이 없어졌다는 의미는 아니다.
+
+작품별 충돌 병합 근거는 Core Mock 테스트이며, UI 3개는 연결/저장/삭제 회귀 근거다.
+실제 인증/토큰 폐기, 실제 네트워크 복구, 두 기기 충돌 UI, 전원 유실,
+VoiceOver/최대 글자 크기 및 전체 회귀는 미검증이다. B2 전체 완료로 간주하지 않는다.
+이번 변경은 검증 결과 기록만 추가한다.
+
 ## B2 찜 병합 Mac 검증 및 로그아웃 준비 단계 대기 수정 — 2026-10-17
 
 사용자 core(20261017-014220), environment/RESULTS/ui-tests(20261017-014219) 대조.
