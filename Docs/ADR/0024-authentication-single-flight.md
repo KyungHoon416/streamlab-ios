@@ -47,3 +47,15 @@ deadline behavior is injected explicitly rather than measured with wall-clock sl
 and refresh are injected, not a live auth server. The refresh-500 case models the provider throwing on
 HTTP 500; actual status parsing of a refresh endpoint is not implemented here.
 Run `bash scripts/check-auth-single-flight-mac.sh`; inspect RESULTS.txt/environment.txt/core.log.
+
+
+## Follow-up: real HTTP integration (Mac execution pending)
+
+`check-http-auth-mac.sh` starts `http-auth-fixture.py` on loopback. Two tests exercise eight
+actual HTTP 401 responses and one held refresh request, then release either HTTP 200 or HTTP 500.
+The success case asserts eight successful replays; failure asserts eight terminal errors and no new
+refresh for a later request. Server counters, body fingerprints and idempotency headers are checked.
+Only URL routing is injected; responses traverse the default URLSession loader. Refresh status/JSON
+parsing lives in the test provider, not a production OAuth implementation. Test credentials are dummy
+strings, and server diagnostics omit headers and bodies. TLS, Keychain and app session wiring remain
+out of scope. The local fixture was smoke-tested in Python; Swift execution requires Mac logs.

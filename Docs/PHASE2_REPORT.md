@@ -1,5 +1,28 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B3 로컬 HTTP 인증 통합 테스트 추가 — 2026-10-17
+
+이전 Core 155 및 single-flight 9개 PASS를 기준으로 실제 HTTP 응답을 사용하는 테스트 2개 추가.
+기존 인증 actor/클라이언트/앱 UI 구현은 변경하지 않는다.
+
+- ThreadingHTTPServer를 127.0.0.1 임의 포트로 실행하고 테스트별 UUID 경로로 격리한다.
+- 실제 401 8건 후 refresh 응답을 보류해 8개 waiter가 동시에 대기함을 확인한다.
+- 성공 시 refresh HTTP 200 한 번 및 재전송 8건의 성공을 확인한다.
+- 실패 시 refresh HTTP 500 한 번, 8건 모두 refreshFailed 종료,
+  이후 요청도 추가 refresh 없이 실패하는지 확인한다.
+- 서버 카운터, 요청 본문 SHA-256 및 idempotency header로 정확한 재전송을 확인한다.
+  서버 로그에는 토큰/header/body를 출력하지 않는다. 자격 증명은 테스트용 가짜 문자열이다.
+- 테스트 transport는 URL만 loopback으로 바꾸고 실제 URLSession으로 통신한다.
+  refresh 응답 파싱은 테스트 provider이며 앱 인증 API 계약/운영 OAuth 구현은 아니다.
+- Python fixture smoke test: 동시 401, refresh barrier, 200/500, 카운터/본문 일치 PASS.
+  토큰 로그 미출력, 구조/2,000 fixture/셸 구문/공백 검사 PASS.
+  Swift 컴파일 및 신규 HTTP 인증 통합 테스트 실행은 Mac 로그 대기.
+
+실행: `bash scripts/check-http-auth-mac.sh`.
+RESULTS.txt/environment.txt/core.log/server.log 4개를 확인 후 다음 단계 여부를 판단한다.
+이전 HTTP loader/큐 suite는 각각 별도 fixture가 필요하여 이번 스크립트에서는 skip된다.
+Keychain/앱 로그인·로그아웃 연결/TLS 및 B3/F02 전체 완료는 별도 남아 있다.
+
 ## B3 인증 single-flight Mac 검증 통과 — 2026-10-17
 
 사용자 core(20261017-042004), environment/RESULTS(20261017-042003) 대조.
