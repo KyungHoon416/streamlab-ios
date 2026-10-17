@@ -1,5 +1,28 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 영속 큐 HTTP 통합 Mac 검증 통과 — 2026-10-17
+
+사용자 core/environment/RESULTS(20261017-040607), server(1).log 대조.
+실행 HEAD a59234107e7c092468c60029b8abd9295ddd4754.
+Xcode 27.0 (27A266a), Swift 6.4, Python 3.9.6.
+프로젝트/Memory 스킴 로컬 변경이 있는 Mac 작업 트리 결과다.
+
+- Core 실제 통과 150개: XCTest 15 + Presentation 128 + Catalog 7.
+  Swift Testing Presentation 요약 131개에는 loader 테스트 skip 3개가 포함된다.
+  skip을 통과로 계산하지 않는다. loader 3개는 이전 별도 실행에서 PASS한 범위다.
+- 새 HTTP durable queue 통합 테스트 4개 모두 PASS, suite 0.227초.
+- commit 후 ACK 유실 → pending 보존 → journal 재개방 → 동일 요청 재전송 및 서버 effect 1회 확인.
+- 409 → snapshot → 서버 우선 상태 조정, 429/503 재시도 성공 및 4회 상한,
+  backoff 취소 후 후속 전송 없음/pending 유지 모두 확인.
+- 서버 로그의 409/snapshot, 429→503→200, 429→503→429→503 및 stats 요청을 대조했다.
+- 일반 큐/데이터별 충돌/가상 시계 카오스 각각 1,000 seed PASS.
+- Core 로그 error:/warning: 없음. 빌드 15.24초, Presentation Swift Testing 21.554초.
+- 판정: 이번 HTTP 큐 통합 검증 범위 통과. 다음 단계 B3 인증 갱신 single-flight 진행 가능.
+  401 동시 8건에 refresh 1회, refresh 500 시 유한 종료, 취소/로그아웃 경쟁을 우선 검증한다.
+
+실제 앱 프로세스 강제 종료/100건 복구, 서버 재시작 영속성, TLS/운영 인증,
+iOS UI 및 B2/D 전체 완료를 의미하지 않는다. 이번 커밋은 기록만 추가하므로 재실행 불필요.
+
 ## B2 영속 큐–HTTP–서버 통합 테스트 추가 — 2026-10-17
 
 이전 Core 149 및 URLSession loopback 검증 PASS를 기준으로 신규 테스트 4개를 추가했다.
