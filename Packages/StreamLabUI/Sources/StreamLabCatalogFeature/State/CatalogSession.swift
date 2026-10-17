@@ -94,10 +94,15 @@ import StreamLabDesignSystem
         init(_ value: CatalogStore) { self.value = value }
     }
 
-    public init(profile: ViewerProfile, repository: any CatalogRepository) {
+    public convenience init(profile: ViewerProfile, repository: any CatalogRepository) {
+        self.init(profile: profile, repository: repository, configuration: CatalogAccount.configuration())
+    }
+
+    /// Test sessions can use isolated account/defaults without changing app launch arguments.
+    init(profile: ViewerProfile, repository: any CatalogRepository,
+         configuration: (id: String, defaults: UserDefaults)) {
         self.profile = profile
         self.repository = repository
-        let configuration = CatalogAccount.configuration()
         let progressDefaults = configuration.defaults
         let progressAccount = configuration.id
         self.myList = MyListStore(profile: profile, defaults: progressDefaults, accountID: progressAccount)
