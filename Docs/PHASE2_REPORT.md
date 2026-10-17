@@ -1,5 +1,34 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## 잠금 화면 Now Playing 및 원격 재생 조작 — 2026-10-17
+
+사용자 iPhone 15 Pro에서 잠금 후 영상 음성이 계속 나오는 것을 확인했다.
+첨부 Xcode Background Modes에는 Audio, AirPlay, and Picture in Picture가 활성화돼 있다.
+설정 앱의 Background App Refresh는 오디오 백그라운드 재생과 별도 기능이다.
+
+- MPNowPlayingInfoCenter에 작품명, 테스트 소스명, 기존 번들 포스터, 전체/경과 시간, 실제 재생 속도 등록.
+- MPRemoteCommandCenter 재생/일시정지/토글/±10초/재생 위치 변경을 기존 플레이어 모델에 연결.
+- 원격 pause는 진행 중 seek의 자동 재개 의도도 무효화. 잠금 상태에서 play/seek 가능.
+- 시스템 명령 이벤트는 값을 추출한 뒤 MainActor로 전달하고 player generation/소유권 검사.
+- 닫기/프로필 무효화/실패 시 등록한 target과 메타데이터 제거. 이전 세대 cleanup이 새 플레이어를 지우지 못하도록 owner 검사.
+- 동일한 경과 초/재생 상태에서는 메타데이터 재게시를 생략.
+- 로컬 diff 공백 검사 및 변경 범위 검토 PASS. Xcode 빌드·잠금 화면 조작은 미검증.
+- 실기기 확인: HLS 재생 → 잠금 → 제목/포스터/시간 표시, 재생/정지/±10초,
+  앱 복귀 상태 일치, 닫기 후 카드 잔류 여부, 다른 프로필에서 이전 작품 조작 불가.
+- 잠금 카드 디자인과 버튼 배치는 iOS가 결정한다. 원격 포스터 다운로드는 추가하지 않았으며 현재 데모 번들 포스터를 사용한다.
+
+Apple: https://developer.apple.com/documentation/mediaplayer/mpnowplayinginfocenter
+https://developer.apple.com/library/archive/documentation/AudioVideo/Conceptual/MediaPlaybackGuide/Contents/Resources/en.lproj/RefiningTheUserExperience/RefiningTheUserExperience.html
+
+## 영속 로그아웃 Mac 로그 확인 — 2026-10-17
+
+core/environment/RESULTS(20261017-061250), HEAD 4180808, Xcode 27.0/Swift 6.4.
+Core 실제 177 PASS = XCTest 15 + Presentation 155 + Catalog 7. Presentation 요약 164에는 HTTP skip 9 포함.
+영속 로그아웃 7개(0.014초), 인증 연결 8개(0.015초), 실제 Mac Keychain 1개(0.075초) PASS.
+카오스 3종 각 1,000 seed PASS, 오류/경고 없음. 빌드 12.90초.
+저장소 재생성 기반 검증이며 실제 iOS 프로세스 종료/재시작 및 앱 인증 UI 연결은 미검증.
+
+
 ## 백그라운드 오디오 재생 정책 변경 — 2026-10-17
 
 사용자 요청에 따라 홈 이동/화면 잠금 시 현재 영상 오디오를 이어 재생하도록 변경했다.

@@ -2,6 +2,7 @@ import AVFoundation
 import Combine
 import Foundation
 import OSLog
+import StreamLabDesignSystem
 import StreamLabDomain
 import StreamLabPresentation
 
@@ -106,6 +107,9 @@ import StreamLabPresentation
     @Published private(set) var nextEpisodeSeconds: Int?
     private var autoAdvance = AutoAdvanceCountdown()
     private var nextEpisodeStarted: ContinuousClock.Instant?
+    private var nowPlayingOwner: UUID?
+    private var nowPlayingTitle = "StreamLab"
+    private var nowPlayingArtworkURL: URL?
     private let titleID: String
     private let session: CatalogSession
     private let progressLog = Logger(subsystem: "com.example.streamlab.demo", category: "PlaybackProgress")
@@ -277,6 +281,8 @@ import StreamLabPresentation
                     self.fail("이 프로필에서는 재생할 수 없는 콘텐츠입니다.")
                     return
                 }
+                self.nowPlayingTitle = title.name
+                self.nowPlayingArtworkURL = StreamLabTheme.bundledArtworkURL(seed: title.visualSeed)
                 if let deviceID = self.syncDeviceID {
                     let identity = ProgressIdentity(profileID: profile.id, titleID: id, sourceID: self.source.progressID)
                     let progress = await PlaybackSyncDemo.coordinator.open(identity: identity, deviceID: deviceID)
@@ -325,6 +331,13 @@ import StreamLabPresentation
         // Audio continues with the screen locked or when automatic PiP is unavailable.
         player.audiovisualBackgroundPlaybackPolicy = .continuesIfPossible
         self.player = player
+        let nowPlayingID = UUID()
+        nowPlayingOwner = nowPlayingID
+        PlaybackNowPlaying.shared.begin(owner: nowPlayingID, title: nowPlayingTitle,
+            subtitle: "StreamLab · \(source.rawValue)", artworkURL: nowPlayingArtworkURL) { [weak self] action in
+                guard let self, self.generation == ticket, self.session.isActive else { return }
+                self.handleRemoteAction(action)
+            }
         observeItemEnd(ticket: ticket)
         player.appliesMediaSelectionCriteriaAutomatically = false
         prepareSubtitles(player: player, ticket: ticket)
@@ -459,6 +472,10 @@ import StreamLabPresentation
             }
         }
         updateSubtitleText()
+        if let owner = nowPlayingOwner {
+            PlaybackNowPlaying.shared.update(owner: owner, position: position, duration: duration,
+                rate: isSeeking ? 0 : Double(player.rate), canSeek: canSeek)
+        }
         if lastProgressSave.map({ $0.duration(to: .now) >= .seconds(5) }) ?? true {
             saveProgress()
         }
@@ -474,6 +491,32 @@ import StreamLabPresentation
     func playNextEpisode() {
         guard session.isActive, foreground, status == .ended, let next = source.nextEpisode else { return }
         load(next) // Saves old item, cancels tasks and rechecks repository permission.
+    }
+
+    private func handleRemoteAction(_ action: PlaybackNowPlaying.Action) {
+        guard session.isActive, let player else { return }
+        switch action {
+        case .pause:
+            // Pause also cancels the auto-resume intent of an in-flight seek.
+            playbackIntentGeneration += 1
+            wantsPlayback = false
+            player.pause()
+        case .play:
+            guard !syncRestartPending, !isSeeking, player.currentItem?.status == .readyToPlay else { return }
+            if status == .ended { seek(to: 0, playAfterSeek: true); return }
+            progressReady = true
+            wantsPlayback = true
+            player.play()
+        case .toggle:
+            handleRemoteAction(wantsPlayback ? .pause : .play)
+            return
+        case .skip(let delta):
+            seek(to: player.currentTime().seconds + delta)
+        case .seek(let position):
+            seek(to: position)
+        }
+        _ = sample(ticket: generation)
+        saveProgress()
     }
 
     func togglePlayback() {
@@ -620,6 +663,10 @@ import StreamLabPresentation
     }
 
     func stop() {
+        if let owner = nowPlayingOwner {
+            PlaybackNowPlaying.shared.end(owner: owner)
+            nowPlayingOwner = nil
+        }
         pictureInPicture.setAutomaticStartEnabled(false)
         mediaResetObserver = nil
         itemEndObserver = nil
@@ -893,6 +940,9 @@ import StreamLabPresentation
     }
 
     deinit {
+        if let owner = nowPlayingOwner {
+            Task { @MainActor in PlaybackNowPlaying.shared.end(owner: owner) }
+        }
         if let owner = audioSessionOwner { PlaybackAudioSession.shared.release(owner: owner) }
         audioTask?.cancel()
         subtitleTask?.cancel()

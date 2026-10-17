@@ -2,6 +2,10 @@ import SwiftUI
 import StreamLabDomain
 
 public enum StreamLabTheme {
+    public static func bundledArtworkURL(seed: Int) -> URL? {
+        Bundle.module.url(forResource: "poster-\(abs(seed % 6))", withExtension: "png")
+    }
+
     public static let accent = Color(red: 0.9, green: 0.04, blue: 0.1)
     public static let background = Color(red: 0.035, green: 0.035, blue: 0.045)
     public static let surface = Color(red: 0.1, green: 0.1, blue: 0.12)
