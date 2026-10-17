@@ -1,5 +1,23 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 영속 큐 1,000 seed Mac 검증 통과 — 2026-10-17
+
+사용자 core/environment/RESULTS(20261017-024812) 대조.
+실행 HEAD 44f0f0e8583653bb38c65b74b54118bbabed4acf, Xcode 27.0 (27A266a), Swift 6.4.
+프로젝트/Memory 스킴 로컬 변경이 있는 Mac 작업 트리 결과다.
+
+- Core 136 PASS: XCTest 15 + Presentation Swift Testing 114 + Catalog 7.
+- `CHAOS PASS seeds=1000 replay=1...1000 eventsPerSeed=24` 확인.
+  단일 chaos 테스트 내부에서 seed 1...1000을 실행했고 suite 소요 시간은 11.636초다.
+  24,000개 생성 이벤트와 각 seed의 마지막 동시 전송/최종 수렴 검사를 통과했다.
+- Core 로그 error:/warning: 없음. UI는 이번 테스트 전용 변경에서 실행하지 않았다.
+- 판정: 영속 큐 반복 검증 범위 통과, 다음 단계 진행 가능.
+  다음 범위는 찜 항목별 병합/진도 restart/최근 검색 삭제의 도메인별 충돌 규칙 반복 검증이다.
+
+이번 성공은 일반 server-wins 영속 큐의 Mock 검증 근거이며 실제 HTTP/인터넷 복구,
+B2 모든 불변식 및 Part D 10종 전체 카오스 검증 완료를 의미하지 않는다.
+이번 커밋은 결과 기록만 추가하므로 동일 검증의 재실행은 필요하지 않다.
+
 ## B2 영속 큐 seed 기반 반복 검증 추가 — 2026-10-17
 
 과제의 랜덤 이벤트 순서 1,000회 재현 요구에 대한 첫 범위로 영속 큐 테스트를 추가한다.
