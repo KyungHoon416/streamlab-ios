@@ -57,13 +57,19 @@ import UIKit
             guard let action = decode(event) else { return .commandFailed }
             // Do not transfer MediaPlayer events across executors, only the value action.
             Task { @MainActor [weak self] in
-                guard let self, self.owner == owner else { return }
-                self.action?(action)
+                self?.deliver(action, owner: owner)
             }
             return .success
         }
         let target = command.addTarget(handler: handler)
         targets.append((command, target))
+    }
+
+    /// Recheck on the receiving actor: an already queued system callback may outlive
+    /// target removal, the presentation, or the profile that originally owned it.
+    func deliver(_ action: Action, owner: UUID) {
+        guard self.owner == owner else { return }
+        self.action?(action)
     }
 
     func update(owner: UUID, position: Double, duration: Double, rate: Double, canSeek: Bool) {
