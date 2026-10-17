@@ -1,5 +1,24 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 가상 시계 재시도 1,000 seed Mac 검증 통과 — 2026-10-17
+
+사용자 core/environment(20261017-031717), RESULTS(20261017-031718) 대조.
+실행 HEAD dff44655f5fc3662800c358db8d1f4e1a86cad5f, Xcode 27.0 (27A266a), Swift 6.4.
+프로젝트/Memory 스킴 로컬 변경이 있는 Mac 작업 트리 결과다.
+
+- Core 138 PASS: XCTest 15 + Presentation Swift Testing 116 + Catalog 7.
+- RETRY CLOCK CHAOS PASS seeds=1000 replay=1...1000 확인, suite 0.652초.
+- DOMAIN CHAOS PASS seeds=1000 및 일반 큐 CHAOS PASS seeds=1000도 확인.
+  Presentation 전체 실행 21.033초. suite별 시간은 병렬 실행이므로 합산하지 않는다.
+- Core error:/warning: 없음. 테스트만 추가한 단계여서 UI는 실행하지 않았다.
+- 판정: 가상 시계 기반 재시도 검증 범위 통과, 다음 단계 진행 가능.
+  다음 우선순위는 실제 HTTP 상태/Retry-After 헤더를 기존 mutation 재시도 정책에
+  연결하는 adapter 및 응답 변환 검증이다. 서버 계약은 명시적으로 정의해야 한다.
+
+3개 suite 각각 1,000 seed의 Mock/가상 시간 검증이다. 실제 HTTP 서버·인터넷 복구,
+B2 전체 및 Part D 전체 카오스 완료를 의미하지 않는다.
+이번 커밋은 결과 기록만 추가하므로 동일 테스트 재실행은 필요하지 않다.
+
 ## B2 가상 시계 기반 재시도 반복 검증 추가 — 2026-10-17
 
 기존 RetryingMutationTransport의 sleep/random 주입점을 사용하고 앱 구현은 변경하지 않는다.
