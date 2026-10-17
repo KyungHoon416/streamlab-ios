@@ -1,5 +1,26 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## C2 인증 세션 ↔ Keychain Mac 검증 통과 — 2026-10-17
+
+사용자 core(20261017-054738), environment/RESULTS(20261017-054734) 대조.
+HEAD b9038103082cb5a3dbdb892c5730aefb70ae3f0e, Xcode 27.0 (27A266a), Swift 6.4.
+Mac 프로젝트/Memory 스킴에 로컬 변경이 있는 실행 결과다.
+
+- 실제 Core 통과 170개: XCTest 15 + Presentation 148 + Catalog 7, 실패 없음.
+  Presentation 요약 157에는 별도 HTTP 서버 테스트 skip 9개가 포함된다.
+- 새 persisted authentication 정책 테스트 8개 모두 PASS (suite 0.008초).
+- 저장 실패 시 게시 차단, 늦은 갱신/로그아웃, 삭제 실패/재시도, 세대 교체,
+  잘못된 bearer, timeout, 취소된 logout 호출 검증 통과.
+- Keychain 정책 6개 PASS, 실제 Mac dummy-item lifecycle 1개 PASS (0.074초), cleanup marker 확인.
+- 카오스 3종 각각 1,000 seed PASS. core 로그 error:/warning: 없음.
+- 빌드 12.83초, Presentation Swift Testing 21.422초.
+- 판정: 현재 저장/갱신/삭제 연결 범위 통과. 다음 단계 진행 가능.
+  다음 우선순위는 삭제 실패 후 앱 종료/재시작에도 로그아웃 상태를 유지하는 영속 정책.
+- 미검증: iOS 잠금 보호, 앱 로그인/로그아웃 wiring, 실제 refresh endpoint, 전체 C2.
+
+이번 변경은 검증 기록만 추가하므로 동일 테스트 재실행은 필요하지 않다.
+
+
 ## C2 인증 세션 ↔ Keychain 연결 — 2026-10-17
 
 - 기존 single-flight 인증 세션에 Keychain 기반 restore/logout API 추가.
