@@ -1,5 +1,30 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 영속 큐–HTTP–서버 통합 테스트 추가 — 2026-10-17
+
+이전 Core 149 및 URLSession loopback 검증 PASS를 기준으로 신규 테스트 4개를 추가했다.
+제품 코드/UI/기본 Mock 연결은 유지한다.
+
+- 서버 commit 후 ACK body를 잘라 연결 종료. 첫 flush 실패 및 pending 유지,
+  디스크 journal 재개방 후 같은 요청 재전송, 서버 effect 1회/동일 wire body 확인.
+- 409 응답 후 POST snapshot으로 서버 우선 상태 및 revision 조정.
+- 실제 429/503 응답 혼합 후 성공, 최대 4회 소진 시 pending 보존,
+  동일 body 및 Retry-After를 반영한 지연 값 확인.
+- HTTP 오류 후 backoff 취소 시 후속 전송 없음/pending 유지 확인.
+- 테스트별 UUID 경로로 서버 상태 격리. 서버는 메모리 fixture이며 서버 재시작 영속성 검증은 아니다.
+- 테스트 execute closure는 URL만 127.0.0.1로 교체한다. 응답은 합성하지 않고
+  기존 HTTP adapter 직렬화/응답 처리와 기본 URLSession loader를 실행한다.
+  HTTPS 정책은 변경하지 않으며 TLS는 이번 검증 범위 밖이다.
+- backoff는 주입한 sleeper에 지연 값을 기록한다. 실제 대기 시간은 기존 가상 시계 suite 범위다.
+- 로컬 Python 서버 smoke test, 구조/2,000 fixture/셸 구문/공백 검사 PASS.
+  Swift 컴파일 및 신규 통합 테스트 실행은 Mac 로그 대기다.
+
+실행: `bash scripts/check-http-queue-mac.sh`.
+RESULTS.txt/environment.txt/core.log/server.log 4개를 확인 후 다음 단계 여부를 판단한다.
+이 스크립트는 큐 통합 suite와 완료 marker 4개를 요구한다. 환경 변수 없는 일반 Core 실행은
+새 suite를 skip한다. 이전 loader 전용 suite는 별도 환경 변수가 없어 이번 스크립트에서는 skip된다.
+실제 앱 프로세스 강제 종료/100건 큐 복구, 인증 single-flight, 전체 B2/D 완료는 별도 남아 있다.
+
 ## B2 URLSession loopback Mac 통합 검증 통과 — 2026-10-17
 
 사용자 core/environment(20261017-034942), RESULTS(20261017-034943), server.log 대조.

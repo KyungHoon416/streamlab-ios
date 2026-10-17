@@ -74,3 +74,19 @@ Without `STREAMLAB_HTTP_FIXTURE_URL`, this suite is skipped during ordinary Core
 The dedicated script requires all three completion markers and the passing suite, so a skipped suite
 cannot produce a PASS result. Upload RESULTS.txt, environment.txt, core.log and server.log.
 This does not validate TLS, external connectivity, authentication, or a deployed backend.
+
+
+### Durable queue HTTP integration (Mac validation pending)
+
+`bash scripts/check-http-queue-mac.sh` starts the separate in-memory mutation fixture on loopback.
+Four tests cover truncated ACK after commit and journal reopening, 409/snapshot reconciliation,
+mixed 429/503 success and budget exhaustion, and cancellation during backoff. The execute closure
+only rewrites the destination URL to the loopback fixture; the production adapter encodes/decodes
+requests and the default loader exchanges bytes over sockets. There is no TLS bypass in product code.
+The fixture records raw request bodies and idempotency receipts to verify identical retransmission
+and one effect. Its state is not persistent across server restarts; only client journal reopening is
+covered. It implements this test subset, not the full production contract or all domain merge policies.
+Backoff delays are recorded with an injected sleeper rather than waiting real seconds. The existing
+virtual-clock suite covers scheduling. This is not a 100-mutation/process-kill test or auth validation.
+Upload RESULTS.txt, environment.txt, core.log and server.log. The previous loader suite is skipped
+unless its own fixture environment is configured; its earlier PASS remains separate evidence.
