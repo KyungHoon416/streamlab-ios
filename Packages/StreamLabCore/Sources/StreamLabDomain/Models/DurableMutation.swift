@@ -17,6 +17,17 @@ public enum SearchDeletion: Codable, Equatable, Sendable {
     case all
 }
 
+public struct MyListChange: Codable, Equatable, Sendable {
+    public let title: CatalogTitle
+    public let isSaved: Bool
+    public let observedRevision: UInt64
+    public init(title: CatalogTitle, isSaved: Bool, observedRevision: UInt64) {
+        self.title = title
+        self.isSaved = isSaved
+        self.observedRevision = observedRevision
+    }
+}
+
 /// An immutable retry envelope. Retries must reuse every field, including the ID.
 public struct DurableMutation: Codable, Equatable, Sendable {
     public let id: UUID
@@ -28,9 +39,10 @@ public struct DurableMutation: Codable, Equatable, Sendable {
     public let value: Data?
     public let intent: MutationIntent?
     public let searchDeletion: SearchDeletion?
+    public let myListChange: MyListChange?
 
     public init(id: UUID, scope: MutationScope, deviceID: UUID, sequence: UInt64,
-                baseRevision: UInt64, key: String, value: Data?, intent: MutationIntent? = nil, searchDeletion: SearchDeletion? = nil) {
+                baseRevision: UInt64, key: String, value: Data?, intent: MutationIntent? = nil, searchDeletion: SearchDeletion? = nil, myListChange: MyListChange? = nil) {
         self.id = id
         self.scope = scope
         self.deviceID = deviceID
@@ -40,6 +52,7 @@ public struct DurableMutation: Codable, Equatable, Sendable {
         self.value = value
         self.intent = intent
         self.searchDeletion = searchDeletion
+        self.myListChange = myListChange
     }
 }
 
@@ -59,10 +72,15 @@ public struct MutationSnapshot: Sendable {
     public let scope: MutationScope
     public let revision: UInt64
     public let values: [String: Data]
-    public init(scope: MutationScope, revision: UInt64, values: [String: Data]) {
+    public let myListItemRevisions: [String: UInt64]?
+    public let myListRevisionFloor: UInt64
+    public init(scope: MutationScope, revision: UInt64, values: [String: Data],
+                myListItemRevisions: [String: UInt64]? = nil, myListRevisionFloor: UInt64 = 0) {
         self.scope = scope
         self.revision = revision
         self.values = values
+        self.myListItemRevisions = myListItemRevisions
+        self.myListRevisionFloor = myListRevisionFloor
     }
 }
 

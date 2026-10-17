@@ -49,7 +49,9 @@ import StreamLabCatalogData
             if updated.contains(where: { $0.id == title.id }) {
                 updated.removeAll { $0.id == title.id }
             } else { updated.insert(title, at: 0) }
-            try queue.set(JSONEncoder().encode(updated), forKey: snapshotKey)
+            let change = MyListChange(title: title, isSaved: updated.contains { $0.id == title.id },
+                                      observedRevision: queue.committedRevision)
+            try queue.set(JSONEncoder().encode(updated), forKey: snapshotKey, myListChange: change)
             items = updated
             scheduleSync()
         } catch {
@@ -86,6 +88,9 @@ import StreamLabCatalogData
         guard active, syncTask == nil, let queue else { return }
         syncTask = Task { [weak self] in
             defer { self?.syncTask = nil }
+            defer {
+                if let self, self.active { self.items = (try? self.read()) ?? self.items }
+            }
             do {
                 #if DEBUG
                 if ProcessInfo.processInfo.arguments.contains("--ui-test-mutation-offline") {
@@ -93,7 +98,7 @@ import StreamLabCatalogData
                 }
                 #endif
                 let server = try Self.transport()
-                try await queue.flush(using: RetryingMutationTransport(base: server), serverWins: server)
+                try await queue.flush(using: RetryingMutationTransport(base: server), serverWins: server, mergeMyListItems: true)
                 guard let self, self.active else { return }
                 self.items = try self.read()
             } catch {

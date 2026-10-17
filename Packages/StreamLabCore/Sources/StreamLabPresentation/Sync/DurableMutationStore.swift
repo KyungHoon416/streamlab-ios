@@ -12,6 +12,7 @@ import StreamLabDomain
         var revision: UInt64 = 0
         var values: [String: Data] = [:]
         var pending: [DurableMutation] = []
+        var acknowledgedMyListRevisions: [String: UInt64]? = nil
     }
     private final class WeakStore {
         weak var value: DurableMutationStore?
@@ -80,6 +81,7 @@ import StreamLabDomain
 
     public var values: [String: Data] { journal.values }
     public var pending: [DurableMutation] { journal.pending }
+    public var committedRevision: UInt64 { journal.revision }
 
     public func refresh() throws {
         guard active else { throw MutationQueueError.inactive }
@@ -87,14 +89,14 @@ import StreamLabDomain
     }
 
     public func set(_ value: Data?, forKey key: String, intent: MutationIntent? = nil,
-                    searchDeletion: SearchDeletion? = nil) throws {
+                    searchDeletion: SearchDeletion? = nil, myListChange: MyListChange? = nil) throws {
         guard active else { throw MutationQueueError.inactive }
         var next = try read()
         guard next.nextSequence < UInt64.max,
               next.revision < UInt64.max - UInt64(next.pending.count) else {
             throw MutationQueueError.exhausted
         }
-        Self.append(key: key, value: value, intent: intent, searchDeletion: searchDeletion, to: &next)
+        Self.append(key: key, value: value, intent: intent, searchDeletion: searchDeletion, myListChange: myListChange, to: &next)
         try persist(next)
         journal = next // Publish only after the atomic replacement succeeds.
     }
@@ -104,7 +106,7 @@ import StreamLabDomain
     public func flush(using transport: any MutationTransport,
                       serverWins snapshots: (any MutationSnapshotSource)? = nil,
                       preservePlaybackRestarts: Bool = false,
-                      preserveSearchDeletions: Bool = false) async throws {
+                      preserveSearchDeletions: Bool = false, mergeMyListItems: Bool = false) async throws {
         guard active else { throw MutationQueueError.inactive }
         guard !flushing else { return }
         flushing = true
@@ -128,9 +130,10 @@ import StreamLabDomain
                 }
                 guard conflicts < 3 else { throw MutationQueueError.conflict(currentRevision: currentRevision) }
                 try await adoptServerSnapshot(from: snapshots, minimumRevision: currentRevision,
-                                              preserveRestarts: preservePlaybackRestarts, preserveSearchDeletions: preserveSearchDeletions)
+                                              preserveRestarts: preservePlaybackRestarts, preserveSearchDeletions: preserveSearchDeletions,
+                                              mergeMyListItems: mergeMyListItems)
                 conflicts += 1
-                if preservePlaybackRestarts || preserveSearchDeletions, !journal.pending.isEmpty { continue }
+                if preservePlaybackRestarts || preserveSearchDeletions || mergeMyListItems, !journal.pending.isEmpty { continue }
                 return
             }
             try Task.checkCancellation()
@@ -140,6 +143,11 @@ import StreamLabDomain
                   revision == head.baseRevision + 1 else { throw MutationQueueError.invalidReceipt }
             next.pending.removeFirst()
             next.revision = revision
+            if head.key == "my-list", let change = head.myListChange {
+                var acknowledged = next.acknowledgedMyListRevisions ?? [:]
+                acknowledged[change.title.id] = revision
+                next.acknowledgedMyListRevisions = acknowledged
+            }
             try persist(next)
             journal = next
         }
@@ -149,7 +157,7 @@ import StreamLabDomain
     /// New local edits made during the fetch must survive; caller can retry reconciliation.
     private func adoptServerSnapshot(from source: any MutationSnapshotSource,
                                      minimumRevision: UInt64 = 0, preserveRestarts: Bool = false,
-                                     preserveSearchDeletions: Bool = false) async throws {
+                                     preserveSearchDeletions: Bool = false, mergeMyListItems: Bool = false) async throws {
         try Task.checkCancellation()
         guard active else { throw MutationQueueError.inactive }
         let before = try read()
@@ -170,6 +178,12 @@ import StreamLabDomain
             }
         }
         let retained = next.pending.enumerated().compactMap { index, item -> DurableMutation? in
+            if mergeMyListItems, item.key == "my-list", let change = item.myListChange,
+               let versions = snapshot.myListItemRevisions,
+               change.observedRevision <= before.revision,
+               (versions[change.title.id] ?? snapshot.myListRevisionFloor) <= max(change.observedRevision, before.acknowledgedMyListRevisions?[change.title.id] ?? 0) {
+                return item
+            }
             if preserveSearchDeletions, item.key == "recent-searches", item.searchDeletion != nil { return item }
             guard let start = restartOffsets[item.key], index >= start else { return nil }
             return item
@@ -182,7 +196,15 @@ import StreamLabDomain
         next.revision = snapshot.revision
         next.pending = []
         for item in retained {
-            if preserveSearchDeletions, let deletion = item.searchDeletion, item.key == "recent-searches" {
+            if mergeMyListItems, let change = item.myListChange, item.key == "my-list" {
+                var titles = try next.values[item.key].map { try JSONDecoder().decode([CatalogTitle].self, from: $0) } ?? []
+                titles.removeAll { $0.id == change.title.id }
+                if change.isSaved { titles.insert(change.title, at: 0) }
+                let value = try JSONEncoder().encode(titles)
+                let rebased = MyListChange(title: change.title, isSaved: change.isSaved,
+                                           observedRevision: snapshot.revision)
+                Self.append(key: item.key, value: value, myListChange: rebased, to: &next)
+            } else if preserveSearchDeletions, let deletion = item.searchDeletion, item.key == "recent-searches" {
                 let updated: [String]
                 switch deletion {
                 case .all: updated = []
@@ -218,10 +240,10 @@ import StreamLabDomain
     }
 
     private static func append(key: String, value: Data?, intent: MutationIntent? = nil,
-                               searchDeletion: SearchDeletion? = nil, to next: inout Journal) {
+                               searchDeletion: SearchDeletion? = nil, myListChange: MyListChange? = nil, to next: inout Journal) {
         next.pending.append(DurableMutation(id: UUID(), scope: next.scope, deviceID: next.deviceID,
             sequence: next.nextSequence, baseRevision: next.revision + UInt64(next.pending.count),
-            key: key, value: value, intent: intent, searchDeletion: searchDeletion))
+            key: key, value: value, intent: intent, searchDeletion: searchDeletion, myListChange: myListChange))
         next.nextSequence += 1
         next.values[key] = value
     }
