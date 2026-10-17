@@ -1,5 +1,25 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## C2 Keychain 토큰 저장소 Mac 검증 통과 — 2026-10-17
+
+사용자 core/environment/RESULTS(20261017-045409) 대조.
+실행 HEAD 0aa04521d56b2697cdc2d182f518c1dbbf3c24ff, Xcode 27.0 (27A266a), Swift 6.4.
+프로젝트/Memory 스킴 로컬 변경이 있는 Mac 작업 트리 결과다.
+
+- Core 실제 통과 162개: XCTest 15 + Presentation 140 + Catalog 7.
+  Presentation 요약 149개에는 별도 서버가 필요한 HTTP 테스트 skip 9개가 포함된다.
+- 토큰 저장 정책 6개 PASS (suite 0.006초), 실제 Mac Keychain 통합 1개 PASS (0.064초).
+- 가짜 토큰 저장 → 저장소 재생성 조회 → 갱신 → 계정 격리 → 두 항목 삭제/없음 확인 통과.
+- 잠금/권한/entitlement 오류, 손상 데이터, 취소는 주입 backend 검증이며 실제 기기 잠금 실험은 아니다.
+- 기존 인증 single-flight 및 카오스 3종 각각 1,000 seed PASS.
+- Core 로그 error:/warning: 없음. 빌드 12.31초, Presentation Swift Testing 21.098초.
+- 판정: Keychain 저장 계층 및 Mac 실제 항목 lifecycle 검증 범위 통과. 다음 단계 진행 가능.
+  다음 우선순위는 인증 세션과 저장소 연결: 갱신 토큰의 저장 성공 후 게시,
+  로그아웃 뒤 늦은 refresh가 토큰을 복원하지 못하도록 session generation 및 삭제 순서 검증이다.
+
+iOS 잠금 상태/백업/entitlement 보장, 앱 로그인·로그아웃 연결, refresh 영속화,
+전체 C2 완료를 의미하지 않는다. 이번 커밋은 기록만 추가하므로 동일 테스트 재실행 불필요.
+
 ## C2 Keychain 토큰 저장소 구현 — 2026-10-17
 
 이전 HTTP 인증 통합 Core 157 PASS를 기준으로 계정별 Keychain 저장 계층을 추가했다.
