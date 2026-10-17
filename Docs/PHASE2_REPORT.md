@@ -1,5 +1,30 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 가상 시계 기반 재시도 반복 검증 추가 — 2026-10-17
+
+기존 RetryingMutationTransport의 sleep/random 주입점을 사용하고 앱 구현은 변경하지 않는다.
+RetryClockChaosTests의 단일 테스트가 seed 1...1000으로 429/503/timeout 순서,
+Retry-After, jitter 표본, 취소 시점을 선택한다. 수동 가상 시계가 각 sleep의 deadline을
+보관하며 테스트가 시간을 전진시켜야만 continuation을 깨운다. 실제 backoff 시간은 기다리지 않는다.
+
+- 대기 시간의 절반에서는 다음 send가 없어야 한다. deadline 도달 후에만 다음 시도가 가능하다.
+- 각 지연이 Retry-After 및 기존 equal-jitter 정책을 따르는지 확인한다.
+- 첫/둘째/셋째 대기에서 취소하거나 3회 대기 후 네 번째 전송 성공 경로를 실행한다.
+  가상 sleeper는 의도적으로 취소를 무시해 어댑터의 wake 후 취소 검사도 검증한다.
+- 모든 재전송은 원래 요청 전체와 동일해야 한다. 취소 시 서버 revision 0,
+  성공 시 1을 확인한다. 실패 시 seed/오류 순서/대기 조건/취소 위치를 기록한다.
+- 예상한 sleep 요청이 오지 않는 지연을 실패로 표시하도록 테스트에 2분 제한을 둔다.
+- 기존 MutationRetryTests의 최대 4회 소진, 긴/잘못된 Retry-After 중단, 종료 오류,
+  ACK 유실 테스트도 전체 Core 실행에 포함된다. 신규 seed 테스트는 이 경계 조건 전부를
+  무작위화한 것은 아니다.
+- 실행: `bash scripts/check-retry-clock-mac.sh`, 단일 seed는 STREAMLAB_CHAOS_SEED 지정.
+  신규 suite와 `RETRY CLOCK CHAOS PASS seeds=1000` 완료를 함께 확인한다.
+
+로컬 구조/fixture/셸 구문/공백 검사 PASS. Swift 실행은 Mac 결과 대기이며
+신규 1,000 seed 통과로 기록하지 않는다. 이번 단계는 테스트만 추가해 UI 실행은 생략한다.
+결과 파일은 RESULTS.txt/environment.txt/core.log 3개다. 실제 HTTP 헤더 파싱,
+실제 인터넷 복구, Part D 전체 카오스 및 B2 전체 완료는 별도 남아 있다.
+
 ## B2 데이터별 충돌 1,000 seed Mac 검증 통과 — 2026-10-17
 
 사용자 core/RESULTS(20261017-030734), environment(20261017-030733) 대조.
