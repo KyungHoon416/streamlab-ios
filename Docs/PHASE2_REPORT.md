@@ -1,5 +1,29 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 연결 복귀 시 자동 재동기화 — 2026-10-17
+
+기존 프로필 배너의 NWPathMonitor 구현을 DesignSystem의 NetworkPathObserver로
+분리하고 배너와 CatalogSession에서 재사용한다. 세션별 관찰자는 찜/최근 검색/재생
+진도의 기존 영속 큐 및 제한된 재시도 경로를 호출하며 화면 구조는 유지한다.
+
+- 첫 satisfied 경로와 unavailable → satisfied 전환을 재시도 기회로 사용한다.
+  동일 satisfied 콜백은 무시한다. 진행 중 복구 작업에 여러 복귀 이벤트가 오면
+  후속 작업 하나로 합치고, 후속 실행 전 다시 오프라인이면 실행하지 않는다.
+- 기존 전송이 진행 중이면 종료를 기다린 뒤 재시도하므로 복귀 이벤트가 유실되지 않는다.
+  각 저장소의 single-flight 및 기존 요청 ID/충돌/백오프 정책은 그대로 적용한다.
+- inactive/background에서 관찰과 복구 예약을 중단하고 active에서 새 경로를 관찰한다.
+  일반 저장/이미 진행 중인 전송의 기존 정책은 유지한다. 프로필 전환/로그아웃 시에는
+  세션 무효화로 관찰/복구 및 기존 저장소 전송을 취소한다. 늦은 경로 콜백은 generation으로 차단한다.
+- Core ConnectionRecoveryTests 6개 추가: 온라인 중복, 전송 중 복귀 병합,
+  후속 실행 전 오프라인, 중단 후 이벤트 차단, 포그라운드 재시도, 실패한 영속 요청 재전송.
+- `bash scripts/check-connection-recovery-mac.sh`: 전체 Core 및 신규 suite 완료 확인 후
+  찜 저장/프로필 격리와 일반·오프라인 로그아웃 UI 3개 회귀. UI 로그는 터미널에도 출력한다.
+
+로컬 구조/fixture 2,000개/셸 구문/공백 검사 PASS. Swift/Xcode가 없는 Linux에서
+신규 Swift 테스트 및 iOS 빌드는 미실행이며 Mac 결과 확인이 필요하다.
+NWPathMonitor satisfied는 서버 도달 가능성을 보장하지 않는다. 전송은 여전히 Mock이며
+실제 HTTP/인터넷 복구 성공, 실제 경로 전환 UI 자동화, 전체 회귀 및 B2 전체 완료를 주장하지 않는다.
+
 ## B2 찜 병합 및 로그아웃 재검증 통과 — 2026-10-17
 
 사용자 core/environment(20261017-015256), RESULTS(20261017-015257),

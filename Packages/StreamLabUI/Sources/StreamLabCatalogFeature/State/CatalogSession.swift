@@ -2,6 +2,7 @@ import Foundation
 import StreamLabDomain
 import StreamLabPresentation
 import StreamLabCatalogData
+import StreamLabDesignSystem
 
 /// A new identity for every selection, including reselecting the same profile.
 @MainActor public final class CatalogSession {
@@ -15,6 +16,8 @@ import StreamLabCatalogData
     public private(set) var isActive = true
     private var stores: [WeakStore] = []
     private var players: [WeakPlayer] = []
+    private var networkObserver: NetworkPathObserver?
+    private var recovery: ConnectionRecoveryCoordinator?
     private var searchSyncTask: Task<Void, Never>?
     private static var searchServer: MockMutationServer?
     private var progressSyncTask: Task<Void, Never>?
@@ -44,7 +47,7 @@ import StreamLabCatalogData
                 try await progress.flush(using: RetryingMutationTransport(base: server), snapshots: server)
             } catch {
                 // Preserve the request for the next checkpoint/session launch.
-                // Retry budget exhausted or terminal error; conflict resolution is still pending.
+                // The next mutation, session launch, or connection recovery can retry.
             }
         }
     }
@@ -106,6 +109,33 @@ import StreamLabCatalogData
         self.progress.onMutation = { [weak self] in self?.scheduleProgressSync() }
         scheduleProgressSync()
         scheduleSearchSync()
+        let recovery = ConnectionRecoveryCoordinator { [weak self] in
+            guard let self, self.isActive else { return }
+            // A recovery edge arriving during an existing retry must not be lost.
+            await self.waitForSync()
+            guard self.isActive, !Task.isCancelled else { return }
+            self.myList.refresh()
+            self.scheduleProgressSync()
+            self.scheduleSearchSync()
+            await self.waitForSync()
+        }
+        self.recovery = recovery
+        networkObserver = NetworkPathObserver { [weak recovery] available in
+            recovery?.update(isAvailable: available)
+        }
+        networkObserver?.start()
+    }
+
+    /// Foreground observation catches reconnects that happened while suspended.
+    public func setSynchronizationActive(_ active: Bool) {
+        guard isActive else { return }
+        if active {
+            recovery?.resume()
+            networkObserver?.start()
+        } else {
+            networkObserver?.stop()
+            recovery?.suspend()
+        }
     }
 
     func makeStore() -> CatalogStore {
@@ -121,6 +151,8 @@ import StreamLabCatalogData
             for reference in players { reference.value?.saveProgress() }
         }
         isActive = false
+        networkObserver?.stop()
+        recovery?.suspend()
         progressSyncTask?.cancel()
         progress.invalidate()
         searchSyncTask?.cancel()

@@ -76,6 +76,7 @@ import StreamLabDesignSystem
     let onSwitchProfile: () -> Void
     let onLogout: () -> Void
     @State private var confirmingLogout = false
+    @Environment(\.scenePhase) private var phase
 
     var body: some View {
         TabView {
@@ -95,6 +96,10 @@ import StreamLabDesignSystem
                     .toolbar { profileToolbar }
             }
             .tabItem { Label("검색", systemImage: "magnifyingglass") }
+        }
+        .onAppear { session.setSynchronizationActive(phase == .active) }
+        .onChange(of: phase) { _, value in
+            session.setSynchronizationActive(value == .active)
         }
         .confirmationDialog("로그아웃하면 이 기기의 모든 프로필 기록이 삭제됩니다.",
                             isPresented: $confirmingLogout, titleVisibility: .visible) {

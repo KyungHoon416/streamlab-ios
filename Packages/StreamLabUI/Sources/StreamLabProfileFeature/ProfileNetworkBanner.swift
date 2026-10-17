@@ -1,37 +1,27 @@
 import Combine
-import Dispatch
-import Network
+import StreamLabDesignSystem
 import SwiftUI
 
 /// Scoped to the profile screen. Never controls catalog requests or playback.
 @MainActor private final class ProfileNetworkStatus: ObservableObject {
     @Published private(set) var offline = false
-    private var monitor: NWPathMonitor?
-    private var generation = 0
+    private var observer: NetworkPathObserver?
 
     func start() {
         stop()
         offline = false
-        let ticket = generation
-        let next = NWPathMonitor()
-        monitor = next
-        next.pathUpdateHandler = { [weak self] path in
-            let unavailable = path.status != .satisfied
-            Task { @MainActor [weak self] in
-                guard let self, self.generation == ticket else { return }
-                self.offline = unavailable
-            }
+        let observer = NetworkPathObserver { [weak self] available in
+            self?.offline = !available
         }
-        next.start(queue: DispatchQueue(label: "streamlab.profile.network"))
+        self.observer = observer
+        observer.start()
     }
 
     func stop() {
-        generation &+= 1
-        monitor?.cancel()
-        monitor = nil
+        observer?.stop()
+        observer = nil
     }
 
-    deinit { monitor?.cancel() }
 }
 
 @MainActor public struct ProfileNetworkBanner: View {
