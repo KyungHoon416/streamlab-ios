@@ -61,3 +61,16 @@ request serialization, exact retry body/ID, retry timing, receipt validation, sn
 retention, response size and cancellation. It does not exercise DNS, TLS, sockets, URLSession redirects,
 streaming behavior, server authentication or a deployed server. Run `bash scripts/check-http-mutation-mac.sh`
 on Mac and review all three output files before marking Swift validation complete.
+
+
+### Default loader loopback integration (Mac validation pending)
+
+`bash scripts/check-http-loader-mac.sh` starts `http-loader-fixture.py` on 127.0.0.1 with an
+OS-assigned port, enables `HTTPMutationLoaderTests`, runs all Core tests, then stops the server.
+These three tests call the default loader directly over local HTTP sockets: an unfollowed 302,
+chunked bodies at 4 MiB and 4 MiB + 1 byte, and cancellation after streaming starts with server-side
+connection closure. No execute closure is injected. The adapter's HTTPS endpoint rule is unchanged.
+Without `STREAMLAB_HTTP_FIXTURE_URL`, this suite is skipped during ordinary Core runs.
+The dedicated script requires all three completion markers and the passing suite, so a skipped suite
+cannot produce a PASS result. Upload RESULTS.txt, environment.txt, core.log and server.log.
+This does not validate TLS, external connectivity, authentication, or a deployed backend.

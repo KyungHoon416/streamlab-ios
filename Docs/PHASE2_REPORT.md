@@ -1,5 +1,28 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 URLSession 기본 loader loopback 통합 테스트 추가 — 2026-10-17
+
+이전 HTTP adapter Core 146 PASS를 기준으로 전송 경계 검증을 추가했다.
+제품 코드/UI/기본 Mock 연결은 변경하지 않는다.
+
+- Python 표준 라이브러리 서버를 127.0.0.1 임의 포트에서 실행한다.
+  외부 인터넷 및 운영 서버가 필요하지 않으며 스크립트 종료 시 서버를 종료한다.
+- execute 주입 없이 HTTPMutationTransport.load와 실제 URLSession/로컬 소켓을 사용한다.
+- 302 응답 반환 및 redirect 대상 요청 0회 확인.
+- Content-Length 없는 chunked 응답: 정확히 4 MiB 수신 성공, 1바이트 초과 오류.
+- 전송 시작을 서버에서 확인한 뒤 취소하고 오류 및 서버 측 연결 종료 확인.
+- 전용 스크립트는 suite PASS와 세 완료 marker를 함께 요구한다.
+  일반 Core 실행에서는 서버 환경 변수가 없으면 신규 suite를 skip한다.
+- 로컬 Python fixture smoke test PASS: redirect/두 크기의 chunked body/연결 종료.
+  프로젝트 구조/2,000 fixture/셸 구문/공백 검사 PASS.
+- Swift 컴파일 및 URLSession 테스트 실행은 Mac 검증 대기다.
+  Python 서버 검증 결과를 Swift 테스트 통과로 간주하지 않는다.
+
+실행: `bash scripts/check-http-loader-mac.sh`.
+RESULTS.txt, environment.txt, core.log, server.log 4개를 검토 후 다음 단계를 판단한다.
+localhost HTTP는 테스트 전용이며 제품 adapter의 HTTPS 요구를 완화하지 않는다.
+TLS/운영 인증/외부 서버/실제 인터넷 복구/iOS UI/B2·Part D 전체는 별도 검증이다.
+
 ## B2 HTTP mutation adapter Mac 검증 통과 — 2026-10-17
 
 사용자 core/environment(20261017-032855), RESULTS(20261017-032856) 대조.
