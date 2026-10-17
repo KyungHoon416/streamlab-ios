@@ -54,15 +54,37 @@ import StreamLabDesignSystem
                 PlayerSurface(player: model.player, fillsScreen: fillsScreen, pictureInPicture: model.pictureInPicture, onLayerAvailable: model.attachVideoLayer)
                     .ignoresSafeArea()
                     .accessibilityHidden(true)
-                // A full-screen accessible Button must not coexist with the controls:
-                // it can cover their accessibility hit targets even when visually behind them.
+                // Behind the HUD: gestures cannot steal taps from buttons or the slider.
+                if !voiceOver {
+                    Color.clear
+                        .contentShape(Rectangle())
+                        .gesture(
+                            SpatialTapGesture(count: 2)
+                                .exclusively(before: SpatialTapGesture(count: 1))
+                                .onEnded { value in
+                                    switch value {
+                                    case .first(let tap):
+                                        guard model.canSeek else { return }
+                                        revealControls()
+                                        model.seek(to: model.position + (tap.location.x < geometry.size.width / 2 ? -10 : 10))
+                                    case .second:
+                                        if controlsVisible && mayHide { controlsVisible = false }
+                                        else { revealControls() }
+                                    }
+                                }
+                        )
+                        .accessibilityHidden(controlsVisible)
+                        .accessibilityLabel("재생 컨트롤 표시")
+                        .accessibilityIdentifier("playback-reveal-controls")
+                        .accessibilityAddTraits(.isButton)
+                        .accessibilityAction { revealControls() }
+                } else if !controlsVisible {
+                    Button { revealControls() } label: { Color.clear.contentShape(Rectangle()) }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("재생 컨트롤 표시")
+                        .accessibilityIdentifier("playback-reveal-controls")
+                }
                 if !controlsVisible {
-                    Button { revealControls() } label: {
-                        Color.clear.contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("재생 컨트롤 표시")
-                    .accessibilityIdentifier("playback-reveal-controls")
                     VStack { Spacer(); subtitleCaption.padding(.horizontal, 24).padding(.bottom, 24) }
                         .allowsHitTesting(false)
                 }
@@ -82,34 +104,31 @@ import StreamLabDesignSystem
                         }
                         .accessibilityIdentifier("playback-controls-scroll")
                     } else {
-                        // Keep essential controls inside the safe area. Only the variable-height
-                        // messages scroll, so a resume/error message cannot push the footer away.
-                        let compact = geometry.size.height < 500 && !textSize.isAccessibilitySize
-                        VStack(spacing: compact ? 4 : 12) {
-                            header
-                            ScrollView {
-                                transport(compact: compact)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, compact ? 0 : 8)
-                            }
-                            .frame(maxHeight: .infinity)
-                            .accessibilityIdentifier("playback-controls-scroll")
-                            .onScrollPhaseChange { _, scrollPhase in
-                                interactingWithControls = scrollPhase != .idle
-                                if scrollPhase == .idle { revealControls() }
-                            }
-                            footer
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, compact ? 8 : 20)
-                        .background {
-                            Color.clear
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    if mayHide { controlsVisible = false }
+                        let compact = geometry.size.height < 500
+                        ZStack {
+                            VStack(spacing: 0) {
+                                VStack(spacing: compact ? 4 : 12) {
+                                    header
+                                    ScrollView {
+                                        transport(compact: compact, includesButtons: false)
+                                            .frame(maxWidth: .infinity)
+                                    }
+                                    .accessibilityIdentifier("playback-controls-scroll")
+                                    .onScrollPhaseChange { _, scrollPhase in
+                                        interactingWithControls = scrollPhase != .idle
+                                        if scrollPhase == .idle { revealControls() }
+                                    }
                                 }
-                                .accessibilityHidden(true)
+                                // Reserve the middle 88pt for the transport buttons.
+                                .frame(height: max(0, geometry.size.height / 2 - 44 - (compact ? 8 : 20)))
+                                Spacer(minLength: 88)
+                                footer
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, compact ? 8 : 20)
+                            playbackButtons
                         }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 }
             }
@@ -251,7 +270,7 @@ import StreamLabDesignSystem
         return ""
     }
 
-    private func transport(compact: Bool) -> some View {
+    private func transport(compact: Bool, includesButtons: Bool = true) -> some View {
         VStack(spacing: compact ? 4 : 12) {
             subtitleCaption
             if !pipAvailabilityMessage.isEmpty {
@@ -316,7 +335,16 @@ import StreamLabDesignSystem
                     .disabled(!model.canRetryPlayback)
                 Text("남은 재시도: \(model.retryBudget.remaining)회")
                     .accessibilityIdentifier("playback-retry-remaining")
-            } else {
+            } else if includesButtons {
+                playbackButtons
+            }
+        }
+    }
+
+    @ViewBuilder private var playbackButtons: some View {
+        if case .failed = model.status {
+            EmptyView()
+        } else {
                 HStack(spacing: 32) {
                     iconButton("10초 뒤로", symbol: "gobackward.10", id: "playback-backward", size: 56) {
                         model.seek(to: model.position - 10)
@@ -334,7 +362,6 @@ import StreamLabDesignSystem
                     .disabled(!model.canSeek)
                 }
                 .frame(maxWidth: .infinity)
-            }
         }
     }
 

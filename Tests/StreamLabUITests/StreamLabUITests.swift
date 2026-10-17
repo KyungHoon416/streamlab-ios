@@ -970,6 +970,20 @@ import XCTest
         let time = app.staticTexts["playback-time"]
         expectation(for: NSPredicate(format: "label MATCHES %@", "00:00:1[3-7] / 00:00:30"), evaluatedWith: time)
         waitForExpectations(timeout: 10)
+        let toggle = app.buttons["playback-toggle"]
+        XCTAssertEqual(toggle.frame.midX, app.frame.midX, accuracy: 24)
+        XCTAssertEqual(toggle.frame.midY, app.frame.midY, accuracy: 24)
+        for id in ["playback-backward", "playback-forward"] {
+            XCTAssertEqual(app.buttons[id].frame.midY, toggle.frame.midY, accuracy: 2)
+        }
+        // Paused playback makes the expected +/-10 seconds deterministic.
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.5)).doubleTap()
+        expectation(for: NSPredicate(format: "label MATCHES %@", "00:00:2[3-7] / 00:00:30"), evaluatedWith: time)
+        waitForExpectations(timeout: 10)
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.5)).doubleTap()
+        expectation(for: NSPredicate(format: "label MATCHES %@", "00:00:1[3-7] / 00:00:30"), evaluatedWith: time)
+        waitForExpectations(timeout: 10)
+        expectPlayback("일시 정지", in: app)
         tap(app.buttons["playback-fit"], in: app)
         XCTAssertEqual(app.buttons["playback-fit"].value as? String, "화면 채우기")
         tap(app.buttons["playback-fit"], in: app)
