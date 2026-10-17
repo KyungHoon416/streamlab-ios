@@ -1,5 +1,22 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## 오디오 중단 및 출력 연결 해제 처리 — 2026-10-17
+
+- 전화/Siri 등 AVAudioSession 중단을 감지해 일시정지하고 진도를 저장한다.
+- 중단 전에 재생 의도가 있었고 시스템 shouldResume이 있을 때만 소유자를 확인해 오디오 세션을 재활성화한다.
+- 수동 정지, PiP 닫기, 이어폰/Bluetooth 출력 연결 해제는 자동 재개 의도를 취소한다.
+- 재활성화 완료 시 재생 세대/사용자 조작 세대/프로필 세션/오디오 소유자를 다시 검사한다.
+- 중단 중 탐색 및 자동 재생을 차단한다. 중단 종료 당시 탐색/초기 로딩 중이면 자동 재개하지 않고 사용자의 재생 조작을 기다린다.
+- Core 정책 테스트 6개 및 scripts/check-audio-interruptions-mac.sh 추가.
+- 로컬 공백/셸 구문 검사만 수행 가능. Swift 테스트와 iOS 빌드는 Mac에서 확인 필요.
+- 실기기 확인 대기: 재생 중 전화 종료, 정지 중 전화 종료, 중단 중 잠금 화면 정지, 이어폰 연결 해제/재연결, 중단 중 플레이어 닫기/프로필 변경.
+- 기존 Now Playing 수정은 사용자가 실기기에서 정상 동작을 확인했다고 응답했다. 개별 자동 테스트 로그와는 구분한다.
+
+설계 근거: Apple Handling Audio Interruptions 및 Responding to Audio Route Changes.
+https://developer.apple.com/documentation/avfaudio/handling-audio-interruptions
+https://developer.apple.com/documentation/avfaudio/responding-to-audio-route-changes
+
+
 ## Now Playing 포스터 콜백 실행 격리 오류 수정 — 2026-10-17
 
 사용자 Xcode 캡처에서 Thread 3 EXC_BREAKPOINT / swift_task_checkIsolatedSwift 확인.

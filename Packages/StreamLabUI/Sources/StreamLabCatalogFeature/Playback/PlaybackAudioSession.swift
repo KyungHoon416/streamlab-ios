@@ -30,6 +30,20 @@ final class PlaybackAudioSession: @unchecked Sendable {
         }
     }
 
+    /// Reactivation cannot take ownership away from a newer playback session.
+    func reactivate(owner token: UUID, completion: @escaping @Sendable (Bool) -> Void) {
+        queue.async { [self] in
+            guard owner == token else { completion(false); return }
+            do {
+                try AVAudioSession.sharedInstance().setActive(true)
+                completion(true)
+            } catch {
+                log.error("audio_session_reactivation_failed")
+                completion(false)
+            }
+        }
+    }
+
     func release(owner token: UUID) {
         queue.async { [self] in
             dispatchPrecondition(condition: .notOnQueue(.main))

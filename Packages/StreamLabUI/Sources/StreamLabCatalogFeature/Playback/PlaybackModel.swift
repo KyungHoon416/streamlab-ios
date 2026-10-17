@@ -73,7 +73,10 @@ import StreamLabPresentation
     @Published private(set) var pipPossible = false
     @Published private(set) var pipRunning = false
     @Published private(set) var pipMessage = ""
-    private var playbackAllowed: Bool { session.isActive }
+    private var playbackAllowed: Bool { session.isActive && !interruptionPolicy.isInterrupted && !audioResumePending }
+    private var interruptionPolicy = PlaybackInterruptionPolicy()
+    private var audioResumePending = false
+    private var audioEventObserver: PlaybackAudioEventObserver?
     @Published private(set) var status: Status = .idle
     @Published private(set) var position: Double = 0
     @Published private(set) var duration: Double = 0
@@ -237,6 +240,8 @@ import StreamLabPresentation
         pictureInPicture.onStop = { [weak self] in
             guard let self else { return }
             self.playbackIntentGeneration += 1
+            self.interruptionPolicy.cancelResume()
+            self.audioResumePending = false
             self.wantsPlayback = false
             self.player?.pause()
             self.saveProgress()
@@ -268,6 +273,12 @@ import StreamLabPresentation
         mediaResetObserver = PlaybackMediaResetObserver { [weak self] in
             Task { @MainActor [weak self] in
                 self?.handleMediaReset(ticket: ticket)
+            }
+        }
+        audioEventObserver = PlaybackAudioEventObserver { [weak self] event in
+            Task { @MainActor [weak self] in
+                guard let self, self.generation == ticket, self.session.isActive else { return }
+                self.handleAudioEvent(event)
             }
         }
         let repository = session.repository
@@ -379,7 +390,7 @@ import StreamLabPresentation
         }
         pipPossible = source.isHLS && pictureInPicture.possible && !isSeeking && item.status == .readyToPlay
         pipRunning = pictureInPicture.isRunning
-        if pipRunning, !isSeeking {
+        if pipRunning, !isSeeking, playbackAllowed {
             // Native PiP transport controls modify AVPlayer directly.
             wantsPlayback = player.timeControlStatus != .paused
         }
@@ -493,22 +504,65 @@ import StreamLabPresentation
         load(next) // Saves old item, cancels tasks and rechecks repository permission.
     }
 
+    private func handleAudioEvent(_ event: PlaybackAudioEvent) {
+        switch event {
+        case .interruptionBegan(let wasSuspended):
+            interruptionPolicy.begin(wantsPlayback: wantsPlayback || audioResumePending, wasSuspended: wasSuspended)
+            playbackIntentGeneration += 1
+            audioResumePending = false
+            wantsPlayback = false
+            player?.pause()
+            cancelNextEpisode()
+            waitingSince = nil
+        case .outputDisconnected:
+            playbackIntentGeneration += 1
+            interruptionPolicy.cancelResume()
+            audioResumePending = false
+            wantsPlayback = false
+            player?.pause()
+            cancelNextEpisode()
+        case .interruptionEnded(let shouldResume):
+            guard interruptionPolicy.end(shouldResume: shouldResume),
+                  !isSeeking, !syncRestartPending, let owner = audioSessionOwner,
+                  player?.currentItem?.status == .readyToPlay, !itemReachedEnd else { return }
+            let ticket = generation
+            let intent = playbackIntentGeneration
+            audioResumePending = true
+            PlaybackAudioSession.shared.reactivate(owner: owner) { [weak self] success in
+                Task { @MainActor [weak self] in
+                    guard let self, self.generation == ticket,
+                          self.playbackIntentGeneration == intent, self.session.isActive,
+                          self.audioSessionOwner == owner else { return }
+                    self.audioResumePending = false
+                    guard success, self.playbackAllowed, !self.isSeeking, !self.syncRestartPending else { return }
+                    self.wantsPlayback = true
+                    self.player?.play()
+                    _ = self.sample(ticket: ticket)
+                }
+            }
+        }
+        _ = sample(ticket: generation)
+        saveProgress()
+    }
+
     private func handleRemoteAction(_ action: PlaybackNowPlaying.Action) {
         guard session.isActive, let player else { return }
         switch action {
         case .pause:
             // Pause also cancels the auto-resume intent of an in-flight seek.
             playbackIntentGeneration += 1
+            interruptionPolicy.cancelResume()
+            audioResumePending = false
             wantsPlayback = false
             player.pause()
         case .play:
-            guard !syncRestartPending, !isSeeking, player.currentItem?.status == .readyToPlay else { return }
+            guard playbackAllowed, !syncRestartPending, !isSeeking, player.currentItem?.status == .readyToPlay else { return }
             if status == .ended { seek(to: 0, playAfterSeek: true); return }
             progressReady = true
             wantsPlayback = true
             player.play()
         case .toggle:
-            handleRemoteAction(wantsPlayback ? .pause : .play)
+            handleRemoteAction((wantsPlayback || interruptionPolicy.isInterrupted || audioResumePending) ? .pause : .play)
             return
         case .skip(let delta):
             seek(to: player.currentTime().seconds + delta)
@@ -521,16 +575,18 @@ import StreamLabPresentation
 
     func togglePlayback() {
         guard !syncRestartPending else { return }
-        guard session.isActive, foreground, let player else { return }
-        if status == .ended { seek(to: 0, playAfterSeek: true); return }
-        progressReady = true
-        wantsPlayback = player.rate == 0
-        if wantsPlayback { player.play() } else { player.pause() }
-        _ = sample(ticket: generation)
+        guard session.isActive, foreground, player != nil else { return }
+        // During a system interruption, tapping the control cancels pending resume.
+        if interruptionPolicy.isInterrupted || audioResumePending {
+            handleRemoteAction(.pause)
+            return
+        }
+        if status == .ended { handleRemoteAction(.play); return }
+        handleRemoteAction(wantsPlayback ? .pause : .play)
     }
 
     func seek(to seconds: Double, playAfterSeek: Bool = false) {
-        guard canSeek, seconds.isFinite, let player else { return }
+        guard playbackAllowed, canSeek, seconds.isFinite, let player else { return }
         autoAdvance.reset()
         nextEpisodeStarted = nil
         nextEpisodeSeconds = nil
@@ -669,6 +725,9 @@ import StreamLabPresentation
         }
         pictureInPicture.setAutomaticStartEnabled(false)
         mediaResetObserver = nil
+        audioEventObserver = nil
+        interruptionPolicy = PlaybackInterruptionPolicy()
+        audioResumePending = false
         itemEndObserver = nil
         itemReachedEnd = false
         finishDiagnostics()
