@@ -70,20 +70,39 @@ import StreamLabDesignSystem
                     LinearGradient(colors: [.black.opacity(0.85), .black.opacity(0.15), .black.opacity(0.85)],
                                    startPoint: .top, endPoint: .bottom)
                         .ignoresSafeArea().allowsHitTesting(false)
-                    // Caption/recovery/resume text can grow even at the default font size.
-                    // Let content exceed the viewport instead of pushing footer hit targets offscreen.
-                    ScrollView {
-                        VStack(spacing: 12) {
+                    if textSize.isAccessibilitySize {
+                        // At accessibility sizes, preserve full scrolling and untruncated text.
+                        ScrollView {
+                            VStack(spacing: 12) {
+                                header
+                                transport(compact: false)
+                                footer
+                            }
+                            .padding(20)
+                        }
+                        .accessibilityIdentifier("playback-controls-scroll")
+                    } else {
+                        // Keep essential controls inside the safe area. Only the variable-height
+                        // messages scroll, so a resume/error message cannot push the footer away.
+                        let compact = geometry.size.height < 500 && !textSize.isAccessibilitySize
+                        VStack(spacing: compact ? 4 : 12) {
                             header
-                            Spacer(minLength: 8)
-                            transport
-                            Spacer(minLength: 8)
+                            ScrollView {
+                                transport(compact: compact)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, compact ? 0 : 8)
+                            }
+                            .frame(maxHeight: .infinity)
+                            .accessibilityIdentifier("playback-controls-scroll")
+                            .onScrollPhaseChange { _, scrollPhase in
+                                interactingWithControls = scrollPhase != .idle
+                                if scrollPhase == .idle { revealControls() }
+                            }
                             footer
                         }
-                        .frame(minHeight: max(0, geometry.size.height - 40))
-                        .padding(20)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, compact ? 8 : 20)
                         .background {
-                            // Only empty content handles hide taps; child controls keep their actions.
                             Color.clear
                                 .contentShape(Rectangle())
                                 .onTapGesture {
@@ -91,11 +110,6 @@ import StreamLabDesignSystem
                                 }
                                 .accessibilityHidden(true)
                         }
-                    }
-                    .accessibilityIdentifier("playback-controls-scroll")
-                    .onScrollPhaseChange { _, scrollPhase in
-                        interactingWithControls = scrollPhase != .idle
-                        if scrollPhase == .idle { revealControls() }
                     }
                 }
             }
@@ -237,8 +251,8 @@ import StreamLabDesignSystem
         return ""
     }
 
-    private var transport: some View {
-        VStack(spacing: 12) {
+    private func transport(compact: Bool) -> some View {
+        VStack(spacing: compact ? 4 : 12) {
             subtitleCaption
             if !pipAvailabilityMessage.isEmpty {
                 Text(pipAvailabilityMessage)
@@ -276,12 +290,10 @@ import StreamLabDesignSystem
                     .accessibilityIdentifier("playback-sync-status")
             }
             if !model.resumeMessage.isEmpty {
-                Text(model.resumeMessage).font(.caption)
-                    .accessibilityIdentifier("playback-resumed")
-                Button("처음부터 보기") { revealControls(); model.restartFromBeginning() }
-                    .frame(minHeight: 44)
-                    .disabled(!model.canSeek)
-                    .accessibilityIdentifier("playback-restart")
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 16) { resumeControls }
+                    VStack(spacing: 4) { resumeControls }
+                }
             }
             if model.status == .loading || model.isSeeking {
                 ProgressView().tint(.white).accessibilityLabel("영상 로딩 중")
@@ -324,6 +336,17 @@ import StreamLabDesignSystem
                 .frame(maxWidth: .infinity)
             }
         }
+    }
+
+    @ViewBuilder private var resumeControls: some View {
+        Text(model.resumeMessage).font(.caption)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("playback-resumed")
+        Button("처음부터 보기") { revealControls(); model.restartFromBeginning() }
+            .fixedSize(horizontal: true, vertical: false)
+            .frame(minHeight: 44)
+            .disabled(!model.canSeek)
+            .accessibilityIdentifier("playback-restart")
     }
 
     private var footer: some View {

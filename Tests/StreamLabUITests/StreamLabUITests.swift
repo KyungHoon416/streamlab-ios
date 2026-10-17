@@ -980,6 +980,12 @@ import XCTest
         // Reopening creates a fresh player rather than resuming the closed instance.
         openPlayback(app)
         expectPlayback("재생 중", in: app)
+        // Resume text must not move essential tools below the landscape viewport.
+        for id in ["playback-close", "playback-subtitles", "playback-fit", "playback-rotate"] {
+            let control = app.buttons[id]
+            XCTAssertTrue(control.isHittable, "\(id) must be reachable without scrolling")
+            XCTAssertTrue(app.frame.contains(control.frame), "\(id) must be fully onscreen")
+        }
         closePlayback(app)
     }
 
