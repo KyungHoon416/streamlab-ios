@@ -4,10 +4,10 @@ public struct PlaybackInterruptionPolicy: Sendable {
     private var resumeRequested = false
     public init() {}
 
-    public mutating func begin(wantsPlayback: Bool, wasSuspended: Bool = false) {
+    public mutating func begin(wantsPlayback: Bool, preventsAutomaticResume: Bool = false) {
         if !isInterrupted { resumeRequested = wantsPlayback }
         isInterrupted = true
-        if wasSuspended { resumeRequested = false }
+        if preventsAutomaticResume { resumeRequested = false }
     }
 
     public mutating func cancelResume() { resumeRequested = false }

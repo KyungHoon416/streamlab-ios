@@ -43,7 +43,7 @@ final class PlaybackInterruptionPolicyTests: XCTestCase {
     func testSuspensionAndUnmatchedEndNeverResume() {
         var policy = PlaybackInterruptionPolicy()
         XCTAssertFalse(policy.end(shouldResume: true))
-        policy.begin(wantsPlayback: true, wasSuspended: true)
+        policy.begin(wantsPlayback: true, preventsAutomaticResume: true)
         XCTAssertFalse(policy.end(shouldResume: true))
         policy.begin(wantsPlayback: true)
         XCTAssertTrue(policy.end(shouldResume: true))

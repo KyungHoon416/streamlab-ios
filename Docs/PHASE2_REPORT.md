@@ -1,5 +1,15 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## iOS 회귀 테스트 빌드 오류 수정 — 2026-10-17
+
+- 수신 environment/RESULTS(20261017-075001/075002), ios-tests.log: 41ad235, Xcode 27.0, StreamLabUI-Package 스킴 탐색 성공.
+- 빌드 exit 65. PlaybackAudioEventObserver의 AVAudioSessionInterruptionWasSuspendedKey 사용 중단 경고가 warnings-as-errors에 의해 오류 처리됨. 테스트는 실행 전 취소됨(5개 실패가 아님).
+- AVAudioSessionInterruptionReasonKey로 변경. 일반 중단 또는 사유 누락은 기존 shouldResume/사용자 의도 검사 유지. 명시적인 비기본 사유는 자동 재개를 차단하고 사용자 재생 조작을 기다림.
+- appWasSuspended 열거값 역시 최신 문서에서 사용 중단으로 표시되므로 해당 값을 직접 참조하지 않음. 정책 매개변수를 preventsAutomaticResume로 명확화.
+- 경고 억제/검사 완화 없이 수정. 로컬 공백/셸 구문 검사 통과, Xcode 재빌드와 iOS 테스트 실행 대기.
+- 근거: https://developer.apple.com/documentation/avfaudio/avaudiosessioninterruptionwassuspendedkey
+
+
 ## 재생 종료 / Now Playing 소유권 회귀 검증 추가 — 2026-10-17
 
 - 기존 종료 경로 확인: PlaybackView 닫기/onDisappear → PlaybackModel.stop → Now Playing 정리, PiP 종료, AVPlayer 정지/아이템 해제, 오디오 소유권 반환.

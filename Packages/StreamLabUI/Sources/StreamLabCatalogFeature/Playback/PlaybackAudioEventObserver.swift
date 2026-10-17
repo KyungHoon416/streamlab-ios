@@ -2,7 +2,7 @@ import AVFoundation
 import Foundation
 
 enum PlaybackAudioEvent: Sendable {
-    case interruptionBegan(wasSuspended: Bool)
+    case interruptionBegan(preventsAutomaticResume: Bool)
     case interruptionEnded(shouldResume: Bool)
     case outputDisconnected
 }
@@ -19,7 +19,12 @@ final class PlaybackAudioEventObserver: @unchecked Sendable {
                       let type = AVAudioSession.InterruptionType(rawValue: raw) else { return }
                 switch type {
                 case .began:
-                    handler(.interruptionBegan(wasSuspended: note.userInfo?[AVAudioSessionInterruptionWasSuspendedKey] as? Bool ?? false))
+                    // Missing reason retains legacy ordinary-interruption behavior.
+                    // Explicit non-default reasons (including unknown future ones) require
+                    // a user play action rather than automatic resumption.
+                    let reason = (note.userInfo?[AVAudioSessionInterruptionReasonKey] as? NSNumber)?.uintValue
+                    let preventsResume = reason.map { $0 != AVAudioSession.InterruptionReason.default.rawValue } ?? false
+                    handler(.interruptionBegan(preventsAutomaticResume: preventsResume))
                 case .ended:
                     let rawOptions = note.userInfo?[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0
                     handler(.interruptionEnded(shouldResume: AVAudioSession.InterruptionOptions(rawValue: rawOptions).contains(.shouldResume)))

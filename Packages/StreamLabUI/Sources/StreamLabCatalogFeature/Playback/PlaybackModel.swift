@@ -506,8 +506,8 @@ import StreamLabPresentation
 
     private func handleAudioEvent(_ event: PlaybackAudioEvent) {
         switch event {
-        case .interruptionBegan(let wasSuspended):
-            interruptionPolicy.begin(wantsPlayback: wantsPlayback || audioResumePending, wasSuspended: wasSuspended)
+        case .interruptionBegan(let preventsAutomaticResume):
+            interruptionPolicy.begin(wantsPlayback: wantsPlayback || audioResumePending, preventsAutomaticResume: preventsAutomaticResume)
             playbackIntentGeneration += 1
             audioResumePending = false
             wantsPlayback = false
