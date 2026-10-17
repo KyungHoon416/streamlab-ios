@@ -1,5 +1,24 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 연결 복귀 스케줄링 Mac 검증 통과 — 2026-10-17
+
+사용자 core(20261017-022445), environment(20261017-022443),
+RESULTS/ui-tests(20261017-022441) 대조. 실행 HEAD f9e0326d4861814f1ef8a6b6be548c831fe02221.
+Xcode 27.0 (27A266a), Swift 6.4, arm64 Mac/iPhone Simulator.
+프로젝트/Memory 스킴 로컬 변경이 있는 작업 트리이며 이전 실행과 Simulator UUID가 다르다.
+
+- Core 135 PASS: XCTest 15 + Presentation Swift Testing 113 + Catalog 7.
+  신규 연결 복귀 suite 6개 모두 PASS. Core error:/warning: 없음.
+- UI 3 PASS/0 FAIL, TEST SUCCEEDED, 총 302.254초.
+  일반 로그아웃 129.624초, 오프라인 대기 변경 로그아웃 120.457초,
+  찜 저장/프로필 격리 52.174초. UI 빌드 로그 error:/warning: 없음.
+- 연결 복귀 판단/중복 억제/후속 재시도는 Core에서 상태를 주입해 검증했다.
+  UI는 기존 찜/로그아웃 회귀이며 실제 네트워크 단절·복구 시나리오가 아니다.
+
+실제 HTTP 서버 도달/인터넷 복구, 실제 경로 전환 UI, 인증/토큰 폐기,
+전원 유실, VoiceOver/최대 글자 크기, 전체 회귀는 미검증이다.
+B2 전체 완료로 간주하지 않는다. 이번 변경은 검증 기록만 추가한다.
+
 ## B2 연결 복귀 시 자동 재동기화 — 2026-10-17
 
 기존 프로필 배너의 NWPathMonitor 구현을 DesignSystem의 NetworkPathObserver로
