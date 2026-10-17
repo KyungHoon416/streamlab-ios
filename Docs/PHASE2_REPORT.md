@@ -1,5 +1,23 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 데이터별 충돌 1,000 seed Mac 검증 통과 — 2026-10-17
+
+사용자 core/RESULTS(20261017-030734), environment(20261017-030733) 대조.
+실행 HEAD a36a750acd62ae46aa9e35a5c1f194db4954b536, Xcode 27.0 (27A266a), Swift 6.4.
+프로젝트/Memory 스킴 로컬 변경이 있는 Mac 작업 트리 결과다.
+
+- Core 137 PASS: XCTest 15 + Presentation Swift Testing 115 + Catalog 7.
+- DOMAIN CHAOS PASS seeds=1000 replay=1...1000 확인, 해당 suite 17.607초.
+- 기존 일반 영속 큐 CHAOS PASS seeds=1000 replay=1...1000 eventsPerSeed=24도 확인,
+  해당 suite 21.767초. 두 suite 시간은 병렬 실행되므로 합산하지 않는다.
+- Core error:/warning: 없음. 앱 코드 변경이 없는 테스트 전용 단계라 UI 미실행.
+- 판정: 이번 데이터별 충돌 검증 범위 통과, 다음 단계 진행 가능.
+  다음 우선순위는 가상 시계 기반 429/503 backoff·취소·재시도 상한의 반복 검증이다.
+
+일반 큐와 데이터별 충돌 suite 각각 1,000개 seed이며 서로 독립적인 seed 공간은 아니다.
+실제 HTTP/인터넷 복구, B2 모든 불변식, Part D 전체 카오스 완료를 의미하지 않는다.
+이번 커밋은 검증 결과만 기록하므로 같은 테스트의 재실행은 필요하지 않다.
+
 ## B2 데이터별 충돌 규칙 seed 반복 검증 추가 — 2026-10-17
 
 기존 일반 큐 1,000 seed 검증을 유지하고 DomainConflictChaosTests를 추가했다.
