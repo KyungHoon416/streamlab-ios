@@ -1,5 +1,23 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## C2 재시작 후 로그아웃 유지 구현 — 2026-10-17
+
+직전 인증/Keychain 연결 Mac Core 170 PASS 기준으로 영속 로그아웃 정책을 추가했다.
+기존 AccountLocalData의 marker-before-cleanup 순서를 참고하되, MainActor 계정 데이터 정리와
+별개인 인증 저장소 actor 안에서 service/account별 marker 및 Keychain 쓰기를 직렬화한다.
+
+- 로그아웃 기록을 원자적으로 저장한 뒤 Keychain 삭제. 실패/재시작 후에도 기록이 있으면 복원 차단.
+- 저장소 재생성 후 retryPendingLogout으로 해당 계정 삭제 재시도, 성공해도 기록 유지.
+- 명시적 signIn만 새 토큰 쌍 저장 성공 후 기록 해제. 일반 save는 로그아웃 기록을 우회할 수 없음.
+- 기록 파일에는 토큰 없이 고정 문구만 저장, 파일명은 service/account SHA256.
+- 손상/접근 불가 기록은 오류로 반환하여 복원을 허용하지 않음.
+- 새 파일 기반 정책 테스트 7개 및 기존 연결 테스트의 영속 로그아웃 기대값 갱신.
+- 로컬 공백/셸 구문 검사 PASS. Swift/Xcode 빌드/테스트는 Mac 실행 대기.
+- 실행: `caffeinate -i bash scripts/check-durable-auth-logout-mac.sh`.
+- 남은 범위: 앱 로그인/로그아웃 wiring, 실제 인증 endpoint, iOS 잠금 검증.
+  기록 쓰기 자체가 실패한 경우 재시작 보장을 완료로 표시하지 않으며 오류를 반환한다.
+
+
 ## C2 인증 세션 ↔ Keychain Mac 검증 통과 — 2026-10-17
 
 사용자 core(20261017-054738), environment/RESULTS(20261017-054734) 대조.

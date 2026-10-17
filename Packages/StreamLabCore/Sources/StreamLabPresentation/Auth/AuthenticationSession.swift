@@ -44,7 +44,7 @@ public actor AuthenticationSession {
         }
     }
 
-    /// Restores an existing account item. Explicit sign-in must save its token pair first.
+    /// Restores an existing account item. Explicit sign-in must call store.signIn with its token pair first.
     /// Use a single shared store per service; refresh uses a separate unauthenticated transport.
     public static func restore(account: String, store: KeychainTokenStore,
                                refresh: @escaping @Sendable (String) async throws -> AccountTokens,

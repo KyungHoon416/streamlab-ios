@@ -91,7 +91,7 @@ struct PersistedAuthenticationTests {
         await #expect(throws: TokenStoreError.status(errSecInteractionNotAllowed)) { try await session.logout() }
         await #expect(throws: AuthenticationError.invalidated) { try await session.current() }
         backend.fail(nil)
-        await #expect(throws: AuthenticationError.invalidated) { try await store.openSession(account: "a") }
+        #expect(try await store.openSession(account: "a") == nil)
         try await session.logout()
         #expect(try await store.read(account: "a") == nil)
     }

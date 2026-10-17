@@ -1,13 +1,13 @@
 # ADR 0026 — Keychain-backed authentication sessions
 
 Date: 2026-10-17
-Status: Implemented; Mac execution pending
+Status: Mac verified (170 Core tests); durable logout policy extended by ADR 0027
 
 ## Decision
 
 `AuthenticationSession.restore(account:store:refresh:deadline:)` restores an existing
 Keychain account item. Missing credentials return nil; Keychain failures propagate.
-Explicit sign-in must first save a validated AccountTokens pair. The app still uses
+Explicit sign-in now calls KeychainTokenStore.signIn with a validated AccountTokens pair (ADR 0027). The app still uses
 its existing demo account/profile flow; no login UI or production endpoint is added.
 
 Refresh reads the current refresh token, calls the injected unauthenticated provider,
@@ -35,7 +35,7 @@ A newer session's item is never deleted by an old session's logout retry. `inval
 remains an in-memory operation for compatibility; callers of persisted sessions must
 use `logout()` for credential deletion.
 
-## Limits
+## Original limits (durable marker extension: ADR 0027)
 
 Grants are process-local. Multiple independent stores/processes/extensions using the
 same service are not coordinated. Use a single shared actor. If deletion fails and

@@ -16,7 +16,7 @@ public struct AccountTokens: Codable, Sendable, Equatable, CustomStringConvertib
 }
 
 public enum TokenStoreError: Error, Equatable {
-    case invalidScope, invalidTokens, corruptItem, status(Int32)
+    case invalidScope, invalidTokens, corruptItem, corruptLogoutMarker, status(Int32)
 }
 
 // Synchronous operations are confined to the store actor. No dictionaries cross actor boundaries.
@@ -63,13 +63,20 @@ public actor KeychainTokenStore {
     private var sessions: [String: (id: UUID, active: Bool)] = [:]
     private let service: String
     private let backend: any TokenKeychainBackend
-    public init(service: String = "com.streamlab.authentication.tokens.v1") throws {
+    private let logoutMarkers: LogoutMarkers
+    public init(service: String = "com.streamlab.authentication.tokens.v1", logoutDirectory: URL? = nil) throws {
         guard Self.validScope(service) else { throw TokenStoreError.invalidScope }
         self.service = service; backend = SystemTokenKeychain()
+        let root = try logoutDirectory ?? FileManager.default.url(for: .applicationSupportDirectory,
+            in: .userDomainMask, appropriateFor: nil, create: true)
+            .appendingPathComponent("StreamLab/AuthSignedOut", isDirectory: true)
+        logoutMarkers = LogoutMarkers(directory: root)
     }
-    init(service: String, backend: any TokenKeychainBackend) throws {
+    init(service: String, backend: any TokenKeychainBackend, logoutDirectory: URL? = nil) throws {
         guard Self.validScope(service) else { throw TokenStoreError.invalidScope }
         self.service = service; self.backend = backend
+        logoutMarkers = LogoutMarkers(directory: logoutDirectory ?? FileManager.default.temporaryDirectory
+            .appendingPathComponent("streamlab-auth-test-\(UUID())", isDirectory: true))
     }
     private static func validScope(_ value: String) -> Bool {
         !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && value.utf8.count <= 1024
@@ -81,6 +88,7 @@ public actor KeychainTokenStore {
     }
     public func read(account: String) throws -> AccountTokens? {
         try check(account)
+        if try logoutMarkers.contains(service: service, account: account) { return nil }
         let (status, data) = backend.read(service: service, account: account)
         if status == errSecItemNotFound { return nil }
         guard status == errSecSuccess else { throw TokenStoreError.status(status) }
@@ -92,6 +100,13 @@ public actor KeychainTokenStore {
     public func save(_ tokens: AccountTokens, account: String) throws {
         try check(account)
         guard tokens.isValid else { throw TokenStoreError.invalidTokens }
+        guard try !logoutMarkers.contains(service: service, account: account) else {
+            throw AuthenticationError.invalidated
+        }
+        try writeTokens(tokens, account: account)
+    }
+
+    private func writeTokens(_ tokens: AccountTokens, account: String) throws {
         let data = try JSONEncoder().encode(tokens)
         var status = backend.update(service: service, account: account, data: data)
         if status == errSecItemNotFound {
@@ -109,8 +124,33 @@ public actor KeychainTokenStore {
         guard status == errSecSuccess || status == errSecItemNotFound else { throw TokenStoreError.status(status) }
     }
 
+    /// Call only after explicit authentication succeeds. Marker remains on any failure.
+    public func signIn(_ tokens: AccountTokens, account: String) throws {
+        try check(account)
+        guard tokens.isValid, AuthenticationSession.valid(tokens.accessToken) else {
+            throw TokenStoreError.invalidTokens
+        }
+        // Revoke old writers before either storage operation; marker gates crash recovery.
+        sessions[account] = (UUID(), false)
+        try logoutMarkers.write(service: service, account: account)
+        try writeTokens(tokens, account: account)
+        try logoutMarkers.clear(service: service, account: account)
+        sessions.removeValue(forKey: account)
+    }
+
+    /// Re-launch cleanup. Only a durable signed-out account is eligible for deletion.
+    /// Keep the marker after success: only explicit signIn may clear it.
+    public func retryPendingLogout(account: String) throws {
+        try check(account)
+        guard try logoutMarkers.contains(service: service, account: account) else { return }
+        sessions[account] = (UUID(), false)
+        try delete(account: account)
+    }
+
     func openSession(account: String) throws -> (AccountTokens, UUID)? {
-        // A failed logout deletion must be retried, not silently restored in this process.
+        try check(account)
+        if try logoutMarkers.contains(service: service, account: account) { return nil }
+        // Also block in-memory restore when marker creation itself failed.
         if sessions[account]?.active == false { throw AuthenticationError.invalidated }
         guard let tokens = try read(account: account) else { return nil }
         guard AuthenticationSession.valid(tokens.accessToken) else { throw AuthenticationError.invalidCredential }
@@ -138,8 +178,10 @@ public actor KeychainTokenStore {
     func closeSession(account: String, id: UUID) throws {
         guard sessions[account]?.id == id else { return } // Never delete a newer session.
         sessions[account] = (id, false) // Revoked even if Keychain deletion fails.
+        // Record intent before deletion: a crash or Keychain error cannot restore old credentials.
+        try logoutMarkers.write(service: service, account: account)
         try delete(account: account)
-        sessions.removeValue(forKey: account)
+        // Keep both the marker and revoked grant until explicit sign-in.
     }
 
 }
