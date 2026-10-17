@@ -27,7 +27,10 @@ import UIKit
                     MPNowPlayingInfoPropertyMediaType: MPNowPlayingInfoMediaType.video.rawValue,
                     MPNowPlayingInfoPropertyIsLiveStream: false]
         if let artworkURL, artworkURL.isFileURL, let image = UIImage(contentsOfFile: artworkURL.path) {
-            metadata[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+            // MediaPlayer may request artwork on a background queue. Explicit Sendable
+            // prevents this closure from inheriting begin()'s MainActor isolation.
+            let request: @Sendable (CGSize) -> UIImage = { _ in image }
+            metadata[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size, requestHandler: request)
         }
         let center = MPRemoteCommandCenter.shared()
         center.nextTrackCommand.isEnabled = false
@@ -49,7 +52,8 @@ import UIKit
     private func bind(_ command: MPRemoteCommand, owner: UUID,
                       decode: @escaping @Sendable (MPRemoteCommandEvent) -> Action?) {
         command.isEnabled = true
-        let target = command.addTarget { [weak self] event in
+        // This callback also belongs to MediaPlayer, not to the MainActor executor.
+        let handler: @Sendable (MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus = { [weak self] event in
             guard let action = decode(event) else { return .commandFailed }
             // Do not transfer MediaPlayer events across executors, only the value action.
             Task { @MainActor [weak self] in
@@ -58,6 +62,7 @@ import UIKit
             }
             return .success
         }
+        let target = command.addTarget(handler: handler)
         targets.append((command, target))
     }
 

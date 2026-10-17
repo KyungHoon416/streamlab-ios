@@ -1,5 +1,19 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## Now Playing 포스터 콜백 실행 격리 오류 수정 — 2026-10-17
+
+사용자 Xcode 캡처에서 Thread 3 EXC_BREAKPOINT / swift_task_checkIsolatedSwift 확인.
+호출 경로: PlaybackNowPlaying.begin의 closure #1 → (CGSize) -> UIImage thunk →
+MPMediaItemArtwork jpegDataWithSize. MainActor 문맥에서 생성한 포스터 콜백이
+MediaPlayer 백그라운드 큐에서 실행되어 actor 격리 검사를 위반했다.
+
+- 포스터 requestHandler를 명시적 @Sendable 함수 값으로 생성, MainActor 상속 방지.
+- 원격 명령 addTarget 콜백도 명시적 @Sendable 함수 값으로 생성.
+- 원격 명령에서 MediaPlayer 이벤트 값만 추출하고 모델 변경은 기존 MainActor Task 유지.
+- 로컬 공백 검사 PASS. Xcode 컴파일 및 실기기 재현 검증 대기.
+- 재확인: 영상 진입 → 잠금 카드 포스터 표시 → 잠금 화면 재생/정지/±10초 → 닫기.
+
+
 ## 잠금 화면 Now Playing 및 원격 재생 조작 — 2026-10-17
 
 사용자 iPhone 15 Pro에서 잠금 후 영상 음성이 계속 나오는 것을 확인했다.
