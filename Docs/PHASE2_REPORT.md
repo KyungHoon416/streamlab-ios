@@ -1,5 +1,28 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 URLSession loopback Mac 통합 검증 통과 — 2026-10-17
+
+사용자 core/environment(20261017-034942), RESULTS(20261017-034943), server.log 대조.
+실행 HEAD 8d2e9b109557cc1981c3530994bc9a63f9b136f8.
+Xcode 27.0 (27A266a), Swift 6.4, Python 3.9.6.
+프로젝트/Memory 스킴 로컬 변경이 있는 Mac 작업 트리 결과다.
+
+- Core 149 PASS: XCTest 15 + Presentation Swift Testing 127 + Catalog 7.
+- URLSession loader 신규 3개 모두 실행/PASS. suite 0.621초, skip 없음.
+- 302 반환 및 targetHits 0 확인: 서버 로그에도 /target 요청 없음.
+- chunked 응답 정확히 4 MiB 성공, 1바이트 초과 oversizedResponse 확인.
+- streaming 시작 후 취소 오류 및 서버 slowDisconnected 조건 확인 통과.
+  server.log 자체는 연결 종료 상태를 출력하지 않으며 해당 상태는 테스트의 /stats 검사로 검증했다.
+- HTTP adapter 기존 8개 PASS. 일반 큐/데이터별 충돌/가상 시계 카오스 각각 1,000 seed PASS.
+- Core 로그 error:/warning: 없음. 빌드 11.42초, Presentation Swift Testing 20.607초.
+- 판정: 기본 URLSession loader의 로컬 HTTP 전송 경계 검증 통과, 다음 단계 진행 가능.
+  다음 우선순위는 영속 큐 → HTTP adapter → 로컬 서버를 연결한 mutation POST 통합 검증
+  (ACK 유실 후 같은 ID 재전송/단일 적용, 409 snapshot 조정, 429/503 재시도)이다.
+
+실제 URLSession/loopback 소켓을 사용했지만 TLS/운영 인증/외부 서버/실제 인터넷 복구/
+iOS UI/B2 및 Part D 전체 완료를 의미하지 않는다. 앱 기본 연결은 Mock이다.
+이번 커밋은 검증 결과 기록만 추가하며 동일 테스트 재실행은 필요하지 않다.
+
 ## B2 URLSession 기본 loader loopback 통합 테스트 추가 — 2026-10-17
 
 이전 HTTP adapter Core 146 PASS를 기준으로 전송 경계 검증을 추가했다.
