@@ -1250,7 +1250,9 @@ import XCTest
         app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0.5)
         expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: app.buttons["playback-toggle"])
         expectation(for: NSPredicate(format: "label MATCHES %@", "00:00:1[3-7] / 00:00:30"), evaluatedWith: app.staticTexts["playback-time"])
-        waitForExpectations(timeout: 5)
+        // PlaybackModel permits an 8-second seek watchdog before recovering controls.
+        // Allow that recovery plus AX polling; keep the target-position assertion above.
+        waitForExpectations(timeout: 12)
         closePlayback(app)
         back(app)
         let continueCard = app.buttons.matching(NSPredicate(format:

@@ -38,8 +38,8 @@ xcodebuild -project StreamLab.xcodeproj -scheme StreamLab -configuration Debug \
   -only-testing:StreamLabUITests/StreamLabUITests/testLogoutClearsAllProfilesAndStaysSignedOutAfterRelaunch \
   -only-testing:StreamLabUITests/StreamLabUITests/testLogoutClearsPendingOfflineChanges \
   -only-testing:StreamLabUITests/StreamLabUITests/testMyListPersistsAndIsolatesProfiles \
-  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=NO test > "$run_dir/ui-tests.log" 2>&1
-result=$?
+  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=NO test 2>&1 | tee "$run_dir/ui-tests.log"
+result=${PIPESTATUS[0]}
 if [ "$result" -eq 0 ]; then
   echo 'PASS My List persistence/account logout UI' | tee -a "$run_dir/RESULTS.txt"
 else

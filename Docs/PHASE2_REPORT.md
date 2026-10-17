@@ -1,5 +1,25 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## B2 찜 병합 Mac 검증 및 로그아웃 준비 단계 대기 수정 — 2026-10-17
+
+사용자 core(20261017-014220), environment/RESULTS/ui-tests(20261017-014219) 대조.
+실행 HEAD 87f298345aa50af7b06187640c80a8cbe8c8e645, Xcode 27.0 (27A266a), Swift 6.4.
+프로젝트/Memory 스킴 로컬 변경이 있는 Mac/iPhone Simulator 실행 결과다.
+
+- Core 129 PASS: XCTest 15 + Presentation 107 + Catalog 7. 신규 찜 병합 7개 모두 PASS.
+- UI 2 PASS/1 FAIL, 총 215.166초, xcodebuild exit 65. 찜 저장/프로필 격리와 일반
+  로그아웃은 통과했다. 오프라인 로그아웃은 로그아웃 전 재생 위치 이동 준비 단계에서 실패.
+- StreamLabUITests.swift:1253: 목표 시각 조건은 충족했지만 playback-toggle enabled
+  조건을 5초 내 충족하지 못했다. 따라서 해당 실행의 오프라인 로그아웃 삭제 동작은 미검증.
+- 앱의 seek watchdog은 8초인데 테스트 대기는 5초였다. 이 준비 단계만 12초로 조정해
+  복구 및 접근성 폴링 시간을 허용한다. 목표 시각/저장된 진행 카드/로그아웃 후 삭제 검증은 유지.
+  AVPlayer seek 완료가 지연된 근본 원인은 현재 로그만으로 확정하지 않는다.
+- check-my-list-merge-mac.sh의 UI 출력을 tee로 터미널과 파일에 함께 기록하고
+  PIPESTATUS[0]으로 xcodebuild 종료 코드를 보존한다.
+
+수정 후 shell 구문/공백 검사 PASS. Swift/iOS 재실행은 Mac에서 필요하며,
+이번 수정으로 UI 실패가 해결되었다고 아직 판정하지 않는다.
+
 ## B2 찜 목록 작품별 충돌 병합 — 2026-10-17
 
 기존 화면과 저장 구조를 유지하고 MyListStore의 충돌 정책을 작품 단위로 확장했다.
