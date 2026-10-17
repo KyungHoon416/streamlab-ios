@@ -21,7 +21,7 @@ xcodebuild -project StreamLab.xcodeproj -scheme StreamLab -configuration Debug \
   -parallel-testing-enabled NO \
   -test-timeouts-enabled YES -default-test-execution-time-allowance 900 -maximum-test-execution-time-allowance 900 \
   -only-testing:StreamLabUITests/StreamLabUITests/testSubtitleSelectionSeekingAndRestoration \
-  -only-testing:StreamLabUITests/StreamLabUITests/testPlaybackPausesAfterBackground \
+  -only-testing:StreamLabUITests/StreamLabUITests/testPausedPlaybackStaysPausedAfterBackground \
   -only-testing:StreamLabUITests/StreamLabUITests/testHomeContinueWatchingUsesSavedProgress \
   SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=NO test > "$run_dir/ui-tests.log" 2>&1
 result=$?

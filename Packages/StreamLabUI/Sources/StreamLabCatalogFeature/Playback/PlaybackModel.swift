@@ -72,7 +72,7 @@ import StreamLabPresentation
     @Published private(set) var pipPossible = false
     @Published private(set) var pipRunning = false
     @Published private(set) var pipMessage = ""
-    private var playbackAllowed: Bool { foreground || pictureInPicture.isRunning }
+    private var playbackAllowed: Bool { session.isActive }
     @Published private(set) var status: Status = .idle
     @Published private(set) var position: Double = 0
     @Published private(set) var duration: Double = 0
@@ -207,8 +207,7 @@ import StreamLabPresentation
     private var injectedSeekStall = false
     #endif
     private var foreground = true
-    private var foregroundGeneration = 0
-    private var automaticPiPTask: Task<Void, Never>?
+    private var playbackIntentGeneration = 0
     private var wantsPlayback = true
     private var waitingSince: Date?
     private var attempted = false
@@ -233,8 +232,7 @@ import StreamLabPresentation
         session.register(self)
         pictureInPicture.onStop = { [weak self] in
             guard let self else { return }
-            self.automaticPiPTask?.cancel()
-            self.automaticPiPTask = nil
+            self.playbackIntentGeneration += 1
             self.wantsPlayback = false
             self.player?.pause()
             self.saveProgress()
@@ -324,6 +322,8 @@ import StreamLabPresentation
 
     private func preparePlayer(url: URL, ticket: Int) {
         let player = AVPlayer(url: url)
+        // Audio continues with the screen locked or when automatic PiP is unavailable.
+        player.audiovisualBackgroundPlaybackPolicy = .continuesIfPossible
         self.player = player
         observeItemEnd(ticket: ticket)
         player.appliesMediaSelectionCriteriaAutomatically = false
@@ -412,7 +412,7 @@ import StreamLabPresentation
                 return true
             }
             progressReady = true
-            if foreground && wantsPlayback { player.play() }
+            if playbackAllowed && wantsPlayback { player.play() }
         }
         // The actual end notification is authoritative even if HLS duration and
         // the last presented sample differ, or timeControlStatus is still waiting.
@@ -498,7 +498,7 @@ import StreamLabPresentation
         seekGeneration += 1
         let seekTicket = seekGeneration
         let resumeAfterSeek = wantsPlayback || playAfterSeek
-        let foregroundTicket = foregroundGeneration
+        let intentTicket = playbackIntentGeneration
         seekStarted = .now
         seekMessage = ""
         isSeeking = true
@@ -528,52 +528,25 @@ import StreamLabPresentation
             }
             self.restoringPosition = false
             self.observeItemEnd(ticket: ticket)
-            self.wantsPlayback = completed && resumeAfterSeek && self.playbackAllowed && self.foregroundGeneration == foregroundTicket
+            self.wantsPlayback = completed && resumeAfterSeek && self.playbackAllowed && self.playbackIntentGeneration == intentTicket
             if self.wantsPlayback { player.play() } else { player.pause() }
             if !completed { self.seekMessage = "재생 위치 이동이 취소되었습니다. 다시 시도해 주세요." }
             _ = self.sample(ticket: ticket)
         }
     }
 
-    private func pauseOutsidePictureInPicture() {
-        foregroundGeneration += 1
-        wantsPlayback = false
-        pictureInPicture.setAutomaticStartEnabled(false)
-        player?.pause()
-        saveProgress()
-        waitingSince = nil
-    }
-
     func setForeground(_ active: Bool) {
         guard foreground != active else { return }
-        let hadPendingAutomaticPiP = automaticPiPTask != nil
-        automaticPiPTask?.cancel()
-        automaticPiPTask = nil
         foreground = active
         waitingSince = nil
-        if active {
-            // Returning during an unsuccessful handoff must not resume invisible audio.
-            if hadPendingAutomaticPiP && !pictureInPicture.isRunning {
-                pauseOutsidePictureInPicture()
-            }
-            return
-        }
-        cancelNextEpisode()
-        guard !pictureInPicture.isRunning else { return }
-        guard source.isHLS, wantsPlayback, !isSeeking, (player?.rate ?? 0) > 0,
-              pictureInPicture.canStartAutomatically else {
-            pauseOutsidePictureInPicture()
-            return
-        }
-        // scenePhase can become inactive before AVKit's willStart delegate arrives.
-        // Do not call startPictureInPicture here: the system owns automatic entry.
-        let ticket = generation
-        automaticPiPTask = Task { [weak self] in
-            do { try await Task.sleep(for: .seconds(2)) } catch { return }
-            guard let self, !Task.isCancelled, self.generation == ticket,
-                  self.session.isActive, !self.foreground else { return }
-            self.automaticPiPTask = nil
-            if !self.pictureInPicture.isRunning { self.pauseOutsidePictureInPicture() }
+        if !active {
+            // Preserve the user's playing/paused intent. The audio session and AVPlayer
+            // policy own background continuation, independently of automatic PiP success.
+            cancelNextEpisode()
+            saveProgress()
+        } else {
+            // Refresh visible state without forcing a paused/interrupted player to play.
+            _ = sample(ticket: generation)
         }
     }
 
@@ -647,8 +620,6 @@ import StreamLabPresentation
     }
 
     func stop() {
-        automaticPiPTask?.cancel()
-        automaticPiPTask = nil
         pictureInPicture.setAutomaticStartEnabled(false)
         mediaResetObserver = nil
         itemEndObserver = nil
@@ -922,7 +893,6 @@ import StreamLabPresentation
     }
 
     deinit {
-        automaticPiPTask?.cancel()
         if let owner = audioSessionOwner { PlaybackAudioSession.shared.release(owner: owner) }
         audioTask?.cancel()
         subtitleTask?.cancel()

@@ -20,8 +20,12 @@ import Foundation
     var canStartAutomatically: Bool { automaticStartEnabled && possible }
 
     func setAutomaticStartEnabled(_ enabled: Bool) {
-        automaticStartEnabled = enabled
-        controller?.canStartPictureInPictureAutomaticallyFromInline = enabled
+        var allowed = enabled
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--ui-test-disable-automatic-pip") { allowed = false }
+        #endif
+        automaticStartEnabled = allowed
+        controller?.canStartPictureInPictureAutomaticallyFromInline = allowed
     }
 
     func attach(_ layer: AVPlayerLayer) {
@@ -48,7 +52,6 @@ import Foundation
         guard let startRequested, startRequested.duration(to: .now) >= .seconds(10),
               controller?.isPictureInPictureActive != true else { return }
         invalidate()
-        onStop?()
         onFailure?("작은 화면 전환이 지연되어 취소했습니다. 다시 시도해 주세요.")
     }
 
@@ -86,7 +89,6 @@ import Foundation
         isRunning = false
         restoring = false
         startRequested = nil
-        onStop?()
         onFailure?("작은 화면 재생을 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.")
     }
 

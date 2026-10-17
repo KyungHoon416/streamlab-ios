@@ -1,5 +1,29 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## 백그라운드 오디오 재생 정책 변경 — 2026-10-17
+
+사용자 요청에 따라 홈 이동/화면 잠금 시 현재 영상 오디오를 이어 재생하도록 변경했다.
+기존 UIBackgroundModes=audio 및 AVAudioSession playback/moviePlayback 설정을 유지한다.
+
+- AVPlayer audiovisualBackgroundPlaybackPolicy = continuesIfPossible 적용.
+- PiP가 시작되지 않으면 2초 후 강제 일시정지하던 앱 정책 제거.
+- foreground 변경은 재생 의도를 바꾸지 않고 진도 저장/화면 상태 갱신만 수행.
+- 사용자 일시정지, 플레이어 닫기, 프로필 무효화, PiP 창 X에 의한 정지는 유지.
+- PiP 시작 실패/timeout은 메시지로 알리고 백그라운드 오디오를 강제로 멈추지 않음.
+- 탐색 도중 PiP X가 눌리면 늦은 seek 완료가 재생을 재개하지 못하도록 의도 세대 검사 유지.
+- 다음 화 자동 전환은 기존대로 foreground에서만 동작. 잠금 화면 Now Playing/remote command UI는 이번 범위에 포함하지 않음.
+- 기본 번들 MP4는 ffprobe 확인상 video-only이므로 실제 배경 재생 테스트는 HLS 오디오 비교 소스 사용.
+- 자동 PiP를 끈 HLS 백그라운드 진도 증가/복귀 재생 테스트 및 일시정지 유지 테스트 추가.
+- 로컬 공백/셸 구문 검사 PASS. Xcode/UI 및 실기기 잠금 검증 미실행.
+- 실행: `caffeinate -i bash scripts/check-background-playback-mac.sh` (인터넷 필요).
+- 실기기: HLS 오디오 비교 재생 → 홈/잠금 10초 → 소리 유지 및 복귀 진도 확인;
+  일시정지 후 홈/잠금, 플레이어 닫기, PiP 닫기, 전화/오디오 중단도 별도 확인 필요.
+
+Apple 정책 문서: https://developer.apple.com/documentation/avfoundation/avplayer/audiovisualbackgroundplaybackpolicy
+시스템이 가능한 경우 계속 재생하는 정책이며 네트워크/오디오 중단까지 무조건 재생을 보장하지 않는다.
+앞선 영속 로그아웃 변경(4180808)은 아직 사용자 Mac 로그 검증 대기 상태다.
+
+
 ## C2 재시작 후 로그아웃 유지 구현 — 2026-10-17
 
 직전 인증/Keychain 연결 Mac Core 170 PASS 기준으로 영속 로그아웃 정책을 추가했다.

@@ -718,12 +718,13 @@ import XCTest
         XCTAssertFalse(card.exists)
     }
 
-    private func launch(largeText: Bool = false, slow: Bool = false, keepPlaybackControls: Bool = false) -> XCUIApplication {
+    private func launch(largeText: Bool = false, slow: Bool = false, keepPlaybackControls: Bool = false, disableAutomaticPiP: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments.append("--ui-test-progress-suite=streamlab-uitest-\(UUID())")
         if largeText { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
         if slow { app.launchArguments.append("--ui-test-slow-catalog") }
         if keepPlaybackControls { app.launchArguments.append("--ui-test-keep-playback-controls") }
+        if disableAutomaticPiP { app.launchArguments.append("--ui-test-disable-automatic-pip") }
         app.launchArguments.append("--ui-test-disable-resume")
         app.launch()
         return app
@@ -1124,17 +1125,41 @@ import XCTest
         XCTAssertFalse(app.buttons["playback-close"].exists)
     }
 
-    func testPlaybackPausesAfterBackground() {
-        let app = launch()
+    func testPlaybackContinuesAfterBackground() throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["STREAMLAB_TEST_REAL_HLS"] == "1",
+                          "Requires real HLS audio; run check-background-playback-mac.sh")
+        let app = launch(keepPlaybackControls: true, disableAutomaticPiP: true)
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        openPlaybackSource("apple-trailer-audio-v1", in: app)
+        expectPlayback("재생 중", in: app)
+        let before = try XCTUnwrap(playbackTimes(app))
+        XCUIDevice.shared.press(.home)
+        // Real elapsed background time is the behavior under test, not a UI readiness wait.
+        Thread.sleep(forTimeInterval: 4)
+        app.activate()
+        expectPlayback("재생 중", in: app)
+        let after = try XCTUnwrap(playbackTimes(app))
+        XCTAssertGreaterThanOrEqual(after.position - before.position, 3)
+        closePlayback(app)
+    }
+
+    func testPausedPlaybackStaysPausedAfterBackground() throws {
+        let app = launch(keepPlaybackControls: true)
         choose("adult-a", in: app)
         openHomeDetail(app)
         openPlayback(app)
         expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("일시 정지", in: app)
+        let before = try XCTUnwrap(playbackTimes(app))
         XCUIDevice.shared.press(.home)
+        Thread.sleep(forTimeInterval: 4)
         app.activate()
         expectPlayback("일시 정지", in: app)
-        tap(app.buttons["playback-toggle"], in: app)
-        expectPlayback("재생 중", in: app)
+        let after = try XCTUnwrap(playbackTimes(app))
+        XCTAssertEqual(after.position, before.position, accuracy: 1)
         closePlayback(app)
     }
 
