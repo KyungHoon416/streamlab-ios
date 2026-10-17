@@ -314,10 +314,6 @@ import StreamLabDesignSystem
                     VStack(spacing: 4) { resumeControls }
                 }
             }
-            if model.status == .loading || model.isSeeking {
-                ProgressView().tint(.white).accessibilityLabel("영상 로딩 중")
-                    .accessibilityIdentifier("playback-loading")
-            }
             if !model.seekMessage.isEmpty {
                 Text(model.seekMessage)
                     .font(.callout).multilineTextAlignment(.center)
@@ -341,6 +337,10 @@ import StreamLabDesignSystem
         }
     }
 
+    private var isShowingLoading: Bool {
+        model.status == .loading || model.isSeeking
+    }
+
     @ViewBuilder private var playbackButtons: some View {
         if case .failed = model.status {
             EmptyView()
@@ -350,12 +350,26 @@ import StreamLabDesignSystem
                         model.seek(to: model.position - 10)
                     }
                     .disabled(!model.canSeek)
-                    iconButton(model.status == .ended ? "다시 재생" : (model.status == .playing ? "일시 정지" : "재생"),
-                               symbol: model.status == .ended ? "arrow.counterclockwise" : (model.status == .playing ? "pause.fill" : "play.fill"),
-                               id: "playback-toggle", size: 64) {
-                        model.togglePlayback()
+                    ZStack {
+                        iconButton(model.status == .ended ? "다시 재생" : (model.status == .playing ? "일시 정지" : "재생"),
+                                   symbol: model.status == .ended ? "arrow.counterclockwise" : (model.status == .playing ? "pause.fill" : "play.fill"),
+                                   id: "playback-toggle", size: 64) {
+                            model.togglePlayback()
+                        }
+                        .disabled(model.player == nil || model.status == .loading || model.isSeeking)
+                        .opacity(isShowingLoading ? 0 : 1)
+                        .accessibilityHidden(isShowingLoading)
+                        if isShowingLoading {
+                            ProgressView()
+                                .tint(.white)
+                                .controlSize(.large)
+                                .frame(width: 64, height: 64)
+                                .background(.black.opacity(0.45), in: Circle())
+                                .accessibilityLabel("영상 로딩 중")
+                                .accessibilityIdentifier("playback-loading")
+                        }
                     }
-                    .disabled(model.player == nil || model.status == .loading || model.isSeeking)
+                    .frame(width: 64, height: 64)
                     iconButton("10초 앞으로", symbol: "goforward.10", id: "playback-forward", size: 56) {
                         model.seek(to: model.position + 10)
                     }
