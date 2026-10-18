@@ -794,7 +794,22 @@ import XCTest
         element.tap()
     }
 
+    private func enterDemoIfNeeded(_ app: XCUIApplication) {
+        let profile = app.buttons["profile-adult-a"]
+        let signIn = app.buttons["demo-sign-in"]
+        let ready = app.descendants(matching: .any).matching(NSPredicate(
+            format: "identifier IN %@", ["profile-adult-a", "demo-sign-in", "hero-detail"])).firstMatch
+        XCTAssertTrue(ready.waitForExistence(timeout: 15))
+        if signIn.exists {
+            expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: signIn)
+            waitForExpectations(timeout: 15)
+            tap(signIn, in: app)
+            XCTAssertTrue(profile.waitForExistence(timeout: 15))
+        }
+    }
+
     private func choose(_ id: String, in app: XCUIApplication) {
+        enterDemoIfNeeded(app)
         tap(app.buttons["profile-\(id)"], in: app)
         XCTAssertTrue(app.descendants(matching: .any)["hero-detail"].waitForExistence(timeout: 12))
     }
@@ -911,11 +926,41 @@ import XCTest
         }
     }
 
+    func testDemoLoginRestoresAndLogoutSurvivesRelaunch() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=demo-auth-\(UUID())"]
+        app.launch()
+        let signIn = app.buttons["demo-sign-in"]
+        XCTAssertTrue(signIn.waitForExistence(timeout: 15))
+        XCTAssertFalse(app.buttons["profile-adult-a"].exists)
+        enterDemoIfNeeded(app)
+        app.terminate()
+        app.launch()
+        // Do not use choose's sign-in helper here: restoration must work unaided.
+        XCTAssertTrue(app.buttons["profile-adult-a"].waitForExistence(timeout: 15))
+        XCTAssertFalse(signIn.exists)
+        choose("adult-a", in: app)
+        tap(app.buttons["account-logout"], in: app)
+        let dialog = app.sheets["로그아웃하면 이 기기의 모든 프로필 기록이 삭제됩니다."]
+        tap(dialog.buttons.matching(identifier: "confirm-logout").firstMatch, in: app)
+        XCTAssertTrue(signIn.waitForExistence(timeout: 15))
+        expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: signIn)
+        waitForExpectations(timeout: 15)
+        XCTAssertFalse(app.staticTexts["logout-error"].exists)
+        app.terminate()
+        app.launch()
+        XCTAssertTrue(signIn.waitForExistence(timeout: 15))
+        XCTAssertFalse(app.buttons["profile-adult-a"].exists)
+        enterDemoIfNeeded(app)
+        XCTAssertFalse(app.staticTexts["logout-error"].exists)
+    }
+
     func testColdLaunchAndRelaunchShowProfiles() {
         let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=cold-demo-\(UUID())"]
         for _ in 0..<2 {
-            app.launchArguments.append("--ui-test-disable-resume")
-        app.launch()
+            app.launch()
+            enterDemoIfNeeded(app)
             for id in ["adult-a", "adult-b", "kids-a"] {
                 let button = app.buttons["profile-\(id)"]
                 XCTAssertTrue(button.waitForExistence(timeout: 10))

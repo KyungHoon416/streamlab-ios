@@ -147,6 +147,20 @@ public actor KeychainTokenStore {
         return (tokens, id)
     }
 
+    public func hasLogoutMarker(account: String) throws -> Bool {
+        try check(account)
+        return try logoutMarkers.contains(service: service, account: account)
+    }
+
+    /// Account coordinator logout, including startup when no session was restored.
+    /// Unlike a session-scoped logout this deliberately revokes the current grant.
+    public func signOut(account: String) throws {
+        try check(account)
+        sessions[account] = (UUID(), false)
+        try logoutMarkers.write(service: service, account: account)
+        try delete(account: account)
+    }
+
     /// Re-launch cleanup. Only a durable signed-out account is eligible for deletion.
     /// Keep the marker after success: only explicit signIn may clear it.
     public func retryPendingLogout(account: String) throws {

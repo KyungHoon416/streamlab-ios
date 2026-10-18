@@ -1,5 +1,23 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## 과제용 데모 로그인 앱 연결 — 2026-10-18
+
+사용자가 인증 서버가 없음을 확인하여, 서버 로그인과 구분되는 로컬 데모 흐름을 연결했다.
+
+- 최초 진입: 데모 안내/시작 버튼. 비밀번호를 요구하지 않는다. 로컬 UUID 기반 데모 토큰을 전용 Keychain service에 저장하고 프로필로 진입한다.
+- 재실행: 로컬 로그아웃 마커와 토큰 저장소 마커를 먼저 확인한 뒤 저장된 인증 세션을 복원한다. 확인 중 프로필을 노출하지 않는다.
+- 로그아웃: 플레이어/프로필을 즉시 무효화하고 토큰/기록을 정리한다. 어느 저장소의 마커든 남아 있으면 재실행/재로그인 전에 정리를 재시도한다.
+- 첫 업그레이드에서 기존 데모 기록을 보존한다. 사용자가 명시적으로 로그아웃한 경우에만 기존 계정 기록 삭제 정책을 적용한다.
+- 계정 조정자용 Keychain signOut 및 마커 조회 추가, Core 테스트 2개 추가. 기존 sign-in suite 총 6개.
+- UI 회귀: 최초 로그인, 토큰 복원, 로그아웃 후 재실행, 명시적 재로그인 테스트 추가. 기존 프로필 선택 helper는 필요할 때 데모 버튼을 실제 탭한다. 복원 전용 검증에서는 이 helper로 복원 실패를 숨기지 않는다.
+- 공백/셸 구문 검사 통과. Mac Core 및 Xcode UI 테스트 실행 대기. scripts/check-authentication-sign-in-mac.sh, scripts/check-demo-authentication-mac.sh 사용.
+- 이것은 로컬 데모 인증이며 사용자 신원 확인/서버 권한/실제 refresh endpoint를 구현한 것이 아니다. iOS 잠금 Keychain 및 전체 회귀는 확인 대기.
+
+### 직전 인증 API 검증 결과
+
+a051b86, Xcode 27.0/Swift 6.4. 실제 Core 187개 통과(21 XCTest + 159 Presentation + 7 Catalog), HTTP 테스트 9개 skip, 오류/경고 없음. 명시적 sign-in 4개 및 실제 Mac dummy Keychain 검사 통과.
+
+
 ## C2 명시적 로그인 성공 → 영속 세션 생성 연결 — 2026-10-18
 
 - AuthenticationSession.signIn(account:tokens:store:refresh:) 추가. 인증 제공자로부터 받은 토큰 쌍의 저장과 세션 생성을 하나의 호출로 제공한다.

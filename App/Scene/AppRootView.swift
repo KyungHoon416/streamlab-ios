@@ -22,12 +22,17 @@ import StreamLabDesignSystem
 
     var body: some View {
         Group {
-            if account.isSignedOut {
+            if account.isRestoring {
+                ProgressView("데모 계정을 확인하고 있어요")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(StreamLabTheme.background)
+                    .accessibilityIdentifier("account-restoring")
+            } else if account.isSignedOut {
                 VStack(spacing: 20) {
                     Text("StreamLab 데모").font(.largeTitle.bold())
-                    Text("데모 시작을 눌러 프로필을 선택하세요.")
+                    Text("서버 연결 없는 과제용 데모입니다.\n데모 시작을 누르면 이 기기에 로그인 상태가 저장됩니다.")
                         .multilineTextAlignment(.center)
-                    if account.isBusy { ProgressView("로컬 기록을 정리하고 있어요") }
+                    if account.isBusy { ProgressView("데모 계정을 준비하고 있어요") }
                     if let error = account.errorMessage {
                         Text(error).foregroundStyle(.secondary)
                             .accessibilityIdentifier("logout-error")
@@ -52,9 +57,7 @@ import StreamLabDesignSystem
         }
         .tint(StreamLabTheme.accent)
         .onAppear { startupLog.notice("[Startup] SwiftUI root appeared") }
-        .task {
-            if account.isSignedOut { await account.logout(session: nil) }
-        }
+        .task { await account.prepare() }
     }
 
     private func logout() {

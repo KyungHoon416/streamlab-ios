@@ -76,4 +76,37 @@ struct AuthenticationSignInTests {
         try await current.logout()
         #expect(try await store.read(account: "same") == nil)
     }
+
+    @Test func accountLogoutWithoutRestoredSessionBlocksReopen() async throws {
+        let (store, _) = try store()
+        let tokens = AccountTokens(accessToken: "demo-access", refreshToken: "demo-refresh")
+        try await store.save(tokens, account: "a")
+        #expect(try await store.hasLogoutMarker(account: "a") == false)
+        try await store.signOut(account: "a")
+        #expect(try await store.hasLogoutMarker(account: "a"))
+        #expect(try await store.read(account: "a") == nil)
+        let restored = try await AuthenticationSession.restore(account: "a", store: store) { _ in tokens }
+        #expect(restored == nil)
+        let fresh = try await AuthenticationSession.signIn(account: "a", tokens: tokens, store: store) { _ in tokens }
+        #expect(try await store.hasLogoutMarker(account: "a") == false)
+        try await fresh.logout()
+    }
+
+    @Test func accountLogoutFailureKeepsMarkerAndOtherAccountUntouched() async throws {
+        let (store, backend) = try store()
+        let tokens = AccountTokens(accessToken: "demo-access", refreshToken: "demo-refresh")
+        try await store.save(tokens, account: "a")
+        try await store.save(tokens, account: "b")
+        backend.fail(errSecInteractionNotAllowed)
+        await #expect(throws: TokenStoreError.status(errSecInteractionNotAllowed)) {
+            try await store.signOut(account: "a")
+        }
+        #expect(try await store.hasLogoutMarker(account: "a"))
+        backend.fail(nil)
+        #expect(try await store.read(account: "a") == nil)
+        #expect(try await store.read(account: "b") == tokens)
+        try await store.signOut(account: "a")
+        #expect(try await store.hasLogoutMarker(account: "a"))
+    }
+
 }
