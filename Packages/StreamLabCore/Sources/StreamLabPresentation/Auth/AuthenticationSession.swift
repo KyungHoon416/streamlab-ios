@@ -44,12 +44,28 @@ public actor AuthenticationSession {
         }
     }
 
-    /// Restores an existing account item. Explicit sign-in must call store.signIn with its token pair first.
+    /// Restores an existing account item. For explicit authentication, use signIn(account:tokens:store:refresh:).
     /// Use a single shared store per service; refresh uses a separate unauthenticated transport.
     public static func restore(account: String, store: KeychainTokenStore,
                                refresh: @escaping @Sendable (String) async throws -> AccountTokens,
                                deadline: @escaping Deadline = { try await Task.sleep(for: .seconds(15)) }) async throws -> AuthenticationSession? {
         guard let (tokens, id) = try await store.openSession(account: account) else { return nil }
+        return try await persisted(account: account, tokens: tokens, id: id, store: store, refresh: refresh, deadline: deadline)
+    }
+
+    /// Call only with credentials returned by a successful authentication provider.
+    /// This does not validate passwords or contact a login server. Storage failure
+    /// throws without publishing a session, preserving the durable signed-out marker.
+    public static func signIn(account: String, tokens: AccountTokens, store: KeychainTokenStore,
+                              refresh: @escaping @Sendable (String) async throws -> AccountTokens,
+                              deadline: @escaping Deadline = { try await Task.sleep(for: .seconds(15)) }) async throws -> AuthenticationSession {
+        let (saved, id) = try await store.signInSession(tokens, account: account)
+        return try await persisted(account: account, tokens: saved, id: id, store: store, refresh: refresh, deadline: deadline)
+    }
+
+    private static func persisted(account: String, tokens: AccountTokens, id: UUID, store: KeychainTokenStore,
+                                  refresh: @escaping @Sendable (String) async throws -> AccountTokens,
+                                  deadline: @escaping Deadline) async throws -> AuthenticationSession {
         let session = try AuthenticationSession(token: tokens.accessToken, refresh: {
             let current = try await store.sessionTokens(account: account, id: id)
             let renewed = try await refresh(current.refreshToken)

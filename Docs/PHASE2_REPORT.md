@@ -1,5 +1,21 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## C2 명시적 로그인 성공 → 영속 세션 생성 연결 — 2026-10-18
+
+- AuthenticationSession.signIn(account:tokens:store:refresh:) 추가. 인증 제공자로부터 받은 토큰 쌍의 저장과 세션 생성을 하나의 호출로 제공한다.
+- KeychainTokenStore actor 안에서 저장과 세션 grant 발급을 중단 없이 처리해, 별도 signIn → restore 호출 사이에 다른 로그인이 끼어 토큰 쌍이 바뀌는 경로를 제거했다.
+- 기존 복원/갱신/로그아웃 로직을 공통 persisted 생성 함수로 재사용한다. 저장 실패 시 세션을 반환하지 않고 영속 로그아웃 마커를 유지한다.
+- 새 테스트 4개: 저장→갱신→로그아웃, 저장 실패 후 복원 차단과 명시적 재시도, 잘못된 토큰의 기존 항목 보호, 동시 로그인별 토큰 격리와 이전 logout의 새 항목 삭제 방지.
+- 단일 앱 계정 조정자는 이전 AuthenticationSession을 invalidate하고 새 인스턴스로 교체해야 한다. 저장소 grant 교체는 이미 발급된 액세스 토큰의 서버 측 폐기를 의미하지 않는다.
+- 새 Mac 스크립트 check-authentication-sign-in-mac.sh는 기존 Core/인증/실제 Mac 더미 Keychain 검사와 새 suite를 함께 요구한다.
+- 공백/셸 구문 검사 통과. Swift 테스트 실행 대기. 앱 화면/실제 로그인·refresh 서버 연동은 아직 미완료이며, 이번 API는 비밀번호를 검증하지 않는다.
+
+### 재생 세션 검증 수신 완료
+
+- 사용자 ZIP environment/ios-tests/RESULTS: d1d4f63, Xcode 27.0, Now Playing 5개 + 플레이어 세션 3개 = 8개 통과/실패 0. TEST SUCCEEDED.
+- AppIntents 메타데이터 추출 생략 경고 1건. SwiftUI 프로필 전환 전체 UI, 실제 잠금 카드 제거, Bluetooth 연결 해제는 확인 대기.
+
+
 ## 플레이어 종료 / 프로필 세션 통합 테스트 추가 — 2026-10-17
 
 - b236c5b 검증 로그(075717): Xcode 27.0, iOS Now Playing 테스트 5개 통과/실패 0, TEST SUCCEEDED. 기존 사용 중단 API 빌드 오류 해결.

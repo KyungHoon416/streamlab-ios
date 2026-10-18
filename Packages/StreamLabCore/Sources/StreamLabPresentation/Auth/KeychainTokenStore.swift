@@ -138,6 +138,15 @@ public actor KeychainTokenStore {
         sessions.removeValue(forKey: account)
     }
 
+    /// Persist credentials and grant their session without another actor operation
+    /// interleaving between sign-in and open. The caller owns this exact token pair.
+    func signInSession(_ tokens: AccountTokens, account: String) throws -> (AccountTokens, UUID) {
+        try signIn(tokens, account: account)
+        let id = UUID()
+        sessions[account] = (id, true)
+        return (tokens, id)
+    }
+
     /// Re-launch cleanup. Only a durable signed-out account is eligible for deletion.
     /// Keep the marker after success: only explicit signIn may clear it.
     public func retryPendingLogout(account: String) throws {
