@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import OSLog
 import StreamLabPresentation
 
 /// Local demo credentials in Keychain. No server login or real password authentication.
@@ -35,6 +36,31 @@ import StreamLabPresentation
         }
     }
 
+    private func report(_ error: any Error, operation: String, message: String) {
+        // Never stringify arbitrary errors: a provider error could contain credentials.
+        let code: String
+        if let tokenError = error as? TokenStoreError {
+            switch tokenError {
+            case .status(let status): code = "keychain:\(status)"
+            case .invalidScope: code = "invalid-scope"
+            case .invalidTokens: code = "invalid-tokens"
+            case .corruptItem: code = "corrupt-item"
+            case .corruptLogoutMarker: code = "corrupt-logout-marker"
+            }
+        } else if error is AuthenticationError {
+            code = "authentication-error"
+        } else {
+            code = "storage-code:\((error as NSError).code)"
+        }
+        Logger(subsystem: "com.example.streamlab.demo", category: "DemoAuthentication")
+            .error("operation=\(operation, privacy: .public) code=\(code, privacy: .public)")
+        #if DEBUG
+        errorMessage = message + " [" + operation + " · " + code + "]"
+        #else
+        errorMessage = message
+        #endif
+    }
+
     private nonisolated static func demoTokens() -> AccountTokens {
         AccountTokens(accessToken: "demo-access-" + UUID().uuidString,
                       refreshToken: "demo-refresh-" + UUID().uuidString)
@@ -59,7 +85,7 @@ import StreamLabPresentation
             }
         } catch {
             isSignedOut = true
-            errorMessage = "데모 계정을 복원하지 못했습니다. 기기 잠금을 해제한 뒤 다시 시도해 주세요."
+            report(error, operation: "restore", message: "데모 계정을 복원하지 못했습니다. 다시 시도해 주세요.")
         }
     }
 
@@ -85,7 +111,7 @@ import StreamLabPresentation
         session?.invalidate(saveProgress: false)
         defer { isBusy = false }
         do { try await cleanup(session: session) }
-        catch { errorMessage = "로그아웃 정리를 완료하지 못했습니다. 다시 시도해 주세요." }
+        catch { report(error, operation: "logout", message: "로그아웃 정리를 완료하지 못했습니다. 다시 시도해 주세요.") }
     }
 
     public func signInDemo() async {
@@ -112,7 +138,7 @@ import StreamLabPresentation
             }
             isSignedOut = false
         } catch {
-            errorMessage = "데모 로그인을 완료하지 못했습니다. 기기 잠금을 해제한 뒤 다시 시도해 주세요."
+            report(error, operation: "sign-in", message: "데모 로그인을 완료하지 못했습니다. 다시 시도해 주세요.")
         }
     }
 }

@@ -804,7 +804,12 @@ import XCTest
             expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: signIn)
             waitForExpectations(timeout: 15)
             tap(signIn, in: app)
-            XCTAssertTrue(profile.waitForExistence(timeout: 15))
+            if !profile.waitForExistence(timeout: 15) {
+                let error = app.staticTexts["logout-error"]
+                let reason = error.exists ? error.label : "No authentication error label; inspect screenshot/hierarchy"
+                captureFailure(app, name: "Demo sign-in failed")
+                XCTFail("Demo sign-in did not reach profiles: \(reason)")
+            }
         }
     }
 

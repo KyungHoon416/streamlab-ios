@@ -24,6 +24,10 @@ xcodebuild -project StreamLab.xcodeproj -scheme StreamLab -configuration Debug \
   -only-testing:StreamLabUITests/StreamLabUITests/testLogoutClearsAllProfilesAndStaysSignedOutAfterRelaunch \
   SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=NO test > "$run_dir/ui-tests.log" 2>&1
 result=$?
+xcrun simctl spawn "$simulator_id" log show --last 20m --style compact \
+  --predicate 'subsystem == "com.example.streamlab.demo" AND category == "DemoAuthentication"' \
+  > "$run_dir/authentication.log" 2>&1
+echo "Authentication diagnostic collection exit=$?" >> "$run_dir/environment.txt"
 if [ "$result" -eq 0 ]; then
   if ! grep -Eq 'testDemoLoginRestoresAndLogoutSurvivesRelaunch.*passed' "$run_dir/ui-tests.log" ||
      ! grep -Eq 'testLogoutClearsAllProfilesAndStaysSignedOutAfterRelaunch.*passed' "$run_dir/ui-tests.log"; then
