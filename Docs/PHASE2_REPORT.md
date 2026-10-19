@@ -1,5 +1,14 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## 계정 회귀 통과 / 인증 연결 후 백그라운드 재생 검증 준비 — 2026-10-19
+
+57dc2cd 수신 로그(013656): Core 실제 188개 통과, 10개 skipped. UI 3개 모두 통과, 실패 0개, 767.703초. 모든 프로필 정리/로그아웃 유지, Mock 오프라인 변경사항 정리, 나의 리스트 저장 및 프로필 격리를 확인했다. /private/tmp 빌드 경로로 변경 후 이전 CodeSign 메타데이터 오류는 발생하지 않았다.
+
+- 오프라인 UI 테스트 565.179초 중 약 420초는 앱 idle/애니메이션 완료 대기 7회(각 약 60초)로 관측됐다. 특정 애니메이션이나 앱 정지 원인은 확정하지 않는다. 테스트 대기를 완화하지 않았다.
+- 다음은 데모 인증 연결 후 백그라운드 재생/일시정지 유지 회귀다. 기존 check-background-playback-mac.sh의 서명을 활성화하고 진단 로그 시작 시점을 이번 실행으로 제한했다. 기존 /private/tmp 빌드 경로와 두 테스트 필수 통과 조건은 유지한다.
+- 실제 외부 HLS 오디오 테스트이므로 인터넷이 필요하다. 재생 중 홈 이동 후 복귀 시 진도 증가, 일시정지 후 홈 이동/복귀 시 위치 유지를 검사한다.
+- 로컬 셸 구문/공백 검사 통과. 새 Xcode UI 실행은 대기 중이다. 실기기 잠금/전화/Bluetooth/PiP 및 전체 UI 회귀의 통과를 의미하지 않는다.
+
 ## 오프라인 계정 회귀: Core 통과 / UI 빌드 경로 수정 — 2026-10-19
 
 ada18f1 수신 로그(010919~010921): Core/B1 통과. XCTest 21개, Presentation 실제 통과 160개(170개 요약 중 10개 skipped), Catalog 7개로 실제 통과 총 188개. HTTP 9개 및 실제 시스템 Keychain 1개는 이번 실행에서 건너뛰었다. 새 accountLogoutWithoutRestoredSessionBlocksReopen 및 accountLogoutFailureKeepsMarkerAndOtherAccountUntouched도 통과했다.

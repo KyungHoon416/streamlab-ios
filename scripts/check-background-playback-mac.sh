@@ -14,7 +14,9 @@ fi
 { git rev-parse HEAD; git status --short; xcodebuild -version; echo "Simulator: $simulator_id"; } > "$run_dir/environment.txt" 2>&1
 build_dir="$(mktemp -d /private/tmp/streamlab-background-playback-XXXXXX)" || exit 2
 echo "Build directory: $build_dir" >> "$run_dir/environment.txt"
+echo 'Simulator signing: CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- (ad hoc)' >> "$run_dir/environment.txt"
 echo "Running background HLS audio and paused-state regression (internet required). Log: $run_dir/ui-tests.log"
+diagnostic_start="$(date '+%Y-%m-%d %H:%M:%S')"
 TEST_RUNNER_STREAMLAB_TEST_REAL_HLS=1 xcodebuild -project StreamLab.xcodeproj -scheme StreamLab -configuration Debug \
   -destination "platform=iOS Simulator,id=$simulator_id" \
   -derivedDataPath "$build_dir/DerivedData" -resultBundlePath "$run_dir/UITests.xcresult" \
@@ -22,7 +24,7 @@ TEST_RUNNER_STREAMLAB_TEST_REAL_HLS=1 xcodebuild -project StreamLab.xcodeproj -s
   -test-timeouts-enabled YES -default-test-execution-time-allowance 900 -maximum-test-execution-time-allowance 900 \
   -only-testing:StreamLabUITests/StreamLabUITests/testPlaybackContinuesAfterBackground \
   -only-testing:StreamLabUITests/StreamLabUITests/testPausedPlaybackStaysPausedAfterBackground \
-  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=NO test > "$run_dir/ui-tests.log" 2>&1
+  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- test > "$run_dir/ui-tests.log" 2>&1
 result=$?
 if [ "$result" -eq 0 ]; then
   if ! grep -Eq 'testPlaybackContinuesAfterBackground.*passed' "$run_dir/ui-tests.log" ||
@@ -32,7 +34,7 @@ if [ "$result" -eq 0 ]; then
   fi
 fi
 # App-process orientation messages are not guaranteed to appear in XCTest output.
-xcrun simctl spawn "$simulator_id" log show --last 15m --style compact \
+xcrun simctl spawn "$simulator_id" log show --start "$diagnostic_start" --style compact \
   --predicate 'subsystem == "com.example.streamlab.demo" AND category == "PlaybackOrientation"' \
   > "$run_dir/orientation.log" 2>&1
 diagnostics_result=$?
