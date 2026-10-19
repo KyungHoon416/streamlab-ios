@@ -28,22 +28,32 @@ import StreamLabDesignSystem
                     .background(StreamLabTheme.background)
                     .accessibilityIdentifier("account-restoring")
             } else if account.isSignedOut {
-                VStack(spacing: 20) {
-                    Text("StreamLab 데모").font(.largeTitle.bold())
-                    Text("서버 연결 없는 과제용 데모입니다.\n데모 시작을 누르면 이 기기에 로그인 상태가 저장됩니다.")
+                GeometryReader { geometry in
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            Text("StreamLab 데모")
+                                .font(.largeTitle.bold())
+                                .accessibilityAddTraits(.isHeader)
+                            Text("서버 연결 없는 과제용 데모입니다.\n데모 시작을 누르면 이 기기에 로그인 상태가 저장됩니다.")
+                                .accessibilityIdentifier("demo-sign-in-description")
+                            if account.isBusy { ProgressView("데모 계정을 준비하고 있어요") }
+                            if let error = account.errorMessage {
+                                Text(error).foregroundStyle(.secondary)
+                                    .accessibilityIdentifier("logout-error")
+                            }
+                            Button("데모 시작") { Task { await account.signInDemo() } }
+                                .buttonStyle(StreamLabButtonStyle())
+                                .disabled(account.isBusy)
+                                .accessibilityIdentifier("demo-sign-in")
+                        }
                         .multilineTextAlignment(.center)
-                    if account.isBusy { ProgressView("데모 계정을 준비하고 있어요") }
-                    if let error = account.errorMessage {
-                        Text(error).foregroundStyle(.secondary)
-                            .accessibilityIdentifier("logout-error")
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: 560)
+                        .padding(24)
+                        .frame(maxWidth: .infinity, minHeight: geometry.size.height)
                     }
-                    Button("데모 시작") { Task { await account.signInDemo() } }
-                        .buttonStyle(StreamLabButtonStyle())
-                        .disabled(account.isBusy)
-                        .accessibilityIdentifier("demo-sign-in")
+                    .accessibilityIdentifier("demo-sign-in-scroll")
                 }
-                .padding()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(StreamLabTheme.background)
             } else if let session {
                 CatalogTabs(session: session, onSwitchProfile: switchProfile, onLogout: logout)

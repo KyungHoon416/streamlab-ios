@@ -931,6 +931,28 @@ import XCTest
         }
     }
 
+    func testDemoLoginAtMaximumTextSize() {
+        let app = launch(largeText: true)
+        let scroll = app.scrollViews["demo-sign-in-scroll"]
+        let signIn = app.buttons["demo-sign-in"]
+        XCTAssertTrue(scroll.waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts["demo-sign-in-description"].exists)
+        XCTAssertTrue(signIn.waitForExistence(timeout: 5))
+        for _ in 0..<6 {
+            if scroll.frame.intersection(app.frame).contains(signIn.frame) && signIn.isHittable { break }
+            scroll.swipeUp()
+        }
+        guard scroll.frame.intersection(app.frame).contains(signIn.frame), signIn.isHittable else {
+            captureFailure(app, name: "Maximum text demo sign-in unreachable")
+            XCTFail("Demo sign-in must be fully visible and reachable at maximum text size")
+            return
+        }
+        XCTAssertGreaterThanOrEqual(signIn.frame.height, 44)
+        enterDemoIfNeeded(app)
+        XCTAssertTrue(app.buttons["profile-adult-a"].waitForExistence(timeout: 15))
+        XCTAssertFalse(app.staticTexts["logout-error"].exists)
+    }
+
     func testDemoLoginRestoresAndLogoutSurvivesRelaunch() {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=demo-auth-\(UUID())"]
