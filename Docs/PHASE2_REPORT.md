@@ -1,5 +1,14 @@
 # Phase 2 — 재생 구현 및 검증 이력
 
+## 오프라인 계정 회귀: Core 통과 / UI 빌드 경로 수정 — 2026-10-19
+
+ada18f1 수신 로그(010919~010921): Core/B1 통과. XCTest 21개, Presentation 실제 통과 160개(170개 요약 중 10개 skipped), Catalog 7개로 실제 통과 총 188개. HTTP 9개 및 실제 시스템 Keychain 1개는 이번 실행에서 건너뛰었다. 새 accountLogoutWithoutRestoredSessionBlocksReopen 및 accountLogoutFailureKeepsMarkerAndOtherAccountUntouched도 통과했다.
+
+- UI는 실행되지 않았다. 앱 CodeSign에서 `resource fork, Finder information, or similar detritus not allowed`로 빌드 실패(exit=65). UI 기능 실패나 통과로 처리하지 않는다.
+- 앱 산출물이 Desktop 프로젝트 내부 Docs/Validation의 DerivedData에 생성되었다. 직전 로그인 UI 통과 실행과 동일하게 새 /private/tmp 디렉터리로 DerivedData를 분리한다. 메타데이터 생성 주체는 로그만으로 확정하지 않는다.
+- 원본 프로젝트 및 확장 속성 일괄 삭제 없이 빌드 위치만 수정했다. 로그/xcresult 보관 위치와 서명 활성화, 테스트 성공 조건은 유지한다.
+- 셸 구문/공백 검사 통과. Xcode 재실행 및 UI 3개 결과는 대기 중이다.
+
 ## 데모 로그인 UI 통과 / 오프라인 로그아웃 회귀 준비 — 2026-10-19
 
 72ee22d 수신 로그(005205), Xcode 27.0: UI 2개 통과, 실패 0개, 186.521초. 로그인 후 재실행 복원, 로그아웃 후 재실행 유지, 모든 프로필 기록 정리 및 재로그인 후 새 기록 저장을 검증했다. 앱 서명 검증 exit=0. 이전 Keychain -34018 실패는 시뮬레이터 서명 활성화 후 재현되지 않았다.

@@ -31,10 +31,14 @@ if [ -z "$simulator_id" ]; then
 fi
 echo "Simulator: $simulator_id" >> "$run_dir/environment.txt"
 echo 'Simulator signing: CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- (ad hoc)' >> "$run_dir/environment.txt"
+# Keep signed build products outside Desktop/project folders where Finder metadata
+# can prevent codesign. Retain logs and the result bundle in the validation folder.
+build_dir="$(mktemp -d /private/tmp/streamlab-account-logout-XXXXXX)" || exit 2
+echo "Build directory: $build_dir" >> "$run_dir/environment.txt"
 echo "Building and testing account logout. Log: $run_dir/ui-tests.log"
 xcodebuild -project StreamLab.xcodeproj -scheme StreamLab -configuration Debug \
   -destination "platform=iOS Simulator,id=$simulator_id" \
-  -derivedDataPath "$run_dir/DerivedData" -resultBundlePath "$run_dir/UITests.xcresult" \
+  -derivedDataPath "$build_dir/DerivedData" -resultBundlePath "$run_dir/UITests.xcresult" \
   -parallel-testing-enabled NO \
   -test-timeouts-enabled YES -default-test-execution-time-allowance 900 -maximum-test-execution-time-allowance 900 \
   -only-testing:StreamLabUITests/StreamLabUITests/testLogoutClearsAllProfilesAndStaysSignedOutAfterRelaunch \
