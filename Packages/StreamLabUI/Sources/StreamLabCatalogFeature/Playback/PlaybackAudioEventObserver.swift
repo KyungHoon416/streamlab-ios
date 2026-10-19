@@ -4,14 +4,20 @@ import Foundation
 enum PlaybackAudioEvent: Sendable {
     case interruptionBegan(preventsAutomaticResume: Bool)
     case interruptionEnded(shouldResume: Bool)
+    case volumeChanged(Float)
     case outputDisconnected
 }
 
 /// Immutable observer tokens; only Sendable values leave the notification callbacks.
 final class PlaybackAudioEventObserver: @unchecked Sendable {
     private let tokens: [NSObjectProtocol]
+    private let volumeObservation: NSKeyValueObservation
 
     init(handler: @escaping @Sendable (PlaybackAudioEvent) -> Void) {
+        volumeObservation = AVAudioSession.sharedInstance().observe(\.outputVolume, options: [.initial, .new]) { _, change in
+            guard let volume = change.newValue else { return }
+            handler(.volumeChanged(volume))
+        }
         let center = NotificationCenter.default
         tokens = [
             center.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: .main) { note in

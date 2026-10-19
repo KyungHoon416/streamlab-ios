@@ -5,6 +5,7 @@ import StreamLabDomain
     public struct Preferences: Codable, Equatable, Sendable {
         public var subtitles: MediaLanguagePreference = .off
         public var audio: MediaLanguagePreference = .automatic
+        public var captionsWhenMuted: Bool? = nil // Legacy records default to enabled.
         public var audioRole: AudioRole? = nil // Missing in v1 records: keep legacy language-only matching.
         public init() {}
     }
@@ -34,6 +35,12 @@ import StreamLabDomain
         var value = preferences
         value.audio = preference
         value.audioRole = preference == .automatic ? nil : role
+        save(value)
+    }
+
+    public func setCaptionsWhenMuted(_ enabled: Bool) {
+        var value = preferences
+        value.captionsWhenMuted = enabled
         save(value)
     }
 

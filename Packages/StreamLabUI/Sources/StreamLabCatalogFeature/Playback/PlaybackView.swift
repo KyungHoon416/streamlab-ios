@@ -560,6 +560,15 @@ import StreamLabDesignSystem
     }
 
     @ViewBuilder private var subtitleChoices: some View {
+        Toggle("음소거 시 자막 자동 켜기", isOn: Binding(
+            get: { model.captionsWhenMuted },
+            set: { model.setCaptionsWhenMuted($0) }
+        ))
+        .accessibilityIdentifier("playback-auto-captions")
+        Text("미디어 볼륨이 0이면 자막을 켭니다. 볼륨을 올리면 이전 설정으로 돌아갑니다. 직접 선택한 자막은 유지합니다.")
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
         subtitleRow(id: "off", label: "끄기")
             .disabled(!model.canDisableSubtitles || model.subtitlesLoading)
         ForEach(model.subtitleOptions) { option in

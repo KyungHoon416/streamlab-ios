@@ -76,6 +76,9 @@ import StreamLabPresentation
     private var playbackAllowed: Bool { session.isActive && !interruptionPolicy.isInterrupted && !audioResumePending }
     private var interruptionPolicy = PlaybackInterruptionPolicy()
     private var audioResumePending = false
+    @Published private(set) var captionsWhenMuted = true
+    private var muteCaptionPolicy = MuteCaptionPolicy()
+    private var outputIsMuted = false
     private var audioEventObserver: PlaybackAudioEventObserver?
     @Published private(set) var status: Status = .idle
     @Published private(set) var position: Double = 0
@@ -236,6 +239,7 @@ import StreamLabPresentation
         self.syncDeviceID = syncDeviceID
         self.titleID = titleID
         self.session = session
+        captionsWhenMuted = session.languages.preferences.captionsWhenMuted ?? true
         session.register(self)
         pictureInPicture.onStop = { [weak self] in
             guard let self else { return }
@@ -506,6 +510,10 @@ import StreamLabPresentation
 
     private func handleAudioEvent(_ event: PlaybackAudioEvent) {
         switch event {
+        case .volumeChanged(let volume):
+            guard volume.isFinite else { return }
+            outputIsMuted = volume == 0
+            applyMuteCaptions()
         case .interruptionBegan(let preventsAutomaticResume):
             interruptionPolicy.begin(wantsPlayback: wantsPlayback || audioResumePending, preventsAutomaticResume: preventsAutomaticResume)
             playbackIntentGeneration += 1
@@ -726,6 +734,7 @@ import StreamLabPresentation
         pictureInPicture.setAutomaticStartEnabled(false)
         mediaResetObserver = nil
         audioEventObserver = nil
+        muteCaptionPolicy = MuteCaptionPolicy()
         interruptionPolicy = PlaybackInterruptionPolicy()
         audioResumePending = false
         itemEndObserver = nil
@@ -798,6 +807,7 @@ import StreamLabPresentation
         }
         selectedSubtitleID = id
         if persist {
+            muteCaptionPolicy.userSelected(isMuted: outputIsMuted)
             let language = subtitleOptions.first(where: { $0.id == id })?.language
             if id == "off" {
                 session.languages.setSubtitles(.off)
@@ -808,6 +818,28 @@ import StreamLabPresentation
             }
         }
         updateSubtitleText()
+    }
+
+    func setCaptionsWhenMuted(_ enabled: Bool) {
+        guard session.isActive else { return }
+        captionsWhenMuted = enabled
+        session.languages.setCaptionsWhenMuted(enabled)
+        applyMuteCaptions()
+    }
+
+    private func applyMuteCaptions() {
+        guard session.isActive, player?.currentItem != nil else { return }
+        let preference = session.languages.preferences.subtitles
+        let languagePreference: MediaLanguagePreference
+        if case .language = preference { languagePreference = preference }
+        else { languagePreference = .language(Locale.preferredLanguages.first ?? "ko") }
+        let index = MediaLanguageResolver.index(for: languagePreference,
+            languages: subtitleOptions.map(\.language), defaultIndex: nil, allowsOff: false)
+        let candidate = index.map { subtitleOptions[$0].id }
+        if let choice = muteCaptionPolicy.update(isMuted: outputIsMuted, enabled: captionsWhenMuted,
+                                                selected: selectedSubtitleID, candidate: candidate) {
+            selectSubtitle(choice, persist: false)
+        }
     }
 
     private func updateSubtitleText() {
@@ -897,6 +929,7 @@ import StreamLabPresentation
                   MediaLanguageResolver.index(for: preference, languages: subtitleOptions.map(\.language), defaultIndex: nil, allowsOff: true) == nil {
             subtitleMessage = "저장된 자막 언어(\(language))가 없어 기본 자막 또는 끄기를 적용했습니다. 선호 언어는 유지됩니다."
         }
+        applyMuteCaptions()
     }
 
     func selectAudio(_ id: String) {
