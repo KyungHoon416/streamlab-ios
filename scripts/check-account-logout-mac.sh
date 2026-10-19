@@ -30,16 +30,29 @@ if [ -z "$simulator_id" ]; then
   exit 2
 fi
 echo "Simulator: $simulator_id" >> "$run_dir/environment.txt"
+echo 'Simulator signing: CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- (ad hoc)' >> "$run_dir/environment.txt"
 echo "Building and testing account logout. Log: $run_dir/ui-tests.log"
 xcodebuild -project StreamLab.xcodeproj -scheme StreamLab -configuration Debug \
   -destination "platform=iOS Simulator,id=$simulator_id" \
   -derivedDataPath "$run_dir/DerivedData" -resultBundlePath "$run_dir/UITests.xcresult" \
   -parallel-testing-enabled NO \
+  -test-timeouts-enabled YES -default-test-execution-time-allowance 900 -maximum-test-execution-time-allowance 900 \
   -only-testing:StreamLabUITests/StreamLabUITests/testLogoutClearsAllProfilesAndStaysSignedOutAfterRelaunch \
   -only-testing:StreamLabUITests/StreamLabUITests/testLogoutClearsPendingOfflineChanges \
   -only-testing:StreamLabUITests/StreamLabUITests/testMyListPersistsAndIsolatesProfiles \
-  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=NO test > "$run_dir/ui-tests.log" 2>&1
+  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- test > "$run_dir/ui-tests.log" 2>&1
 result=$?
+if [ "$result" -eq 0 ]; then
+  for required_test in \
+    testLogoutClearsAllProfilesAndStaysSignedOutAfterRelaunch \
+    testLogoutClearsPendingOfflineChanges \
+    testMyListPersistsAndIsolatesProfiles; do
+    if ! grep -Eq "Test Case .*${required_test}.*passed" "$run_dir/ui-tests.log"; then
+      echo "FAIL required UI test did not pass: $required_test" >> "$run_dir/RESULTS.txt"
+      result=1
+    fi
+  done
+fi
 if [ "$result" -eq 0 ]; then
   echo 'PASS account logout UI' | tee -a "$run_dir/RESULTS.txt"
 else
