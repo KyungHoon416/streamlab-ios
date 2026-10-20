@@ -1,3 +1,21 @@
+## 오프라인 HLS 다운로드 — 2026-10-20
+
+상세 화면에서 Apple HLS 샘플을 Wi-Fi로 다운로드하고, 앱 재실행 후 저장한 파일을
+재생하거나 고정/삭제할 수 있습니다. 실제 작품 영상은 아닙니다. 계정·프로필별 기록과
+로그아웃 정리를 적용하며, 동시 2개·총 1GB 예산으로 비고정 오래된 파일을 정리합니다.
+시스템 비동기 쓰기로 순간적인 디스크 사용량의 절대 상한까지 보장하지는 않습니다.
+
+실제 다운로드·재실행·로컬 재생·삭제 테스트 PASS. Core 실제 실행 206개 PASS/10개 SKIP.
+검증 상세: [PHASE2_REPORT](Docs/PHASE2_REPORT.md), 실기기 절차:
+[DOWNLOADS_QA](Docs/DOWNLOADS_QA.md), 설계: [ADR 0028](Docs/ADR/0028-offline-hls-downloads.md).
+
+```bash
+caffeinate -i bash scripts/check-downloads-mac.sh
+```
+
+실기기 비행기 모드/백그라운드/공간 부족, DRM·운영 서버, 전체 UI 회귀는 별도 검증 대상입니다.
+아래 날짜별 내용은 이전 이력입니다.
+
 
 ## 전체 회귀 3개 실패에 대한 스크롤 검증 수정 — 2026-10-16
 

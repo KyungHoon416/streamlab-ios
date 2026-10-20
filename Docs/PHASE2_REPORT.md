@@ -1,3 +1,55 @@
+## 2026-10-20 — Native HLS offline downloads and playback regressions
+
+- Added a profile/account-scoped AVAssetDownloadURLSession store, atomic metadata,
+  native background completion bridge, queue/progress, local playback, pin/delete,
+  two-transfer limit and 1 GB LRU budget with 500 MB admission reservations.
+  Logout revokes access before cancellation/cleanup; playback leases prevent eviction.
+- Content remains an explicitly labelled Apple test sample. No production media,
+  server authentication, DRM or license persistence is claimed.
+- Fixed the iOS 27 simulator's `/.nofollow/` native destination alias while retaining
+  container/path validation. Eight policy tests cover the alias and escape rejection.
+- Core strict-concurrency/warnings-as-errors run: 31 XCTest + 178 Swift Testing
+  (10 opt-in skips) + 7 catalog tests = **206 executed passes, 10 skips**, exit 0.
+- Native integration: **PASS, 58.511 s, exit 0** (final rerun; earlier pass 81.100 s). Downloaded approximately 339 MB,
+  pinned it, relaunched the app, played the local package, and deleted it.
+  Evidence: `streamlab-download-final-pass.log`, Xcode result
+  `Test-StreamLab-2026.10.20_16-36-55-+0900.xcresult`.
+- Earlier native attempts failed because of the callback alias. They are superseded
+  by this specific rerun, not relabelled as passes. Earlier Xcode result-bundle
+  finalization hangs were terminated; their logs do not represent successful gates.
+- Playback fixes: countdown actions fit landscape; the reveal button exists only
+  while controls are hidden; accessibility-sized close control remains outside
+  the inner scroll area. UI observation no longer toggles controls merely to read status.
+- Final focused UI result: 7 PASS, 0 failures, 408.954 s, exit 0.
+  Evidence: `streamlab-final-focused-ui.log`. A subsequent native rerun above
+  also compiled the final suspended-transfer recovery guard.
+- Structure and shell syntax checks pass. No full UI-suite completion, physical
+  airplane-mode playback, low-disk stress, simultaneous transfers, background wakeup,
+  physical layout audit or Instruments performance pass is claimed.
+- Reproduction: `scripts/check-downloads-mac.sh`; device procedure:
+  `Docs/DOWNLOADS_QA.md`; design/tradeoffs: ADR 0028.
+
+## 2026-10-20 — Language gate passed; full regression gate repaired
+
+- User-provided `languages-DEZELf` logs identify c0bc5c6, Xcode 27.0 (27A266a).
+  Ten mute-caption policy/storage XCTest cases passed with zero failures.
+  Both language UI cases passed, zero failures, 303.001 seconds total:
+  subtitle selection/seek/restoration and episode/relaunch/profile isolation.
+- The user's environment records local project/scheme modifications and extra
+  Xcode project copies. These results apply to that recorded checkout; they do
+  not prove an unchanged clean checkout or the full Core/UI suite passed.
+- `verify-mac.sh` still disabled simulator signing despite Keychain-backed demo
+  login. It now uses ad-hoc signing, verifies the built app signature, and places
+  Core/DerivedData in a unique `/private/tmp` directory to match the focused gates.
+  UI cases have a 900-second execution limit; failures are not retried as passes.
+- Structural validation now permits the existing PlaybackNowPlaying UIImage
+  adapter. SwiftUI screen ownership and the ban on storyboards/delegate entry
+  points remain checked. No broad UIKit exemption was added.
+- Full validation was stopped after reproducing playback HUD/countdown UI failures.
+  Its original structural failure and interrupted UI logs remain evidence of that
+  run, not a pass. The corrected structure check passed separately. See the newer
+  download entry for focused reruns; no complete full-UI pass is claimed.
+
 ## 2026-10-20 — xcresult confirms automatic episode advance during language test
 
 - 61f5dc7 run: policy/storage 10 passed; subtitle seek/restoration UI passed (115.215s); language persistence UI failed (70.115s) on unreachable playback-next-now. Total UI: one pass, one failure.

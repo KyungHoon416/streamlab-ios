@@ -27,6 +27,47 @@ import XCTest
         XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("1화"))
     }
 
+    func testRealHLSDownloadRelaunchPlaybackAndDelete() throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["STREAMLAB_TEST_DOWNLOADS"] == "1",
+                          "Downloads use an external Apple HLS sample; run the dedicated opt-in gate.")
+        let app = launch(keepPlaybackControls: true)
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        let start = app.buttons["download-start"]
+        guard revealDetailElement(start, in: app) else { return }
+        start.tap()
+        let completed = app.staticTexts["download-complete"]
+        let failed = app.staticTexts["download-failed"]
+        let terminal = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in completed.exists || failed.exists }, object: nil)
+        let reachedTerminal = XCTWaiter.wait(for: [terminal], timeout: 180) == .completed
+        guard reachedTerminal, completed.exists else {
+            captureFailure(app, name: "HLS download did not complete")
+            XCTFail("Native HLS download must complete; an error or queued state is not success")
+            return
+        }
+        let pin = app.buttons["download-pin"]
+        guard revealDetailElement(pin, in: app) else { return }
+        pin.tap()
+        XCTAssertEqual(pin.value as? String, "고정됨")
+        app.terminate()
+        app.launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        let play = app.buttons["download-play"]
+        guard revealDetailElement(play, in: app) else { return }
+        XCTAssertEqual(app.buttons["download-pin"].value as? String, "고정됨")
+        playbackReturnFrame = app.frame
+        play.tap()
+        expectPlayback("재생 중", in: app)
+        XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("다운로드한 HLS"))
+        closePlayback(app)
+        let delete = app.buttons["download-delete"]
+        guard revealDetailElement(delete, in: app) else { return }
+        delete.tap()
+        XCTAssertTrue(start.waitForExistence(timeout: 10))
+        XCTAssertFalse(play.exists)
+    }
+
     private func finishEpisode(_ app: XCUIApplication) {
         let reveal = app.buttons["playback-reveal-controls"]
         if reveal.exists && reveal.isHittable { reveal.tap() }
@@ -268,6 +309,11 @@ import XCTest
         expectPlayback("재생 중", in: app)
         selectEpisodeDemo(app)
         finishEpisode(app)
+        // Both timed actions must be reachable without scrolling the short
+        // landscape viewport while the real ten-second countdown is running.
+        XCTAssertTrue(app.buttons["playback-next-cancel"].isHittable)
+        XCTAssertTrue(app.buttons["playback-next-now"].isHittable)
+        XCTAssertGreaterThanOrEqual(app.buttons["playback-next-cancel"].frame.height, 44)
         tap(app.buttons["playback-next-cancel"], in: app)
         let unwantedAdvance = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "label CONTAINS %@", "2화"),
@@ -761,7 +807,7 @@ import XCTest
         // the real four-second HUD timer. Recheck reveal while waiting instead.
         var appeared = false
         for _ in 0..<12 {
-            if reveal.exists && reveal.isHittable { reveal.tap() }
+            if !element.exists && reveal.exists && reveal.isHittable { reveal.tap() }
             if element.waitForExistence(timeout: 1) { appeared = true; break }
         }
         guard appeared else {
@@ -774,7 +820,7 @@ import XCTest
         let playerTarget = targetID.hasPrefix("playback-") && targetID != "playback-open"
         for _ in 0..<8 {
             // Auto-hide can occur during snapshot queries; re-resolve on every attempt.
-            if reveal.exists && reveal.isHittable { reveal.tap() }
+            if !element.exists && reveal.exists && reveal.isHittable { reveal.tap() }
             if element.exists && element.isHittable { break }
             let controls = app.descendants(matching: .any).matching(identifier: "playback-controls-scroll").firstMatch
             if playerTarget {
@@ -1041,13 +1087,18 @@ import XCTest
     }
 
     private func expectPlayback(_ status: String, in app: XCUIApplication) {
-        let reveal = app.buttons["playback-reveal-controls"]
-        if reveal.exists { reveal.tap() }
-        let label = app.staticTexts["playback-status"]
+        // Playback continues when the HUD is hidden. Its real accessible reveal
+        // action carries the current state; observing it must not toggle the HUD.
+        let observed = app.descendants(matching: .any).matching(NSPredicate(
+            format: "(identifier == %@ AND label == %@) OR (identifier == %@ AND value == %@)",
+            "playback-status", status, "playback-reveal-controls", status)).firstMatch
         let expected = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "exists == true AND label == %@", status), object: label)
+            predicate: NSPredicate(format: "exists == true"), object: observed)
         guard XCTWaiter.wait(for: [expected], timeout: 15) == .completed else {
-            let actual = label.exists ? label.label : "status element missing"
+            let label = app.staticTexts["playback-status"]
+            let reveal = app.buttons["playback-reveal-controls"]
+            let actual = label.exists ? label.label :
+                (reveal.exists ? (reveal.value as? String ?? "hidden state unavailable") : "status element missing")
             captureFailure(app, name: "Playback status mismatch")
             XCTFail("Expected playback status: \(status); actual: \(actual)")
             return
@@ -1057,15 +1108,14 @@ import XCTest
     func testCustomPlaybackLandscapeAndControls() {
         XCUIDevice.shared.orientation = .portrait
         defer { XCUIDevice.shared.orientation = .portrait }
-        let app = launch()
+        // Geometry/seek assertions need a stable HUD. Production auto-hide is
+        // exercised separately without this visibility-only launch option.
+        let app = launch(keepPlaybackControls: true)
         choose("adult-a", in: app)
         openHomeDetail(app)
         openPlayback(app)
         expectPlayback("재생 중", in: app)
-        let reveal = app.buttons["playback-reveal-controls"]
-        XCTAssertTrue(reveal.waitForExistence(timeout: 10), "Playing controls should hide after inactivity.")
         XCTAssertGreaterThan(app.frame.width, app.frame.height, "Player should request landscape on a full-screen iPhone.")
-        reveal.tap()
         tap(app.buttons["playback-toggle"], in: app)
         expectPlayback("일시 정지", in: app)
         let slider = app.sliders["playback-position"]
@@ -1105,6 +1155,22 @@ import XCTest
             XCTAssertTrue(app.frame.contains(control.frame), "\(id) must be fully onscreen")
         }
         closePlayback(app)
+    }
+
+    func testPlaybackControlsHideAndRevealWithoutChangingPlayback() {
+        let app = launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        let reveal = app.buttons["playback-reveal-controls"]
+        XCTAssertTrue(reveal.waitForExistence(timeout: 10), "Production HUD must hide after inactivity.")
+        XCTAssertEqual(reveal.value as? String, "재생 중")
+        XCTAssertFalse(app.buttons["playback-toggle"].exists)
+        reveal.tap()
+        XCTAssertTrue(app.buttons["playback-toggle"].waitForExistence(timeout: 2))
+        expectPlayback("재생 중", in: app)
+        app.terminate()
     }
 
     func testPlaybackLargeTextControls() throws {
@@ -1667,9 +1733,18 @@ import XCTest
 
     private func revealDetailElement(_ element: XCUIElement, in app: XCUIApplication) -> Bool {
         let scroll = app.scrollViews["detail-scroll"]
-        guard scroll.waitForExistence(timeout: 5), element.waitForExistence(timeout: 5) else {
+        guard scroll.waitForExistence(timeout: 5) else {
             captureFailure(app, name: "Missing detail scroll container or checkpoint")
             XCTFail("Missing detail scroll container or checkpoint; see captured hierarchy")
+            return false
+        }
+        // Offscreen SwiftUI sections may not yet expose their descendants.
+        // Materialize inside the known scroll view before querying a target frame.
+        for _ in 0..<8 where !element.exists { scroll.swipeUp() }
+        for _ in 0..<8 where !element.exists { scroll.swipeDown() }
+        guard element.exists else {
+            captureFailure(app, name: "Missing detail checkpoint after scrolling")
+            XCTFail("Detail checkpoint did not appear after bounded scrolling")
             return false
         }
 

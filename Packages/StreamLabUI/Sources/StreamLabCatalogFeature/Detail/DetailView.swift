@@ -69,6 +69,7 @@ import StreamLabDomain
                         .accessibilityIdentifier("playback-open")
                     MyListButton(title: title, store: myList)
                         .accessibilityIdentifier("detail-my-list")
+                    OfflineDownloadSection(title: title, session: session) { openPlayback(.downloadedHLS) }
                     VStack(alignment: .leading, spacing: 12) {
                         Text("작품 소개").font(.title2.bold())
                             .fixedSize(horizontal: false, vertical: true)

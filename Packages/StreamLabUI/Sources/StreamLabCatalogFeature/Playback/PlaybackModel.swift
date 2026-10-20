@@ -10,6 +10,7 @@ import StreamLabPresentation
 @MainActor final class PlaybackModel: ObservableObject {
     enum Source: String, CaseIterable, Identifiable {
         case bundled = "오프라인 데모", hls = "HLS 스트리밍"
+        case downloadedHLS = "다운로드한 HLS 샘플"
         case hlsAudio = "HLS 오디오 비교 · 영어 / 화면 해설"
         case hlsStandardAudio = "HLS 오디오 비교 · 일반 영어만"
         case episode1 = "연속 재생 데모 · 1화"
@@ -20,7 +21,7 @@ import StreamLabPresentation
         var id: String { rawValue }
         var isHLS: Bool {
             switch self {
-            case .hls, .hlsAudio, .hlsStandardAudio, .hlsEpisode1, .hlsEpisode2: true
+            case .hls, .hlsAudio, .hlsStandardAudio, .hlsEpisode1, .hlsEpisode2, .downloadedHLS: true
             default: false
             }
         }
@@ -35,7 +36,7 @@ import StreamLabPresentation
         var progressID: String {
             switch self {
             case .bundled: "bundled-demo-v1"
-            case .hls: "apple-bipbop-v1"
+            case .hls, .downloadedHLS: "apple-bipbop-v1"
             case .hlsAudio: "apple-trailer-audio-v1"
             case .hlsStandardAudio: "apple-bipbop-standard-v1"
             case .episode1: "demo-series-episode-1-v1"
@@ -47,6 +48,7 @@ import StreamLabPresentation
         }
         var url: URL? {
             switch self {
+            case .downloadedHLS: nil // Resolved only through the profile-scoped download store.
             case .bundled, .episode1, .episode2, .episode3: Bundle.module.url(forResource: "playback-demo", withExtension: "mp4")
             case .hls, .hlsEpisode1: URL(string: "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8")
             case .hlsStandardAudio: URL(string: "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8")
@@ -119,6 +121,7 @@ import StreamLabPresentation
     private var nowPlayingArtworkURL: URL?
     private let titleID: String
     private let session: CatalogSession
+    private var offlineLease: UUID?
     private let progressLog = Logger(subsystem: "com.example.streamlab.demo", category: "PlaybackProgress")
     private var diagnostics = PlaybackDiagnostics()
     private weak var videoLayer: AVPlayerLayer?
@@ -316,6 +319,14 @@ import StreamLabPresentation
 
     private func prepare(ticket: Int) {
         var url = source.url
+        if source == .downloadedHLS {
+            guard let (savedURL, lease) = OfflineDownloadStore.shared.acquire(session: session, titleID: titleID) else {
+                fail("다운로드 파일이 없거나 오프라인 재생을 준비하지 못했습니다. 다시 다운로드해 주세요.")
+                return
+            }
+            url = savedURL
+            offlineLease = lease
+        }
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--ui-test-resource-always-missing") ||
             (!attempted && ProcessInfo.processInfo.arguments.contains("--playback-missing-resource-once")) {
@@ -728,6 +739,7 @@ import StreamLabPresentation
     }
 
     func stop() {
+        if let offlineLease { OfflineDownloadStore.shared.release(offlineLease); self.offlineLease = nil }
         if let owner = nowPlayingOwner {
             PlaybackNowPlaying.shared.end(owner: owner)
             nowPlayingOwner = nil
@@ -886,7 +898,10 @@ import StreamLabPresentation
                     self.subtitleMessage = "이 영상에 제공되는 자막이 없습니다. 저장된 선호 언어는 유지됩니다."
                     return
                 }
-                for (index, option) in group.options.filter({ $0.isPlayable }).enumerated() {
+                let available = self.source == .downloadedHLS
+                    ? ((item.asset as? AVURLAsset)?.assetCache?.mediaSelectionOptions(in: group) ?? [])
+                    : group.options
+                for (index, option) in available.filter({ $0.isPlayable }).enumerated() {
                     let id = "native-\(index)"
                     self.nativeSubtitles[id] = option
                     self.subtitleOptions.append(SubtitleOption(id: id, label: option.displayName, language: MediaLanguageResolver.normalized(option.extendedLanguageTag ?? option.locale?.identifier),
@@ -1002,7 +1017,10 @@ import StreamLabPresentation
                 }
                 self.audioOptions = []
                 self.nativeAudio = [:]
-                for (index, option) in group.options.filter({ $0.isPlayable }).enumerated() {
+                let available = self.source == .downloadedHLS
+                    ? ((item.asset as? AVURLAsset)?.assetCache?.mediaSelectionOptions(in: group) ?? [])
+                    : group.options
+                for (index, option) in available.filter({ $0.isPlayable }).enumerated() {
                     let id = "audio-\(index)"
                     self.nativeAudio[id] = option
                     self.audioOptions.append(SubtitleOption(id: id, label: option.displayName,
@@ -1034,6 +1052,7 @@ import StreamLabPresentation
     }
 
     deinit {
+        if let offlineLease { Task { @MainActor in OfflineDownloadStore.shared.release(offlineLease) } }
         if let owner = nowPlayingOwner {
             Task { @MainActor in PlaybackNowPlaying.shared.end(owner: owner) }
         }

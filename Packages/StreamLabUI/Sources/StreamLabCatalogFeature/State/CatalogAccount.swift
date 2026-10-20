@@ -82,6 +82,7 @@ import StreamLabPresentation
                     Self.demoTokens()
                 }
                 isSignedOut = authentication == nil
+                if !isSignedOut { await OfflineDownloadStore.shared.activate(accountID: storage.accountID) }
             }
         } catch {
             isSignedOut = true
@@ -96,6 +97,7 @@ import StreamLabPresentation
         // Attempt both durable markers even if either storage is unavailable.
         let localLogout = Result { try storage.beginLogout() }
         try await tokenStore.signOut(account: storage.accountID)
+        try await OfflineDownloadStore.shared.clear(accountID: storage.accountID)
         let devices = try localLogout.get()
         await session?.waitForSync()
         try await CatalogSession.clearMockAccount(storage.accountID, devices: devices)
@@ -137,6 +139,7 @@ import StreamLabPresentation
                 }
             }
             isSignedOut = false
+            await OfflineDownloadStore.shared.activate(accountID: storage.accountID)
         } catch {
             report(error, operation: "sign-in", message: "데모 로그인을 완료하지 못했습니다. 다시 시도해 주세요.")
         }

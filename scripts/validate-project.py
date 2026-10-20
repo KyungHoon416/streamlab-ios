@@ -13,10 +13,13 @@ sources = [p for folder in ("App", "Packages", "Tests")
            for p in (root / folder).rglob("*.swift")
            if not any(part.startswith(".") for part in p.relative_to(root).parts)]
 assert not list(ui.rglob("*.storyboard")), "Obsolete Storyboard resources remain"
-# SwiftUI owns all screens. Only the media layer and scene-geometry adapters use UIKit.
+# SwiftUI owns all screens. UIKit is limited to media/scene adapters, including
+# UIImage artwork passed to the system Now Playing card (not an app screen).
 bridges = {
+    "App/Application/DownloadBackgroundDelegate.swift",
     "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Playback/PlayerSurface.swift",
     "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Playback/PlaybackOrientation.swift",
+    "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Playback/PlaybackNowPlaying.swift",
 }
 for p in sources:
     text = p.read_text()
@@ -53,7 +56,7 @@ expected = {"App/Application/StreamLabApp.swift", "App/Scene/AppRootView.swift",
             "Tests/StreamLabUITests/StreamLabUITests.swift"}
 assert expected <= set(compiled), (expected, compiled)
 assert all((root / p).is_file() for p in compiled), compiled
-assert not any("Delegate.swift" in p for p in compiled)
+assert not any(p.endswith(("/AppDelegate.swift", "/SceneDelegate.swift")) for p in compiled)
 info = plistlib.loads((root / "App/Configuration/Info.plist").read_bytes())
 assert "UISceneConfigurations" not in info.get("UIApplicationSceneManifest", {})
 assert "UIMainStoryboardFile" not in info

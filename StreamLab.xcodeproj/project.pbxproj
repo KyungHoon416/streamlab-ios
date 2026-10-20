@@ -8,9 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		069D1EAEC26202E60CE15C80 /* StreamLabDomain in Frameworks */ = {isa = PBXBuildFile; productRef = E77B5C661164E8E7C4394798 /* StreamLabDomain */; };
-		218FFEE2BAB1D76DCC3D47C6 /* AppRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C26F560D8C6E0C38AEFF7027 /* AppRootView.swift */; };
+		117FFA56126A10EDA0F88497 /* StreamLabApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394ADA53F2FB53C5FEDD5435 /* StreamLabApp.swift */; };
+		42115580858AED05B7E67BAD /* DownloadBackgroundDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50787482BE2F5ACED1B4E49 /* DownloadBackgroundDelegate.swift */; };
 		80F675330AB8C9B9F10FE6F9 /* StreamLabProfileFeature in Frameworks */ = {isa = PBXBuildFile; productRef = 1CCFABA9B43D4A7323857A95 /* StreamLabProfileFeature */; };
-		8F436144D70ED78BF8DDE537 /* StreamLabApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161DB8386F214B36BD748D66 /* StreamLabApp.swift */; };
+		898422E67A28F490A627338F /* AppRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D088CE9FB72871B0680E855 /* AppRootView.swift */; };
 		9892F4E31989988DC0AEBDE9 /* StreamLabUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC8FEFBB930225363D0C8467 /* StreamLabUITests.swift */; };
 		B21BC2F436843290D640AAC8 /* StreamLabCatalogFeature in Frameworks */ = {isa = PBXBuildFile; productRef = D323E527722314FA5E5D065D /* StreamLabCatalogFeature */; };
 		B9757C00A8A9BA32EC04A7C4 /* StreamLabDesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = DA01CAD0AA7973F7AD540599 /* StreamLabDesignSystem */; };
@@ -30,11 +31,12 @@
 
 /* Begin PBXFileReference section */
 		0342499ED593A75B97807CD5 /* StreamLabUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = StreamLabUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		161DB8386F214B36BD748D66 /* StreamLabApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamLabApp.swift; sourceTree = "<group>"; };
+		394ADA53F2FB53C5FEDD5435 /* StreamLabApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamLabApp.swift; sourceTree = "<group>"; };
 		4F79476C73D40D90A44DA382 /* StreamLabCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = StreamLabCore; path = Packages/StreamLabCore; sourceTree = SOURCE_ROOT; };
 		91458C39EBEA7B65430B7D4B /* StreamLab.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = StreamLab.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		C26F560D8C6E0C38AEFF7027 /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
+		9D088CE9FB72871B0680E855 /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
 		C4E40045C4CE9128FF8AE398 /* StreamLabUI */ = {isa = PBXFileReference; lastKnownFileType = folder; name = StreamLabUI; path = Packages/StreamLabUI; sourceTree = SOURCE_ROOT; };
+		C50787482BE2F5ACED1B4E49 /* DownloadBackgroundDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadBackgroundDelegate.swift; sourceTree = "<group>"; };
 		FC8FEFBB930225363D0C8467 /* StreamLabUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamLabUITests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -94,7 +96,8 @@
 		8705C18CA4C748C78A01F1F0 /* Application */ = {
 			isa = PBXGroup;
 			children = (
-				161DB8386F214B36BD748D66 /* StreamLabApp.swift */,
+				C50787482BE2F5ACED1B4E49 /* DownloadBackgroundDelegate.swift */,
+				394ADA53F2FB53C5FEDD5435 /* StreamLabApp.swift */,
 			);
 			path = Application;
 			sourceTree = "<group>";
@@ -102,7 +105,7 @@
 		B2EC88EBC1D1C3A956879175 /* Scene */ = {
 			isa = PBXGroup;
 			children = (
-				C26F560D8C6E0C38AEFF7027 /* AppRootView.swift */,
+				9D088CE9FB72871B0680E855 /* AppRootView.swift */,
 			);
 			path = Scene;
 			sourceTree = "<group>";
@@ -210,8 +213,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8F436144D70ED78BF8DDE537 /* StreamLabApp.swift in Sources */,
-				218FFEE2BAB1D76DCC3D47C6 /* AppRootView.swift in Sources */,
+				898422E67A28F490A627338F /* AppRootView.swift in Sources */,
+				42115580858AED05B7E67BAD /* DownloadBackgroundDelegate.swift in Sources */,
+				117FFA56126A10EDA0F88497 /* StreamLabApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -316,12 +320,12 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.streamlab.demo;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
 					AppIntents,
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.streamlab.demo;
 				PRODUCT_NAME = StreamLab;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -399,14 +403,14 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.streamlab.demo.uitests;
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
 					AppIntents,
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.streamlab.demo.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = StreamLab;
 			};
 			name = Debug;
@@ -420,14 +424,14 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.streamlab.demo.uitests;
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
 					AppIntents,
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.streamlab.demo.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = StreamLab;
 			};
 			name = Release;
@@ -445,12 +449,12 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.streamlab.demo;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
 					AppIntents,
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.streamlab.demo;
 				PRODUCT_NAME = StreamLab;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";

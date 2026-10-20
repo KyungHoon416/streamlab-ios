@@ -8,6 +8,7 @@ import StreamLabDesignSystem
 @MainActor public final class CatalogSession {
     public let id = UUID()
     public let profile: ViewerProfile
+    let accountID: String
     let repository: any CatalogRepository
     let myList: MyListStore
     let languages: PlaybackLanguageStore
@@ -102,6 +103,7 @@ import StreamLabDesignSystem
     init(profile: ViewerProfile, repository: any CatalogRepository,
          configuration: (id: String, defaults: UserDefaults)) {
         self.profile = profile
+        self.accountID = configuration.id
         self.repository = repository
         let progressDefaults = configuration.defaults
         let progressAccount = configuration.id

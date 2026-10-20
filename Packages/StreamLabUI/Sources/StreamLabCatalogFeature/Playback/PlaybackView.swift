@@ -73,16 +73,24 @@ import StreamLabDesignSystem
                                     }
                                 }
                         )
-                        .accessibilityHidden(controlsVisible)
-                        .accessibilityLabel("재생 컨트롤 표시")
-                        .accessibilityIdentifier("playback-reveal-controls")
-                        .accessibilityAddTraits(.isButton)
-                        .accessibilityAction { revealControls() }
-                } else if !controlsVisible {
+                        .accessibilityHidden(true)
+                }
+                if !controlsVisible {
                     Button { revealControls() } label: { Color.clear.contentShape(Rectangle()) }
                         .buttonStyle(.plain)
                         .accessibilityLabel("재생 컨트롤 표시")
+                        .accessibilityValue(model.status.label)
                         .accessibilityIdentifier("playback-reveal-controls")
+                        .highPriorityGesture(
+                            SpatialTapGesture(count: 2)
+                                .exclusively(before: SpatialTapGesture(count: 1))
+                                .onEnded { value in
+                                    revealControls()
+                                    if case .first(let tap) = value, model.canSeek {
+                                        model.seek(to: model.position + (tap.location.x < geometry.size.width / 2 ? -10 : 10))
+                                    }
+                                }
+                        )
                 }
                 if !controlsVisible {
                     VStack { Spacer(); subtitleCaption.padding(.horizontal, 24).padding(.bottom, 24) }
@@ -94,15 +102,17 @@ import StreamLabDesignSystem
                         .ignoresSafeArea().allowsHitTesting(false)
                     if textSize.isAccessibilitySize {
                         // At accessibility sizes, preserve full scrolling and untruncated text.
-                        ScrollView {
-                            VStack(spacing: 12) {
-                                header
-                                transport(compact: false)
-                                footer
+                        VStack(spacing: 0) {
+                            header.padding(.horizontal, 20).padding(.vertical, 8)
+                            ScrollView {
+                                VStack(spacing: 12) {
+                                    transport(compact: false)
+                                    footer
+                                }
+                                .padding(20)
                             }
-                            .padding(20)
+                            .accessibilityIdentifier("playback-controls-scroll")
                         }
-                        .accessibilityIdentifier("playback-controls-scroll")
                     } else {
                         let compact = geometry.size.height < 500
                         ZStack {
@@ -273,7 +283,7 @@ import StreamLabDesignSystem
     private func transport(compact: Bool, includesButtons: Bool = true) -> some View {
         VStack(spacing: compact ? 4 : 12) {
             subtitleCaption
-            if !pipAvailabilityMessage.isEmpty {
+            if !pipAvailabilityMessage.isEmpty && !(model.status == .ended && model.source.nextEpisode != nil) {
                 Text(pipAvailabilityMessage)
                     .font(.caption)
                     .multilineTextAlignment(.center)
@@ -289,19 +299,34 @@ import StreamLabDesignSystem
                     .accessibilityIdentifier("playback-pip-error")
             }
             if model.status == .ended, let next = model.source.nextEpisode {
-                VStack(spacing: 8) {
-                    Text(next.rawValue).font(.headline)
-                        .fixedSize(horizontal: false, vertical: true)
-                    if let seconds = model.nextEpisodeSeconds {
-                        Text("\(seconds)초 후 다음 화 재생")
-                            .accessibilityIdentifier("playback-next-countdown")
-                        Button("자동 다음 화 취소") { model.cancelNextEpisode() }
-                            .frame(minHeight: 44)
-                            .accessibilityIdentifier("playback-next-cancel")
+                VStack(spacing: compact ? 4 : 8) {
+                    let headingLayout = compact ? AnyLayout(HStackLayout(spacing: 12)) : AnyLayout(VStackLayout(spacing: 8))
+                    headingLayout {
+                        Text(next.rawValue).font(compact ? .caption : .headline)
+                            .fixedSize(horizontal: false, vertical: true)
+                        if let seconds = model.nextEpisodeSeconds {
+                            Text("\(seconds)초 후 다음 화 재생")
+                                .font(compact ? .caption : .body)
+                                .accessibilityIdentifier("playback-next-countdown")
+                        }
                     }
-                    Button("다음 화 지금 재생") { revealControls(); model.playNextEpisode() }
-                        .buttonStyle(StreamLabButtonStyle())
-                        .accessibilityIdentifier("playback-next-now")
+                    // In landscape the upper viewport is short. Keep both timed
+                    // actions on one row; accessibility sizes retain vertical scrolling.
+                    let actionLayout = compact ? AnyLayout(HStackLayout(spacing: 12)) : AnyLayout(VStackLayout(spacing: 8))
+                    actionLayout {
+                        if model.nextEpisodeSeconds != nil {
+                            Button { model.cancelNextEpisode() } label: {
+                                Text("자동 다음 화 취소")
+                                    .frame(maxWidth: .infinity, minHeight: 44)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("playback-next-cancel")
+                        }
+                        Button("다음 화 지금 재생") { revealControls(); model.playNextEpisode() }
+                            .buttonStyle(StreamLabButtonStyle())
+                            .accessibilityIdentifier("playback-next-now")
+                    }
                 }
             }
             if !model.syncMessage.isEmpty {
@@ -628,7 +653,7 @@ import StreamLabDesignSystem
         NavigationStack {
             List {
                 Section {
-                    ForEach(PlaybackModel.Source.allCases) { option in
+                    ForEach(PlaybackModel.Source.allCases.filter { $0 != .downloadedHLS }) { option in
                         Button {
                             source = option
                             sourceSheet = false
