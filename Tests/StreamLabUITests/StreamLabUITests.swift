@@ -536,7 +536,17 @@ import XCTest
         XCTAssertTrue(app.buttons["playback-subtitle-done"].exists)
         tap(app.buttons["playback-subtitle-done"], in: app)
         finishEpisode(app)
-        tap(app.buttons["playback-next-now"], in: app)
+        // The countdown can finish while XCTest resolves/scrolls the transient button.
+        // This test verifies language continuity through an actual episode transition;
+        // the separate cancellation/manual-advance test owns the "play now" button.
+        let secondEpisode = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true AND label CONTAINS %@", "연속 재생 데모 · 2화"),
+            object: app.staticTexts["playback-source-label"])
+        guard XCTWaiter.wait(for: [secondEpisode], timeout: 15) == .completed else {
+            captureFailure(app, name: "Language test did not advance to episode 2")
+            XCTFail("Episode 1 must automatically advance to episode 2 before checking language persistence")
+            return
+        }
         expectPlayback("재생 중", in: app)
         XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("2화"), "Expected episode 2, actual: \(app.staticTexts["playback-source-label"].label)")
         XCTAssertEqual(app.buttons["playback-subtitles"].value as? String, "English · Demo")

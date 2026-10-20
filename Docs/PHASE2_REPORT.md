@@ -1,3 +1,10 @@
+## 2026-10-20 — xcresult confirms automatic episode advance during language test
+
+- 61f5dc7 run: policy/storage 10 passed; subtitle seek/restoration UI passed (115.215s); language persistence UI failed (70.115s) on unreachable playback-next-now. Total UI: one pass, one failure.
+- Inspected uploaded UITests.xcresult.zip, including decompressed failure hierarchy and PNG. At 14:34:29 KST the hierarchy shows source `연속 재생 데모 · 2화`, status `재생 중`, English demo caption `Welcome to the StreamLab demo.`, and 00:00:03 / 00:00:30. The next-now button has disappeared after automatic advance. This confirms the test was targeting a transient previous-episode control after transition; later relaunch/profile assertions were not reached.
+- The language persistence test now waits for the actual automatic episode-2 source transition, then requires playing and English selection before proceeding to relaunch/profile checks. Manual advance remains in testDemoEpisodeCountdownCancellationAndManualAdvance; no new pass is claimed for it.
+- Local shell/whitespace checks pass. Xcode compilation and rerun pending via scripts/check-languages-mac.sh. Existing device caption/VoiceOver confirmations are retained.
+
 ## 2026-10-20 — Language regression first-playback failure
 
 - Uploaded 33b83db logs: all ten mute-caption policy/storage tests passed. UI compiled and ran, but both tests failed at the initial playing-status assertion (44.174s / 40.471s), before subtitle checks. Exit 65; no language UI pass claimed.
