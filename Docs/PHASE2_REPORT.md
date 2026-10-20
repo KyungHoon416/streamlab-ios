@@ -1,3 +1,10 @@
+## 2026-10-20 — Language regression first-playback failure
+
+- Uploaded 33b83db logs: all ten mute-caption policy/storage tests passed. UI compiled and ran, but both tests failed at the initial playing-status assertion (44.174s / 40.471s), before subtitle checks. Exit 65; no language UI pass claimed.
+- Reveal tap took approximately 5.3s while the production HUD hide timer is four seconds. A visibility race is a candidate, not proof of an AVPlayer playback failure or its absence.
+- Both manual-language tests now use the existing keepPlaybackControls launch option. Production timer remains unchanged. expectPlayback retains its 15s timeout and exact expected status, but captures the actual status/hierarchy/screenshot on failure.
+- Local whitespace/shell checks pass. Xcode/UI rerun pending with scripts/check-languages-mac.sh. Manual English mute captions and login VoiceOver remain user-confirmed.
+
 ## 2026-10-20 — Device confirmation and language regression follow-up
 
 - User confirmed all four physical-device steps after 6aa0ff2: English visible manually, captions off, volume zero automatically shows English, volume up restores off. User also confirmed login-screen VoiceOver testing complete. These are user-reported manual results, not automated runs.

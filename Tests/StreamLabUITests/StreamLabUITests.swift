@@ -469,7 +469,7 @@ import XCTest
     }
 
     func testSubtitleSelectionSeekingAndRestoration() {
-        let app = launch()
+        let app = launch(keepPlaybackControls: true)
         choose("adult-a", in: app)
         openHomeDetail(app)
         openPlayback(app)
@@ -523,7 +523,7 @@ import XCTest
     }
 
     func testLanguagePreferenceSurvivesEpisodesRelaunchAndProfileSwitch() {
-        let app = launch()
+        let app = launch(keepPlaybackControls: true)
         choose("adult-a", in: app)
         openHomeDetail(app)
         openPlayback(app)
@@ -1034,8 +1034,14 @@ import XCTest
         let reveal = app.buttons["playback-reveal-controls"]
         if reveal.exists { reveal.tap() }
         let label = app.staticTexts["playback-status"]
-        expectation(for: NSPredicate(format: "label == %@", status), evaluatedWith: label)
-        waitForExpectations(timeout: 15)
+        let expected = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true AND label == %@", status), object: label)
+        guard XCTWaiter.wait(for: [expected], timeout: 15) == .completed else {
+            let actual = label.exists ? label.label : "status element missing"
+            captureFailure(app, name: "Playback status mismatch")
+            XCTFail("Expected playback status: \(status); actual: \(actual)")
+            return
+        }
     }
 
     func testCustomPlaybackLandscapeAndControls() {
