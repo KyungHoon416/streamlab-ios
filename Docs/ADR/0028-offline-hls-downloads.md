@@ -77,3 +77,17 @@ and logout during a transfer. No claim of completed DRM or full C1 validation.
 
 Sources: Apple AVFoundation offline playback and storage documentation;
 AVAssetDownloadTask/AVAssetCache SDK declarations in Xcode 27.
+
+## Completion notifications
+
+Completion alerts are opt-in local UserNotifications requests, gated by real system
+permission, saved complete records and background application state. A generic body
+avoids account/profile/title disclosure on the lock screen. No push entitlement or
+remote service is added. Main-actor notification coordination checks a revocation
+epoch and record eligibility before/after async authorization and OS add calls.
+Cancellation removes both pending and delivered requests. Logout revokes before its
+first suspension, removes identifiers restored from the journal synchronously, then
+purges surviving owned identifiers from the notification center. Native background
+completion waits for outstanding notification work. No replay of old completed
+records is triggered by launch. Notification UI presentation remains subject to OS
+permissions, Focus and device settings.

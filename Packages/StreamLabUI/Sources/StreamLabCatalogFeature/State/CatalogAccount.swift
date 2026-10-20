@@ -107,6 +107,7 @@ import StreamLabPresentation
 
     public func logout(session: CatalogSession?) async {
         guard !isBusy else { return }
+        OfflineDownloadStore.shared.suppressCompletionNotifications()
         isBusy = true
         isSignedOut = true
         errorMessage = nil

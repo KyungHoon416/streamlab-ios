@@ -17,6 +17,8 @@ assert not list(ui.rglob("*.storyboard")), "Obsolete Storyboard resources remain
 # UIImage artwork passed to the system Now Playing card (not an app screen).
 bridges = {
     "App/Application/DownloadBackgroundDelegate.swift",
+    # System notification settings and foreground/background state only.
+    "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Downloads/DownloadNotifications.swift",
     "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Playback/PlayerSurface.swift",
     "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Playback/PlaybackOrientation.swift",
     "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Playback/PlaybackNowPlaying.swift",

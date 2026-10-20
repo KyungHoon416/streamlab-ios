@@ -36,6 +36,15 @@ import XCTest
         app.launch()
         choose("adult-a", in: app)
         tap(app.tabBars.buttons["다운로드"], in: app)
+        addTeardownBlock { @MainActor [weak self] in
+            guard let self else { return }
+            app.activate()
+            if app.buttons["account-logout"].exists {
+                self.tap(app.buttons["account-logout"], in: app)
+                self.tap(app.sheets.buttons.matching(identifier: "confirm-logout").firstMatch, in: app)
+                XCTAssertTrue(app.buttons["demo-sign-in"].waitForExistence(timeout: 20))
+            }
+        }
         return app
     }
 
@@ -90,6 +99,7 @@ import XCTest
         tap(app.tabBars.buttons["다운로드"], in: app)
         let cleared = downloadSnapshot(app)
         XCTAssertTrue(cleared.contains("native=0;active=0;queued=0;complete=0;records=0;disk=0;files=0;"), cleared)
+        XCTAssertTrue(cleared.contains("notifications=0"), cleared)
         XCTAssertTrue(cleared.contains("peak=2;started=2"), "Queued task must not start during logout: \(cleared)")
         app.terminate()
         app.launch()
@@ -97,6 +107,90 @@ import XCTest
         tap(app.tabBars.buttons["다운로드"], in: app)
         let restored = downloadSnapshot(app)
         XCTAssertTrue(restored.contains("native=0;active=0;queued=0;complete=0;records=0;disk=0;"), restored)
+    }
+
+    func testNetworkReconnectBannerAppearsThenDismisses() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=network-banner-\(UUID())", "--ui-test-network-recovery"]
+        app.launch()
+        let banner = app.descendants(matching: .any)["network-reconnected-banner"]
+        XCTAssertFalse(banner.exists, "Initial online must not show recovery")
+        XCTAssertTrue(banner.waitForExistence(timeout: 25))
+        XCTAssertTrue(banner.isHittable)
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "Network restored banner"; shot.lifetime = .keepAlways; add(shot)
+        let hidden = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: banner)
+        XCTAssertEqual(XCTWaiter.wait(for: [hidden], timeout: 10), .completed)
+    }
+
+    private func enableDownloadNotifications(_ app: XCUIApplication) {
+        let enable = app.buttons["download-notification-enable"]
+        if enable.exists {
+            tap(enable, in: app)
+            let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+            let allow = springboard.buttons.matching(NSPredicate(format: "label == 'Allow' OR label == '허용'")).firstMatch
+            XCTAssertTrue(allow.waitForExistence(timeout: 10))
+            allow.tap()
+        }
+        XCTAssertTrue(app.descendants(matching: .any)["download-notification-enabled"].waitForExistence(timeout: 10),
+                      "Notification permission must be granted; denial cannot count as notification success")
+    }
+
+    func testHLSCancelledDownloadDoesNotNotify() throws {
+        let app = try launchDownloadLifecycle()
+        enableDownloadNotifications(app)
+        tap(app.buttons["download-validation-one"], in: app)
+        XCTAssertTrue(downloadSnapshot(app).contains("active=1;"))
+        let cancel = app.buttons["library-title-0001-delete"]
+        for _ in 0..<4 {
+            if cancel.exists && cancel.isHittable { break }
+            app.scrollViews["downloads-scroll"].swipeUp()
+        }
+        XCTAssertTrue(app.staticTexts["library-title-0001-percentage"].exists, "Cancel must happen during transfer")
+        tap(cancel, in: app)
+        app.scrollViews["downloads-scroll"].swipeDown()
+        XCUIDevice.shared.press(.home)
+        XCTAssertTrue(app.wait(for: .runningBackground, timeout: 10))
+        RunLoop.current.run(until: Date().addingTimeInterval(8))
+        app.activate()
+        let cleared = downloadSnapshot(app)
+        XCTAssertTrue(cleared.contains("native=0;active=0;queued=0;complete=0;records=0;disk=0;files=0;"), cleared)
+        XCTAssertTrue(cleared.contains("notifications=0"), cleared)
+    }
+
+    func testHLSBackgroundCompletionNotificationRemovedOnLogout() throws {
+        let app = try launchDownloadLifecycle()
+        enableDownloadNotifications(app)
+        tap(app.buttons["download-validation-one"], in: app)
+        let started = downloadSnapshot(app)
+        XCTAssertTrue(started.contains("active=1;"), started)
+        let percent = app.staticTexts["library-title-0001-percentage"]
+        // Scroll to the real progress row before leaving the app.
+        for _ in 0..<3 {
+            if percent.exists && percent.isHittable { break }
+            app.scrollViews["downloads-scroll"].swipeUp()
+        }
+        if !percent.exists { captureFailure(app, name: "Download percentage missing") }
+        XCTAssertTrue(percent.exists)
+        XCTAssertTrue(percent.label.contains("%"))
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "Native download progress"; shot.lifetime = .keepAlways; add(shot)
+        XCUIDevice.shared.press(.home)
+        XCTAssertTrue(app.wait(for: .runningBackground, timeout: 10))
+        RunLoop.current.run(until: Date().addingTimeInterval(55))
+        app.activate()
+        app.scrollViews["downloads-scroll"].swipeDown()
+        let completed = downloadSnapshot(app)
+        XCTAssertTrue(completed.contains("complete=1;"), completed)
+        XCTAssertTrue(completed.contains("notifications=1"), "Require real OS notification, not just a completed record: \(completed)")
+        tap(app.buttons["account-logout"], in: app)
+        tap(app.sheets.buttons.matching(identifier: "confirm-logout").firstMatch, in: app)
+        XCTAssertTrue(app.buttons["demo-sign-in"].waitForExistence(timeout: 20))
+        choose("adult-a", in: app)
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        let cleared = downloadSnapshot(app)
+        XCTAssertTrue(cleared.contains("notifications=0"), cleared)
+        XCTAssertTrue(cleared.contains("disk=0;files=0;"), cleared)
     }
 
     func testRealHLSDownloadRelaunchPlaybackAndDelete() throws {

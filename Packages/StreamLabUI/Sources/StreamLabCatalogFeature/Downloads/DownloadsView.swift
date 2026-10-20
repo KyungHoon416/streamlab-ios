@@ -5,6 +5,8 @@ import StreamLabDesignSystem
 @MainActor public struct DownloadsView: View {
     private let session: CatalogSession
     @ObservedObject private var store = OfflineDownloadStore.shared
+    @ObservedObject private var notifications = DownloadNotifications.shared
+    @Environment(\.scenePhase) private var phase
     @StateObject private var orientation = PlaybackOrientationSession()
     @State private var playing: OfflineDownload?
 
@@ -34,6 +36,7 @@ import StreamLabDesignSystem
                 }
                 .fixedSize(horizontal: false, vertical: true)
 
+                notificationSettings
                 #if DEBUG
                 if store.validationEnabled {
                     VStack {
@@ -91,6 +94,10 @@ import StreamLabDesignSystem
         .accessibilityIdentifier("downloads-scroll")
         .background(StreamLabTheme.background)
         .background(PlaybackPresenterScene(session: orientation).frame(width: 0, height: 0))
+        .task { await notifications.refresh() }
+        .onChange(of: phase) { _, value in
+            if value == .active { Task { await notifications.refresh() } }
+        }
         .navigationTitle("다운로드")
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(item: $playing, onDismiss: { orientation.finish() }) { item in
@@ -99,4 +106,25 @@ import StreamLabDesignSystem
                 .id("\(session.id.uuidString):\(item.id.uuidString)")
         }
     }
+    @ViewBuilder private var notificationSettings: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            switch notifications.permission {
+            case .notDetermined:
+                Button("백그라운드 다운로드 완료 알림 켜기") { Task { await notifications.request() } }
+                    .buttonStyle(.bordered).disabled(notifications.requesting)
+                    .accessibilityIdentifier("download-notification-enable")
+            case .denied:
+                Text("완료 알림이 꺼져 있습니다. 다운로드는 계속 이용할 수 있습니다.")
+                Button("설정에서 알림 허용") {
+                    notifications.openSettings()
+                }.accessibilityIdentifier("download-notification-settings")
+            default:
+                Label("백그라운드 다운로드 완료 알림 켜짐", systemImage: "bell.badge")
+                    .accessibilityIdentifier("download-notification-enabled")
+            }
+            if let error = notifications.errorMessage { Text(error).foregroundStyle(.secondary) }
+        }
+        .font(.callout).fixedSize(horizontal: false, vertical: true)
+    }
+
 }

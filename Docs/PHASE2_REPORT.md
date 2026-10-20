@@ -1,3 +1,46 @@
+## 2026-10-20 — Download progress, completion notifications and reconnect banner
+
+- User reports physical-device background downloads and logout-during-transfer
+  verification complete. This predates the new notification feature.
+- Shared Detail/library progress now shows native task percentage and a bar;
+  completion remains gated on durable save and offline-playable package validation.
+- Opt-in local completion notifications use the real UserNotifications permission
+  and background state. Denial leaves downloads usable and offers a Settings link.
+  Generic notification text excludes title/account/profile information.
+- Cancel/delete/evict removes the corresponding pending and delivered notification.
+  Logout revokes before its first await (including identifiers restored from disk),
+  purges persisted owned requests, and suppresses callbacks until explicit activation.
+  A coordinator rechecks cancellation/epoch/eligibility around async permission/add
+  calls. Native background completion waits for notification scheduling to finish.
+- Root and player share one network observer. Only observed offline→online produces
+  a 5-second top banner; initial online and duplicate events do not. Detaching the
+  last consumer clears a transient banner, preserving the last path for next use.
+  Existing offline-only profile notice and HLS error/retry behavior are preserved.
+- Core: **19 PASS**, exit 0 (8 notification race/network + 11 budget/path tests),
+  `streamlab-notification-policy-final.log`.
+- Focused simulator UI: **5 PASS, 0 failures, 261.432 s**, exit 0,
+  `streamlab-notification-ui-final.log`, result
+  `Test-StreamLab-2026.10.20_22-43-37-+0900.xcresult`:
+  large-text library; real HLS background completion with an actual OS notification
+  then logout removal; in-progress user cancellation with no notification;
+  two active/one queued logout cleanup; reconnect banner appearance/dismissal.
+  OS notification count changed 0→1 on completion→0 on logout; cancellation remained 0.
+- Earlier run failed to locate the percent accessibility element. Made the progress
+  container explicitly contain children; the final native test passed and its
+  screenshot visibly shows 20% with the progress bar. Banner screenshot inspected.
+- After final banner lifetime cleanup: reconnect + existing playback/navigation
+  **2 PASS, 65.161 s**, exit 0 (`streamlab-reconnect-playback-final.log`, result
+  `Test-StreamLab-2026.10.20_22-48-36-+0900.xcresult`). This includes one repeated
+  banner test; do not count it as seven unique UI cases.
+- Final generic physical iOS Release build with warnings as errors PASS, exit 0
+  (`streamlab-notification-release-final.log`). Structural, shell and diff checks PASS.
+- Reproduce with `scripts/check-download-notifications-mac.sh`: requires all 19
+  policies and five focused UI passed markers, never successful skips.
+- Limits: banner UI uses deterministic path events (no actual OS connectivity change).
+  New notification presentation/Focus settings and real network-toggle banner still
+  need physical confirmation. No full UI regression, OS-kill wakeup, DRM or real
+  low-disk pass claimed. Metadata remains JSON, not SwiftData.
+
 ## 2026-10-20 — Native transfer lifecycle validation
 
 - User additionally confirmed physical-device profile isolation in the new library.

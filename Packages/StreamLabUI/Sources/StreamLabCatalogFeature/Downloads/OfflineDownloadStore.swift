@@ -43,8 +43,10 @@ import StreamLabPresentation
         let disk = journalURL.flatMap { try? Data(contentsOf: $0) }
             .flatMap { try? JSONDecoder().decode(Snapshot.self, from: $0) }
         let owned = records.filter { $0.accountID == accountID }
+        let notificationIDs = await DownloadNotifications.shared.identifiers()
+        let notificationCount = notificationIDs.filter { $0.hasPrefix(DownloadCompletionNotifier.prefix) }.count
         let files = validationPaths.filter { FileManager.default.fileExists(atPath: $0.path) }.count
-        validationSnapshot = "native=\(native.count);active=\(owned.filter { $0.state == .downloading }.count);queued=\(owned.filter { $0.state == .queued }.count);complete=\(owned.filter { $0.state == .complete }.count);records=\(owned.count);disk=\(disk?.records.filter { $0.accountID == accountID }.count ?? -1);files=\(files);peak=\(validationPeak);started=\(validationStarted.count)"
+        validationSnapshot = "native=\(native.count);active=\(owned.filter { $0.state == .downloading }.count);queued=\(owned.filter { $0.state == .queued }.count);complete=\(owned.filter { $0.state == .complete }.count);records=\(owned.count);disk=\(disk?.records.filter { $0.accountID == accountID }.count ?? -1);files=\(files);peak=\(validationPeak);started=\(validationStarted.count);notifications=\(notificationCount)"
     }
     #endif
     private var blockedAccounts: Set<String> = []
@@ -56,6 +58,10 @@ import StreamLabPresentation
     private var restored = false
     private var restoring = false
     private var storageHealthy = true
+    private let notifier = DownloadCompletionNotifier(backend: DownloadNotifications.shared)
+    private var notificationWork = 0
+    private var completionNotificationsSuppressed = false
+    private var backgroundEventsFinished = false
     private var backgroundCompletion: (() -> Void)?
     private let home = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
     private let journalURL: URL?
@@ -113,6 +119,7 @@ import StreamLabPresentation
         blockedAccounts.remove(accountID)
         try save()
         activeAccount = accountID
+        completionNotificationsSuppressed = false
         await restore()
         pump()
     }
@@ -255,6 +262,7 @@ import StreamLabPresentation
 
     private func remove(_ id: UUID, schedule: Bool = true) throws {
         guard storageHealthy, !leases.values.contains(id), let i = index(id) else { throw CocoaError(.fileWriteNoPermission) }
+        notifier.cancel(id: id)
         if let task = tasks[id] {
             records[i].state = .removing
             try save() // Keep a tombstone/path until cancellation has actually completed.
@@ -271,14 +279,24 @@ import StreamLabPresentation
         if schedule { pump() }
     }
 
+    public func suppressCompletionNotifications() {
+        completionNotificationsSuppressed = true
+        notifier.invalidateAll()
+        // Includes identifiers restored from disk, before logout can suspend.
+        for record in records { notifier.cancel(id: record.id) }
+    }
+
     public func clear(accountID: String) async throws {
+        suppressCompletionNotifications()
         if activeAccount == accountID { activeAccount = nil }
         blockedAccounts.insert(accountID)
         if !storageHealthy {
+            await notifier.removeAll()
             for task in await downloads.allTasks { task.cancel() }
             throw CocoaError(.fileReadCorruptFile)
         }
         try save() // Durable revocation precedes cancellation or deletion.
+        await notifier.removeAll()
         await restore()
         let ids = records.filter { $0.accountID == accountID }.map(\.id)
         for id in ids { try remove(id, schedule: false) }
@@ -304,9 +322,30 @@ import StreamLabPresentation
     }
     func release(_ lease: UUID) { leases[lease] = nil }
 
+    private func notifyCompletion(_ id: UUID) {
+        guard DownloadNotifications.shared.isInBackground else { return }
+        notificationWork += 1
+        Task {
+            await notifier.deliver(id: id) { [weak self] in
+                guard let self, let i = self.index(id) else { return false }
+                return self.storageHealthy && !self.completionNotificationsSuppressed && self.records[i].state == .complete &&
+                    !self.blockedAccounts.contains(self.records[i].accountID) &&
+                    DownloadNotifications.shared.isInBackground
+            }
+            notificationWork -= 1
+            finishBackgroundEventsIfReady()
+        }
+    }
+    private func finishBackgroundEventsIfReady() {
+        guard restored, !restoring, backgroundEventsFinished, notificationWork == 0, let completion = backgroundCompletion else { return }
+        backgroundCompletion = nil
+        backgroundEventsFinished = false
+        completion()
+    }
+
     public func handleBackgroundEvents(completion: @escaping () -> Void) {
         backgroundCompletion = completion
-        Task { await restore() }
+        Task { await restore(); finishBackgroundEventsIfReady() }
     }
 
     private func allocatedBytes(_ url: URL) throws -> Int64 {
@@ -378,6 +417,7 @@ extension OfflineDownloadStore: AVAssetDownloadDelegate {
                 guard bytes > 0, bytes <= OfflineDownloadBudget.reservation else { throw CocoaError(.fileWriteOutOfSpace) }
                 records[i].bytes = bytes; records[i].state = .complete; records[i].message = nil
                 try save()
+                notifyCompletion(id)
             } catch {
                 records[i].state = .failed
                 records[i].message = "다운로드를 완료하지 못했습니다. Wi-Fi와 저장 공간을 확인한 뒤 삭제하고 다시 받아 주세요."
@@ -395,8 +435,8 @@ extension OfflineDownloadStore: AVAssetDownloadDelegate {
 
     nonisolated public func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession) {
         MainActor.assumeIsolated {
-            let completion = backgroundCompletion; backgroundCompletion = nil
-            completion?()
+            backgroundEventsFinished = true
+            finishBackgroundEventsIfReady()
         }
     }
 }

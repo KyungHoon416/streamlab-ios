@@ -48,9 +48,15 @@ import StreamLabDesignSystem
             case .queued:
                 Text("다운로드 대기 중").accessibilityIdentifier("\(idPrefix)-queued")
             case .downloading:
-                ProgressView(value: store.progress[item.id] ?? 0) {
-                    Text("다운로드 중 · Wi-Fi 연결을 유지해 주세요")
-                }.accessibilityIdentifier("\(idPrefix)-progress")
+                let fraction = store.progress[item.id] ?? 0
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("다운로드 중 · \(min(99, Int(fraction * 100)))%")
+                        .monospacedDigit().accessibilityIdentifier("\(idPrefix)-percentage")
+                    ProgressView(value: fraction)
+                    Text("Wi-Fi 연결을 유지해 주세요. 앱을 나가도 다운로드가 계속됩니다.")
+                        .font(.caption).fixedSize(horizontal: false, vertical: true)
+                }.accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("\(idPrefix)-progress")
             case .complete:
                 Text("저장 완료 · \(ByteCountFormatter.string(fromByteCount: item.bytes, countStyle: .file))")
                     .accessibilityIdentifier("\(idPrefix)-complete")

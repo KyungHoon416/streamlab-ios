@@ -62,8 +62,11 @@ import StreamLabDesignSystem
                 ProfileSelectionView { profile in
                     session = CatalogSession(profile: profile, repository: repository)
                 }
-                .safeAreaInset(edge: .top, spacing: 0) { ProfileNetworkBanner() }
+
             }
+        }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            NetworkConnectionBanner(showOffline: session == nil && !account.isSignedOut)
         }
         .tint(StreamLabTheme.accent)
         .onAppear { startupLog.notice("[Startup] SwiftUI root appeared") }
