@@ -58,3 +58,17 @@ public enum AudioPreferenceResolver {
         return candidates.first ?? languageIndex
     }
 }
+
+/// Full captions take precedence over sparse forced-only tracks during automatic selection.
+public enum SubtitleLanguageResolver {
+    public static func index(for preference: MediaLanguagePreference, languages: [String?],
+                             forcedOnly: [Bool], defaultIndex: Int?, allowsOff: Bool) -> Int? {
+        let full = languages.indices.filter { !forcedOnly.indices.contains($0) || !forcedOnly[$0] }
+        let candidates = full.isEmpty ? Array(languages.indices) : full
+        let mappedDefault = defaultIndex.flatMap { candidates.firstIndex(of: $0) }
+        guard let index = MediaLanguageResolver.index(for: preference,
+            languages: candidates.map { languages[$0] }, defaultIndex: mappedDefault,
+            allowsOff: allowsOff) else { return nil }
+        return candidates[index]
+    }
+}

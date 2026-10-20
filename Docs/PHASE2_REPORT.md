@@ -1,3 +1,10 @@
+## 2026-10-20 — Prefer full subtitles over forced-only English
+
+- User reports English still invisible at volume zero while Chinese/other languages display. The Apple adv_dv_atmos playlist was inspected: first English is FORCED=YES, followed by English SDH and full English (all en-US). The old resolver picks the first language match, explaining sparse English captions; physical-device confirmation remains pending.
+- Native subtitle metadata now records containsOnlyForcedSubtitles. Automatic mute selection and saved-language restoration prefer non-forced tracks. Manual track selection remains available; forced-only assets still retain their available tracks.
+- Added two tests covering duplicate English tracks, Chinese, off, missing-language fallback, empty lists and forced-only assets. Script requires ten tests.
+- Previous 0e7b1a8 logs: eight tests passed, simulator build succeeded. This revision: shell syntax/whitespace checks only; Mac build/tests and physical playback pending.
+
 ## 2026-10-20 — Remember subtitle language for mute captions
 
 - User reports automatic English captions missing with the option enabled; manual English rendering and physical volume events remain unconfirmed.

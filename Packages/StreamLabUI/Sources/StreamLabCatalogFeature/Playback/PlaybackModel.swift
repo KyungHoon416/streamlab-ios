@@ -89,6 +89,7 @@ import StreamLabPresentation
         let label: String
         var language: String? = nil
         var audioRole: AudioRole = .standard
+        var forcedOnly = false
     }
     @Published private(set) var subtitleOptions: [SubtitleOption] = []
     @Published private(set) var selectedSubtitleID = "off"
@@ -831,8 +832,9 @@ import StreamLabPresentation
         guard session.isActive, player?.currentItem != nil else { return }
         let languagePreference = session.languages.preferences.mutedSubtitlePreference(
             deviceLanguage: Locale.preferredLanguages.first ?? "ko")
-        let index = MediaLanguageResolver.index(for: languagePreference,
-            languages: subtitleOptions.map(\.language), defaultIndex: nil, allowsOff: false)
+        let index = SubtitleLanguageResolver.index(for: languagePreference,
+            languages: subtitleOptions.map(\.language), forcedOnly: subtitleOptions.map(\.forcedOnly),
+            defaultIndex: nil, allowsOff: false)
         let candidate = index.map { subtitleOptions[$0].id }
         if let choice = muteCaptionPolicy.update(isMuted: outputIsMuted, enabled: captionsWhenMuted,
                                                 selected: selectedSubtitleID, candidate: candidate) {
@@ -887,7 +889,8 @@ import StreamLabPresentation
                 for (index, option) in group.options.filter({ $0.isPlayable }).enumerated() {
                     let id = "native-\(index)"
                     self.nativeSubtitles[id] = option
-                    self.subtitleOptions.append(SubtitleOption(id: id, label: option.displayName, language: MediaLanguageResolver.normalized(option.extendedLanguageTag ?? option.locale?.identifier)))
+                    self.subtitleOptions.append(SubtitleOption(id: id, label: option.displayName, language: MediaLanguageResolver.normalized(option.extendedLanguageTag ?? option.locale?.identifier),
+                        forcedOnly: option.hasMediaCharacteristic(.containsOnlyForcedSubtitles)))
                 }
                 self.canDisableSubtitles = group.allowsEmptySelection
                 guard !self.subtitleOptions.isEmpty else {
@@ -917,7 +920,8 @@ import StreamLabPresentation
     private func restoreSubtitles() {
         let preference = session.languages.preferences.subtitles
         let defaultIndex = subtitleOptions.firstIndex { nativeSubtitles[$0.id] == subtitleGroup?.defaultOption }
-        let index = MediaLanguageResolver.index(for: preference, languages: subtitleOptions.map(\.language),
+        let index = SubtitleLanguageResolver.index(for: preference, languages: subtitleOptions.map(\.language),
+                                                forcedOnly: subtitleOptions.map(\.forcedOnly),
                                                 defaultIndex: subtitleGroup == nil ? nil : defaultIndex,
                                                 allowsOff: canDisableSubtitles)
         selectSubtitle(index.map { subtitleOptions[$0].id } ?? "off", persist: false)

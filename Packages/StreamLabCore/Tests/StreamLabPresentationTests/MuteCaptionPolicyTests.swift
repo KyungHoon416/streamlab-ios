@@ -62,6 +62,28 @@ final class MuteCaptionPolicyTests: XCTestCase {
         XCTAssertEqual(PlaybackLanguageStore(profileID: "a", defaults: defaults).preferences.lastSubtitleLanguage, "en")
     }
 
+    func testFullEnglishWinsOverFirstForcedEnglish() {
+        // Mirrors the sample playlist: forced English, Chinese, English SDH, English default.
+        let languages: [String?] = ["en-US", "cmn-Hans", "en-US", "en-US"]
+        for preference in [MediaLanguagePreference.language("en"), .language("en-US")] {
+            XCTAssertEqual(SubtitleLanguageResolver.index(for: preference, languages: languages,
+                forcedOnly: [true, false, false, false], defaultIndex: 3, allowsOff: false), 2)
+        }
+        XCTAssertEqual(SubtitleLanguageResolver.index(for: .language("cmn-Hans"), languages: languages,
+            forcedOnly: [true, false, false, false], defaultIndex: 3, allowsOff: false), 1)
+    }
+
+    func testFullCaptionFallbackAndForcedOnlyAssets() {
+        XCTAssertNil(SubtitleLanguageResolver.index(for: .off, languages: ["en", "en"],
+            forcedOnly: [true, false], defaultIndex: 1, allowsOff: true))
+        XCTAssertEqual(SubtitleLanguageResolver.index(for: .language("ko"), languages: ["en", "zh"],
+            forcedOnly: [true, false], defaultIndex: 0, allowsOff: false), 1)
+        XCTAssertEqual(SubtitleLanguageResolver.index(for: .language("en"), languages: ["en"],
+            forcedOnly: [true], defaultIndex: 0, allowsOff: false), 0)
+        XCTAssertNil(SubtitleLanguageResolver.index(for: .language("en"), languages: [],
+            forcedOnly: [], defaultIndex: nil, allowsOff: false))
+    }
+
     func testMuteEnablesAndUnmuteRestores() {
         var policy = MuteCaptionPolicy()
         XCTAssertEqual(policy.update(isMuted: true, enabled: true, selected: "off", candidate: "ko"), "ko")
