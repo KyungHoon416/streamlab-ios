@@ -1,3 +1,11 @@
+## 2026-10-20 — Device confirmation and language regression follow-up
+
+- User confirmed all four physical-device steps after 6aa0ff2: English visible manually, captions off, volume zero automatically shows English, volume up restores off. User also confirmed login-screen VoiceOver testing complete. These are user-reported manual results, not automated runs.
+- Latest ten-test/build logs for 6aa0ff2 have not been received; do not substitute earlier eight-test results.
+- Next gate reuses the existing subtitle seek/restoration and episode/relaunch/profile-isolation UI tests. The tests explicitly turn automatic captions off using the real UI to isolate manual preference behavior from simulator volume. Production defaults remain unchanged.
+- check-languages-mac.sh now runs ten caption policy/storage tests first, uses ad-hoc simulator signing for Keychain-backed demo login, requires both named UI tests to pass, and collects orientation logs only for this run.
+- Local shell syntax/whitespace checks pass. New Swift/Xcode/UI execution is pending. Run caffeinate -i bash scripts/check-languages-mac.sh; send RESULTS.txt, environment.txt, core.log and ui-tests.log.
+
 ## 2026-10-20 — Prefer full subtitles over forced-only English
 
 - User reports English still invisible at volume zero while Chinese/other languages display. The Apple adv_dv_atmos playlist was inspected: first English is FORCED=YES, followed by English SDH and full English (all en-US). The old resolver picks the first language match, explaining sparse English captions; physical-device confirmation remains pending.

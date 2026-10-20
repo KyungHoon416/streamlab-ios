@@ -459,12 +459,22 @@ import XCTest
         closePlayback(app)
     }
 
+    private func disableAutomaticCaptionsForManualPreferenceTest(_ app: XCUIApplication) {
+        tap(app.buttons["playback-subtitles"], in: app)
+        let toggle = app.switches["playback-auto-captions"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 5))
+        if toggle.value as? String == "1" { tap(toggle, in: app) }
+        XCTAssertEqual(toggle.value as? String, "0", "Manual preference tests require automatic captions off")
+        tap(app.buttons["playback-subtitle-done"], in: app)
+    }
+
     func testSubtitleSelectionSeekingAndRestoration() {
         let app = launch()
         choose("adult-a", in: app)
         openHomeDetail(app)
         openPlayback(app)
         expectPlayback("재생 중", in: app)
+        disableAutomaticCaptionsForManualPreferenceTest(app)
         tap(app.buttons["playback-toggle"], in: app)
         expectPlayback("일시 정지", in: app)
         app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0.1667)
@@ -506,6 +516,7 @@ import XCTest
         closePlayback(app)
         openPlayback(app)
         expectPlayback("재생 중", in: app)
+        disableAutomaticCaptionsForManualPreferenceTest(app)
         XCTAssertEqual(app.buttons["playback-subtitles"].value as? String, "한국어 · 데모")
         XCTAssertTrue(caption.waitForExistence(timeout: 5))
         closePlayback(app)
@@ -517,6 +528,7 @@ import XCTest
         openHomeDetail(app)
         openPlayback(app)
         expectPlayback("재생 중", in: app)
+        disableAutomaticCaptionsForManualPreferenceTest(app)
         selectEpisodeDemo(app)
         tap(app.buttons["playback-subtitles"], in: app)
         tap(app.buttons["playback-subtitle-en"], in: app)
@@ -535,6 +547,7 @@ import XCTest
         openHomeDetail(app)
         openPlayback(app)
         expectPlayback("재생 중", in: app)
+        disableAutomaticCaptionsForManualPreferenceTest(app)
         XCTAssertEqual(app.buttons["playback-subtitles"].value as? String, "English · Demo")
         tap(app.buttons["playback-subtitles"], in: app)
         tap(app.buttons["playback-subtitle-off"], in: app)
@@ -544,6 +557,7 @@ import XCTest
         closePlayback(app)
         openPlayback(app)
         expectPlayback("재생 중", in: app)
+        disableAutomaticCaptionsForManualPreferenceTest(app)
         XCTAssertEqual(app.buttons["playback-subtitles"].value as? String, "끄기")
         tap(app.buttons["playback-subtitles"], in: app)
         tap(app.buttons["playback-subtitle-en"], in: app)
@@ -557,6 +571,7 @@ import XCTest
         openHomeDetail(app)
         openPlayback(app)
         expectPlayback("재생 중", in: app)
+        disableAutomaticCaptionsForManualPreferenceTest(app)
         XCTAssertEqual(app.buttons["playback-subtitles"].value as? String, "끄기")
         tap(app.buttons["playback-subtitles"], in: app)
         let message = app.staticTexts["playback-audio-message"]
