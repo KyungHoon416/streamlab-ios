@@ -18,7 +18,11 @@ the catalog title's commercial media.
   successfully downloaded media. Corrupt journals fail closed without overwriting.
 - Native package URLs stay where AVFoundation creates them. The iOS 27 simulator
   supplies a `/.nofollow/` alias; canonicalize that callback alias and still require
-  containment in the current app home. Cover both alias and escape cases in Core.
+  containment in the current app home. Physical iOS also supplied /private/var
+  while NSHomeDirectory returned /var for the same container UUID. Normalize this
+  exact Darwin alias for comparison after symlink resolution on both sides; retain
+  the app-home URL for I/O. Do not strip arbitrary path components or accept other
+  container IDs. Tests cover aliases, prefix lookalikes, and symlink escapes.
   Validate relative
   paths inside the current app container; never move or edit package contents.
 - A narrowly scoped UIApplicationDelegate bridge forwards background-session
@@ -54,7 +58,7 @@ Downloads use Wi-Fi only. DRM and real licensed catalog media are out of scope.
 
 ## Validation
 
-Eight Core tests cover exact budget, LRU, pinned/playing exclusions, concurrent
+Eleven Core tests cover exact budget, LRU, pinned/playing exclusions, concurrent
 reservations, overflow, path traversal and record persistence. The native opt-in
 UI test checks download, pin, relaunch, local playback and deletion. Use
 `scripts/check-downloads-mac.sh`; a skip, failed transfer, or missing completion

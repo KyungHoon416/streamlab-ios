@@ -16,10 +16,10 @@ fi
 swift test --package-path Packages/StreamLabCore --scratch-path "$build_dir/Core" \
   --filter OfflineDownloadBudgetTests -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete > "$run_dir/core.log" 2>&1
 result=$?
-if [ "$result" -ne 0 ] || ! grep -q 'Test run with 8 tests.*passed' "$run_dir/core.log"; then
-  echo "FAIL download policy exit=$result (eight tests required)" | tee "$run_dir/RESULTS.txt"; exit 1
+if [ "$result" -ne 0 ] || ! grep -q 'Test run with 11 tests.*passed' "$run_dir/core.log"; then
+  echo "FAIL download policy exit=$result (eleven tests required)" | tee "$run_dir/RESULTS.txt"; exit 1
 fi
-echo 'PASS eight download budget/path/persistence policy tests' > "$run_dir/RESULTS.txt"
+echo 'PASS eleven download budget/path/persistence policy tests' > "$run_dir/RESULTS.txt"
 TEST_RUNNER_STREAMLAB_TEST_DOWNLOADS=1 xcodebuild -project StreamLab.xcodeproj -scheme StreamLab -configuration Debug \
   -destination "platform=iOS Simulator,id=$simulator_id" -derivedDataPath "$build_dir/DerivedData" \
   -resultBundlePath "$run_dir/UITests.xcresult" -parallel-testing-enabled NO \

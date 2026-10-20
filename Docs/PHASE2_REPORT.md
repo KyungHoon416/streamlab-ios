@@ -1,3 +1,22 @@
+## 2026-10-20 — Physical-device /var destination alias fix
+
+- User device log supplied the same app container UUID under home `/var/...` and
+  callback `/.nofollow/private/var/...`, with a `movpkg` extension. The app rejected
+  that alias and cancelled the transfer (-999); startup debug-dylib logs were not
+  the cause. No SwiftData database is involved: metadata remains atomic JSON.
+- Normalize only the Darwin `/private/var` prefix for containment comparisons,
+  after removing the native callback no-follow alias and resolving symlinks.
+  Keep filesystem URLs rooted in the app's home; do not move native packages.
+- Resolve the nearest existing ancestor for not-yet-created packages, including
+  dangling/relative links, and bound recursive link resolution. Other containers,
+  prefix lookalikes, outside links and cycles remain rejected; inside links work.
+- Validation: 11 policy/path tests PASS; physical-target build PASS with warnings
+  treated as errors; simulator native download/pin/relaunch/local-playback/delete
+  PASS (66.664 s, exit 0). Evidence: `streamlab-device-path-policy-final.log`,
+  `streamlab-device-path-build-final.log`, `streamlab-device-path-ui-final.log`.
+- Physical iPhone download/relaunch/airplane-mode playback still needs a rerun.
+  A physical-device build is compilation evidence, not device runtime success.
+
 ## 2026-10-20 — Native HLS offline downloads and playback regressions
 
 - Added a profile/account-scoped AVAssetDownloadURLSession store, atomic metadata,

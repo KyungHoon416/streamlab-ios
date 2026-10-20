@@ -9,7 +9,7 @@
 caffeinate -i bash scripts/check-downloads-mac.sh
 ```
 
-정책 8개와 실제 HLS 다운로드 → 고정 → 재실행 → 저장 파일 재생 → 삭제를 확인합니다.
+정책 11개와 실제 HLS 다운로드 → 고정 → 재실행 → 저장 파일 재생 → 삭제를 확인합니다.
 외부 소스·Wi-Fi·시뮬레이터 지원 문제도 실패로 남깁니다. 실제 비행기 모드 증명은 아닙니다.
 RESULTS.txt, environment.txt, core.log, ui-tests.log와 xcresult를 같은 실행 기준으로 보관합니다.
 

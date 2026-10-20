@@ -54,19 +54,53 @@ public enum OfflineDownloadBudget {
         guard location.isFileURL else { return nil }
         var path = location.path
         if path.hasPrefix("/.nofollow/") { path = String(path.dropFirst("/.nofollow".count)) }
-        let resolved = URL(fileURLWithPath: path).resolvingSymlinksInPath().standardizedFileURL.path
-        let prefix = home.resolvingSymlinksInPath().standardizedFileURL.path + "/"
+        guard let destination = resolvedURL(URL(fileURLWithPath: path)), let root = resolvedURL(home) else { return nil }
+        let resolved = containerComparisonPath(destination.path)
+        let prefix = containerComparisonPath(root.path) + "/"
         guard resolved.hasPrefix(prefix) else { return nil }
         let relative = String(resolved.dropFirst(prefix.count))
         return localURL(path: relative, home: home) == nil ? nil : relative
     }
 
+    /// Compare Darwin's /var alias after resolving symlinks. On an iPhone,
+    /// sandbox permissions can leave /var unresolved on one side of the comparison.
+    /// This is comparison-only: retain the URL rooted in the actual app home for I/O.
+    static func containerComparisonPath(_ resolvedPath: String) -> String {
+        if resolvedPath == "/private/var" || resolvedPath.hasPrefix("/private/var/") {
+            return String(resolvedPath.dropFirst("/private".count))
+        }
+        return resolvedPath
+    }
+
+    /// A new package does not exist yet. Foundation may leave its parent symlink
+    /// unresolved, so resolve the nearest existing ancestor (including dangling
+    /// links) before reattaching the missing path components.
+    private static func resolvedURL(_ url: URL, remainingLinks: Int = 40) -> URL? {
+        var ancestor = url.absoluteURL
+        var missing: [String] = []
+        while true {
+            if let target = try? FileManager.default.destinationOfSymbolicLink(atPath: ancestor.path) {
+                guard remainingLinks > 0,
+                      let resolved = resolvedURL(URL(fileURLWithPath: target, relativeTo: ancestor.deletingLastPathComponent()).absoluteURL,
+                                                 remainingLinks: remainingLinks - 1) else { return nil }
+                return missing.reversed().reduce(resolved) { $0.appendingPathComponent($1) }
+            }
+            if FileManager.default.fileExists(atPath: ancestor.path) || ancestor.path == "/" {
+                return missing.reversed().reduce(ancestor.resolvingSymlinksInPath().standardizedFileURL) {
+                    $0.appendingPathComponent($1)
+                }
+            }
+            missing.append(ancestor.lastPathComponent)
+            ancestor.deleteLastPathComponent()
+        }
+    }
+
     /// Persist only a relative system asset URL, and reject escapes on reload.
     public static func localURL(path: String, home: URL) -> URL? {
         guard !path.isEmpty, !path.hasPrefix("/"), !path.split(separator: "/").contains("..") else { return nil }
-        let root = home.resolvingSymlinksInPath().standardizedFileURL
-        let value = root.appendingPathComponent(path).resolvingSymlinksInPath().standardizedFileURL
-        guard value.path.hasPrefix(root.path + "/"), value.pathExtension == "movpkg" else { return nil }
+        guard let root = resolvedURL(home), let value = resolvedURL(root.appendingPathComponent(path)) else { return nil }
+        guard containerComparisonPath(value.path).hasPrefix(containerComparisonPath(root.path) + "/"),
+              value.pathExtension == "movpkg" else { return nil }
         return value
     }
 }
