@@ -1,3 +1,12 @@
+## 2026-10-20 — Remember subtitle language for mute captions
+
+- User reports automatic English captions missing with the option enabled; manual English rendering and physical volume events remain unconfirmed.
+- Preserve the last explicitly selected subtitle language per profile when subtitles are turned off. Automatic mute selection uses it before the device language; unmute still restores off. Automatic selections do not overwrite saved preferences.
+- Preserve legacy selected-language records on the first switch to off; previously discarded language cannot be recovered, so select English once after updating.
+- Added two regression tests for English/off/reload, profile isolation, legacy migration and invalidated-store writes. Mac script now requires eight tests.
+- Local shell syntax and whitespace checks passed. New Swift tests/build and device behavior are pending.
+- Prior commit 5fd3e97: uploaded logs verified six tests passed and simulator build succeeded; this does not validate the new changes.
+
 # Phase 2 — 재생 구현 및 검증 이력
 
 ## 미디어 볼륨 0에서 자동 자막 — 2026-10-19

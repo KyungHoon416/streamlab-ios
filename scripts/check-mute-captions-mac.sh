@@ -11,12 +11,12 @@ swift test --package-path Packages/StreamLabCore --scratch-path "$build_dir/Core
   --filter MuteCaptionPolicyTests -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete \
   > "$run_dir/core.log" 2>&1
 result=$?
-if [ "$result" -ne 0 ] || ! grep -q 'Executed 6 tests, with 0 failures' "$run_dir/core.log"; then
-  echo "FAIL mute-caption tests exit=$result; require six executed tests" | tee "$run_dir/RESULTS.txt"
+if [ "$result" -ne 0 ] || ! grep -q 'Executed 8 tests, with 0 failures' "$run_dir/core.log"; then
+  echo "FAIL mute-caption tests exit=$result; require eight executed tests" | tee "$run_dir/RESULTS.txt"
   tail -n 40 "$run_dir/core.log"
   exit 1
 fi
-echo 'PASS six mute-caption policy/storage tests' | tee "$run_dir/RESULTS.txt"
+echo 'PASS eight mute-caption policy/storage tests' | tee "$run_dir/RESULTS.txt"
 xcodebuild -project StreamLab.xcodeproj -scheme StreamLab -configuration Debug \
   -destination 'generic/platform=iOS Simulator' -derivedDataPath "$build_dir/DerivedData" \
   SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- \

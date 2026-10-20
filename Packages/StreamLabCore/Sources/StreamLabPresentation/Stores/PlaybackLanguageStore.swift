@@ -5,9 +5,15 @@ import StreamLabDomain
     public struct Preferences: Codable, Equatable, Sendable {
         public var subtitles: MediaLanguagePreference = .off
         public var audio: MediaLanguagePreference = .automatic
+        public var lastSubtitleLanguage: String? = nil
         public var captionsWhenMuted: Bool? = nil // Legacy records default to enabled.
         public var audioRole: AudioRole? = nil // Missing in v1 records: keep legacy language-only matching.
         public init() {}
+
+        public func mutedSubtitlePreference(deviceLanguage: String) -> MediaLanguagePreference {
+            if case .language = subtitles { return subtitles }
+            return .language(lastSubtitleLanguage ?? deviceLanguage)
+        }
     }
     private let defaults: UserDefaults
     private let key: String
@@ -26,6 +32,15 @@ import StreamLabDomain
 
     public func setSubtitles(_ preference: MediaLanguagePreference) {
         var value = preferences
+        // Preserve a legacy selected language before switching it off.
+        if case .language(let language) = value.subtitles,
+           let normalized = MediaLanguageResolver.normalized(language) {
+            value.lastSubtitleLanguage = normalized
+        }
+        if case .language(let language) = preference,
+           let normalized = MediaLanguageResolver.normalized(language) {
+            value.lastSubtitleLanguage = normalized
+        }
         value.subtitles = preference
         save(value)
     }

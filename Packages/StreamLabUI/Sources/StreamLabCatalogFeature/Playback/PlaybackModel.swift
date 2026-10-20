@@ -829,10 +829,8 @@ import StreamLabPresentation
 
     private func applyMuteCaptions() {
         guard session.isActive, player?.currentItem != nil else { return }
-        let preference = session.languages.preferences.subtitles
-        let languagePreference: MediaLanguagePreference
-        if case .language = preference { languagePreference = preference }
-        else { languagePreference = .language(Locale.preferredLanguages.first ?? "ko") }
+        let languagePreference = session.languages.preferences.mutedSubtitlePreference(
+            deviceLanguage: Locale.preferredLanguages.first ?? "ko")
         let index = MediaLanguageResolver.index(for: languagePreference,
             languages: subtitleOptions.map(\.language), defaultIndex: nil, allowsOff: false)
         let candidate = index.map { subtitleOptions[$0].id }
