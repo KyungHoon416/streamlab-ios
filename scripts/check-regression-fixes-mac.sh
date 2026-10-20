@@ -36,7 +36,7 @@ xcodebuild -project StreamLab.xcodeproj -scheme StreamLab -configuration Debug \
   -only-testing:StreamLabUITests/StreamLabUITests/testMyListPersistsAndIsolatesProfiles \
   -only-testing:StreamLabUITests/StreamLabUITests/testPlaybackLargeTextControls \
   -only-testing:StreamLabUITests/StreamLabUITests/testMissingSubtitleFallsBackAndRestoresWithoutChangingOtherProfile \
-  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=NO test > "$run_dir/ui-tests.log" 2>&1
+  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- test > "$run_dir/ui-tests.log" 2>&1
 result=$?
 if [ "$result" -eq 0 ]; then
   # All three regression cases must execute and pass.
