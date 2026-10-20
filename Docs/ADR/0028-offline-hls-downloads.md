@@ -49,7 +49,11 @@ the catalog title's commercial media.
 
 ## Playback and UI
 
-Detail offers progress, pin, delete and explicit downloaded-sample playback.
+Detail and a dedicated Downloads tab share progress, pin, delete and explicit
+downloaded-sample playback controls. The library lists only the active account
+and profile, sorts by last use, and reports that profile’s saved bytes and count.
+Playback from the library uses the same authorization, lease and orientation lifecycle
+as Detail. Storage metadata remains atomic JSON; no SwiftData migration is involved.
 The player resolves the file only for the active account/profile after the normal
 Repository authorization check. Missing files fail; no silent online fallback.
 Downloaded and online versions share the same sample progress identity.
@@ -60,12 +64,15 @@ Downloads use Wi-Fi only. DRM and real licensed catalog media are out of scope.
 
 Eleven Core tests cover exact budget, LRU, pinned/playing exclusions, concurrent
 reservations, overflow, path traversal and record persistence. The native opt-in
-UI test checks download, pin, relaunch, local playback and deletion. Use
+UI test checks download, pin, relaunch, library profile isolation, local playback
+and deletion. A separate UI test checks the empty library at maximum text size. Use
 `scripts/check-downloads-mac.sh`; a skip, failed transfer, or missing completion
 must not count as a pass. Refer to the latest PHASE2_REPORT for executed results.
 
-Device-only follow-up: airplane mode after completion, OS background wakeup,
-force-quit/relaunch, real low disk, simultaneous network transfers, profile switches
+The user reported successful physical-device download and airplane-mode playback
+with seeking after relaunch on 2026-10-20. This is user-reported runtime evidence.
+Device-only follow-up: the new library UI, OS background wakeup,
+real low disk, simultaneous network transfers, profile switches
 and logout during a transfer. No claim of completed DRM or full C1 validation.
 
 Sources: Apple AVFoundation offline playback and storage documentation;

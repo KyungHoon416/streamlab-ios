@@ -25,10 +25,12 @@ TEST_RUNNER_STREAMLAB_TEST_DOWNLOADS=1 xcodebuild -project StreamLab.xcodeproj -
   -resultBundlePath "$run_dir/UITests.xcresult" -parallel-testing-enabled NO \
   -test-timeouts-enabled YES -default-test-execution-time-allowance 360 -maximum-test-execution-time-allowance 360 \
   -only-testing:StreamLabUITests/StreamLabUITests/testRealHLSDownloadRelaunchPlaybackAndDelete \
+  -only-testing:StreamLabUITests/StreamLabUITests/testDownloadsLibraryEmptyAtMaximumTextSize \
   SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- test > "$run_dir/ui-tests.log" 2>&1
 result=$?
-if [ "$result" -eq 0 ] && grep -Eq 'testRealHLSDownloadRelaunchPlaybackAndDelete.*passed' "$run_dir/ui-tests.log"; then
-  echo 'PASS native HLS download/relaunch/local playback/delete' | tee -a "$run_dir/RESULTS.txt"
+if [ "$result" -eq 0 ] && grep -Eq 'testRealHLSDownloadRelaunchPlaybackAndDelete.*passed' "$run_dir/ui-tests.log" &&
+   grep -Eq 'testDownloadsLibraryEmptyAtMaximumTextSize.*passed' "$run_dir/ui-tests.log"; then
+  echo 'PASS native HLS download/library/profile isolation/relaunch/local playback/delete and large-text empty library' | tee -a "$run_dir/RESULTS.txt"
 else
   echo "FAIL native HLS download exit=$result; required test must pass" | tee -a "$run_dir/RESULTS.txt"; result=1
 fi

@@ -52,20 +52,61 @@ import XCTest
         app.terminate()
         app.launch()
         choose("adult-a", in: app)
-        openHomeDetail(app)
-        let play = app.buttons["download-play"]
-        guard revealDetailElement(play, in: app) else { return }
-        XCTAssertEqual(app.buttons["download-pin"].value as? String, "고정됨")
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        let play = app.buttons["library-title-0001-play"]
+        XCTAssertTrue(play.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["downloads-summary"].label.hasPrefix("1개"))
+        XCTAssertEqual(app.buttons["library-title-0001-pin"].value as? String, "고정됨")
+        let libraryScreenshot = XCTAttachment(screenshot: app.screenshot())
+        libraryScreenshot.name = "Downloaded sample in profile library"
+        libraryScreenshot.lifetime = .keepAlways
+        add(libraryScreenshot)
+        tap(app.buttons["switch-profile"], in: app)
+        choose("adult-b", in: app)
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        XCTAssertTrue(app.descendants(matching: .any)["downloads-empty"].waitForExistence(timeout: 5))
+        XCTAssertFalse(play.exists)
+        tap(app.buttons["switch-profile"], in: app)
+        choose("adult-a", in: app)
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        XCTAssertTrue(play.waitForExistence(timeout: 10))
         playbackReturnFrame = app.frame
-        play.tap()
+        tap(play, in: app)
         expectPlayback("재생 중", in: app)
         XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("다운로드한 HLS"))
-        closePlayback(app)
-        let delete = app.buttons["download-delete"]
-        guard revealDetailElement(delete, in: app) else { return }
-        delete.tap()
-        XCTAssertTrue(start.waitForExistence(timeout: 10))
+        closePlayback(app, returningToDownloads: true)
+        let libraryPin = app.buttons["library-title-0001-pin"]
+        tap(libraryPin, in: app)
+        XCTAssertEqual(libraryPin.value as? String, "고정 안 됨")
+        tap(app.buttons["library-title-0001-delete"], in: app)
+        XCTAssertTrue(app.descendants(matching: .any)["downloads-empty"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["downloads-summary"].label.hasPrefix("0개"))
         XCTAssertFalse(play.exists)
+        tap(app.tabBars.buttons["홈"], in: app)
+        openHomeDetail(app)
+        XCTAssertTrue(revealDetailElement(start, in: app))
+    }
+
+    func testDownloadsLibraryEmptyAtMaximumTextSize() {
+        let app = launch(largeText: true)
+        choose("adult-a", in: app)
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        XCTAssertTrue(app.staticTexts["downloads-profile"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["downloads-profile"].isHittable)
+        XCTAssertTrue(app.staticTexts["downloads-summary"].label.hasPrefix("0개"))
+        XCTAssertFalse(app.buttons["library-title-0001-play"].exists)
+        let empty = app.descendants(matching: .any)["downloads-empty"]
+        for _ in 0..<5 {
+            if empty.exists && empty.isHittable { break }
+            app.scrollViews["downloads-scroll"].swipeUp()
+        }
+        XCTAssertTrue(empty.waitForExistence(timeout: 5))
+        if !empty.isHittable { captureFailure(app, name: "Large text download library") }
+        XCTAssertTrue(empty.isHittable)
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "Download library at maximum text size"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
     }
 
     private func finishEpisode(_ app: XCUIApplication) {
@@ -950,7 +991,7 @@ import XCTest
         return true
     }
 
-    private func closePlayback(_ app: XCUIApplication) {
+    private func closePlayback(_ app: XCUIApplication, returningToDownloads: Bool = false) {
         tap(app.buttons["playback-close"], in: app)
         // Cover dismissal and scene rotation are separate transitions. Neither a tap
         // returning nor the underlying detail existing proves both have completed.
@@ -964,6 +1005,11 @@ import XCTest
         guard XCTWaiter.wait(for: transitions, timeout: 10) == .completed else {
             captureFailure(app, name: "Detail playback orientation restoration")
             XCTFail("Detail playback must dismiss and restore its original frame. Expected \(String(describing: playbackReturnFrame)), actual \(app.frame), close exists: \(app.buttons["playback-close"].exists)")
+            return
+        }
+        if returningToDownloads {
+            XCTAssertTrue(app.staticTexts["downloads-profile"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.staticTexts["downloads-profile"].isHittable)
             return
         }
         XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 5))

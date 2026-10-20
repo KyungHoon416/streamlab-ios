@@ -1,3 +1,33 @@
+## 2026-10-20 — Profile download library and physical offline confirmation
+
+- User reports successful physical-device download after the path fix, then app
+  relaunch, playback and forward/back seeking in airplane mode. This is user-reported
+  runtime evidence, not a new automated physical-device run.
+- Added a Downloads tab with active account/profile isolation, saved count/bytes,
+  recent-use ordering, direct local playback, pin/delete and a Detail link.
+  Detail and library share the same state/action component. Playback reuses the
+  existing authorization, file lease and orientation lifecycle.
+- Persistence remains atomic JSON metadata plus system-managed HLS packages.
+- Final simulator UI: **2 PASS, 0 failures, 129.996 s**, xcodebuild exit 0:
+  native HLS download/pin/relaunch/library/profile isolation/local playback/delete
+  (106.046 s) and maximum-text-size empty library (23.950 s).
+  Evidence: `streamlab-library-ui-final.log`, result bundle
+  `Test-StreamLab-2026.10.20_21-07-10-+0900.xcresult`.
+- First large-text attempt failed to hit the empty-state accessibility container;
+  grouped its text into a combined element and used bounded scroll discovery.
+  The final rerun above passed. Kept screenshots were visually inspected for both
+  a populated library and the scrolled maximum-size empty state.
+- Generic physical iOS build with warnings as errors: PASS
+  (`streamlab-library-device-build.log`); this is compilation, not device UI testing.
+  Project structure, shell syntax and diff whitespace checks PASS.
+- `check-downloads-mac.sh` now requires both UI tests to pass, in addition to the
+  existing 11 policy tests. Core policies were not changed or rerun in this batch;
+  their previous 11-test pass remains recorded below.
+- Remaining: physical new-library UI, OS background wakeup, real low-disk stress,
+  simultaneous transfers and logout during transfer, full regression, production
+  services/DRM. Historical airplane-mode TODOs below are superseded by the user
+  confirmation above, within that reported scope.
+
 ## 2026-10-20 — Physical-device /var destination alias fix
 
 - User device log supplied the same app container UUID under home `/var/...` and

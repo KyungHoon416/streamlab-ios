@@ -1,0 +1,88 @@
+import SwiftUI
+import StreamLabDomain
+import StreamLabDesignSystem
+
+@MainActor public struct DownloadsView: View {
+    private let session: CatalogSession
+    @ObservedObject private var store = OfflineDownloadStore.shared
+    @StateObject private var orientation = PlaybackOrientationSession()
+    @State private var playing: OfflineDownload?
+
+    public init(session: CatalogSession) { self.session = session }
+
+    private var items: [OfflineDownload] { store.downloads(in: session) }
+    private var savedBytes: Int64 {
+        items.reduce(0) { total, item in
+            let result = total.addingReportingOverflow(item.bytes)
+            return result.overflow ? Int64.max : result.partialValue
+        }
+    }
+
+    public var body: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("\(session.profile.displayName)의 다운로드")
+                        .font(.title2.bold()).accessibilityAddTraits(.isHeader)
+                        .accessibilityIdentifier("downloads-profile")
+                    Text("\(items.count)개 · 저장 공간 \(ByteCountFormatter.string(fromByteCount: savedBytes, countStyle: .file))")
+                        .accessibilityIdentifier("downloads-summary")
+                    Text("현재 프로필의 Apple HLS 샘플입니다. 실제 작품 영상이 아닙니다.")
+                        .font(.callout).foregroundStyle(.secondary)
+                    Text("기기 전체 관리 예산 1GB · 동시 다운로드 2개. 진행 중인 파일의 크기는 완료 후 반영됩니다.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                .fixedSize(horizontal: false, vertical: true)
+
+                if let error = store.errorMessage {
+                    Text(error).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("downloads-error")
+                }
+                if items.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Label("아직 다운로드한 샘플이 없습니다", systemImage: "arrow.down.circle")
+                            .font(.headline)
+                        Text("홈이나 검색에서 작품을 열고 ‘HLS 샘플 다운로드’를 눌러 주세요.")
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("downloads-empty")
+                } else {
+                    ForEach(items) { item in
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text(item.title).font(.headline).accessibilityAddTraits(.isHeader)
+                                .fixedSize(horizontal: false, vertical: true)
+                            OfflineDownloadActions(item: item, idPrefix: "library-\(item.titleID)") {
+                                guard session.isActive, playing == nil else { return }
+                                orientation.begin()
+                                playing = item
+                            }
+                            NavigationLink(value: item.titleID) {
+                                Label("작품 상세 보기", systemImage: "chevron.right")
+                                    .frame(minHeight: 44)
+                            }
+                            .accessibilityIdentifier("library-\(item.titleID)-detail")
+                        }
+                        .padding(16).frame(maxWidth: .infinity, alignment: .leading)
+                        .background(StreamLabTheme.surface, in: RoundedRectangle(cornerRadius: 16))
+                        .accessibilityElement(children: .contain)
+                    }
+                }
+            }
+            .padding(20)
+            .frame(maxWidth: 760, alignment: .leading)
+            .frame(maxWidth: .infinity)
+        }
+        .accessibilityIdentifier("downloads-scroll")
+        .background(StreamLabTheme.background)
+        .background(PlaybackPresenterScene(session: orientation).frame(width: 0, height: 0))
+        .navigationTitle("다운로드")
+        .navigationBarTitleDisplayMode(.inline)
+        .fullScreenCover(item: $playing, onDismiss: { orientation.finish() }) { item in
+            PlaybackView(titleID: item.titleID, title: item.title, session: session,
+                         orientationSession: orientation, initialSource: .downloadedHLS)
+                .id("\(session.id.uuidString):\(item.id.uuidString)")
+        }
+    }
+}

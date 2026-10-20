@@ -135,6 +135,13 @@ import StreamLabPresentation
         do { try save(); pump() } catch { reportStorageFailure() }
     }
 
+    func downloads(in session: CatalogSession) -> [OfflineDownload] {
+        guard storageHealthy, session.isActive, activeAccount == session.accountID,
+              !blockedAccounts.contains(session.accountID) else { return [] }
+        return records.filter { $0.accountID == session.accountID && $0.profileID == session.profile.id }
+            .sorted { $0.lastUsed == $1.lastUsed ? $0.id.uuidString < $1.id.uuidString : $0.lastUsed > $1.lastUsed }
+    }
+
     func record(accountID: String, profileID: String, titleID: String) -> OfflineDownload? {
         records.first { $0.accountID == accountID && $0.profileID == profileID && $0.titleID == titleID }
     }

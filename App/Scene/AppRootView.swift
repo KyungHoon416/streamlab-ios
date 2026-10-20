@@ -109,6 +109,14 @@ import StreamLabDesignSystem
                     .toolbar { profileToolbar }
             }
             .tabItem { Label("검색", systemImage: "magnifyingglass") }
+            NavigationStack {
+                DownloadsView(session: session)
+                    .navigationDestination(for: String.self) { id in
+                        DetailView(id: id, session: session)
+                    }
+                    .toolbar { profileToolbar }
+            }
+            .tabItem { Label("다운로드", systemImage: "arrow.down.circle") }
         }
         .onAppear { session.setSynchronizationActive(phase == .active) }
         .onChange(of: phase) { _, value in
