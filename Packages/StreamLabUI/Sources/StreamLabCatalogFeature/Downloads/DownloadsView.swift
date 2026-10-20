@@ -34,6 +34,20 @@ import StreamLabDesignSystem
                 }
                 .fixedSize(horizontal: false, vertical: true)
 
+                #if DEBUG
+                if store.validationEnabled {
+                    VStack {
+                        Button("검증: 실제 HLS 1개") { Task { await store.validationEnqueue(session: session, count: 1) } }
+                            .accessibilityIdentifier("download-validation-one")
+                        Button("검증: 실제 HLS 3개") { Task { await store.validationEnqueue(session: session, count: 3) } }
+                            .accessibilityIdentifier("download-validation-three")
+                        Button("검증 상태 새로고침") { Task { await store.validationRefresh(accountID: session.accountID) } }
+                            .accessibilityIdentifier("download-validation-refresh")
+                        Text(store.validationSnapshot).font(.caption)
+                            .accessibilityIdentifier("download-validation-status")
+                    }
+                }
+                #endif
                 if let error = store.errorMessage {
                     Text(error).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)

@@ -16,6 +16,37 @@ import StreamLabPresentation
         var records: [OfflineDownload] = []
         var blockedAccounts: Set<String> = []
     }
+    #if DEBUG
+    @Published private(set) var validationSnapshot = "not sampled"
+    private var validationPaths: Set<URL> = []
+    private var validationStarted: Set<UUID> = []
+    private var validationPeak = 0
+
+    // Opt-in observation only: uses real OS tasks, journal and package paths.
+    var validationEnabled: Bool {
+        ProcessInfo.processInfo.arguments.contains("--ui-test-download-lifecycle")
+    }
+    func validationEnqueue(session: CatalogSession, count: Int) async {
+        guard validationEnabled else { return }
+        for number in 1...count {
+            do {
+                if let title = try await session.repository.detail(id: String(format: "title-%04d", number), profile: session.profile) {
+                    enqueue(title: title, session: session)
+                }
+            } catch { validationSnapshot = "fixture error"; return }
+        }
+        await validationRefresh(accountID: session.accountID)
+    }
+    func validationRefresh(accountID: String) async {
+        guard validationEnabled else { return }
+        let native = await downloads.allTasks
+        let disk = journalURL.flatMap { try? Data(contentsOf: $0) }
+            .flatMap { try? JSONDecoder().decode(Snapshot.self, from: $0) }
+        let owned = records.filter { $0.accountID == accountID }
+        let files = validationPaths.filter { FileManager.default.fileExists(atPath: $0.path) }.count
+        validationSnapshot = "native=\(native.count);active=\(owned.filter { $0.state == .downloading }.count);queued=\(owned.filter { $0.state == .queued }.count);complete=\(owned.filter { $0.state == .complete }.count);records=\(owned.count);disk=\(disk?.records.filter { $0.accountID == accountID }.count ?? -1);files=\(files);peak=\(validationPeak);started=\(validationStarted.count)"
+    }
+    #endif
     private var blockedAccounts: Set<String> = []
     private var activeAccount: String?
     private var tasks: [UUID: AVAssetDownloadTask] = [:]
@@ -176,6 +207,12 @@ import StreamLabPresentation
                 records[i].state = .downloading
                 do { try save() } catch { task.cancel(); reportStorageFailure(); return }
                 tasks[id] = task; observe(task, id: id); task.resume()
+                #if DEBUG
+                if validationEnabled {
+                    validationStarted.insert(id)
+                    validationPeak = max(validationPeak, tasks.count)
+                }
+                #endif
             } catch {
                 guard let i = index(id) else { continue }
                 records[i].state = .failed
@@ -303,6 +340,11 @@ extension OfflineDownloadStore: AVAssetDownloadDelegate {
                 #endif
                 assetDownloadTask.cancel(); return
             }
+            #if DEBUG
+            if validationEnabled, let url = OfflineDownloadBudget.localURL(path: relative, home: home) {
+                validationPaths.insert(url)
+            }
+            #endif
             records[i].relativePath = relative
             do { try save() } catch { assetDownloadTask.cancel(); reportStorageFailure() }
             if records[i].state == .removing || blockedAccounts.contains(records[i].accountID) { assetDownloadTask.cancel() }

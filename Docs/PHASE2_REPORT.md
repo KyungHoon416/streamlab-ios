@@ -1,3 +1,36 @@
+## 2026-10-20 — Native transfer lifecycle validation
+
+- User additionally confirmed physical-device profile isolation in the new library.
+- Added opt-in DEBUG observation controls (`--ui-test-download-lifecycle`). Requests
+  go through the production repository/enqueue path; no simulated completion,
+  cancellation, package or journal results. Observations read URLSession.allTasks,
+  the JSON on disk and validated native package paths. Release excludes these controls.
+- Core download budget/path/persistence: 11 PASS, exit 0
+  (`streamlab-lifecycle-core.log`).
+- Native simulator UI: 2 PASS, 0 failures, 137.327 s, exit 0
+  (`streamlab-lifecycle-ui.log`, result `Test-StreamLab-2026.10.20_21-38-03-+0900.xcresult`).
+  - Start a real transfer; press Home and require runningBackground; wait 45 s;
+    activate; require complete/offline-playable package, one disk record/file and
+    no outstanding native task. PASS 80.223 s.
+  - Request three different titles; observe two OS tasks/two downloading records,
+    one queued record, three disk records and two package files. Logout while
+    downloading, sign in, require native/memory/journal/files all zero. Peak two,
+    only two tasks started (queued task must not start during logout). Relaunch
+    and require native tasks and records remain zero. PASS 57.105 s.
+- Strengthened the latter test to explicitly require both package files before
+  logout, then reran: PASS 59.585 s, exit 0 (`streamlab-lifecycle-logout-final.log`,
+  result `Test-StreamLab-2026.10.20_21-41-56-+0900.xcresult`).
+- Physical-target Release build (warnings as errors): PASS, exit 0
+  (`streamlab-lifecycle-release.log`). Structure, shell syntax and diff checks PASS.
+- No production behavior fix was required by these observations. Reproduction:
+  `scripts/check-download-lifecycle-mac.sh` requires the 11 policies and both UI tests;
+  skips/missing test passes cannot satisfy the gate.
+- Scope: this proves background/foreground continuity and app-level concurrent task
+  admission in the simulator, not sustained parallel throughput or that completion
+  happened before foreground activation. No OS termination/relaunch wakeup,
+  physical-device background run, low-disk stress, full regression or DRM pass claimed.
+  Physical airplane playback and profile isolation remain separately user-confirmed.
+
 ## 2026-10-20 — Profile download library and physical offline confirmation
 
 - User reports successful physical-device download after the path fix, then app

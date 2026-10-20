@@ -27,6 +27,78 @@ import XCTest
         XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("1화"))
     }
 
+    private func launchDownloadLifecycle() throws -> XCUIApplication {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["STREAMLAB_TEST_DOWNLOADS"] == "1",
+                          "Requires real external HLS transfers; run the download lifecycle gate.")
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=download-lifecycle-\(UUID())",
+                               "--ui-test-download-lifecycle", "--ui-test-disable-resume"]
+        app.launch()
+        choose("adult-a", in: app)
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        return app
+    }
+
+    private func downloadSnapshot(_ app: XCUIApplication) -> String {
+        let status = app.staticTexts["download-validation-status"]
+        let old = status.label
+        tap(app.buttons["download-validation-refresh"], in: app)
+        // Give the asynchronous native-task query time to publish, even if unchanged.
+        RunLoop.current.run(until: Date().addingTimeInterval(0.5))
+        let value = status.label
+        print("[DownloadLifecycle] \(value) (previous \(old))")
+        return value
+    }
+
+    func testHLSBackgroundDownloadReturnsWithPlayablePackage() throws {
+        let app = try launchDownloadLifecycle()
+        tap(app.buttons["download-validation-one"], in: app)
+        let started = downloadSnapshot(app)
+        XCTAssertTrue(started.contains("active=1;"), started)
+        XCUIDevice.shared.press(.home)
+        XCTAssertTrue(app.wait(for: .runningBackground, timeout: 10))
+        // Real background time, not a simulated completion or a readiness delay.
+        RunLoop.current.run(until: Date().addingTimeInterval(45))
+        app.activate()
+        let done = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            self.downloadSnapshot(app).contains("complete=1;")
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [done], timeout: 150), .completed)
+        let final = downloadSnapshot(app)
+        XCTAssertTrue(final.contains("native=0;"), final)
+        XCTAssertTrue(final.contains("disk=1;files=1;"), final)
+        // The normal library integration separately verifies playback. Here require
+        // the store's real AVAssetCache offline-playability completion gate.
+        tap(app.buttons["account-logout"], in: app)
+        tap(app.sheets.buttons.matching(identifier: "confirm-logout").firstMatch, in: app)
+        XCTAssertTrue(app.buttons["demo-sign-in"].waitForExistence(timeout: 20))
+    }
+
+    func testHLSTwoTransfersQueueThirdAndLogoutCleansNativeTasks() throws {
+        let app = try launchDownloadLifecycle()
+        tap(app.buttons["download-validation-three"], in: app)
+        let started = downloadSnapshot(app)
+        XCTAssertTrue(started.contains("native=2;active=2;queued=1;"), started)
+        XCTAssertTrue(started.contains("peak=2;started=2"), started)
+        XCTAssertTrue(started.contains("disk=3;files=2;"), "Both native packages must exist before logout: \(started)")
+        tap(app.buttons["account-logout"], in: app)
+        let dialog = app.sheets.buttons.matching(identifier: "confirm-logout").firstMatch
+        tap(dialog, in: app)
+        XCTAssertTrue(app.buttons["demo-sign-in"].waitForExistence(timeout: 20))
+        XCTAssertFalse(app.staticTexts["logout-error"].exists)
+        choose("adult-a", in: app)
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        let cleared = downloadSnapshot(app)
+        XCTAssertTrue(cleared.contains("native=0;active=0;queued=0;complete=0;records=0;disk=0;files=0;"), cleared)
+        XCTAssertTrue(cleared.contains("peak=2;started=2"), "Queued task must not start during logout: \(cleared)")
+        app.terminate()
+        app.launch()
+        choose("adult-a", in: app)
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        let restored = downloadSnapshot(app)
+        XCTAssertTrue(restored.contains("native=0;active=0;queued=0;complete=0;records=0;disk=0;"), restored)
+    }
+
     func testRealHLSDownloadRelaunchPlaybackAndDelete() throws {
         try XCTSkipUnless(ProcessInfo.processInfo.environment["STREAMLAB_TEST_DOWNLOADS"] == "1",
                           "Downloads use an external Apple HLS sample; run the dedicated opt-in gate.")
