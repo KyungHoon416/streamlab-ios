@@ -290,6 +290,10 @@ extension OfflineDownloadStore: AVAssetDownloadDelegate {
                   storageHealthy else { assetDownloadTask.cancel(); return }
             guard let relative = OfflineDownloadBudget.relativePath(location: location, home: home) else {
                 NSLog("Offline HLS rejected package location outside app container")
+                #if DEBUG
+                let diagnostic = "Offline HLS path diagnostic: home=\(home.path) parent=\(location.deletingLastPathComponent().path) extension=\(location.pathExtension)\n"
+                FileHandle.standardOutput.write(Data(diagnostic.utf8))
+                #endif
                 assetDownloadTask.cancel(); return
             }
             records[i].relativePath = relative
