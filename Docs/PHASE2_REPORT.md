@@ -1,3 +1,21 @@
+## 2026-10-21 — Restrict PiP attachment to supported sources
+
+- User reproduced system_remote pause on physical iPhone with mirroring closed.
+  This rules out assuming mirroring is required; the system command cause remains unconfirmed.
+- Bundled previews previously created a PiP controller despite the UI declaring PiP
+  supported only for HLS. PlayerSurface now attaches PiP only for HLS with a player;
+  switching to an unsupported source detaches it. Avoid redundant layer player assignment.
+  Normal system remote commands remain enabled and are not ignored.
+- UI 2 tests PASS, 87.347 seconds: unattended preview after rotation and Play-button
+  recovery. `/private/tmp/streamlab-preview-pip-ui.log`.
+- Package 6 tests PASS: 5 Now Playing lifecycle tests and PiP attachment/detachment.
+  `/private/tmp/streamlab-preview-pip-package-final.log`. Initial package run was
+  interrupted to serialize simulator usage, then rerun successfully.
+- Release warnings-as-errors build PASS: `/private/tmp/streamlab-preview-pip-release.log`.
+  Project structure and diff checks PASS.
+- Physical automatic pause resolution is NOT yet confirmed. This removes an
+  unnecessary integration; it is not proof of the root cause. Device retest pending.
+
 ## 2026-10-21 — Visible Play action and transport origin
 
 - A physical trace showed transport_action=pause at 0.165 seconds, foreground true,

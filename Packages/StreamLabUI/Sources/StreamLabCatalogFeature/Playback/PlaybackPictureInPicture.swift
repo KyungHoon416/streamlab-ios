@@ -1,5 +1,6 @@
 import AVKit
 import Foundation
+import OSLog
 
 /// The presented player keeps ownership of its layer while PiP is outside the app.
 /// Never dismiss the SwiftUI cover to start PiP: restoration returns to that same player.
@@ -28,10 +29,17 @@ import Foundation
         controller?.canStartPictureInPictureAutomaticallyFromInline = allowed
     }
 
-    func attach(_ layer: AVPlayerLayer) {
+    var hasAttachedLayer: Bool { layer != nil }
+
+    func attach(_ layer: AVPlayerLayer, enabled: Bool) {
+        guard enabled else {
+            if self.layer != nil { invalidate() }
+            return
+        }
         guard self.layer !== layer else { return }
         invalidate()
         self.layer = layer
+        Logger(subsystem: "com.example.streamlab.demo", category: "PlaybackPiP").notice("pip_layer_attached")
         guard supported else { return }
         let controller = AVPictureInPictureController(playerLayer: layer)
         controller?.delegate = self

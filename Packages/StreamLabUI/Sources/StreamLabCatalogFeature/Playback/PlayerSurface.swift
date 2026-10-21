@@ -6,6 +6,7 @@ import UIKit
 @MainActor struct PlayerSurface: UIViewRepresentable {
     let player: AVPlayer?
     let fillsScreen: Bool
+    let allowsPictureInPicture: Bool
     let pictureInPicture: PlaybackPictureInPicture
     let onLayerAvailable: @MainActor (AVPlayerLayer) -> Void
 
@@ -20,10 +21,10 @@ import UIKit
     }
 
     func updateUIView(_ view: SurfaceView, context: Context) {
-        view.playerLayer.player = player
+        if view.playerLayer.player !== player { view.playerLayer.player = player }
         view.playerLayer.videoGravity = fillsScreen ? .resizeAspectFill : .resizeAspect
         onLayerAvailable(view.playerLayer)
-        if player != nil { pictureInPicture.attach(view.playerLayer) }
+        pictureInPicture.attach(view.playerLayer, enabled: allowsPictureInPicture && player != nil)
     }
 
     static func dismantleUIView(_ view: SurfaceView, coordinator: PlaybackPictureInPicture) {

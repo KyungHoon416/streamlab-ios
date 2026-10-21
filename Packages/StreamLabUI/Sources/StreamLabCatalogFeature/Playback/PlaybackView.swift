@@ -51,7 +51,7 @@ import StreamLabDesignSystem
         GeometryReader { geometry in
             ZStack {
                 Color.black.ignoresSafeArea()
-                PlayerSurface(player: model.player, fillsScreen: fillsScreen, pictureInPicture: model.pictureInPicture, onLayerAvailable: model.attachVideoLayer)
+                PlayerSurface(player: model.player, fillsScreen: fillsScreen, allowsPictureInPicture: model.source.isHLS, pictureInPicture: model.pictureInPicture, onLayerAvailable: model.attachVideoLayer)
                     .ignoresSafeArea()
                     .accessibilityHidden(true)
                 // Behind the HUD: gestures cannot steal taps from buttons or the slider.
