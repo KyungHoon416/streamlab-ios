@@ -149,7 +149,11 @@ import StreamLabPresentation
             else {
                 switch status {
                 case .playing: observePlayback(.playing)
-                case .paused: observePlayback(.paused)
+                case .paused:
+                    if diagnostics.state != .paused {
+                        qoeLog.notice("pause_snapshot position=\(self.position) wantsPlayback=\(self.wantsPlayback) foreground=\(self.foreground) interrupted=\(self.interruptionPolicy.isInterrupted) seeking=\(self.isSeeking) rate=\(player.rate) timeControl=\(player.timeControlStatus.rawValue)")
+                    }
+                    observePlayback(.paused)
                 case .loading: observePlayback(.buffering)
                 case .ended: observePlayback(.ended)
                 case .idle, .failed: break
@@ -247,6 +251,7 @@ import StreamLabPresentation
         session.register(self)
         pictureInPicture.onStop = { [weak self] in
             guard let self else { return }
+            self.qoeLog.notice("pause_reason=pip_closed")
             self.playbackIntentGeneration += 1
             self.interruptionPolicy.cancelResume()
             self.audioResumePending = false
@@ -521,6 +526,9 @@ import StreamLabPresentation
     }
 
     private func handleAudioEvent(_ event: PlaybackAudioEvent) {
+        if case .volumeChanged = event {} else {
+            qoeLog.notice("audio_event=\(String(describing: event), privacy: .public)")
+        }
         switch event {
         case .volumeChanged(let volume):
             guard volume.isFinite else { return }
@@ -566,6 +574,7 @@ import StreamLabPresentation
     }
 
     private func handleRemoteAction(_ action: PlaybackNowPlaying.Action) {
+        qoeLog.notice("transport_action=\(String(describing: action), privacy: .public)")
         guard session.isActive, let player else { return }
         switch action {
         case .pause:
@@ -657,6 +666,7 @@ import StreamLabPresentation
     func setForeground(_ active: Bool) {
         guard foreground != active else { return }
         foreground = active
+        qoeLog.notice("foreground_changed active=\(active)")
         waitingSince = nil
         if !active {
             // Preserve the user's playing/paused intent. The audio session and AVPlayer

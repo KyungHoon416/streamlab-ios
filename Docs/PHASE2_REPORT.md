@@ -1,3 +1,16 @@
+## 2026-10-21 — Investigating physical-device preview pauses
+
+- User reports spontaneous preview pauses; supplied trace shows bundled-demo-v1
+  playing -> paused, with no failure. Existing trace does not identify the cause.
+- Added transition-only pause snapshots (position, intent, foreground, interruption,
+  seeking, AVPlayer rate/time-control) and audio/transport/PiP-close/foreground events.
+  No forced-resume behavior introduced; interruption and user pause semantics retained.
+- Simulator unattended preview + initial landscape rotation UI test PASS, 45.030 s;
+  observes 12 seconds without interaction and verifies playback remains playing.
+  Warnings-as-errors build/test exit 0: `/private/tmp/streamlab-preview-unattended.log`.
+- Physical reported pause remains UNRESOLVED and needs a new device trace. This is
+  a diagnostic change, not a claimed fix; no full regression or device pass claim.
+
 ## 2026-10-21 — Artwork taps open details
 
 - Fixed home poster and search row interaction shapes so decorative artwork is

@@ -222,6 +222,26 @@ import XCTest
         XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 10))
     }
 
+    func testPreviewContinuesWithoutInteractionAfterRotation() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=preview-unattended-\(UUID())", "--ui-test-disable-resume"]
+        app.launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        tap(app.buttons["detail-preview"], in: app)
+        expectPlayback("재생 중", in: app)
+        // Observe without touching controls while the initial landscape transition settles.
+        for _ in 0..<6 {
+            RunLoop.current.run(until: Date().addingTimeInterval(2))
+            let paused = app.descendants(matching: .any).matching(NSPredicate(
+                format: "(identifier == %@ AND label == %@) OR (identifier == %@ AND value == %@)",
+                "playback-status", "일시 정지", "playback-reveal-controls", "일시 정지")).firstMatch
+            XCTAssertFalse(paused.exists, "Preview paused without user interaction")
+        }
+        expectPlayback("재생 중", in: app)
+        closePlayback(app)
+    }
+
     private func downloadSnapshot(_ app: XCUIApplication) -> String {
         let status = app.staticTexts["download-validation-status"]
         let old = status.label
