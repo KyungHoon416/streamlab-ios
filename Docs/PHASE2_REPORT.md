@@ -1,3 +1,30 @@
+## 2026-10-21 — Native HLS pause/resume
+
+- User confirmed physical notification tap no longer crashes and opens Downloads.
+- Added durable paused state and shared Detail/library pause/resume controls.
+  Reuse native task identity, preserve slot/reservation, guard active account/profile,
+  and recheck disk safety headroom on resume. Restored paused tasks stay suspended;
+  a missing OS task becomes retryable failure rather than silently restarting.
+- Paused completion race is validated normally but does not emit a completion alert.
+  Cancel/logout use existing native cancellation and durable file cleanup paths.
+- Core **16 PASS**, exit 0, including paused journal round-trip and quota accounting:
+  `/private/tmp/streamlab-pause-core.log`.
+- Native HLS UI **2 PASS, 108.220 s**, exit 0:
+  pause/background/resume/success with exactly one started task; paused logout removes
+  OS task, journal record and observed package. `/private/tmp/streamlab-pause-ui.log`,
+  `Test-StreamLab-2026.10.21_13-46-01-+0900.xcresult`.
+- Separate native HLS relaunch/cancel UI **1 PASS, 57.151 s**, exit 0:
+  `/private/tmp/streamlab-pause-restore-ui.log`,
+  `Test-StreamLab-2026.10.21_13-48-35-+0900.xcresult`.
+  Observed same attempt UUID after relaunch, native=1/active=0/paused=1/suspended=1;
+  cancel then native=0 and records/disk=0. This is simulator app termination/relaunch,
+  not proof of every OS-kill or physical-device behavior.
+- Generic iOS Release warnings-as-errors build PASS, exit 0:
+  `/private/tmp/streamlab-pause-release.log`. Structure, script syntax and diff PASS.
+- No physical pause/resume or actual low-disk test this turn. Expiration and full
+  regression remain separate work. Two paused tasks intentionally hold both slots.
+- Reproduce: `scripts/check-download-pause-mac.sh` (16 policy + 3 native UI cases).
+
 ## 2026-10-21 — Main-thread notification response completion crash
 
 - User device crash after notification tap: NSInternalInconsistencyException,

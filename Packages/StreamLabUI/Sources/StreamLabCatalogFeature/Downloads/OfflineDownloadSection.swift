@@ -58,6 +58,14 @@ import StreamLabDesignSystem
                         .font(.caption).fixedSize(horizontal: false, vertical: true)
                 }.accessibilityElement(children: .contain)
                     .accessibilityIdentifier("\(idPrefix)-progress")
+                Button("일시정지") { store.pause(item.id, session: session) }
+                    .buttonStyle(.bordered).accessibilityIdentifier("\(idPrefix)-pause")
+            case .paused:
+                Text("일시정지됨").accessibilityIdentifier("\(idPrefix)-paused")
+                Text("진행 중인 작업과 저장 공간을 유지합니다. 재개하면 같은 작업을 이어받습니다.")
+                    .font(.caption).fixedSize(horizontal: false, vertical: true)
+                Button("다운로드 재개") { store.resume(item.id, session: session) }
+                    .buttonStyle(.bordered).accessibilityIdentifier("\(idPrefix)-resume")
             case .complete:
                 Text("저장 완료 · \(ByteCountFormatter.string(fromByteCount: item.bytes, countStyle: .file))")
                     .accessibilityIdentifier("\(idPrefix)-complete")

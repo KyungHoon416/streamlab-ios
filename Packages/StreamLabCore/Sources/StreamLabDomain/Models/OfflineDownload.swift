@@ -1,7 +1,7 @@
 import Foundation
 
 public struct OfflineDownload: Codable, Identifiable, Equatable, Sendable {
-    public enum State: String, Codable, Sendable { case queued, downloading, complete, failed, removing }
+    public enum State: String, Codable, Sendable { case queued, downloading, paused, complete, failed, removing }
     public let id: UUID
     public let accountID: String
     public let profileID: String
@@ -54,7 +54,7 @@ public enum OfflineDownloadBudget {
 
     private static func chargedBytes(for record: OfflineDownload) throws -> Int64 {
         guard record.bytes >= 0 else { throw Failure.invalidSize }
-        return (record.state == .downloading || record.state == .removing)
+        return (record.state == .downloading || record.state == .paused || record.state == .removing)
             ? max(record.bytes, reservation) : record.bytes
     }
 

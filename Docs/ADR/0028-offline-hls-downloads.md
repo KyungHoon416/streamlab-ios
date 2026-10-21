@@ -103,3 +103,20 @@ persist, then enter the normal quota/concurrency queue. Old delegate/KVO callbac
 and notification revocations cannot target the new UUID. Failed deletion retains
 the original record; failed journal save stops scheduling. Retry restarts the full
 sample, rather than promising byte-level resume or automatic retry loops.
+
+## User pause/resume (2026-10-21)
+
+Persist `paused` before suspending the existing AVAssetDownloadTask; persist
+`downloading` before resuming it. Controls are account/profile/session guarded.
+Suspended tasks retain a concurrency slot and a minimum 500MB reservation so partial
+packages cannot be evicted or overcommitted. Consequently two paused transfers keep
+later jobs queued until resumed/completed or cancelled. Resume requires at least
+50MB actual disk safety headroom, without allocating a second reservation/task.
+
+Restoration attaches paused task identifiers without automatically resuming them.
+If the OS has removed the task (including possible user force-quit behavior), mark
+it failed and offer the existing retry path; do not promise universal byte-level
+resume. Cancellation and logout use the existing durable removing tombstone and
+native cancellation callback for suspended tasks too. A completion already in flight
+can win a pause race; it is validated normally but no completion alert is sent when
+the recorded state at callback time was paused. Expiration remains separate work.

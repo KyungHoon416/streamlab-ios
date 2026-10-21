@@ -94,6 +94,7 @@ import Testing
     }
     @Test func recordsRoundTripScopesStatesAndPins() throws {
         var record = item(1234, age: 5, pinned: true)
+        record.state = .paused
         record.relativePath = "Library/Caches/demo.movpkg"
         let restored = try JSONDecoder().decode(OfflineDownload.self, from: JSONEncoder().encode(record))
         #expect(restored == record)

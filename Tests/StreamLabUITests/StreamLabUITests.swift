@@ -49,10 +49,92 @@ import XCTest
         return app
     }
 
+    func testHLSPauseResumeUsesSameTaskAndCompletes() throws {
+        let app = try launchDownloadLifecycle()
+        tap(app.buttons["download-validation-one"], in: app)
+        let pause = app.buttons["library-title-0001-pause"]
+        XCTAssertTrue(pause.waitForExistence(timeout: 15))
+        revealDownloadElement(pause, in: app)
+        tap(pause, in: app)
+        let resume = app.buttons["library-title-0001-resume"]
+        XCTAssertTrue(resume.waitForExistence(timeout: 5))
+        let paused = downloadSnapshot(app)
+        XCTAssertTrue(paused.contains("active=0;"), paused)
+        XCTAssertTrue(paused.contains("paused=1;suspended=1"), paused)
+        XCTAssertTrue(paused.contains("started=1;"), paused)
+        XCUIDevice.shared.press(.home)
+        RunLoop.current.run(until: Date().addingTimeInterval(5))
+        app.activate()
+        let returned = downloadSnapshot(app)
+        XCTAssertTrue(returned.contains("paused=1;suspended=1"), returned)
+        XCTAssertTrue(returned.contains("notifications=0;"), returned)
+        revealDownloadElement(resume, in: app)
+        tap(resume, in: app)
+        let resumed = downloadSnapshot(app)
+        XCTAssertTrue(resumed.contains("started=1;"), resumed)
+        XCTAssertTrue(resumed.contains("paused=0;suspended=0"), resumed)
+        let play = app.buttons["library-title-0001-play"]
+        XCTAssertTrue(play.waitForExistence(timeout: 180))
+    }
+
+    func testHLSPausedTransferLogoutRemovesNativeTask() throws {
+        let app = try launchDownloadLifecycle()
+        tap(app.buttons["download-validation-one"], in: app)
+        let pause = app.buttons["library-title-0001-pause"]
+        XCTAssertTrue(pause.waitForExistence(timeout: 15))
+        revealDownloadElement(pause, in: app)
+        tap(pause, in: app)
+        XCTAssertTrue(downloadSnapshot(app).contains("paused=1;suspended=1"))
+        tap(app.buttons["account-logout"], in: app)
+        tap(app.sheets.buttons.matching(identifier: "confirm-logout").firstMatch, in: app)
+        XCTAssertTrue(app.buttons["demo-sign-in"].waitForExistence(timeout: 20))
+        choose("adult-a", in: app)
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        let cleared = downloadSnapshot(app)
+        XCTAssertTrue(cleared.contains("native=0;active=0;queued=0;complete=0;records=0;disk=0;files=0;"), cleared)
+        XCTAssertTrue(cleared.contains("notifications=0;"), cleared)
+    }
+
+    func testHLSPausedRelaunchNeverAutoResumesAndCanCancel() throws {
+        let app = try launchDownloadLifecycle()
+        tap(app.buttons["download-validation-one"], in: app)
+        let pause = app.buttons["library-title-0001-pause"]
+        XCTAssertTrue(pause.waitForExistence(timeout: 15))
+        revealDownloadElement(pause, in: app)
+        tap(pause, in: app)
+        XCTAssertTrue(downloadSnapshot(app).contains("paused=1;suspended=1"))
+        app.terminate()
+        app.launch()
+        choose("adult-a", in: app)
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        let restored = downloadSnapshot(app)
+        XCTAssertTrue(restored.contains("active=0;queued=0;complete=0;records=1;disk=1;"), restored)
+        // A user force-quit may remove the OS task. Either retain paused work or
+        // expose retryable failure; never silently restart or create a duplicate.
+        if restored.contains("native=1;") {
+            XCTAssertTrue(restored.contains("paused=1;suspended=1"), restored)
+        } else {
+            XCTAssertTrue(restored.contains("native=0;"), restored)
+            XCTAssertTrue(app.buttons["library-title-0001-retry"].exists)
+        }
+        let cancel = app.buttons["library-title-0001-delete"]
+        revealDownloadElement(cancel, in: app)
+        tap(cancel, in: app)
+        XCTAssertTrue(app.descendants(matching: .any)["downloads-empty"].waitForExistence(timeout: 15))
+        let cleared = downloadSnapshot(app)
+        XCTAssertTrue(cleared.contains("native=0;active=0;queued=0;complete=0;records=0;disk=0;"), cleared)
+        XCTAssertTrue(cleared.contains("notifications=0;"), cleared)
+    }
+
     private func downloadSnapshot(_ app: XCUIApplication) -> String {
         let status = app.staticTexts["download-validation-status"]
         let old = status.label
-        tap(app.buttons["download-validation-refresh"], in: app)
+        let refresh = app.buttons["download-validation-refresh"]
+        for _ in 0..<5 {
+            if refresh.exists && refresh.isHittable { break }
+            app.scrollViews["downloads-scroll"].swipeDown()
+        }
+        tap(refresh, in: app)
         // Give the asynchronous native-task query time to publish, even if unchanged.
         RunLoop.current.run(until: Date().addingTimeInterval(0.5))
         let value = status.label

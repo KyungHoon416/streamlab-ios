@@ -16,7 +16,7 @@ import Testing
         #expect(empty.fraction == 0)
     }
     @Test func activeAndRemovingDoNotDoubleCountFiles() throws {
-        let usage = try OfflineDownloadBudget.usage(in: [item(.downloading, 100_000_000), item(.removing, 200_000_000)])
+        let usage = try OfflineDownloadBudget.usage(in: [item(.paused, 100_000_000), item(.removing, 200_000_000)])
         #expect(usage.otherFileBytes == 300_000_000)
         #expect(usage.reservedBytes == 700_000_000)
         #expect(usage.chargedBytes == 1_000_000_000)

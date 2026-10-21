@@ -126,7 +126,7 @@ import StreamLabDesignSystem
             } else {
                 Text("저장량을 확인할 수 없습니다. 앱을 다시 실행해 주세요.")
             }
-            Text("모든 프로필 합계 · 한도 1GB. 전송 중인 작업은 작업당 최소 500MB를 예약합니다. 기기의 실제 여유 공간과 다르며, 파일 크기는 완료 후 반영됩니다.")
+            Text("모든 프로필 합계 · 한도 1GB. 전송·일시정지 중인 작업은 작업당 최소 500MB와 작업 자리를 유지합니다. 기기의 실제 여유 공간과 다르며, 파일 크기는 완료 후 반영됩니다.")
                 .foregroundStyle(.secondary)
         }
         .font(.caption).fixedSize(horizontal: false, vertical: true)
