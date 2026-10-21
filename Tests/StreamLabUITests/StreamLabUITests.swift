@@ -378,6 +378,42 @@ import XCTest
         XCTAssertTrue(revealDetailElement(start, in: app))
     }
 
+    func testDownloadNotificationTapOpensCurrentProfileLibrary() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=notification-route-\(UUID())",
+                               "--ui-test-download-notification-tap"]
+        app.launch()
+        choose("adult-b", in: app)
+        tap(app.buttons["download-notification-test-tap"], in: app)
+        XCTAssertTrue(app.staticTexts["downloads-profile"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.tabBars.buttons["다운로드"].isSelected)
+        XCTAssertTrue(app.staticTexts["downloads-profile"].label.contains("Jamie"))
+        tap(app.tabBars.buttons["홈"], in: app)
+        tap(app.buttons["download-notification-test-tap"], in: app)
+        XCTAssertTrue(app.tabBars.buttons["다운로드"].isSelected)
+        tap(app.buttons["switch-profile"], in: app)
+        choose("adult-a", in: app)
+        XCTAssertTrue(app.tabBars.buttons["홈"].isSelected, "Consumed route must not leak into another profile")
+    }
+
+    func testDownloadNotificationLaunchWaitsForProfileSelection() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=notification-cold-route-\(UUID())",
+                               "--ui-test-download-notification-launch"]
+        app.launch()
+        enterDemoIfNeeded(app)
+        XCTAssertTrue(app.buttons["profile-adult-a"].exists)
+        XCTAssertFalse(app.staticTexts["downloads-profile"].exists)
+        tap(app.buttons["profile-adult-a"], in: app)
+        XCTAssertTrue(app.staticTexts["downloads-profile"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.tabBars.buttons["다운로드"].isSelected)
+        tap(app.buttons["account-logout"], in: app)
+        tap(app.sheets.buttons.matching(identifier: "confirm-logout").firstMatch, in: app)
+        XCTAssertTrue(app.buttons["demo-sign-in"].waitForExistence(timeout: 20))
+        choose("adult-a", in: app)
+        XCTAssertTrue(app.tabBars.buttons["홈"].isSelected, "Old notification must not navigate after logout/sign-in")
+    }
+
     func testDownloadsStorageBudgetSummary() {
         let app = launch()
         choose("adult-a", in: app)

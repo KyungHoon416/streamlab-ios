@@ -1,3 +1,29 @@
+## 2026-10-21 — Completion notification opens download library
+
+- User confirmed physical-device storage summary changes on start/completion/deletion.
+- Register UserNotifications delegate at launch; accept default open action only and
+  validate the completion prefix plus UUID. Keep only a generic pending destination.
+- SwiftUI selects Downloads and resets its navigation path after a valid active
+  profile session exists. Cold launch still requires normal authentication/profile
+  selection. Consume requests once and clear pending requests on explicit logout.
+  Never infer/switch account or profile from notification metadata or autoplay a title.
+  Existing playback presentations are not forcibly dismissed.
+- Final focused UI: **2 PASS, 0 failures, 59.243 s**, exit 0:
+  current-profile route/repeated tap/profile change; launch profile gate/logout reset.
+  `/private/tmp/streamlab-notification-route-ui-final.log`,
+  `Test-StreamLab-2026.10.21_12-04-40-+0900.xcresult`.
+- First run: cold route PASS, warm route FAIL because the DEBUG-only trigger button
+  in the bottom toolbar was obscured by the tab bar. Moved the test trigger to top
+  toolbar; final run above passed. This button is absent from Release builds.
+- Generic iOS Release build with warnings as errors PASS, exit 0:
+  `/private/tmp/streamlab-notification-route-release.log`. The later change only moves
+  the DEBUG test button. Structure, diff whitespace and script syntax checks PASS.
+- UI tests inject the same routing request; they do not tap an OS-delivered notification.
+  Actual device notification tap, cold-launch delivery and playback-cover behavior
+  remain manual checks. Existing transfer/notification scheduling logic is unchanged;
+  full regression was not rerun.
+- Reproduce: `scripts/check-download-notification-route-mac.sh`.
+
 ## 2026-10-21 — Download storage budget visibility
 
 - User confirmed offline/reconnected banners during physical-device downloads and playback.

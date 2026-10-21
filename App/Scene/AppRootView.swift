@@ -29,6 +29,13 @@ import StreamLabDesignSystem
         .tint(StreamLabTheme.accent)
         .onAppear { startupLog.notice("[Startup] SwiftUI root appeared") }
         .task { await account.prepare() }
+        #if DEBUG
+        .onAppear {
+            if ProcessInfo.processInfo.arguments.contains("--ui-test-download-notification-launch") {
+                DownloadNotificationNavigation.shared.simulateTap()
+            }
+        }
+        #endif
     }
 
     private var content: some View {
@@ -79,6 +86,7 @@ import StreamLabDesignSystem
     }
 
     private func logout() {
+        DownloadNotificationNavigation.shared.clear()
         let previous = session
         Task {
             await account.logout(session: previous)
@@ -96,11 +104,14 @@ import StreamLabDesignSystem
     let session: CatalogSession
     let onSwitchProfile: () -> Void
     let onLogout: () -> Void
+    @ObservedObject private var notificationNavigation = DownloadNotificationNavigation.shared
+    @State private var selectedTab = 0
+    @State private var downloadsPath: [String] = []
     @State private var confirmingLogout = false
     @Environment(\.scenePhase) private var phase
 
     var body: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             NavigationStack {
                 HomeView(session: session)
                     .navigationDestination(for: String.self) { id in
@@ -108,7 +119,7 @@ import StreamLabDesignSystem
                     }
                     .toolbar { profileToolbar }
             }
-            .tabItem { Label("홈", systemImage: "house.fill") }
+            .tabItem { Label("홈", systemImage: "house.fill") }.tag(0)
             NavigationStack {
                 SearchView(session: session)
                     .navigationDestination(for: String.self) { id in
@@ -116,17 +127,21 @@ import StreamLabDesignSystem
                     }
                     .toolbar { profileToolbar }
             }
-            .tabItem { Label("검색", systemImage: "magnifyingglass") }
-            NavigationStack {
+            .tabItem { Label("검색", systemImage: "magnifyingglass") }.tag(1)
+            NavigationStack(path: $downloadsPath) {
                 DownloadsView(session: session)
                     .navigationDestination(for: String.self) { id in
                         DetailView(id: id, session: session)
                     }
                     .toolbar { profileToolbar }
             }
-            .tabItem { Label("다운로드", systemImage: "arrow.down.circle") }
+            .tabItem { Label("다운로드", systemImage: "arrow.down.circle") }.tag(2)
         }
-        .onAppear { session.setSynchronizationActive(phase == .active) }
+        .onAppear {
+            session.setSynchronizationActive(phase == .active)
+            openRequestedDownloads()
+        }
+        .onChange(of: notificationNavigation.request) { _, _ in openRequestedDownloads() }
         .onChange(of: phase) { _, value in
             session.setSynchronizationActive(value == .active)
         }
@@ -138,11 +153,26 @@ import StreamLabDesignSystem
         }
     }
 
+    private func openRequestedDownloads() {
+        guard session.isActive, notificationNavigation.request != nil else { return }
+        downloadsPath = []
+        selectedTab = 2
+        notificationNavigation.clear()
+    }
+
     @ToolbarContentBuilder private var profileToolbar: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button("로그아웃") { confirmingLogout = true }
                 .accessibilityIdentifier("account-logout")
         }
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--ui-test-download-notification-tap") {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("알림 검증") { notificationNavigation.simulateTap() }
+                    .accessibilityIdentifier("download-notification-test-tap")
+            }
+        }
+        #endif
         ToolbarItem(placement: .topBarTrailing) {
             Button(action: onSwitchProfile) { Label(session.profile.displayName, systemImage: session.profile.avatarSymbol) }
                 .accessibilityLabel("프로필 변경")
