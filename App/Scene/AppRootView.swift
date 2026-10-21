@@ -107,12 +107,14 @@ import StreamLabDesignSystem
     @ObservedObject private var notificationNavigation = DownloadNotificationNavigation.shared
     @State private var selectedTab = 0
     @State private var downloadsPath: [String] = []
+    @State private var homePath: [String] = []
+    @State private var searchPath: [String] = []
     @State private var confirmingLogout = false
     @Environment(\.scenePhase) private var phase
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            NavigationStack {
+            NavigationStack(path: $homePath) {
                 HomeView(session: session)
                     .navigationDestination(for: String.self) { id in
                         DetailView(id: id, session: session)
@@ -120,7 +122,7 @@ import StreamLabDesignSystem
                     .toolbar { profileToolbar }
             }
             .tabItem { Label("홈", systemImage: "house.fill") }.tag(0)
-            NavigationStack {
+            NavigationStack(path: $searchPath) {
                 SearchView(session: session)
                     .navigationDestination(for: String.self) { id in
                         DetailView(id: id, session: session)
@@ -144,6 +146,12 @@ import StreamLabDesignSystem
         .onChange(of: notificationNavigation.request) { _, _ in openRequestedDownloads() }
         .onChange(of: phase) { _, value in
             session.setSynchronizationActive(value == .active)
+            if value == .active { openRequestedDownloads() }
+            #if DEBUG
+            if value == .background && ProcessInfo.processInfo.arguments.contains("--ui-test-download-notification-background") {
+                notificationNavigation.simulateTap()
+            }
+            #endif
         }
         .confirmationDialog("로그아웃하면 이 기기의 모든 프로필 기록이 삭제됩니다.",
                             isPresented: $confirmingLogout, titleVisibility: .visible) {
@@ -154,7 +162,9 @@ import StreamLabDesignSystem
     }
 
     private func openRequestedDownloads() {
-        guard session.isActive, notificationNavigation.request != nil else { return }
+        guard phase == .active, session.isActive, notificationNavigation.request != nil else { return }
+        homePath = []
+        searchPath = []
         downloadsPath = []
         selectedTab = 2
         notificationNavigation.clear()

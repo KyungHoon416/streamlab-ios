@@ -378,6 +378,24 @@ import XCTest
         XCTAssertTrue(revealDetailElement(start, in: app))
     }
 
+    func testDownloadNotificationReturnsFromBackgroundDetailToLibrary() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=notification-background-detail-\(UUID())",
+                               "--ui-test-download-notification-background"]
+        app.launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        XCTAssertTrue(app.buttons["playback-open"].exists)
+        XCUIDevice.shared.press(.home)
+        XCTAssertTrue(app.wait(for: .runningBackground, timeout: 10))
+        app.activate()
+        XCTAssertTrue(app.staticTexts["downloads-profile"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.tabBars.buttons["다운로드"].isSelected)
+        XCTAssertFalse(app.buttons["playback-open"].exists)
+        tap(app.tabBars.buttons["홈"], in: app)
+        XCTAssertTrue(app.descendants(matching: .any)["hero-detail"].waitForExistence(timeout: 10))
+    }
+
     func testDownloadNotificationTapOpensCurrentProfileLibrary() {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=notification-route-\(UUID())",

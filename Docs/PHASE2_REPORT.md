@@ -1,3 +1,23 @@
+## 2026-10-21 — Notification return from background detail
+
+- User reported completion notification reopening the previous detail instead of Downloads.
+  Prior routing tests exercised root/launch flows, not background return from detail.
+- Keep pending navigation until scene is active; drain it on activation as well as
+  request changes/appearance. Bind and clear Home/Search paths alongside Downloads
+  before selecting the library, so stale details are removed.
+- Focused simulator UI **3 PASS, 0 failures, 83.276 s**, exit 0: background return
+  from Home detail to current-profile library (and Home detail cleared), cold launch
+  profile gate/logout reset, repeated foreground requests/profile isolation.
+  `/private/tmp/streamlab-notification-detail-fix-ui.log`,
+  `Test-StreamLab-2026.10.21_13-27-34-+0900.xcresult`.
+- The new test backgrounds the real app and injects a route request while backgrounded.
+  Actual OS-delivered notification tap on device remains to be rechecked; this test
+  does not prove the device-reported issue's precise cause or native callback delivery.
+- Generic iOS Release build with warnings as errors PASS, exit 0:
+  `/private/tmp/streamlab-notification-detail-fix-release.log`.
+  Structure, script syntax and whitespace checks PASS.
+- Reproduce: `scripts/check-download-notification-route-mac.sh` now requires all 3 cases.
+
 ## 2026-10-21 — Completion notification opens download library
 
 - User confirmed physical-device storage summary changes on start/completion/deletion.
