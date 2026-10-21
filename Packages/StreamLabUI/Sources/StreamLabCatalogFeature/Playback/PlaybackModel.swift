@@ -321,7 +321,7 @@ import StreamLabPresentation
         var url = source.url
         if source == .downloadedHLS {
             guard let (savedURL, lease) = OfflineDownloadStore.shared.acquire(session: session, titleID: titleID) else {
-                fail("다운로드 파일이 없거나 오프라인 재생을 준비하지 못했습니다. 다시 다운로드해 주세요.")
+                fail("다운로드 파일이 없거나 이용 기간이 만료되어 재생할 수 없습니다. 다시 다운로드해 주세요.")
                 return
             }
             url = savedURL

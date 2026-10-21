@@ -1,3 +1,30 @@
+## 2026-10-21 — Download expiration Mock
+
+- User confirmed physical pause/background/resume/completion.
+- Assignment specifies expired state/entitlement failure but no duration. Implemented
+  labelled 7-day Mock validity from completion; optional persisted expiresAt supports
+  old journals, with one persisted grace period for completed legacy files.
+- Activation/30-second execution timer/library foreground/playback acquisition apply
+  sticky expired state. New playback is refused even if UI is stale. Existing leases
+  may finish. Files still count toward quota; pins/leases protect eviction. Expired
+  unpinned files are LRU candidates. Re-download reauthorizes the current profile,
+  creates a fresh attempt and gains a new validity only on successful completion.
+- Core **21 PASS**, exit 0: 5 expiry + 16 budget/usage cases;
+  `/private/tmp/streamlab-expiry-core-final.log`. Initial compile failed because a
+  mutating call inside #expect was captured immutably; moved mutations before asserts.
+- Final native HLS integration **1 PASS, 64.591 s**, exit 0:
+  `/private/tmp/streamlab-expiry-ui-final.log`,
+  `Test-StreamLab-2026.10.21_15-42-54-+0900.xcresult`.
+  Actual save -> set persisted deadline in past -> expired/no play button -> force a
+  normal player acquisition through DEBUG action -> real failure alert -> relaunch
+  still expired -> re-download -> complete with new expiry. Earlier version without
+  playback-gate step passed 77.895 s; this is a repeated case, not two distinct tests.
+- Generic iOS Release warnings-as-errors build PASS, exit 0:
+  `/private/tmp/streamlab-expiry-release.log`. Structure, shell syntax and diff PASS.
+- No real 7-day wait, physical expiry check, trusted license server, DRM, or full
+  regression claim. Local clock can be manipulated before expiration; this is a Mock.
+- Reproduce: `scripts/check-download-expiry-mac.sh`.
+
 ## 2026-10-21 — Native HLS pause/resume
 
 - User confirmed physical notification tap no longer crashes and opens Downloads.

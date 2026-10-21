@@ -67,6 +67,10 @@ import StreamLabDesignSystem
                 Button("다운로드 재개") { store.resume(item.id, session: session) }
                     .buttonStyle(.bordered).accessibilityIdentifier("\(idPrefix)-resume")
             case .complete:
+                if let expiry = item.expiresAt {
+                    Text("이용 기한: \(expiry.formatted(date: .abbreviated, time: .shortened))")
+                        .font(.caption).accessibilityIdentifier("\(idPrefix)-expiry")
+                }
                 Text("저장 완료 · \(ByteCountFormatter.string(fromByteCount: item.bytes, countStyle: .file))")
                     .accessibilityIdentifier("\(idPrefix)-complete")
                 Button(action: play) { Label("다운로드한 샘플 재생", systemImage: "play.fill") }
@@ -79,8 +83,13 @@ import StreamLabDesignSystem
                     .accessibilityValue(item.pinned ? "고정됨" : "고정 안 됨")
             case .removing:
                 Text("다운로드를 취소하고 파일을 정리하는 중…")
-            case .failed:
-                Text(item.message ?? "다운로드를 완료하지 못했습니다.")
+            case .failed, .expired:
+                if item.state == .expired {
+                    Text("이용 기간 만료").accessibilityIdentifier("\(idPrefix)-expired")
+                    Text("새로 재생하려면 인터넷에 연결해 다시 다운로드해 주세요. 재생 중인 창이 있다면 먼저 닫아 주세요.")
+                        .font(.caption).fixedSize(horizontal: false, vertical: true)
+                }
+                Text(item.state == .expired ? "파일은 삭제할 때까지 저장 공간을 사용합니다." : (item.message ?? "다운로드를 완료하지 못했습니다."))
                     .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("\(idPrefix)-failed")
                 Button { Task { await store.retry(item.id, session: session) } } label: {
                     Label(store.retrying.contains(item.id) ? "다시 다운로드 준비 중…" : "다시 다운로드", systemImage: "arrow.clockwise")

@@ -1,7 +1,7 @@
 import Foundation
 
 public struct OfflineDownload: Codable, Identifiable, Equatable, Sendable {
-    public enum State: String, Codable, Sendable { case queued, downloading, paused, complete, failed, removing }
+    public enum State: String, Codable, Sendable { case queued, downloading, paused, complete, expired, failed, removing }
     public let id: UUID
     public let accountID: String
     public let profileID: String
@@ -13,6 +13,16 @@ public struct OfflineDownload: Codable, Identifiable, Equatable, Sendable {
     public var pinned = false
     public var lastUsed: Date
     public var message: String?
+    public var expiresAt: Date?
+    public static let mockValidity: TimeInterval = 7 * 24 * 60 * 60
+    public func isExpired(at now: Date) -> Bool {
+        state == .expired || (state == .complete && expiresAt.map { now >= $0 } == true)
+    }
+    @discardableResult public mutating func expire(at now: Date) -> Bool {
+        guard state == .complete, isExpired(at: now) else { return false }
+        state = .expired
+        return true
+    }
     public init(id: UUID = UUID(), accountID: String, profileID: String, titleID: String, title: String, now: Date = Date()) {
         self.id = id; self.accountID = accountID; self.profileID = profileID
         self.titleID = titleID; self.title = title; self.lastUsed = now
@@ -68,7 +78,7 @@ public enum OfflineDownloadBudget {
             guard !sum.overflow else { throw Failure.invalidSize }
             used = sum.partialValue
         }
-        let candidates = records.filter { $0.state == .complete && !$0.pinned && !protected.contains($0.id) }
+        let candidates = records.filter { ($0.state == .complete || $0.state == .expired) && !$0.pinned && !protected.contains($0.id) }
             .sorted { $0.lastUsed == $1.lastUsed ? $0.id.uuidString < $1.id.uuidString : $0.lastUsed < $1.lastUsed }
         var selected: [UUID] = []
         for item in candidates where used > capacity - required {

@@ -38,6 +38,13 @@ import StreamLabPresentation
         }
         await validationRefresh(accountID: session.accountID)
     }
+    func validationExpire(session: CatalogSession) {
+        guard validationEnabled, session.isActive else { return }
+        for i in records.indices where records[i].accountID == session.accountID && records[i].profileID == session.profile.id && records[i].state == .complete {
+            records[i].expiresAt = Date().addingTimeInterval(-1)
+        }
+        refreshExpiration()
+    }
     func validationInterruptTransfer() {
         guard validationEnabled else { return }
         // Real OS error callback; do not fabricate a failed record or a completion.
@@ -61,6 +68,7 @@ import StreamLabPresentation
     private var observations: [UUID: NSKeyValueObservation] = [:]
     private var lastDiskCheck: [UUID: Date] = [:]
     private var leases: [UUID: UUID] = [:]
+    private var expiryMonitor: Task<Void, Never>?
     private var restored = false
     private var restoring = false
     private var storageHealthy = true
@@ -127,7 +135,33 @@ import StreamLabPresentation
         activeAccount = accountID
         completionNotificationsSuppressed = false
         await restore()
+        refreshExpiration()
+        if expiryMonitor == nil {
+            expiryMonitor = Task { [weak self] in
+                while !Task.isCancelled {
+                    do { try await Task.sleep(for: .seconds(30)) } catch { return }
+                    self?.refreshExpiration()
+                }
+            }
+        }
         pump()
+    }
+
+    func refreshExpiration(now: Date = Date()) {
+        guard storageHealthy, restored else { return }
+        var changed = false
+        for i in records.indices {
+            if records[i].state == .complete && records[i].expiresAt == nil {
+                // One-time migration of existing packages, persisted below.
+                records[i].expiresAt = now.addingTimeInterval(OfflineDownload.mockValidity)
+                changed = true
+            }
+            if records[i].expire(at: now) {
+                notifier.cancel(id: records[i].id)
+                changed = true
+            }
+        }
+        if changed { do { try save() } catch { reportStorageFailure() } }
     }
 
     private func restore() async {
@@ -209,7 +243,7 @@ import StreamLabPresentation
             guard storageHealthy, session.isActive, activeAccount == session.accountID,
                   !blockedAccounts.contains(session.accountID), let i = index(id) else { return false }
             return records[i].accountID == session.accountID && records[i].profileID == session.profile.id &&
-                records[i].state == .failed && tasks[id] == nil && !leases.values.contains(id)
+                (records[i].state == .failed || records[i].state == .expired) && tasks[id] == nil && !leases.values.contains(id)
         }
         guard eligible(), !retrying.contains(id), let original = records.first(where: { $0.id == id }) else { return }
         retrying.insert(id)
@@ -393,10 +427,11 @@ import StreamLabPresentation
     }
 
     func acquire(session: CatalogSession, titleID: String) -> (URL, UUID)? {
+        refreshExpiration()
         guard storageHealthy, session.isActive, activeAccount == session.accountID,
               !blockedAccounts.contains(session.accountID),
               let item = record(accountID: session.accountID, profileID: session.profile.id, titleID: titleID),
-              item.state == .complete, let url = localURL(item),
+              item.state == .complete, !item.isExpired(at: Date()), let url = localURL(item),
               AVURLAsset(url: url).assetCache?.isPlayableOffline == true, let i = index(item.id) else { return nil }
         records[i].lastUsed = Date()
         do { try save() } catch { reportStorageFailure(); return nil }
@@ -500,6 +535,7 @@ extension OfflineDownloadStore: AVAssetDownloadDelegate {
                 records[i].bytes = bytes
                 guard bytes > 0, bytes <= OfflineDownloadBudget.reservation else { throw CocoaError(.fileWriteOutOfSpace) }
                 records[i].bytes = bytes; records[i].state = .complete; records[i].message = nil
+                records[i].expiresAt = Date().addingTimeInterval(OfflineDownload.mockValidity)
                 try save()
                 if !completedWhilePaused { notifyCompletion(id) }
             } catch {

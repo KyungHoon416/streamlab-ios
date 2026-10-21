@@ -120,3 +120,22 @@ resume. Cancellation and logout use the existing durable removing tombstone and
 native cancellation callback for suspended tasks too. A completion already in flight
 can win a pause race; it is validated normally but no completion alert is sent when
 the recorded state at callback time was paused. Expiration remains separate work.
+
+## Mock expiration (2026-10-21)
+
+The assignment requires expiration but supplies no license server or validity period.
+Use an explicitly labelled seven-day Mock validity from successful completion. Store
+optional expiresAt for backward-compatible decoding; on first activation, completed
+legacy records receive one seven-day grace period which is saved, not reset on reopen.
+An expired state is sticky even if the local clock moves backward after expiration.
+This local-clock policy is a demo, not tamper-resistant DRM or a Netflix license rule.
+
+Check expiration at activation, every 30 seconds while execution is available, on
+library appearance/foreground, and synchronously at playback acquisition. Expired
+records expose no new playback, retain their files/quota, and cancel pending/delivered
+completion notices. Existing playback leases may finish; files cannot be removed or
+replaced while leased. Expiry does not forcibly interrupt an already authorized play.
+Pinned expired files remain protected from automatic eviction; unpinned expired files
+join LRU candidates. Retry re-fetches current-profile catalog authorization, cleans
+old files and creates a new attempt with a fresh validity only on completion. Actual
+DRM renewal, trusted server time and offline anti-tamper enforcement are out of scope.

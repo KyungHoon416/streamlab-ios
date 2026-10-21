@@ -37,6 +37,8 @@ import StreamLabDesignSystem
                 .fixedSize(horizontal: false, vertical: true)
 
                 storageSummary
+                Text("과제용 이용 기간: 저장 완료 후 7일. 만료 후에는 다시 다운로드해야 새로 재생할 수 있습니다. 실제 DRM 라이선스가 아닌 Mock 정책입니다.")
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 notificationSettings
                 #if DEBUG
                 if store.validationEnabled {
@@ -47,6 +49,12 @@ import StreamLabDesignSystem
                             .accessibilityIdentifier("download-validation-three")
                         Button("검증 상태 새로고침") { Task { await store.validationRefresh(accountID: session.accountID) } }
                             .accessibilityIdentifier("download-validation-refresh")
+                        Button("검증: 이용 기간 만료") { store.validationExpire(session: session) }
+                            .accessibilityIdentifier("download-validation-expire")
+                        Button("검증: 만료 파일 재생 시도") {
+                            guard let item = items.first(where: { $0.state == .expired }), playing == nil else { return }
+                            orientation.begin(); playing = item
+                        }.accessibilityIdentifier("download-validation-play-expired")
                         Button("검증: 전송 오류 발생") { store.validationInterruptTransfer() }
                             .accessibilityIdentifier("download-validation-interrupt")
                         Text(store.validationSnapshot).font(.caption)
@@ -97,9 +105,9 @@ import StreamLabDesignSystem
         .accessibilityIdentifier("downloads-scroll")
         .background(StreamLabTheme.background)
         .background(PlaybackPresenterScene(session: orientation).frame(width: 0, height: 0))
-        .task { await notifications.refresh() }
+        .task { store.refreshExpiration(); await notifications.refresh() }
         .onChange(of: phase) { _, value in
-            if value == .active { Task { await notifications.refresh() } }
+            if value == .active { store.refreshExpiration(); Task { await notifications.refresh() } }
         }
         .navigationTitle("다운로드")
         .navigationBarTitleDisplayMode(.inline)

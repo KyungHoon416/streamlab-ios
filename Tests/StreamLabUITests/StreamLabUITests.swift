@@ -126,6 +126,46 @@ import XCTest
         XCTAssertTrue(cleared.contains("notifications=0;"), cleared)
     }
 
+    func testHLSExpirationSurvivesRelaunchAndRedownloads() throws {
+        let app = try launchDownloadLifecycle()
+        tap(app.buttons["download-validation-one"], in: app)
+        let play = app.buttons["library-title-0001-play"]
+        app.scrollViews["downloads-scroll"].swipeUp()
+        XCTAssertTrue(play.waitForExistence(timeout: 180))
+        let expire = app.buttons["download-validation-expire"]
+        for _ in 0..<5 {
+            if expire.exists && expire.isHittable { break }
+            app.scrollViews["downloads-scroll"].swipeDown()
+        }
+        tap(expire, in: app)
+        let expired = app.staticTexts["library-title-0001-expired"]
+        revealDownloadElement(expired, in: app)
+        XCTAssertTrue(expired.waitForExistence(timeout: 10))
+        XCTAssertFalse(play.exists)
+        let attempt = app.buttons["download-validation-play-expired"]
+        for _ in 0..<5 {
+            if attempt.exists && attempt.isHittable { break }
+            app.scrollViews["downloads-scroll"].swipeDown()
+        }
+        tap(attempt, in: app)
+        let denied = app.alerts["영상을 불러올 수 없습니다"]
+        XCTAssertTrue(denied.waitForExistence(timeout: 15), "Expired content must be rejected by the actual playback gate")
+        tap(denied.buttons["취소"], in: app)
+        app.terminate()
+        app.launch()
+        choose("adult-a", in: app)
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        revealDownloadElement(expired, in: app)
+        XCTAssertTrue(expired.exists)
+        XCTAssertFalse(play.exists)
+        let retry = app.buttons["library-title-0001-retry"]
+        revealDownloadElement(retry, in: app)
+        tap(retry, in: app)
+        XCTAssertTrue(play.waitForExistence(timeout: 180))
+        XCTAssertFalse(expired.exists)
+        XCTAssertTrue(app.staticTexts["library-title-0001-expiry"].exists)
+    }
+
     private func downloadSnapshot(_ app: XCUIApplication) -> String {
         let status = app.staticTexts["download-validation-status"]
         let old = status.label
