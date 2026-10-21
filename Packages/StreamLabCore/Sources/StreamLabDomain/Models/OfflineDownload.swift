@@ -27,13 +27,43 @@ public enum OfflineDownloadBudget {
     public static let concurrentLimit = 2
     public enum Failure: Error { case invalidSize, insufficientSpace }
 
+    public struct Usage: Equatable, Sendable {
+        public let completedBytes: Int64
+        public let otherFileBytes: Int64
+        public let reservedBytes: Int64
+        public var chargedBytes: Int64 { completedBytes + otherFileBytes + reservedBytes }
+        public var remainingBytes: Int64 { max(0, capacity - chargedBytes) }
+        public var fraction: Double { min(1, Double(chargedBytes) / Double(capacity)) }
+    }
+
+    /// Same accounting as admission: queued jobs reserve nothing until started.
+    /// Reservations include only the extra allowance above already recorded bytes.
+    public static func usage(in records: [OfflineDownload]) throws -> Usage {
+        var completed: Int64 = 0, other: Int64 = 0, reserved: Int64 = 0, total: Int64 = 0
+        for record in records {
+            let charge = try chargedBytes(for: record)
+            let sum = total.addingReportingOverflow(charge)
+            guard !sum.overflow else { throw Failure.invalidSize }
+            total = sum.partialValue
+            if record.state == .complete { completed += record.bytes }
+            else { other += record.bytes }
+            reserved += charge - record.bytes
+        }
+        return Usage(completedBytes: completed, otherFileBytes: other, reservedBytes: reserved)
+    }
+
+    private static func chargedBytes(for record: OfflineDownload) throws -> Int64 {
+        guard record.bytes >= 0 else { throw Failure.invalidSize }
+        return (record.state == .downloading || record.state == .removing)
+            ? max(record.bytes, reservation) : record.bytes
+    }
+
     public static func evictions(in records: [OfflineDownload], required: Int64 = reservation,
                                  protected: Set<UUID> = []) throws -> [UUID] {
         guard required > 0, required <= capacity else { throw Failure.invalidSize }
         var used: Int64 = 0
         for record in records {
-            guard record.bytes >= 0 else { throw Failure.invalidSize }
-            let charge = (record.state == .downloading || record.state == .removing) ? max(record.bytes, reservation) : record.bytes
+            let charge = try chargedBytes(for: record)
             let sum = used.addingReportingOverflow(charge)
             guard !sum.overflow else { throw Failure.invalidSize }
             used = sum.partialValue

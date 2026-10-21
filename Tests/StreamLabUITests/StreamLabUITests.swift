@@ -378,6 +378,19 @@ import XCTest
         XCTAssertTrue(revealDetailElement(start, in: app))
     }
 
+    func testDownloadsStorageBudgetSummary() {
+        let app = launch()
+        choose("adult-a", in: app)
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        let remaining = app.staticTexts["downloads-storage-remaining"]
+        revealDownloadElement(remaining, in: app)
+        XCTAssertTrue(remaining.isHittable)
+        XCTAssertTrue(remaining.label.contains("남은 예산 1 GB"), remaining.label)
+        XCTAssertFalse(app.staticTexts["downloads-storage-guidance"].exists)
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "Download storage budget"; shot.lifetime = .keepAlways; add(shot)
+    }
+
     func testDownloadsLibraryEmptyAtMaximumTextSize() {
         let app = launch(largeText: true)
         choose("adult-a", in: app)
@@ -386,6 +399,10 @@ import XCTest
         XCTAssertTrue(app.staticTexts["downloads-profile"].isHittable)
         XCTAssertTrue(app.staticTexts["downloads-summary"].label.hasPrefix("0개"))
         XCTAssertFalse(app.buttons["library-title-0001-play"].exists)
+        let budget = app.staticTexts["downloads-storage-remaining"]
+        revealDownloadElement(budget, in: app)
+        XCTAssertTrue(budget.isHittable)
+        XCTAssertTrue(budget.label.contains("남은 예산"))
         let empty = app.descendants(matching: .any)["downloads-empty"]
         for _ in 0..<5 {
             if empty.exists && empty.isHittable { break }

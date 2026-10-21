@@ -1,3 +1,25 @@
+## 2026-10-21 — Download storage budget visibility
+
+- User confirmed offline/reconnected banners during physical-device downloads and playback.
+- Downloads now shows global managed budget: completed files, other recorded files,
+  additional active/removing reservations, remaining budget and usage bar. Profile
+  list/summary remain scoped; aggregate storage reveals no other profile titles.
+- Accounting shares the admission charge helper; queued work is not reserved yet,
+  failed leftovers count, active/removing files are not double counted. Invalid or
+  overflowing metadata produces unavailable UI instead of apparent free space.
+- Below 500MB remaining, explain automatic unpinned LRU cleanup and manual unpin/delete.
+  The 1GB budget is explicitly distinguished from physical device free capacity.
+- Core: **16 PASS**, exit 0 (5 new usage cases + 11 existing budget/path cases),
+  `/private/tmp/streamlab-storage-core.log`.
+- UI: **2 PASS, 0 failures, 45.294 s**, exit 0 (summary + maximum text size),
+  `/private/tmp/streamlab-storage-ui.log`,
+  `Test-StreamLab-2026.10.21_11-52-45-+0900.xcresult`. Summary screenshot inspected.
+- Generic iOS Release build with warnings as errors PASS, exit 0,
+  `/private/tmp/streamlab-storage-release.log`. Structure, shell syntax, diff checks PASS.
+- Actual low-disk stress and full regression were not run. This change does not
+  introduce SwiftData, change the 1GB limit or modify the download admission policy.
+- Reproduce: `scripts/check-download-storage-mac.sh`.
+
 ## 2026-10-21 — Offline banners in catalog/downloads and playback
 
 - Enabled offline notices throughout the signed-in root and full-screen player.

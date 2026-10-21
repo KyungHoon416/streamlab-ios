@@ -36,6 +36,7 @@ import StreamLabDesignSystem
                 }
                 .fixedSize(horizontal: false, vertical: true)
 
+                storageSummary
                 notificationSettings
                 #if DEBUG
                 if store.validationEnabled {
@@ -108,6 +109,37 @@ import StreamLabDesignSystem
                 .id("\(session.id.uuidString):\(item.id.uuidString)")
         }
     }
+    @ViewBuilder private var storageSummary: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("기기 전체 다운로드 예산").font(.headline)
+            if let usage = try? OfflineDownloadBudget.usage(in: store.records) {
+                ProgressView(value: usage.fraction)
+                    .accessibilityLabel("다운로드 예산 사용량")
+                    .accessibilityValue("\(Int(usage.fraction * 100))퍼센트")
+                Text("저장 완료 \(size(usage.completedBytes)) · 기타 파일 \(size(usage.otherFileBytes))")
+                Text("전송 예약 \(size(usage.reservedBytes)) · 남은 예산 \(size(usage.remainingBytes))")
+                    .accessibilityIdentifier("downloads-storage-remaining")
+                if usage.remainingBytes < OfflineDownloadBudget.reservation {
+                    Text("새 다운로드를 시작할 때 고정하지 않은 오래된 파일이 자동 정리될 수 있습니다. 공간이 부족하면 고정을 해제하거나 필요 없는 파일을 삭제해 주세요.")
+                        .accessibilityIdentifier("downloads-storage-guidance")
+                }
+            } else {
+                Text("저장량을 확인할 수 없습니다. 앱을 다시 실행해 주세요.")
+            }
+            Text("모든 프로필 합계 · 한도 1GB. 전송 중인 작업은 작업당 최소 500MB를 예약합니다. 기기의 실제 여유 공간과 다르며, 파일 크기는 완료 후 반영됩니다.")
+                .foregroundStyle(.secondary)
+        }
+        .font(.caption).fixedSize(horizontal: false, vertical: true)
+        .padding(16).frame(maxWidth: .infinity, alignment: .leading)
+        .background(StreamLabTheme.surface, in: RoundedRectangle(cornerRadius: 16))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("downloads-storage")
+    }
+
+    private func size(_ bytes: Int64) -> String {
+        ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+    }
+
     @ViewBuilder private var notificationSettings: some View {
         VStack(alignment: .leading, spacing: 8) {
             switch notifications.permission {
