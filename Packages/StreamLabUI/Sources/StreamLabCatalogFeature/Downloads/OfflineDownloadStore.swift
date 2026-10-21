@@ -22,6 +22,11 @@ import StreamLabPresentation
     private var validationPaths: Set<URL> = []
     private var validationStarted: Set<UUID> = []
     private var validationPeak = 0
+    @Published private(set) var validationLowDisk = false
+    func validationToggleLowDisk() {
+        guard validationEnabled else { return }
+        validationLowDisk.toggle()
+    }
 
     // Opt-in observation only: uses real OS tasks, journal and package paths.
     var validationEnabled: Bool {
@@ -311,16 +316,28 @@ import StreamLabPresentation
         return records[i].accountID == session.accountID && records[i].profileID == session.profile.id
     }
 
+    private func availableDiskCapacity() throws -> Int64 {
+        #if DEBUG
+        if validationEnabled && validationLowDisk { return 0 }
+        #endif
+        guard let value = try home.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
+            .volumeAvailableCapacityForImportantUsage, value >= 0 else { throw CocoaError(.fileReadUnknown) }
+        return value
+    }
+
     private func pump() {
         guard storageHealthy, restored, let activeAccount, !blockedAccounts.contains(activeAccount) else { return }
         while records.filter({ $0.state == .downloading || $0.state == .paused || $0.state == .removing }).count < OfflineDownloadBudget.concurrentLimit,
               let id = records.first(where: { $0.state == .queued && $0.accountID == activeAccount })?.id {
             do {
-                let evictions = try OfflineDownloadBudget.evictions(in: records, protected: Set(leases.values))
+                let requiredFree = OfflineDownloadBudget.reservation + 50_000_000
+                let available = try availableDiskCapacity()
+                // Plan the entire reclaim first. If protected files prevent enough
+                // space, fail without deleting an insufficient subset of files.
+                let evictions = try OfflineDownloadBudget.evictions(in: records, protected: Set(leases.values),
+                    minimumReclaim: max(0, requiredFree - available))
                 for victim in evictions { try remove(victim, schedule: false) }
-                let capacity = try home.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
-                    .volumeAvailableCapacityForImportantUsage
-                guard let capacity, capacity >= OfflineDownloadBudget.reservation + 50_000_000 else {
+                guard try availableDiskCapacity() >= requiredFree else {
                     throw CocoaError(.fileWriteOutOfSpace)
                 }
                 guard let i = index(id), let url = PlaybackModel.Source.hls.url else { return }

@@ -1,3 +1,27 @@
+## 2026-10-21 — Physical capacity admission and protected-file recovery
+
+- User confirmed expiration on a physical device.
+- Fixed admission reclaim planning: consider both the 1GB app budget and actual
+  device capacity. Select complete/expired unpinned, unleased files by LRU. If the
+  full reclaim target cannot be met, fail before deleting any candidate. Recheck
+  actual disk capacity after removal before creating a native task.
+- Added opt-in DEBUG zero-capacity switch for admission only; real native HLS
+  downloads and files remain in use. Disabled in Release and reset on process restart.
+- Core 25 tests PASS (4 disk pressure + 21 budget/usage/expiry), strict concurrency
+  and warnings-as-errors: `/private/tmp/streamlab-low-disk-core.log`.
+- Actual HLS integration 1 PASS, 62.394 seconds, exit 0:
+  `/private/tmp/streamlab-low-disk-ui.log`,
+  `Test-StreamLab-2026.10.21_16-50-02-+0900.xcresult`.
+  Download/pin -> inject zero admission capacity -> two new items fail with no new
+  native tasks -> pinned package remains -> clear injection -> retry completes;
+  pinned package still present. Teardown logs out.
+- Generic iOS Release warnings-as-errors build PASS, exit 0:
+  `/private/tmp/streamlab-low-disk-release.log`. Structure/shell syntax/diff checks PASS.
+- Added `scripts/check-download-disk-pressure-mac.sh` and physical walkthrough in QA.
+- NOT TESTED: physical disk exhaustion, actual mid-write ENOSPC, combined two-active
+  transfers plus OS disk exhaustion (full F06), or full regression. LRU selection is
+  unit-tested; UI integration exercises insufficient-candidate protection/recovery.
+
 ## 2026-10-21 — 다운로드 만료 처리
 
 - 사용자 실기기 확인: 일시정지→백그라운드→재개→완료 정상.

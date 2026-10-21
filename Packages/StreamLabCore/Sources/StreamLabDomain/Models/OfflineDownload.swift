@@ -69,8 +69,8 @@ public enum OfflineDownloadBudget {
     }
 
     public static func evictions(in records: [OfflineDownload], required: Int64 = reservation,
-                                 protected: Set<UUID> = []) throws -> [UUID] {
-        guard required > 0, required <= capacity else { throw Failure.invalidSize }
+                                 protected: Set<UUID> = [], minimumReclaim: Int64 = 0) throws -> [UUID] {
+        guard required > 0, required <= capacity, minimumReclaim >= 0 else { throw Failure.invalidSize }
         var used: Int64 = 0
         for record in records {
             let charge = try chargedBytes(for: record)
@@ -81,10 +81,11 @@ public enum OfflineDownloadBudget {
         let candidates = records.filter { ($0.state == .complete || $0.state == .expired) && !$0.pinned && !protected.contains($0.id) }
             .sorted { $0.lastUsed == $1.lastUsed ? $0.id.uuidString < $1.id.uuidString : $0.lastUsed < $1.lastUsed }
         var selected: [UUID] = []
-        for item in candidates where used > capacity - required {
-            used -= item.bytes; selected.append(item.id)
+        var reclaimed: Int64 = 0
+        for item in candidates where used > capacity - required || reclaimed < minimumReclaim {
+            used -= item.bytes; reclaimed += item.bytes; selected.append(item.id)
         }
-        guard used <= capacity - required else { throw Failure.insufficientSpace }
+        guard used <= capacity - required, reclaimed >= minimumReclaim else { throw Failure.insufficientSpace }
         return selected
     }
 

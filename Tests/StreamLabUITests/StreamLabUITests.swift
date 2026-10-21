@@ -166,6 +166,40 @@ import XCTest
         XCTAssertTrue(app.staticTexts["library-title-0001-expiry"].exists)
     }
 
+    func testHLSDiskPressureProtectsPinnedAndRetryRecovers() throws {
+        let app = try launchDownloadLifecycle()
+        tap(app.buttons["download-validation-one"], in: app)
+        let firstPlay = app.buttons["library-title-0001-play"]
+        app.scrollViews["downloads-scroll"].swipeUp()
+        XCTAssertTrue(firstPlay.waitForExistence(timeout: 180))
+        let pin = app.buttons["library-title-0001-pin"]
+        revealDownloadElement(pin, in: app)
+        tap(pin, in: app)
+        XCTAssertTrue(pin.label.contains("고정 해제"))
+        _ = downloadSnapshot(app)
+        let pressure = app.buttons["download-validation-low-disk"]
+        tap(pressure, in: app)
+        tap(app.buttons["download-validation-three"], in: app)
+        let secondRetry = app.buttons["library-title-0002-retry"]
+        XCTAssertTrue(secondRetry.waitForExistence(timeout: 20))
+        XCTAssertTrue(app.buttons["library-title-0003-retry"].waitForExistence(timeout: 20))
+        let blocked = downloadSnapshot(app)
+        XCTAssertTrue(blocked.contains("native=0;active=0;queued=0;complete=1;records=3;"), blocked)
+        XCTAssertTrue(blocked.contains("files=1;"), blocked)
+        XCTAssertTrue(blocked.contains("started=1;"), blocked)
+        XCTAssertTrue(firstPlay.exists)
+        XCTAssertTrue(pin.label.contains("고정 해제"))
+        tap(pressure, in: app)
+        revealDownloadElement(secondRetry, in: app)
+        tap(secondRetry, in: app)
+        XCTAssertTrue(app.buttons["library-title-0002-play"].waitForExistence(timeout: 180))
+        let recovered = downloadSnapshot(app)
+        XCTAssertTrue(recovered.contains("complete=2;records=3;"), recovered)
+        XCTAssertTrue(recovered.contains("started=2;"), recovered)
+        XCTAssertTrue(firstPlay.exists)
+        XCTAssertTrue(pin.label.contains("고정 해제"))
+    }
+
     private func downloadSnapshot(_ app: XCUIApplication) -> String {
         let status = app.staticTexts["download-validation-status"]
         let old = status.label

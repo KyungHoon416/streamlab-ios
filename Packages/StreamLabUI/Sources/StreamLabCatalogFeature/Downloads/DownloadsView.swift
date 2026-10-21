@@ -49,6 +49,10 @@ import StreamLabDesignSystem
                             .accessibilityIdentifier("download-validation-three")
                         Button("검증 상태 새로고침") { Task { await store.validationRefresh(accountID: session.accountID) } }
                             .accessibilityIdentifier("download-validation-refresh")
+                        Button(store.validationLowDisk ? "검증: 공간 부족 해제" : "검증: 공간 부족 재현") {
+                            store.validationToggleLowDisk()
+                        }.accessibilityIdentifier("download-validation-low-disk")
+                            .accessibilityValue(store.validationLowDisk ? "켜짐" : "꺼짐")
                         Button("검증: 이용 기간 만료") { store.validationExpire(session: session) }
                             .accessibilityIdentifier("download-validation-expire")
                         Button("검증: 만료 파일 재생 시도") {
