@@ -92,11 +92,11 @@ import StreamLabDesignSystem
                 Text(item.state == .expired ? "파일은 삭제할 때까지 저장 공간을 사용합니다." : (item.message ?? "다운로드를 완료하지 못했습니다."))
                     .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("\(idPrefix)-failed")
                 Button { Task { await store.retry(item.id, session: session) } } label: {
-                    Label(store.retrying.contains(item.id) ? "다시 다운로드 준비 중…" : "다시 다운로드", systemImage: "arrow.clockwise")
+                    Label(store.cleaning.contains(item.id) ? "임시 파일 정리 중…" : (store.retrying.contains(item.id) ? "다시 다운로드 준비 중…" : "다시 다운로드"), systemImage: "arrow.clockwise")
                         .fixedSize(horizontal: false, vertical: true).frame(minHeight: 44)
                 }
                 .buttonStyle(.bordered)
-                .disabled(store.retrying.contains(item.id) || !session.isActive)
+                .disabled(store.cleaning.contains(item.id) || store.retrying.contains(item.id) || !session.isActive)
                 .accessibilityIdentifier("\(idPrefix)-retry")
             }
             Button(role: .destructive) { store.delete(item.id) } label: {

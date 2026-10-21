@@ -27,13 +27,14 @@ import XCTest
         XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("1화"))
     }
 
-    private func launchDownloadLifecycle(slow: Bool = false) throws -> XCUIApplication {
+    private func launchDownloadLifecycle(slow: Bool = false, transferPressure: Bool = false) throws -> XCUIApplication {
         try XCTSkipUnless(ProcessInfo.processInfo.environment["STREAMLAB_TEST_DOWNLOADS"] == "1",
                           "Requires real external HLS transfers; run the download lifecycle gate.")
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=download-lifecycle-\(UUID())",
                                "--ui-test-download-lifecycle", "--ui-test-disable-resume"]
         if slow { app.launchArguments.append("--ui-test-slow-catalog") }
+        if transferPressure { app.launchArguments.append("--ui-test-transfer-pressure") }
         app.launch()
         choose("adult-a", in: app)
         tap(app.tabBars.buttons["다운로드"], in: app)
@@ -164,6 +165,40 @@ import XCTest
         XCTAssertTrue(play.waitForExistence(timeout: 180))
         XCTAssertFalse(expired.exists)
         XCTAssertTrue(app.staticTexts["library-title-0001-expiry"].exists)
+    }
+
+    func testHLSTransferDiskPressureCleansConcurrentTasksAndRecovers() throws {
+        let app = try launchDownloadLifecycle(transferPressure: true)
+        tap(app.buttons["download-validation-three"], in: app)
+        let firstRetry = app.buttons["library-title-0001-retry"]
+        // Rows are lazy and may be below the viewport; wait for native cleanup,
+        // then scroll to each user-facing failure message.
+        let stopped = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            let state = self.downloadSnapshot(app)
+            return state.contains("native=0;active=0;queued=0;complete=0;records=3;") && state.contains("cleaning=0")
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [stopped], timeout: 120), .completed)
+        let blocked = downloadSnapshot(app)
+        XCTAssertTrue(blocked.contains("native=0;active=0;queued=0;complete=0;records=3;"), blocked)
+        XCTAssertTrue(blocked.contains("files=0;"), blocked)
+        XCTAssertTrue(blocked.contains("started=2;"), blocked)
+        XCTAssertTrue(blocked.contains("peak=2;"), blocked)
+        XCTAssertTrue(blocked.contains("notifications=0;"), blocked)
+        XCTAssertTrue(blocked.contains("disk=3;"), blocked)
+        for number in [1, 2] {
+            let message = app.staticTexts[String(format: "library-title-%04d-failed", number)]
+            revealDownloadElement(message, in: app)
+            XCTAssertTrue(message.label.contains("기기 저장 공간이 부족해"), message.label)
+        }
+        _ = downloadSnapshot(app)
+        tap(app.buttons["download-validation-low-disk"], in: app)
+        revealDownloadElement(firstRetry, in: app)
+        tap(firstRetry, in: app)
+        XCTAssertTrue(app.buttons["library-title-0001-play"].waitForExistence(timeout: 180))
+        let recovered = downloadSnapshot(app)
+        XCTAssertTrue(recovered.contains("complete=1;records=3;"), recovered)
+        XCTAssertTrue(recovered.contains("started=3;"), recovered)
+        XCTAssertTrue(recovered.contains("native=0;active=0;queued=0;"), recovered)
     }
 
     func testHLSDiskPressureProtectsPinnedAndRetryRecovers() throws {

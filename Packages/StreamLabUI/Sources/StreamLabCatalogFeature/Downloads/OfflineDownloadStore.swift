@@ -13,6 +13,7 @@ import StreamLabPresentation
     @Published private(set) var progress: [UUID: Double] = [:]
     @Published private(set) var errorMessage: String?
     @Published private(set) var retrying: Set<UUID> = []
+    @Published private(set) var cleaning: Set<UUID> = []
     private struct Snapshot: Codable {
         var records: [OfflineDownload] = []
         var blockedAccounts: Set<String> = []
@@ -22,10 +23,23 @@ import StreamLabPresentation
     private var validationPaths: Set<URL> = []
     private var validationStarted: Set<UUID> = []
     private var validationPeak = 0
+    private var validationInjectedTransferPressure = false
     @Published private(set) var validationLowDisk = false
     func validationToggleLowDisk() {
         guard validationEnabled else { return }
         validationLowDisk.toggle()
+    }
+
+    private func validationApplyTransferPressureIfReady() {
+        guard validationEnabled,
+              ProcessInfo.processInfo.arguments.contains("--ui-test-transfer-pressure"),
+              !validationInjectedTransferPressure, tasks.count == 2,
+              records.filter({ tasks[$0.id] != nil && $0.relativePath != nil }).count == 2 else { return }
+        validationInjectedTransferPressure = true
+        validationLowDisk = true
+        // Both native transfers have received package destinations. Inject only the
+        // capacity reading; cancellation, callbacks and file cleanup remain real.
+        for id in Array(tasks.keys) { checkTransferCapacity(id) }
     }
 
     // Opt-in observation only: uses real OS tasks, journal and package paths.
@@ -64,7 +78,7 @@ import StreamLabPresentation
         let notificationIDs = await DownloadNotifications.shared.identifiers()
         let notificationCount = notificationIDs.filter { $0.hasPrefix(DownloadCompletionNotifier.prefix) }.count
         let files = validationPaths.filter { FileManager.default.fileExists(atPath: $0.path) }.count
-        validationSnapshot = "native=\(native.count);active=\(owned.filter { $0.state == .downloading }.count);queued=\(owned.filter { $0.state == .queued }.count);complete=\(owned.filter { $0.state == .complete }.count);records=\(owned.count);disk=\(disk?.records.filter { $0.accountID == accountID }.count ?? -1);files=\(files);peak=\(validationPeak);started=\(validationStarted.count);notifications=\(notificationCount);attempt=\(owned.first?.id.uuidString ?? "none");paused=\(owned.filter { $0.state == .paused }.count);suspended=\(native.filter { $0.state == .suspended }.count)"
+        validationSnapshot = "native=\(native.count);active=\(owned.filter { $0.state == .downloading }.count);queued=\(owned.filter { $0.state == .queued }.count);complete=\(owned.filter { $0.state == .complete }.count);records=\(owned.count);disk=\(disk?.records.filter { $0.accountID == accountID }.count ?? -1);files=\(files);peak=\(validationPeak);started=\(validationStarted.count);notifications=\(notificationCount);attempt=\(owned.first?.id.uuidString ?? "none");paused=\(owned.filter { $0.state == .paused }.count);suspended=\(native.filter { $0.state == .suspended }.count);cleaning=\(cleaning.count)"
     }
     #endif
     private var blockedAccounts: Set<String> = []
@@ -186,6 +200,8 @@ import StreamLabPresentation
             tasks[id] = task; observe(task, id: id)
             if records[i].state == .removing || blockedAccounts.contains(records[i].accountID) {
                 records[i].state = .removing; task.cancel()
+            } else if records[i].message != nil {
+                task.cancel() // A persisted protective stop must never resume after relaunch.
             } else if records[i].state == .paused {
                 if task.state == .running { task.suspend() }
             } else if task.state == .suspended {
@@ -195,7 +211,7 @@ import StreamLabPresentation
         }
         for i in records.indices {
             if (records[i].state == .downloading || records[i].state == .paused) && tasks[records[i].id] == nil {
-                records[i].state = .failed; records[i].message = "중단된 다운로드입니다. 다시 다운로드해 주세요."
+                records[i].state = .failed; records[i].message = records[i].message ?? "중단된 다운로드입니다. 다시 다운로드해 주세요."
                 if let url = localURL(records[i]), FileManager.default.fileExists(atPath: url.path) {
                     records[i].bytes = (try? allocatedBytes(url)) ?? OfflineDownloadBudget.reservation
                 }
@@ -215,6 +231,9 @@ import StreamLabPresentation
                 }
                 errorMessage = "중단된 다운로드 파일을 정리하지 못했습니다."
             }
+        }
+        for record in records where record.state == .failed && record.relativePath != nil {
+            scheduleFailureCleanup(record.id)
         }
         restored = true; restoring = false
         do { try save(); pump() } catch { reportStorageFailure() }
@@ -248,7 +267,7 @@ import StreamLabPresentation
             guard storageHealthy, session.isActive, activeAccount == session.accountID,
                   !blockedAccounts.contains(session.accountID), let i = index(id) else { return false }
             return records[i].accountID == session.accountID && records[i].profileID == session.profile.id &&
-                (records[i].state == .failed || records[i].state == .expired) && tasks[id] == nil && !leases.values.contains(id)
+                (records[i].state == .failed || records[i].state == .expired) && tasks[id] == nil && !cleaning.contains(id) && !leases.values.contains(id)
         }
         guard eligible(), !retrying.contains(id), let original = records.first(where: { $0.id == id }) else { return }
         retrying.insert(id)
@@ -299,8 +318,7 @@ import StreamLabPresentation
     func resume(_ id: UUID, session: CatalogSession) {
         guard owns(id, session: session), let i = index(id), records[i].state == .paused,
               let task = tasks[id], task.state == .suspended else { return }
-        guard let available = try? home.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
-            .volumeAvailableCapacityForImportantUsage, available >= 50_000_000 else {
+        guard let available = try? availableDiskCapacity(), available >= 50_000_000 else {
             errorMessage = "기기 저장 공간이 부족해 재개할 수 없습니다. 공간을 확보한 뒤 다시 눌러 주세요."
             return
         }
@@ -326,7 +344,7 @@ import StreamLabPresentation
     }
 
     private func pump() {
-        guard storageHealthy, restored, let activeAccount, !blockedAccounts.contains(activeAccount) else { return }
+        guard storageHealthy, restored, cleaning.isEmpty, let activeAccount, !blockedAccounts.contains(activeAccount) else { return }
         while records.filter({ $0.state == .downloading || $0.state == .paused || $0.state == .removing }).count < OfflineDownloadBudget.concurrentLimit,
               let id = records.first(where: { $0.state == .queued && $0.accountID == activeAccount })?.id {
             do {
@@ -370,16 +388,67 @@ import StreamLabPresentation
             Task { @MainActor [weak self] in
                 guard let self, let i = self.index(id), self.records[i].state == .downloading else { return }
                 self.progress[id] = fraction.isFinite ? min(1, max(0, fraction)) : 0
-                if received > OfflineDownloadBudget.reservation { NSLog("Offline HLS exceeded reservation"); self.tasks[id]?.cancel() }
+                #if DEBUG
+                self.validationApplyTransferPressureIfReady()
+                #endif
+                if received > OfflineDownloadBudget.reservation {
+                    self.stopTransfer(id, message: OfflineDownloadFailure.reservationExceeded)
+                }
                 if Date().timeIntervalSince(self.lastDiskCheck[id] ?? .distantPast) >= 2 {
                     self.lastDiskCheck[id] = Date()
-                    if let capacity = try? self.home.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
-                        .volumeAvailableCapacityForImportantUsage, capacity < 50_000_000 {
-                        NSLog("Offline HLS low disk capacity: %lld", capacity)
-                        self.tasks[id]?.cancel()
-                    }
+                    self.checkTransferCapacity(id)
                 }
             }
+        }
+    }
+
+    private func checkTransferCapacity(_ id: UUID) {
+        // A failed capacity query is not evidence of exhaustion. OS completion errors
+        // are classified separately, including when the app is suspended.
+        if let capacity = try? availableDiskCapacity(), capacity < 50_000_000 {
+            stopTransfer(id, message: OfflineDownloadFailure.insufficientSpace)
+        }
+    }
+
+    private func stopTransfer(_ id: UUID, message: String) {
+        guard let i = index(id), records[i].state == .downloading,
+              let task = tasks[id], records[i].message == nil else { return }
+        // Keep the slot and reservation until the native completion callback has
+        // removed partial files. Persist the cause before cancellation can report -999.
+        records[i].message = message
+        do { try save() } catch { reportStorageFailure() }
+        notifier.cancel(id: id)
+        task.cancel()
+    }
+
+    private func scheduleFailureCleanup(_ id: UUID) {
+        guard let i = index(id), records[i].state == .failed,
+              let path = records[i].relativePath, !cleaning.contains(id) else { return }
+        cleaning.insert(id)
+        Task { [weak self] in
+            guard let self else { return }
+            defer {
+                self.cleaning.remove(id)
+                self.pump()
+                self.finishBackgroundEventsIfReady()
+            }
+            // Cancellation completion can race with native package creation. Recheck
+            // after the callback; retain the path for another reconciliation on launch.
+            for _ in 0..<3 {
+                do { try await Task.sleep(for: .seconds(1)) } catch { return }
+                guard self.storageHealthy, let i = self.index(id), self.records[i].state == .failed,
+                      self.records[i].relativePath == path, self.tasks[id] == nil,
+                      let url = self.localURL(self.records[i]) else { return }
+                if FileManager.default.fileExists(atPath: url.path) {
+                    do { try FileManager.default.removeItem(at: url) }
+                    catch { self.records[i].bytes = max(self.records[i].bytes, (try? self.allocatedBytes(url)) ?? OfflineDownloadBudget.reservation) }
+                }
+            }
+            guard let i = self.index(id), self.records[i].state == .failed,
+                  self.records[i].relativePath == path, let url = self.localURL(self.records[i]) else { return }
+            self.records[i].bytes = FileManager.default.fileExists(atPath: url.path)
+                ? ((try? self.allocatedBytes(url)) ?? OfflineDownloadBudget.reservation) : 0
+            do { try self.save() } catch { self.reportStorageFailure() }
         }
     }
 
@@ -472,7 +541,7 @@ import StreamLabPresentation
         }
     }
     private func finishBackgroundEventsIfReady() {
-        guard restored, !restoring, backgroundEventsFinished, notificationWork == 0, let completion = backgroundCompletion else { return }
+        guard restored, !restoring, backgroundEventsFinished, notificationWork == 0, cleaning.isEmpty, let completion = backgroundCompletion else { return }
         backgroundCompletion = nil
         backgroundEventsFinished = false
         completion()
@@ -521,6 +590,9 @@ extension OfflineDownloadStore: AVAssetDownloadDelegate {
             #endif
             records[i].relativePath = relative
             do { try save() } catch { assetDownloadTask.cancel(); reportStorageFailure() }
+            #if DEBUG
+            validationApplyTransferPressureIfReady()
+            #endif
             if records[i].state == .removing || blockedAccounts.contains(records[i].accountID) { assetDownloadTask.cancel() }
         }
     }
@@ -530,7 +602,9 @@ extension OfflineDownloadStore: AVAssetDownloadDelegate {
             guard let text = task.taskDescription, let id = UUID(uuidString: text), let i = index(id) else { return }
             if let error = error as NSError? { NSLog("Offline HLS transfer failed: %@ %ld", error.domain, error.code) }
             let completedWhilePaused = records[i].state == .paused
-            tasks[id] = nil; observations[id] = nil; progress[id] = nil
+            let stopMessage = records[i].message
+            let transferError = error
+            tasks[id] = nil; observations[id] = nil; progress[id] = nil; lastDiskCheck[id] = nil
             guard storageHealthy else { return }
             if records[i].state == .removing || blockedAccounts.contains(records[i].accountID) {
                 do { try remove(id) } catch {
@@ -544,7 +618,7 @@ extension OfflineDownloadStore: AVAssetDownloadDelegate {
                 return
             }
             do {
-                guard !blockedAccounts.contains(records[i].accountID), error == nil,
+                guard !blockedAccounts.contains(records[i].accountID), transferError == nil, stopMessage == nil,
                       let url = localURL(records[i]), AVURLAsset(url: url).assetCache?.isPlayableOffline == true else {
                     throw CocoaError(.fileReadUnknown)
                 }
@@ -557,14 +631,12 @@ extension OfflineDownloadStore: AVAssetDownloadDelegate {
                 if !completedWhilePaused { notifyCompletion(id) }
             } catch {
                 records[i].state = .failed
-                records[i].message = "다운로드를 완료하지 못했습니다. Wi-Fi와 저장 공간을 확인한 뒤 다시 다운로드해 주세요."
-                if let url = localURL(records[i]), FileManager.default.fileExists(atPath: url.path) {
-                    do {
-                        try FileManager.default.removeItem(at: url)
-                        records[i].relativePath = nil; records[i].bytes = 0
-                    } catch { records[i].bytes = max(records[i].bytes, (try? allocatedBytes(url)) ?? OfflineDownloadBudget.reservation) }
-                }
+                records[i].message = stopMessage ?? OfflineDownloadFailure.message(for: transferError ?? error)
+                // Keep the path and reservation while the OS finishes writing its
+                // package. A late-created file must remain tracked across relaunch.
+                records[i].bytes = records[i].relativePath == nil ? 0 : max(records[i].bytes, OfflineDownloadBudget.reservation)
                 do { try save() } catch { reportStorageFailure() }
+                scheduleFailureCleanup(id)
             }
             pump()
         }
