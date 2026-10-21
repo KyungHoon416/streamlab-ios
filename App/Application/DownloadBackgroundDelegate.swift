@@ -12,10 +12,16 @@ import StreamLabCatalogFeature
     }
 
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter,
-                                            didReceive response: UNNotificationResponse) async {
-        guard response.actionIdentifier == UNNotificationDefaultActionIdentifier else { return }
+                                            didReceive response: UNNotificationResponse,
+                                            withCompletionHandler completionHandler: @escaping @Sendable () -> Void) {
+        let shouldOpen = response.actionIdentifier == UNNotificationDefaultActionIdentifier
         let identifier = response.notification.request.identifier
-        await MainActor.run { DownloadNotificationNavigation.shared.receive(identifier) }
+        // UIKit's response completion also requires the main thread. An async
+        // delegate bridge can finish off-main even after a MainActor.run block.
+        DispatchQueue.main.async {
+            if shouldOpen { DownloadNotificationNavigation.shared.receive(identifier) }
+            completionHandler()
+        }
     }
 
     func application(_ application: UIApplication, handleEventsForBackgroundURLSession identifier: String,
@@ -38,6 +44,16 @@ import StreamLabCatalogFeature
     func clear() { request = nil }
 
     #if DEBUG
+    func scheduleSystemTestNotification() async {
+        let content = UNMutableNotificationContent()
+        content.title = "StreamLab 알림 이동 검증"
+        content.body = "실제 시스템 알림을 눌러 다운로드 목록 이동을 확인합니다."
+        content.sound = .default
+        let request = UNNotificationRequest(identifier: DownloadCompletionNotifier.prefix + UUID().uuidString,
+            content: content, trigger: UNTimeIntervalNotificationTrigger(timeInterval: 20, repeats: false))
+        do { try await UNUserNotificationCenter.current().add(request) }
+        catch { assertionFailure("Unable to schedule test notification") }
+    }
     func simulateTap() { receive(DownloadCompletionNotifier.prefix + UUID().uuidString) }
     #endif
 }

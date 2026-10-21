@@ -378,6 +378,29 @@ import XCTest
         XCTAssertTrue(revealDetailElement(start, in: app))
     }
 
+    func testSystemNotificationTapFromBackgroundDetailDoesNotCrash() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=system-notification-\(UUID())",
+                               "--ui-test-system-notification"]
+        app.launch()
+        choose("adult-a", in: app)
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        enableDownloadNotifications(app)
+        tap(app.tabBars.buttons["홈"], in: app)
+        tap(app.buttons["download-system-notification-test"], in: app)
+        openHomeDetail(app)
+        XCUIDevice.shared.press(.home)
+        XCTAssertTrue(app.wait(for: .runningBackground, timeout: 10))
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        let notification = springboard.staticTexts["StreamLab 알림 이동 검증"].firstMatch
+        XCTAssertTrue(notification.waitForExistence(timeout: 30), "Requires a real OS notification banner")
+        notification.tap()
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
+        XCTAssertTrue(app.staticTexts["downloads-profile"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.tabBars.buttons["다운로드"].isSelected)
+        XCTAssertFalse(app.buttons["playback-open"].exists)
+    }
+
     func testDownloadNotificationReturnsFromBackgroundDetailToLibrary() {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=notification-background-detail-\(UUID())",

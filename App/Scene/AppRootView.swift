@@ -176,6 +176,12 @@ import StreamLabDesignSystem
                 .accessibilityIdentifier("account-logout")
         }
         #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--ui-test-system-notification") {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("알림 예약") { Task { await notificationNavigation.scheduleSystemTestNotification() } }
+                    .accessibilityIdentifier("download-system-notification-test")
+            }
+        }
         if ProcessInfo.processInfo.arguments.contains("--ui-test-download-notification-tap") {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("알림 검증") { notificationNavigation.simulateTap() }

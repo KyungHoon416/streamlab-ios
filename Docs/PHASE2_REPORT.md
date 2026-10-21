@@ -1,3 +1,27 @@
+## 2026-10-21 — Main-thread notification response completion crash
+
+- User device crash after notification tap: NSInternalInconsistencyException,
+  "Call must be made on main thread", UIKit application transaction completion.
+- Replaced async UNUserNotificationCenter response delegate with explicit completion
+  handler. Route mutation AND completion now execute in DispatchQueue.main.async,
+  including ignored actions. The previous MainActor.run protected only route mutation,
+  not the async bridge's completion executor. Prior injected route tests missed this.
+- Real system interaction: scheduled a DEBUG-only local notification with the real
+  completion identifier format, entered Detail, backgrounded the app, tapped the
+  SpringBoard notification banner, verified runningForeground + Downloads selected +
+  no detail playback button. **1 PASS, 57.950 s**, exit 0.
+  `/private/tmp/streamlab-system-notification-fix-final.log`,
+  `Test-StreamLab-2026.10.21_13-39-13-+0900.xcresult`.
+- First test run failed before delivery because the test scheduling button was only
+  on Home, not Detail. Schedule before detail entry and allow 20 seconds for navigation.
+- iOS Release build with warnings as errors PASS, exit 0:
+  `/private/tmp/streamlab-system-notification-release.log`. Structure/syntax/diff PASS.
+- This test taps an actual OS local notification but does not download HLS for its
+  trigger. Physical iPhone crash resolution still requires user recheck. Existing
+  three route tests passed in the previous change; not rerun in this focused run.
+- `scripts/check-download-notification-route-mac.sh` now requires the OS tap plus
+  all three routing regressions. Test notification controls are absent from Release.
+
 ## 2026-10-21 — Notification return from background detail
 
 - User reported completion notification reopening the previous detail instead of Downloads.
