@@ -93,6 +93,10 @@ public struct CatalogPoster: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(width: 160, alignment: .leading)
+        // The enclosing link owns the entire card, including decorative artwork.
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(title.name), \(title.rating.rawValue)")
         .foregroundStyle(.white)
     }
 }

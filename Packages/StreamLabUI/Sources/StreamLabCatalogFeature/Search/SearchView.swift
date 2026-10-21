@@ -76,6 +76,7 @@ import StreamLabPresentation
                             .frame(maxWidth: .infinity, minHeight: 100, alignment: .leading)
                             .padding(12)
                             .background(StreamLabTheme.surface, in: RoundedRectangle(cornerRadius: 14))
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
                         .accessibilityElement(children: .combine)

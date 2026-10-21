@@ -1,3 +1,16 @@
+## 2026-10-21 — Artwork taps open details
+
+- Fixed home poster and search row interaction shapes so decorative artwork is
+  included in the enclosing NavigationLink hit region. Kept artwork hit testing
+  disabled to prevent scaled image pixels intercepting adjacent controls.
+- Poster accessibility now represents one complete card with title/rating label.
+- UI integration PASS, 1 test, 28.775 seconds: coordinate taps inside home poster
+  (80,100 within 160x301 card) and search thumbnail both open detail.
+  Warnings-as-errors Debug build/test exit 0; log `/private/tmp/streamlab-artwork-tap-ui-final.log`.
+- Initial test failed with a changing first-match query and artwork-excluded AX
+  geometry. Stabilized target and consolidated poster accessibility; rerun passed.
+- No physical-device or full regression claim. Playback behavior remains unchanged.
+
 ## 2026-10-21 — Physical capacity admission and protected-file recovery
 
 - User confirmed expiration on a physical device.

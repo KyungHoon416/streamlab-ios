@@ -200,6 +200,28 @@ import XCTest
         XCTAssertTrue(pin.label.contains("고정 해제"))
     }
 
+    func testPosterImageAndSearchThumbnailOpenDetail() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=artwork-tap-\(UUID())", "--ui-test-disable-resume"]
+        app.launch()
+        choose("adult-a", in: app)
+        let card = app.descendants(matching: .any)["rail-trending-title-0001"]
+        for _ in 0..<6 {
+            if card.exists && card.frame.minY > 100 && card.frame.maxY < app.frame.maxY - 100 { break }
+            app.swipeUp(velocity: .slow)
+        }
+        XCTAssertTrue(card.exists && card.isHittable)
+        print("Poster frame: \(card.frame)")
+        // Tap inside the artwork, away from the title and top-left badge.
+        card.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 80, dy: 100)).tap()
+        XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 10))
+        tap(app.tabBars.buttons["검색"], in: app)
+        let row = searchRows(app).firstMatch
+        XCTAssertTrue(row.waitForExistence(timeout: 15))
+        row.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 40, dy: 50)).tap()
+        XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 10))
+    }
+
     private func downloadSnapshot(_ app: XCUIApplication) -> String {
         let status = app.staticTexts["download-validation-status"]
         let old = status.label
