@@ -16,7 +16,7 @@ import StreamLabDesignSystem
             Text("Wi-Fi에서 Apple HLS 샘플을 저장합니다. 실제 작품 영상이 아닙니다. 총 1GB, 동시 2개까지 관리하며 공간이 부족하면 고정하지 않은 오래된 파일을 정리합니다.")
                 .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             if let item = record {
-                OfflineDownloadActions(item: item, play: play)
+                OfflineDownloadActions(item: item, session: session, play: play)
             } else {
                 Button { store.enqueue(title: title, session: session) } label: {
                     Label("HLS 샘플 다운로드", systemImage: "arrow.down.circle")
@@ -38,6 +38,7 @@ import StreamLabDesignSystem
 /// Shared by Detail and the profile download library so state/actions stay consistent.
 @MainActor struct OfflineDownloadActions: View {
     let item: OfflineDownload
+    let session: CatalogSession
     var idPrefix = "download"
     let play: () -> Void
     @ObservedObject private var store = OfflineDownloadStore.shared
@@ -73,6 +74,13 @@ import StreamLabDesignSystem
             case .failed:
                 Text(item.message ?? "다운로드를 완료하지 못했습니다.")
                     .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("\(idPrefix)-failed")
+                Button { Task { await store.retry(item.id, session: session) } } label: {
+                    Label(store.retrying.contains(item.id) ? "다시 다운로드 준비 중…" : "다시 다운로드", systemImage: "arrow.clockwise")
+                        .fixedSize(horizontal: false, vertical: true).frame(minHeight: 44)
+                }
+                .buttonStyle(.bordered)
+                .disabled(store.retrying.contains(item.id) || !session.isActive)
+                .accessibilityIdentifier("\(idPrefix)-retry")
             }
             Button(role: .destructive) { store.delete(item.id) } label: {
                 Text(item.state == .complete ? "다운로드 삭제" : "취소 및 기록 삭제")

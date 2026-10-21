@@ -12,6 +12,7 @@ import StreamLabPresentation
     @Published private(set) var records: [OfflineDownload] = []
     @Published private(set) var progress: [UUID: Double] = [:]
     @Published private(set) var errorMessage: String?
+    @Published private(set) var retrying: Set<UUID> = []
     private struct Snapshot: Codable {
         var records: [OfflineDownload] = []
         var blockedAccounts: Set<String> = []
@@ -37,6 +38,11 @@ import StreamLabPresentation
         }
         await validationRefresh(accountID: session.accountID)
     }
+    func validationInterruptTransfer() {
+        guard validationEnabled else { return }
+        // Real OS error callback; do not fabricate a failed record or a completion.
+        tasks.values.first?.cancel()
+    }
     func validationRefresh(accountID: String) async {
         guard validationEnabled else { return }
         let native = await downloads.allTasks
@@ -46,7 +52,7 @@ import StreamLabPresentation
         let notificationIDs = await DownloadNotifications.shared.identifiers()
         let notificationCount = notificationIDs.filter { $0.hasPrefix(DownloadCompletionNotifier.prefix) }.count
         let files = validationPaths.filter { FileManager.default.fileExists(atPath: $0.path) }.count
-        validationSnapshot = "native=\(native.count);active=\(owned.filter { $0.state == .downloading }.count);queued=\(owned.filter { $0.state == .queued }.count);complete=\(owned.filter { $0.state == .complete }.count);records=\(owned.count);disk=\(disk?.records.filter { $0.accountID == accountID }.count ?? -1);files=\(files);peak=\(validationPeak);started=\(validationStarted.count);notifications=\(notificationCount)"
+        validationSnapshot = "native=\(native.count);active=\(owned.filter { $0.state == .downloading }.count);queued=\(owned.filter { $0.state == .queued }.count);complete=\(owned.filter { $0.state == .complete }.count);records=\(owned.count);disk=\(disk?.records.filter { $0.accountID == accountID }.count ?? -1);files=\(files);peak=\(validationPeak);started=\(validationStarted.count);notifications=\(notificationCount);attempt=\(owned.first?.id.uuidString ?? "none")"
     }
     #endif
     private var blockedAccounts: Set<String> = []
@@ -148,7 +154,7 @@ import StreamLabPresentation
         }
         for i in records.indices {
             if records[i].state == .downloading && tasks[records[i].id] == nil {
-                records[i].state = .failed; records[i].message = "중단된 다운로드입니다. 삭제 후 다시 받아 주세요."
+                records[i].state = .failed; records[i].message = "중단된 다운로드입니다. 다시 다운로드해 주세요."
                 if let url = localURL(records[i]), FileManager.default.fileExists(atPath: url.path) {
                     records[i].bytes = (try? allocatedBytes(url)) ?? OfflineDownloadBudget.reservation
                 }
@@ -192,6 +198,52 @@ import StreamLabPresentation
                                   titleID: title.id, title: title.name)
         records.append(new)
         do { try save(); pump() } catch { records.removeAll { $0.id == new.id }; reportStorageFailure() }
+    }
+
+    /// Retry reauthorizes the current profile, then replaces the failed attempt
+    /// with a new identity. Late callbacks/notification cancellation keep the old ID.
+    func retry(_ id: UUID, session: CatalogSession) async {
+        func eligible() -> Bool {
+            guard storageHealthy, session.isActive, activeAccount == session.accountID,
+                  !blockedAccounts.contains(session.accountID), let i = index(id) else { return false }
+            return records[i].accountID == session.accountID && records[i].profileID == session.profile.id &&
+                records[i].state == .failed && tasks[id] == nil && !leases.values.contains(id)
+        }
+        guard eligible(), !retrying.contains(id), let original = records.first(where: { $0.id == id }) else { return }
+        retrying.insert(id)
+        defer { retrying.remove(id) }
+        let title: CatalogTitle
+        do {
+            guard let found = try await session.repository.detail(id: original.titleID, profile: session.profile),
+                  found.canView(in: session.profile) else {
+                if eligible() { errorMessage = "이 프로필에서 다시 다운로드할 수 없는 작품입니다." }
+                return
+            }
+            title = found
+        } catch {
+            if eligible() { errorMessage = "작품을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요." }
+            return
+        }
+        guard eligible(), let i = index(id) else { return }
+        let previous = records[i]
+        do {
+            if let url = localURL(previous), FileManager.default.fileExists(atPath: url.path) {
+                try FileManager.default.removeItem(at: url)
+            }
+        } catch {
+            errorMessage = "이전 다운로드 파일을 정리하지 못했습니다. 다시 시도해 주세요."
+            return
+        }
+        notifier.cancel(id: id)
+        observations[id] = nil; progress[id] = nil; lastDiskCheck[id] = nil
+        var replacement = OfflineDownload(accountID: session.accountID, profileID: session.profile.id,
+                                          titleID: title.id, title: title.name)
+        replacement.pinned = previous.pinned
+        records[i] = replacement
+        do { try save() }
+        catch { records[i] = previous; reportStorageFailure(); return }
+        errorMessage = nil
+        pump()
     }
 
     private func pump() {
@@ -420,7 +472,7 @@ extension OfflineDownloadStore: AVAssetDownloadDelegate {
                 notifyCompletion(id)
             } catch {
                 records[i].state = .failed
-                records[i].message = "다운로드를 완료하지 못했습니다. Wi-Fi와 저장 공간을 확인한 뒤 삭제하고 다시 받아 주세요."
+                records[i].message = "다운로드를 완료하지 못했습니다. Wi-Fi와 저장 공간을 확인한 뒤 다시 다운로드해 주세요."
                 if let url = localURL(records[i]), FileManager.default.fileExists(atPath: url.path) {
                     do {
                         try FileManager.default.removeItem(at: url)

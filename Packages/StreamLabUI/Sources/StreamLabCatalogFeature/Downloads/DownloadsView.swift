@@ -46,6 +46,8 @@ import StreamLabDesignSystem
                             .accessibilityIdentifier("download-validation-three")
                         Button("검증 상태 새로고침") { Task { await store.validationRefresh(accountID: session.accountID) } }
                             .accessibilityIdentifier("download-validation-refresh")
+                        Button("검증: 전송 오류 발생") { store.validationInterruptTransfer() }
+                            .accessibilityIdentifier("download-validation-interrupt")
                         Text(store.validationSnapshot).font(.caption)
                             .accessibilityIdentifier("download-validation-status")
                     }
@@ -70,7 +72,7 @@ import StreamLabDesignSystem
                         VStack(alignment: .leading, spacing: 12) {
                             Text(item.title).font(.headline).accessibilityAddTraits(.isHeader)
                                 .fixedSize(horizontal: false, vertical: true)
-                            OfflineDownloadActions(item: item, idPrefix: "library-\(item.titleID)") {
+                            OfflineDownloadActions(item: item, session: session, idPrefix: "library-\(item.titleID)") {
                                 guard session.isActive, playing == nil else { return }
                                 orientation.begin()
                                 playing = item

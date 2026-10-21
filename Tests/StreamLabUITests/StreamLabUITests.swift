@@ -27,12 +27,13 @@ import XCTest
         XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("1화"))
     }
 
-    private func launchDownloadLifecycle() throws -> XCUIApplication {
+    private func launchDownloadLifecycle(slow: Bool = false) throws -> XCUIApplication {
         try XCTSkipUnless(ProcessInfo.processInfo.environment["STREAMLAB_TEST_DOWNLOADS"] == "1",
                           "Requires real external HLS transfers; run the download lifecycle gate.")
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=download-lifecycle-\(UUID())",
                                "--ui-test-download-lifecycle", "--ui-test-disable-resume"]
+        if slow { app.launchArguments.append("--ui-test-slow-catalog") }
         app.launch()
         choose("adult-a", in: app)
         tap(app.tabBars.buttons["다운로드"], in: app)
@@ -57,6 +58,88 @@ import XCTest
         let value = status.label
         print("[DownloadLifecycle] \(value) (previous \(old))")
         return value
+    }
+
+    private func revealDownloadElement(_ element: XCUIElement, in app: XCUIApplication) {
+        for _ in 0..<5 {
+            if element.exists && element.isHittable { return }
+            app.scrollViews["downloads-scroll"].swipeUp()
+        }
+        XCTAssertTrue(element.exists && element.isHittable)
+    }
+
+    private func interruptDownload(_ app: XCUIApplication) {
+        tap(app.buttons["download-validation-one"], in: app)
+        // Slow catalog mode may take four seconds before enqueue.
+        let running = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            self.downloadSnapshot(app).contains("active=1;")
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [running], timeout: 15), .completed)
+        tap(app.buttons["download-validation-interrupt"], in: app)
+        let retry = app.buttons["library-title-0001-retry"]
+        XCTAssertTrue(retry.waitForExistence(timeout: 15))
+    }
+
+    func testFailedHLSRetrySurvivesRelaunchAndCompletes() throws {
+        let app = try launchDownloadLifecycle()
+        interruptDownload(app)
+        let failed = downloadSnapshot(app)
+        XCTAssertTrue(failed.contains("native=0;active=0;"), failed)
+        XCTAssertTrue(failed.contains("records=1;disk=1;files=0;"), failed)
+        let oldAttempt = failed.components(separatedBy: "attempt=").last
+        app.terminate(); app.launch()
+        choose("adult-a", in: app)
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        XCTAssertTrue(app.buttons["library-title-0001-retry"].waitForExistence(timeout: 10))
+        tap(app.buttons["switch-profile"], in: app)
+        choose("adult-b", in: app)
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        XCTAssertFalse(app.buttons["library-title-0001-retry"].exists)
+        tap(app.buttons["switch-profile"], in: app)
+        choose("adult-a", in: app)
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        let retry = app.buttons["library-title-0001-retry"]
+        revealDownloadElement(retry, in: app)
+        retry.doubleTap()
+        app.scrollViews["downloads-scroll"].swipeDown()
+        let restarted = downloadSnapshot(app)
+        XCTAssertTrue(restarted.contains("native=1;active=1;"), restarted)
+        XCTAssertTrue(restarted.contains("records=1;disk=1;"), restarted)
+        XCTAssertNotEqual(oldAttempt, restarted.components(separatedBy: "attempt=").last)
+        let complete = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            self.downloadSnapshot(app).contains("complete=1;")
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [complete], timeout: 180), .completed)
+        XCTAssertTrue(downloadSnapshot(app).contains("notifications=0;"), "Foreground retry must not alert")
+        let play = app.buttons["library-title-0001-play"]
+        revealDownloadElement(play, in: app)
+        playbackReturnFrame = app.frame
+        tap(play, in: app)
+        expectPlayback("재생 중", in: app)
+        closePlayback(app, returningToDownloads: true)
+    }
+
+    func testProfileSwitchDuringRetryDoesNotStartTransfer() throws {
+        let app = try launchDownloadLifecycle(slow: true)
+        interruptDownload(app)
+        let retry = app.buttons["library-title-0001-retry"]
+        revealDownloadElement(retry, in: app)
+        retry.tap()
+        // Invalidate the old session while repository authorization is suspended.
+        app.buttons["switch-profile"].tap()
+        choose("adult-b", in: app)
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        let other = downloadSnapshot(app)
+        // Diagnostics count the account's records; A's failed record must remain.
+        XCTAssertTrue(other.contains("native=0;active=0;queued=0;complete=0;records=1;disk=1;"), other)
+        XCTAssertTrue(other.contains("peak=1;started=1;"), other)
+        XCTAssertTrue(app.staticTexts["downloads-summary"].label.hasPrefix("0개"))
+        XCTAssertFalse(app.buttons["library-title-0001-retry"].exists)
+        tap(app.buttons["switch-profile"], in: app)
+        choose("adult-a", in: app)
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        XCTAssertTrue(app.buttons["library-title-0001-retry"].waitForExistence(timeout: 10))
+        XCTAssertTrue(downloadSnapshot(app).contains("native=0;active=0;"))
     }
 
     func testHLSBackgroundDownloadReturnsWithPlayablePackage() throws {

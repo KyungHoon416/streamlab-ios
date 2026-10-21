@@ -1,3 +1,31 @@
+## 2026-10-21 — Safe manual retry of failed HLS downloads
+
+- User confirmed physical-device completion notifications, reconnect banner, and no
+  notifications after cancellation/logout. This is user-reported physical evidence.
+- Failed rows in Detail and Downloads now offer retry. Retry re-fetches catalog
+  authorization, rechecks account/profile session after awaiting, cleans leftover
+  files, preserves pinning, and queues a new attempt UUID under existing limits.
+  It restarts the download; byte-range resume is not claimed. Duplicate taps are guarded.
+- Native simulator integration: `testFailedHLSRetrySurvivesRelaunchAndCompletes`
+  PASS (95.823 s), including failure persistence, profile isolation, duplicate taps,
+  a new attempt UUID, real HLS completion and local playback.
+  Log: `/private/tmp/streamlab-download-retry-ui.log`.
+- `testProfileSwitchDuringRetryDoesNotStartTransfer` PASS (69.989 s), final separate
+  run, exit 0; log `/private/tmp/streamlab-download-retry-scope-final.log`;
+  result `Test-StreamLab-2026.10.21_09-14-29-+0900.xcresult`.
+  The first combined run exited 65: this second test incorrectly expected zero
+  account-wide records after switching profiles. Corrected it to retain the first
+  profile's failed record while checking the second profile's empty list and no new
+  native transfer. Two distinct cases passed across runs, not one all-green suite.
+- Generic physical iOS Release build with warnings as errors PASS:
+  `/private/tmp/streamlab-download-retry-release.log`. Project structure, shell syntax,
+  and diff whitespace checks PASS. Unchanged Core policy tests were not rerun here;
+  the reproduction script includes their 19-test baseline.
+- Native failure uses a test-only OS task cancellation and its real error callback.
+  Actual network-outage retry on device, OS kill/wakeup and low-storage stress remain
+  separate checks; no full regression claim is made.
+- Reproduce: `scripts/check-download-retry-mac.sh`.
+
 ## 2026-10-20 — Download progress, completion notifications and reconnect banner
 
 - User reports physical-device background downloads and logout-during-transfer

@@ -91,3 +91,15 @@ purges surviving owned identifiers from the notification center. Native backgrou
 completion waits for outstanding notification work. No replay of old completed
 records is triggered by launch. Notification UI presentation remains subject to OS
 permissions, Focus and device settings.
+
+## Manual retries of failed attempts
+
+A failed item can be retried without manually deleting its record. Retry rechecks
+catalog authorization for the same active account/profile after its async lookup,
+and checks that the original attempt remains failed with no OS task or playback
+lease. Only one preparation per failed ID runs at a time. Delete any leftover
+package before replacing the record, preserve the pin, allocate a fresh UUID,
+persist, then enter the normal quota/concurrency queue. Old delegate/KVO callbacks
+and notification revocations cannot target the new UUID. Failed deletion retains
+the original record; failed journal save stops scheduling. Retry restarts the full
+sample, rather than promising byte-level resume or automatic retry loops.
