@@ -56,6 +56,7 @@ import SwiftUI
 /// Root and full-screen player share one observer and recovery timer.
 @MainActor public struct NetworkConnectionBanner: View {
     @ObservedObject private var network = NetworkBannerStatus.shared
+    @Environment(\.streamLabContrast) private var contrast
     private let showOffline: Bool
     public init(showOffline: Bool) { self.showOffline = showOffline }
 
@@ -77,7 +78,8 @@ import SwiftUI
             .font(.callout).fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 16).padding(.vertical, 10)
-            .foregroundStyle(.white).background(color.opacity(0.9))
+            .foregroundStyle(.white).background(contrast == .increased ? Color.black : color.opacity(0.9))
+            .overlay(Rectangle().stroke(.white, lineWidth: contrast == .increased ? 1 : 0))
             .accessibilityElement(children: .combine)
     }
 }

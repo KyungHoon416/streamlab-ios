@@ -27,6 +27,8 @@ import StreamLabDesignSystem
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .tint(StreamLabTheme.accent)
+        .modifier(StreamLabMotionPolicy())
+        .progressViewStyle(StreamLabProgressStyle())
         .onAppear { startupLog.notice("[Startup] SwiftUI root appeared") }
         .task { await account.prepare() }
         #if DEBUG

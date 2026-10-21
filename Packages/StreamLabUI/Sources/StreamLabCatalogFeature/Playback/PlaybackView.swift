@@ -13,6 +13,9 @@ import StreamLabDesignSystem
     @State private var subtitleSheet = false
     @State private var fillsScreen = false
     @State private var landscape = true
+    @State private var requestedOrientation = false
+    @Environment(\.streamLabReduceMotion) private var reduceMotion
+    @Environment(\.streamLabContrast) private var contrast
     @State private var interaction = 0
     @State private var started = false
     @State private var showsPlaybackFailure = false
@@ -153,14 +156,18 @@ import StreamLabDesignSystem
             if subtitleSheet { subtitleSelection }
         }
         .background {
-            PlaybackOrientation(landscape: landscape, session: orientationSession)
-                .frame(width: 0, height: 0)
-                .accessibilityHidden(true)
+            if !reduceMotion || requestedOrientation {
+                PlaybackOrientation(landscape: landscape, session: orientationSession)
+                    .frame(width: 0, height: 0)
+                    .accessibilityHidden(true)
+            }
         }
         .safeAreaInset(edge: .top, spacing: 0) { NetworkConnectionBanner(showOffline: true) }
         .foregroundStyle(.white)
         .tint(StreamLabTheme.accent)
         .preferredColorScheme(.dark)
+        .modifier(StreamLabMotionPolicy())
+        .progressViewStyle(StreamLabProgressStyle())
         .statusBarHidden(!controlsVisible)
         .sheet(isPresented: $sourceSheet) { sourceSelection }
         .alert("영상을 불러올 수 없습니다", isPresented: $showsPlaybackFailure) {
@@ -252,7 +259,7 @@ import StreamLabDesignSystem
                 Text(title).font(.headline).fixedSize(horizontal: false, vertical: true)
                 Text("테스트 영상 · \(source.rawValue)")
                     .accessibilityIdentifier("playback-source-label")
-                    .font(.caption).foregroundStyle(.white.opacity(0.8))
+                    .font(.caption).foregroundStyle(.white.opacity(contrast == .increased ? 1 : 0.8))
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -390,11 +397,11 @@ import StreamLabDesignSystem
                         .opacity(isShowingLoading ? 0 : 1)
                         .accessibilityHidden(isShowingLoading)
                         if isShowingLoading {
-                            ProgressView()
+                            StreamLabLoadingIndicator()
                                 .tint(.white)
                                 .controlSize(.large)
                                 .frame(width: 64, height: 64)
-                                .background(.black.opacity(0.45), in: Circle())
+                                .background(.black.opacity(contrast == .increased ? 1 : 0.45), in: Circle())
                                 .accessibilityLabel("영상 로딩 중")
                                 .accessibilityIdentifier("playback-loading")
                         }
@@ -463,8 +470,10 @@ import StreamLabDesignSystem
                     fillsScreen.toggle()
                 }
                 .accessibilityValue(fillsScreen ? "화면 채우기" : "영상 전체 보기")
-                iconButton(landscape ? "세로 화면 요청" : "가로 화면 요청", symbol: "rotate.right", id: "playback-rotate") {
-                    landscape.toggle()
+                iconButton((landscape && (!reduceMotion || requestedOrientation)) ? "세로 화면 요청" : "가로 화면 요청", symbol: "rotate.right", id: "playback-rotate") {
+                    if reduceMotion && !requestedOrientation { landscape = true }
+                    else { landscape.toggle() }
+                    requestedOrientation = true
                 }
             }
         }
@@ -479,7 +488,8 @@ import StreamLabDesignSystem
             Image(systemName: symbol)
                 .font(.system(size: size >= 56 ? 30 : 21, weight: .semibold))
                 .frame(width: size, height: size)
-                .background(.black.opacity(0.45), in: Circle())
+                .background(.black.opacity(contrast == .increased ? 1 : 0.45), in: Circle())
+                .overlay(Circle().stroke(.white, lineWidth: contrast == .increased ? 1 : 0))
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
@@ -579,7 +589,7 @@ import StreamLabDesignSystem
         if !model.audioMessage.isEmpty {
             Text(model.audioMessage)
                 .fixedSize(horizontal: false, vertical: true)
-                .foregroundStyle(.white.opacity(0.7))
+                .foregroundStyle(.white.opacity(contrast == .increased ? 1 : 0.7))
                 .accessibilityIdentifier("playback-audio-message")
         }
         if model.audioLoadFailed {
@@ -608,7 +618,7 @@ import StreamLabDesignSystem
         if !model.subtitleMessage.isEmpty {
             Text(model.subtitleMessage)
                 .fixedSize(horizontal: false, vertical: true)
-                .foregroundStyle(.white.opacity(0.7))
+                .foregroundStyle(.white.opacity(contrast == .increased ? 1 : 0.7))
                 .accessibilityIdentifier("playback-subtitle-message")
         }
         if model.subtitleLoadFailed {
@@ -630,7 +640,7 @@ import StreamLabDesignSystem
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
         }
-        .foregroundStyle(selected ? .white : .white.opacity(0.65))
+        .foregroundStyle(selected ? .white : .white.opacity(contrast == .increased ? 1 : 0.65))
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
         .contentShape(Rectangle())

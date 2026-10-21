@@ -2,6 +2,7 @@ import SwiftUI
 import StreamLabDomain
 
 @MainActor struct MyListButton: View {
+    @Environment(\.streamLabContrast) private var contrast
     let title: CatalogTitle
     @ObservedObject var store: MyListStore
 
@@ -17,8 +18,8 @@ import StreamLabDomain
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .padding(.horizontal, 12).padding(.vertical, 4)
                 .foregroundStyle(.white)
-                .background(.black.opacity(0.45), in: RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(.white.opacity(0.4)))
+                .background(.black.opacity(contrast == .increased ? 1 : 0.45), in: RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(.white.opacity(contrast == .increased ? 1 : 0.4)))
         }
         .alert("리스트 저장", isPresented: Binding(
             get: { store.errorMessage != nil },

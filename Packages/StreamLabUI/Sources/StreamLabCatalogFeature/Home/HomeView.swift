@@ -4,6 +4,7 @@ import StreamLabPresentation
 import StreamLabDesignSystem
 
 @MainActor public struct HomeView: View {
+    @Environment(\.streamLabContrast) private var contrast
     @StateObject private var model: CatalogScreenModel
     @ObservedObject private var myList: MyListStore
     @State private var category: Category = .recommended
@@ -285,7 +286,7 @@ import StreamLabDesignSystem
                 .overlay(LinearGradient(colors: [.clear, .black.opacity(0.95)], startPoint: .top, endPoint: .bottom))
         }
         .clipShape(RoundedRectangle(cornerRadius: 24))
-        .overlay(RoundedRectangle(cornerRadius: 24).stroke(.white.opacity(0.12)))
+        .overlay(RoundedRectangle(cornerRadius: 24).stroke(.white.opacity(contrast == .increased ? 1 : 0.12)))
         .padding(.horizontal, 20)
     }
 

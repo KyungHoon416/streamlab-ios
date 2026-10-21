@@ -12,6 +12,7 @@ public enum StreamLabTheme {
 }
 
 public struct StreamLabButtonStyle: ButtonStyle {
+    @Environment(\.streamLabContrast) private var contrast
     public init() {}
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -21,7 +22,8 @@ public struct StreamLabButtonStyle: ButtonStyle {
             .padding(.horizontal, 12)
             .padding(.vertical, 4)
             .foregroundStyle(.white)
-            .background(StreamLabTheme.accent.opacity(configuration.isPressed ? 0.65 : 1), in: RoundedRectangle(cornerRadius: 12))
+            .background((contrast == .increased ? Color(red: 0.65, green: 0.02, blue: 0.06) : StreamLabTheme.accent).opacity(configuration.isPressed && contrast != .increased ? 0.65 : 1), in: RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).stroke(.white, lineWidth: contrast == .increased ? (configuration.isPressed ? 3 : 1) : 0))
     }
 }
 
@@ -77,6 +79,7 @@ public struct StreamLabButtonStyle: ButtonStyle {
 }
 
 public struct CatalogPoster: View {
+    @Environment(\.streamLabContrast) private var contrast
     let title: CatalogTitle
     public init(title: CatalogTitle) { self.title = title }
     public var body: some View {
@@ -84,7 +87,7 @@ public struct CatalogPoster: View {
             CatalogArtwork(title: title).frame(height: 220)
                 .overlay(alignment: .topLeading) {
                     Text(title.typeLabel).font(.caption.bold())
-                        .padding(8).background(.black.opacity(0.65), in: Capsule())
+                        .padding(8).background(.black.opacity(contrast == .increased ? 1 : 0.65), in: Capsule())
                         .padding(10)
                 }
             Text(title.name).font(.headline).fixedSize(horizontal: false, vertical: true)
@@ -102,10 +105,11 @@ public struct CatalogPoster: View {
 }
 
 public struct LoadingCard: View {
+    @Environment(\.streamLabContrast) private var contrast
     public init() {}
     public var body: some View {
         VStack(spacing: 12) {
-            ProgressView().tint(.white).accessibilityHidden(true)
+            StreamLabLoadingIndicator().accessibilityHidden(true)
             Text("콘텐츠를 가져오고 있어요")
                 .font(.headline)
                 .multilineTextAlignment(.center)
@@ -115,8 +119,67 @@ public struct LoadingCard: View {
         .padding(24)
         .frame(maxWidth: 320)
         .background(StreamLabTheme.surface, in: RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(.white.opacity(0.2)))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(.white.opacity(contrast == .increased ? 1 : 0.2)))
         .padding(24)
     }
 }
 
+
+public struct StreamLabLoadingIndicator: View {
+    @Environment(\.streamLabReduceMotion) private var reduceMotion
+    public init() {}
+    public var body: some View {
+        Group {
+            if reduceMotion { Image(systemName: "hourglass").accessibilityIdentifier("loading-static-indicator") }
+            else { ProgressView().tint(.white) }
+        }
+    }
+}
+
+public struct StreamLabMotionPolicy: ViewModifier {
+    @Environment(\.streamLabReduceMotion) private var reduceMotion
+    public init() {}
+    public func body(content: Content) -> some View {
+        content.transaction { transaction in
+            if reduceMotion {
+                transaction.animation = nil
+                transaction.disablesAnimations = true
+            }
+        }
+    }
+}
+
+/// Keep determinate progress visible; only replace indefinite spinning.
+public struct StreamLabProgressStyle: ProgressViewStyle {
+    @Environment(\.streamLabReduceMotion) private var reduceMotion
+    public init() {}
+    public func makeBody(configuration: Configuration) -> some View {
+        if configuration.fractionCompleted != nil {
+            ProgressView(configuration).progressViewStyle(.linear)
+        } else if reduceMotion {
+            HStack {
+                Image(systemName: "hourglass").accessibilityHidden(true)
+                configuration.label
+            }
+            .accessibilityElement(children: .combine)
+        } else {
+            ProgressView(configuration).progressViewStyle(.circular)
+        }
+    }
+}
+
+public extension EnvironmentValues {
+    // System settings remain authoritative in release; deterministic debug-only UI coverage.
+    var streamLabContrast: ColorSchemeContrast {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--ui-test-increased-contrast") { return .increased }
+        #endif
+        return colorSchemeContrast
+    }
+    var streamLabReduceMotion: Bool {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--ui-test-reduce-motion") { return true }
+        #endif
+        return accessibilityReduceMotion
+    }
+}

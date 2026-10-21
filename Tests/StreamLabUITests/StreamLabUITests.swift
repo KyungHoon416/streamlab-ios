@@ -242,6 +242,42 @@ import XCTest
         closePlayback(app)
     }
 
+    func testIncreasedContrastAndReducedMotionPlayback() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=accessibility-display-\(UUID())",
+                               "--ui-test-disable-resume", "--ui-test-keep-playback-controls",
+                               "--ui-test-increased-contrast", "--ui-test-reduce-motion"]
+        XCUIDevice.shared.orientation = .portrait
+        app.launch()
+        choose("adult-a", in: app)
+        tap(app.buttons["hero-playback"], in: app)
+        expectPlayback("재생 중", in: app)
+        XCTAssertGreaterThan(app.frame.height, app.frame.width, "Reduced motion must not automatically rotate the player")
+        for identifier in ["playback-toggle", "playback-backward", "playback-forward", "playback-close"] {
+            let button = app.buttons[identifier]
+            XCTAssertTrue(button.isHittable, identifier)
+            XCTAssertGreaterThanOrEqual(button.frame.width, 44, identifier)
+            XCTAssertGreaterThanOrEqual(button.frame.height, 44, identifier)
+        }
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "Increased contrast player, reduced motion"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("일시 정지", in: app)
+        try app.performAccessibilityAudit(for: [.contrast])
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-forward"], in: app)
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-rotate"], in: app)
+        let rotated = NSPredicate { _, _ in app.frame.width > app.frame.height }
+        expectation(for: rotated, evaluatedWith: nil)
+        waitForExpectations(timeout: 10)
+        tap(app.buttons["playback-close"], in: app)
+        XCTAssertTrue(app.buttons["hero-playback"].waitForExistence(timeout: 10))
+    }
+
     func testHomeDemoContinuesWithoutInteraction() {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=home-demo-unattended-\(UUID())", "--ui-test-disable-resume"]
