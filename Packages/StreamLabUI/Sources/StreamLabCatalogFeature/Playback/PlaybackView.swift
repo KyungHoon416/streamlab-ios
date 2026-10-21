@@ -76,7 +76,11 @@ import StreamLabDesignSystem
                         .accessibilityHidden(true)
                 }
                 if !controlsVisible {
-                    Button { revealControls() } label: { Color.clear.contentShape(Rectangle()) }
+                    Button { revealControls() } label: {
+                        Color.clear
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                            .contentShape(Rectangle())
+                    }
                         .buttonStyle(.plain)
                         .accessibilityLabel("재생 컨트롤 표시")
                         .accessibilityValue(model.status.label)

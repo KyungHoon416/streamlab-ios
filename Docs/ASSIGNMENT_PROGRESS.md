@@ -1,3 +1,26 @@
+## 2026-10-21 — C3 숨겨진 재생 컨트롤 터치 영역 보완
+
+- 영상 영역의 GeometryReader 크기를 컨트롤 표시 버튼에 명시해 투명 라벨이
+  터치/접근성 영역을 잃지 않도록 수정했다. 한 번 누르기는 표시, 두 번 누르기 탐색 처리 유지.
+- 이전 홈 HUD 접근성 좌표 실패를 수정 후 재검증했다. 홈 테스트가 더 이상 앱 강제 종료로
+  정리를 대체하지 않고, 실제 표시 버튼의 44pt 이상 영역·hittable·재생 유지·닫기를 확인한다.
+- UI 2개 PASS, 76.353초, warnings-as-errors Debug 빌드/테스트 exit 0:
+  `/private/tmp/streamlab-hud-accessibility.log`,
+  `Test-StreamLab-2026.10.21_21-20-21-+0900.xcresult`.
+- 구조 검사, diff 검사, 검증 스크립트 문법 PASS.
+- 재현: `caffeinate -i bash scripts/check-playback-controls-mac.sh`.
+- 실기기에서는 홈/상세 데모 재생 → 약 4초 기다려 버튼 숨김 → 영상 한 번 터치 →
+  버튼이 다시 표시되고 영상은 계속 재생되는지 → 닫기 순서로 확인한다.
+- 이번 범위는 C3 일부 보완이다. 실기기 VoiceOver, 고대비, Reduce Motion,
+  전체 접근성 감사 및 전체 회귀 완료로 표시하지 않는다.
+
+## 2026-10-21 — 실기기 데모 재생 검증 완료
+
+- 사용자 확인: 커밋 `0778b26` 적용 후 홈 → 데모 재생, 홈 → 상세 → 데모 재생 모두 정상.
+- 두 경로에서 보고했던 시작 직후 자동 일시정지 증상은 해당 실기기 확인 범위에서 해결로 기록한다.
+- HLS/PiP/잠금 화면/외부 기기 제어 전체 실기기 회귀를 완료했다는 의미는 아니다.
+- 다음 작업: 과제 C3의 재생 컨트롤 접근성. 홈에서 HUD가 숨겨진 뒤 표시 버튼의 터치 영역을 보완하고 재검증한다.
+
 ## 2026-10-21 — Physical capacity admission and protected-file recovery
 
 - User confirmed expiration on a physical device.

@@ -257,7 +257,16 @@ import XCTest
             XCTAssertFalse(paused.exists, "Home demo paused without user interaction")
         }
         expectPlayback("재생 중", in: app)
-        app.terminate() // This test observes playback; cover-dismissal geometry has separate coverage.
+        let reveal = app.buttons["playback-reveal-controls"]
+        XCTAssertTrue(reveal.waitForExistence(timeout: 5))
+        XCTAssertGreaterThanOrEqual(reveal.frame.width, 44)
+        XCTAssertGreaterThanOrEqual(reveal.frame.height, 44)
+        XCTAssertTrue(reveal.isHittable)
+        reveal.tap()
+        XCTAssertTrue(app.buttons["playback-close"].waitForExistence(timeout: 3))
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-close"], in: app)
+        XCTAssertTrue(app.descendants(matching: .any)["hero-detail"].waitForExistence(timeout: 10))
     }
 
     func testVisiblePlayButtonRecoversPausedEngineWithPlayingIntent() {
