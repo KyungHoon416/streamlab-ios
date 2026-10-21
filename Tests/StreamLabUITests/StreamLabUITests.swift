@@ -206,6 +206,48 @@ import XCTest
         XCTAssertEqual(XCTWaiter.wait(for: [hidden], timeout: 10), .completed)
     }
 
+    func testDownloadScreenShowsOfflineThenRestoredBanner() {
+        let app = launchNetworkScreen()
+        choose("adult-a", in: app)
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        verifyOfflineThenRestoredBanner(app)
+    }
+
+    func testPlaybackShowsOfflineThenRestoredBanner() {
+        let app = launchNetworkScreen()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        verifyOfflineThenRestoredBanner(app)
+        XCTAssertFalse(app.alerts["영상을 불러올 수 없습니다"].exists,
+                       "Path changes alone must not fail local playback")
+    }
+
+    private func launchNetworkScreen() -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=network-screen-\(UUID())",
+                               "--ui-test-network-recovery", "--ui-test-network-screen",
+                               "--ui-test-disable-resume", "--ui-test-keep-playback-controls"]
+        app.launch()
+        return app
+    }
+
+    private func verifyOfflineThenRestoredBanner(_ app: XCUIApplication) {
+        let offline = app.descendants(matching: .any)["profile-network-banner"].firstMatch
+        let restored = app.descendants(matching: .any)["network-reconnected-banner"].firstMatch
+        XCTAssertFalse(restored.exists)
+        XCTAssertTrue(offline.waitForExistence(timeout: 35))
+        XCTAssertTrue(offline.isHittable)
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "Offline banner"; shot.lifetime = .keepAlways; add(shot)
+        XCTAssertTrue(restored.waitForExistence(timeout: 12))
+        XCTAssertTrue(restored.isHittable)
+        XCTAssertFalse(offline.exists)
+        let hidden = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: restored)
+        XCTAssertEqual(XCTWaiter.wait(for: [hidden], timeout: 10), .completed)
+    }
+
     private func enableDownloadNotifications(_ app: XCUIApplication) {
         let enable = app.buttons["download-notification-enable"]
         if enable.exists {

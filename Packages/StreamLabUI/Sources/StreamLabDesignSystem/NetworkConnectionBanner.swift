@@ -20,7 +20,7 @@ import SwiftUI
             // Deterministic path events only; never changes OS connectivity or media.
             replay = Task { [weak self] in
                 self?.receive(true)
-                do { try await Task.sleep(for: .seconds(8)) } catch { return }
+                do { try await Task.sleep(for: .seconds(ProcessInfo.processInfo.arguments.contains("--ui-test-network-screen") ? 30 : 8)) } catch { return }
                 self?.receive(false)
                 do { try await Task.sleep(for: .seconds(6)) } catch { return }
                 self?.receive(true)

@@ -1,3 +1,24 @@
+## 2026-10-21 — Offline banners in catalog/downloads and playback
+
+- Enabled offline notices throughout the signed-in root and full-screen player.
+  Existing shared observer and 5-second restored notice remain unchanged.
+- Root now reserves a separate vertical banner area above navigation. Initial UI
+  run found the root safe-area inset overlapped toolbar controls in Downloads;
+  this layout defect was fixed, and the final screenshot was visually checked.
+- Final simulator UI: **2 PASS, 0 failures, 95.642 s**, exit 0:
+  download screen and full-screen playback offline appearance, restored appearance,
+  offline removal and restored dismissal; path events do not create a local playback alert.
+  Log: `/private/tmp/streamlab-offline-banner-ui-final.log`.
+  Result: `Test-StreamLab-2026.10.21_11-31-05-+0900.xcresult`.
+  Earlier run: 1 PASS, 1 FAIL (Downloads banner hittability); not counted as final success.
+- Final generic iOS Release build with warnings as errors PASS, exit 0;
+  `/private/tmp/streamlab-offline-banner-release-final.log`.
+  Project structure, shell syntax and diff whitespace checks PASS.
+- UI tests inject path events, use an empty downloads screen and local demo playback.
+  Actual network disconnection during native HLS transfer/streaming on a physical
+  device is still a manual check, not claimed by these tests. No full regression claim.
+- Reproduce: `scripts/check-offline-banner-mac.sh`.
+
 ## 2026-10-21 — Safe manual retry of failed HLS downloads
 
 - User confirmed physical-device completion notifications, reconnect banner, and no

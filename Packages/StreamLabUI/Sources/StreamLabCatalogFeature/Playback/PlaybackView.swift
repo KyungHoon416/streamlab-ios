@@ -153,7 +153,7 @@ import StreamLabDesignSystem
                 .frame(width: 0, height: 0)
                 .accessibilityHidden(true)
         }
-        .safeAreaInset(edge: .top, spacing: 0) { NetworkConnectionBanner(showOffline: false) }
+        .safeAreaInset(edge: .top, spacing: 0) { NetworkConnectionBanner(showOffline: true) }
         .foregroundStyle(.white)
         .tint(StreamLabTheme.accent)
         .preferredColorScheme(.dark)

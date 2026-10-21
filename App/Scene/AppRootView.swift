@@ -21,6 +21,17 @@ import StreamLabDesignSystem
     }
 
     var body: some View {
+        VStack(spacing: 0) {
+            NetworkConnectionBanner(showOffline: !account.isSignedOut)
+            content
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .tint(StreamLabTheme.accent)
+        .onAppear { startupLog.notice("[Startup] SwiftUI root appeared") }
+        .task { await account.prepare() }
+    }
+
+    private var content: some View {
         Group {
             if account.isRestoring {
                 ProgressView("데모 계정을 확인하고 있어요")
@@ -65,12 +76,6 @@ import StreamLabDesignSystem
 
             }
         }
-        .safeAreaInset(edge: .top, spacing: 0) {
-            NetworkConnectionBanner(showOffline: session == nil && !account.isSignedOut)
-        }
-        .tint(StreamLabTheme.accent)
-        .onAppear { startupLog.notice("[Startup] SwiftUI root appeared") }
-        .task { await account.prepare() }
     }
 
     private func logout() {
