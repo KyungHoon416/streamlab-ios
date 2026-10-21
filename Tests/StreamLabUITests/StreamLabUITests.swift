@@ -242,6 +242,29 @@ import XCTest
         closePlayback(app)
     }
 
+    func testVisiblePlayButtonRecoversPausedEngineWithPlayingIntent() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=preview-resume-\(UUID())", "--ui-test-disable-resume",
+                               "--ui-test-keep-playback-controls", "--ui-test-unrequested-pause-once"]
+        app.launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        tap(app.buttons["detail-preview"], in: app)
+        expectPlayback("일시 정지", in: app)
+        let control = app.buttons["playback-toggle"]
+        XCTAssertEqual(control.label, "재생")
+        tap(control, in: app)
+        expectPlayback("재생 중", in: app)
+        XCTAssertEqual(control.label, "일시 정지")
+        tap(control, in: app)
+        expectPlayback("일시 정지", in: app)
+        RunLoop.current.run(until: Date().addingTimeInterval(2))
+        XCTAssertEqual(control.label, "재생")
+        tap(control, in: app)
+        expectPlayback("재생 중", in: app)
+        closePlayback(app)
+    }
+
     private func downloadSnapshot(_ app: XCUIApplication) -> String {
         let status = app.staticTexts["download-validation-status"]
         let old = status.label

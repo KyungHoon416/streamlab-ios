@@ -195,6 +195,7 @@ import StreamLabPresentation
 
     #if DEBUG
     private var injectedMediaReset = false
+    private var injectedUnrequestedPause = false
     #endif
     var canRetryPlayback: Bool {
         guard session.isActive, foreground, case .failed = status else { return false }
@@ -368,7 +369,7 @@ import StreamLabPresentation
         PlaybackNowPlaying.shared.begin(owner: nowPlayingID, title: nowPlayingTitle,
             subtitle: "StreamLab · \(source.rawValue)", artworkURL: nowPlayingArtworkURL) { [weak self] action in
                 guard let self, self.generation == ticket, self.session.isActive else { return }
-                self.handleRemoteAction(action)
+                self.handleRemoteAction(action, origin: .systemRemote)
             }
         observeItemEnd(ticket: ticket)
         player.appliesMediaSelectionCriteriaAutomatically = false
@@ -481,6 +482,12 @@ import StreamLabPresentation
         }
         sampleDiagnostics(item: item, player: player)
         #if DEBUG
+        if !injectedUnrequestedPause, status == .playing, position >= 0.1,
+           ProcessInfo.processInfo.arguments.contains("--ui-test-unrequested-pause-once") {
+            injectedUnrequestedPause = true
+            qoeLog.notice("debug_injection=unrequested_player_pause")
+            player.pause() // Preserve intent to reproduce a paused engine with a Play button.
+        }
         if !injectedMediaReset, status == .playing, position >= 1,
            ProcessInfo.processInfo.arguments.contains("--ui-test-media-reset-once") {
             injectedMediaReset = true
@@ -573,8 +580,10 @@ import StreamLabPresentation
         saveProgress()
     }
 
-    private func handleRemoteAction(_ action: PlaybackNowPlaying.Action) {
-        qoeLog.notice("transport_action=\(String(describing: action), privacy: .public)")
+    private enum TransportOrigin: String { case screenButton = "screen_button", systemRemote = "system_remote" }
+
+    private func handleRemoteAction(_ action: PlaybackNowPlaying.Action, origin: TransportOrigin) {
+        qoeLog.notice("transport_action=\(String(describing: action), privacy: .public) origin=\(origin.rawValue, privacy: .public) wantsPlayback=\(self.wantsPlayback) position=\(self.position)")
         guard session.isActive, let player else { return }
         switch action {
         case .pause:
@@ -591,7 +600,7 @@ import StreamLabPresentation
             wantsPlayback = true
             player.play()
         case .toggle:
-            handleRemoteAction((wantsPlayback || interruptionPolicy.isInterrupted || audioResumePending) ? .pause : .play)
+            handleRemoteAction((wantsPlayback || interruptionPolicy.isInterrupted || audioResumePending) ? .pause : .play, origin: origin)
             return
         case .skip(let delta):
             seek(to: player.currentTime().seconds + delta)
@@ -607,11 +616,12 @@ import StreamLabPresentation
         guard session.isActive, foreground, player != nil else { return }
         // During a system interruption, tapping the control cancels pending resume.
         if interruptionPolicy.isInterrupted || audioResumePending {
-            handleRemoteAction(.pause)
+            handleRemoteAction(.pause, origin: .screenButton)
             return
         }
-        if status == .ended { handleRemoteAction(.play); return }
-        handleRemoteAction(wantsPlayback ? .pause : .play)
+        guard status != .loading, !isSeeking else { return }
+        // Match the visible control, not stale intent left behind by AVPlayer stopping.
+        handleRemoteAction(status == .playing ? .pause : .play, origin: .screenButton)
     }
 
     func seek(to seconds: Double, playAfterSeek: Bool = false) {

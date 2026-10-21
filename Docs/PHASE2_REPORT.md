@@ -1,3 +1,27 @@
+## 2026-10-21 — Visible Play action and transport origin
+
+- A physical trace showed transport_action=pause at 0.165 seconds, foreground true,
+  not interrupted. The old log could not distinguish screen vs system commands.
+- Screen play/pause now follows the visible status instead of stale wantsPlayback.
+  A paused engine with retained playing intent receives play, not another pause.
+  Loading/seeking actions remain blocked. System interruptions retain cancellation
+  policy; system toggle semantics and owner/generation guards remain unchanged.
+- Every transport action now requires an origin: screen_button or system_remote.
+  Recursive system toggles preserve origin. Existing audio/PiP pause logs remain.
+- DEBUG-only opt-in --ui-test-unrequested-pause-once pauses AVPlayer while preserving
+  intent, to reproduce the mismatch. It is absent from Release and inactive normally.
+- UI tests 2 PASS, 85.259 s, warnings-as-errors, exit 0:
+  `/private/tmp/streamlab-play-button-ui.log`,
+  `Test-StreamLab-2026.10.21_20-10-41-+0900.xcresult`.
+  Covers mismatch recovery, explicit pause/resume, and unattended 12-second playback
+  after initial rotation. Captured simulator log confirms paused wantsPlayback=true
+  -> play origin=screen_button -> user pause -> user play:
+  `/private/tmp/streamlab-play-button-events.log`.
+- Generic iOS Release build PASS, exit 0: `/private/tmp/streamlab-play-button-release.log`.
+  Project validation and diff checks PASS.
+- Physical spontaneous pause origin remains unconfirmed; no claim that the initial
+  device/system pause itself is fixed. New device logs are needed if it recurs.
+
 ## 2026-10-21 — Investigating physical-device preview pauses
 
 - User reports spontaneous preview pauses; supplied trace shows bundled-demo-v1
