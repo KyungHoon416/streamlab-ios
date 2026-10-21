@@ -1,3 +1,28 @@
+## 2026-10-21 — Bind system playback controls to the actual player
+
+- Physical retest after PiP gating still receives system_remote pause on both Home
+  direct demo and Detail demo. PiP-only change did not resolve the reported issue.
+- Replaced process-default Now Playing info/command centers with a retained
+  MPNowPlayingSession(players: [player]) and its own centers. Manual metadata remains
+  enabled (automatic publishing explicitly off). Ownership/generation checks and
+  ordinary system pause handling remain intact; no blanket pause suppression.
+- Emits now_playing_session=player_bound. This is a system integration change;
+  physical root cause and resolution remain unconfirmed until device retest.
+- Apple reference: https://developer.apple.com/videos/play/wwdc2022/110338/
+- Package tests 9 PASS, 2.995 seconds, warnings-as-errors, exit 0:
+  `/private/tmp/streamlab-player-session-tests.log`. Includes exact player binding,
+  old command/metadata cleanup, stale callbacks, and real player profile lifecycle.
+- Detail unattended preview 41.415 s and visible Play recovery 39.422 s PASS in
+  `/private/tmp/streamlab-player-session-ui.log`. Initial Home test failed only while
+  tapping the hidden controls overlay at cleanup. A coordinate-tap cleanup rerun
+  also failed to reveal it; this separate home HUD accessibility issue remains open.
+  Home unattended-playback test now terminates the app after observing playback,
+  without claiming home HUD dismissal coverage.
+- Final Home unattended-playback observation PASS, 43.269 seconds, exit 0:
+  `/private/tmp/streamlab-player-session-home-observation.log`.
+- Generic iOS Release build PASS, exit 0: `/private/tmp/streamlab-player-session-release.log`.
+  Project structure, shell syntax and diff checks PASS. No full-regression claim.
+
 ## 2026-10-21 — Restrict PiP attachment to supported sources
 
 - User reproduced system_remote pause on physical iPhone with mirroring closed.

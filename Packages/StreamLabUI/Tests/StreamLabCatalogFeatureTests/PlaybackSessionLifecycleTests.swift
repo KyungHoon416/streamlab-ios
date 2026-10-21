@@ -12,7 +12,7 @@ final class PlaybackSessionLifecycleTests: XCTestCase {
         let deadline = ContinuousClock.now.advanced(by: .seconds(20))
         while ContinuousClock.now < deadline {
             if model.status == .playing, (model.player?.rate ?? 0) > 0,
-               MPNowPlayingInfoCenter.default().nowPlayingInfo != nil { return }
+               PlaybackNowPlaying.shared.session?.nowPlayingInfoCenter.nowPlayingInfo != nil { return }
             if case .failed(let message) = model.status {
                 XCTFail("Bundled playback failed: \(message)")
                 throw CancellationError()
@@ -42,8 +42,8 @@ final class PlaybackSessionLifecycleTests: XCTestCase {
         XCTAssertNil(oldPlayer.currentItem)
         XCTAssertNil(model.player)
         XCTAssertEqual(model.status, .idle)
-        XCTAssertNil(MPNowPlayingInfoCenter.default().nowPlayingInfo)
-        XCTAssertFalse(MPRemoteCommandCenter.shared().playCommand.isEnabled)
+        XCTAssertNil(PlaybackNowPlaying.shared.session?.nowPlayingInfoCenter.nowPlayingInfo)
+        XCTAssertNil(PlaybackNowPlaying.shared.session)
     }
 
     @MainActor
@@ -65,7 +65,7 @@ final class PlaybackSessionLifecycleTests: XCTestCase {
         XCTAssertFalse(oldSession.isActive)
         XCTAssertEqual(oldPlayer.rate, 0)
         XCTAssertNil(oldPlayer.currentItem)
-        XCTAssertNil(MPNowPlayingInfoCenter.default().nowPlayingInfo)
+        XCTAssertNil(PlaybackNowPlaying.shared.session?.nowPlayingInfoCenter.nowPlayingInfo)
         let newModel = PlaybackModel(titleID: newTitle.id, session: newSession)
         newModel.load(.bundled)
         try await waitForPlayback(newModel)
@@ -74,9 +74,9 @@ final class PlaybackSessionLifecycleTests: XCTestCase {
         oldModel.togglePlayback()
         XCTAssertNil(oldModel.player)
         XCTAssertEqual(oldModel.status, .idle)
-        XCTAssertEqual(MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPMediaItemPropertyTitle] as? String, newTitle.name)
+        XCTAssertEqual(PlaybackNowPlaying.shared.session?.nowPlayingInfoCenter.nowPlayingInfo?[MPMediaItemPropertyTitle] as? String, newTitle.name)
         XCTAssertTrue((newModel.player?.rate ?? 0) > 0)
-        XCTAssertTrue(MPRemoteCommandCenter.shared().playCommand.isEnabled)
+        XCTAssertTrue(PlaybackNowPlaying.shared.session!.remoteCommandCenter.playCommand.isEnabled)
     }
 
     @MainActor
@@ -97,7 +97,7 @@ final class PlaybackSessionLifecycleTests: XCTestCase {
         XCTAssertFalse(session.isActive)
         XCTAssertNil(model.player)
         XCTAssertEqual(model.status, .idle)
-        XCTAssertNil(MPNowPlayingInfoCenter.default().nowPlayingInfo)
+        XCTAssertNil(PlaybackNowPlaying.shared.session?.nowPlayingInfoCenter.nowPlayingInfo)
         model.load(.bundled)
         XCTAssertNil(model.player)
         XCTAssertEqual(model.status, .idle)

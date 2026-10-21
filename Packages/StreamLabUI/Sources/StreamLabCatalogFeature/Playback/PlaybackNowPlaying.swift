@@ -1,4 +1,6 @@
 import Foundation
+import AVFoundation
+import OSLog
 import MediaPlayer
 import UIKit
 
@@ -7,6 +9,7 @@ import UIKit
     static let shared = PlaybackNowPlaying()
     enum Action: Sendable { case play, pause, toggle, skip(Double), seek(Double) }
     private var owner: UUID?
+    private(set) var session: MPNowPlayingSession?
     private var targets: [(MPRemoteCommand, Any)] = []
     private var metadata: [String: Any] = [:]
     private struct Snapshot: Equatable {
@@ -18,11 +21,15 @@ import UIKit
     private var lastSnapshot: Snapshot?
     private var action: (@MainActor (Action) -> Void)?
 
-    func begin(owner: UUID, title: String, subtitle: String, artworkURL: URL?,
+    func begin(owner: UUID, player: AVPlayer, title: String, subtitle: String, artworkURL: URL?,
                action: @escaping @MainActor (Action) -> Void) {
         if let old = self.owner { end(owner: old) }
         self.owner = owner
         self.action = action
+        let session = MPNowPlayingSession(players: [player])
+        session.automaticallyPublishesNowPlayingInfo = false
+        self.session = session
+        Logger(subsystem: "com.example.streamlab.demo", category: "PlaybackNowPlaying").notice("now_playing_session=player_bound")
         metadata = [MPMediaItemPropertyTitle: title, MPMediaItemPropertyArtist: subtitle,
                     MPNowPlayingInfoPropertyMediaType: MPNowPlayingInfoMediaType.video.rawValue,
                     MPNowPlayingInfoPropertyIsLiveStream: false]
@@ -32,7 +39,7 @@ import UIKit
             let request: @Sendable (CGSize) -> UIImage = { _ in image }
             metadata[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size, requestHandler: request)
         }
-        let center = MPRemoteCommandCenter.shared()
+        let center = session.remoteCommandCenter
         center.nextTrackCommand.isEnabled = false
         center.previousTrackCommand.isEnabled = false
         center.skipBackwardCommand.preferredIntervals = [10]
@@ -73,7 +80,7 @@ import UIKit
     }
 
     func update(owner: UUID, position: Double, duration: Double, rate: Double, canSeek: Bool) {
-        guard self.owner == owner else { return }
+        guard self.owner == owner, let session else { return }
         let snapshot = Snapshot(second: Int(exactly: position.rounded(.down)) ?? 0,
                                 duration: duration, rate: rate, canSeek: canSeek)
         guard snapshot != lastSnapshot else { return }
@@ -83,8 +90,8 @@ import UIKit
         info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = position.isFinite ? max(0, position) : 0
         info[MPNowPlayingInfoPropertyPlaybackRate] = rate.isFinite ? max(0, rate) : 0
         info[MPNowPlayingInfoPropertyDefaultPlaybackRate] = 1.0
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
-        let center = MPRemoteCommandCenter.shared()
+        session.nowPlayingInfoCenter.nowPlayingInfo = info
+        let center = session.remoteCommandCenter
         center.skipBackwardCommand.isEnabled = canSeek
         center.skipForwardCommand.isEnabled = canSeek
         center.changePlaybackPositionCommand.isEnabled = canSeek
@@ -101,6 +108,7 @@ import UIKit
         metadata.removeAll()
         lastSnapshot = nil
         self.owner = nil
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+        session?.nowPlayingInfoCenter.nowPlayingInfo = nil
+        self.session = nil
     }
 }

@@ -242,6 +242,24 @@ import XCTest
         closePlayback(app)
     }
 
+    func testHomeDemoContinuesWithoutInteraction() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=home-demo-unattended-\(UUID())", "--ui-test-disable-resume"]
+        app.launch()
+        choose("adult-a", in: app)
+        tap(app.buttons["hero-playback"], in: app)
+        expectPlayback("재생 중", in: app)
+        for _ in 0..<6 {
+            RunLoop.current.run(until: Date().addingTimeInterval(2))
+            let paused = app.descendants(matching: .any).matching(NSPredicate(
+                format: "(identifier == %@ AND label == %@) OR (identifier == %@ AND value == %@)",
+                "playback-status", "일시 정지", "playback-reveal-controls", "일시 정지")).firstMatch
+            XCTAssertFalse(paused.exists, "Home demo paused without user interaction")
+        }
+        expectPlayback("재생 중", in: app)
+        app.terminate() // This test observes playback; cover-dismissal geometry has separate coverage.
+    }
+
     func testVisiblePlayButtonRecoversPausedEngineWithPlayingIntent() {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=preview-resume-\(UUID())", "--ui-test-disable-resume",

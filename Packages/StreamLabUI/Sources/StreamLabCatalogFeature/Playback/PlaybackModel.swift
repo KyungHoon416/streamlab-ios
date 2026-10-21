@@ -366,7 +366,7 @@ import StreamLabPresentation
         self.player = player
         let nowPlayingID = UUID()
         nowPlayingOwner = nowPlayingID
-        PlaybackNowPlaying.shared.begin(owner: nowPlayingID, title: nowPlayingTitle,
+        PlaybackNowPlaying.shared.begin(owner: nowPlayingID, player: player, title: nowPlayingTitle,
             subtitle: "StreamLab · \(source.rawValue)", artworkURL: nowPlayingArtworkURL) { [weak self] action in
                 guard let self, self.generation == ticket, self.session.isActive else { return }
                 self.handleRemoteAction(action, origin: .systemRemote)

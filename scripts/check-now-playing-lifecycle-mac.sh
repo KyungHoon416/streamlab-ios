@@ -43,10 +43,10 @@ xcodebuild -scheme "$package_scheme" -configuration Debug \
   -only-testing:StreamLabCatalogFeatureTests/PlaybackNowPlayingTests \
   SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=NO test > "$run_dir/ios-tests.log" 2>&1
 result=$?
-if [ "$result" -eq 0 ] && grep -q 'Executed 5 tests, with 0 failures' "$run_dir/ios-tests.log"; then
-  echo 'PASS five iOS Now Playing lifecycle tests' | tee "$run_dir/RESULTS.txt"
+if [ "$result" -eq 0 ] && grep -q 'Executed 6 tests, with 0 failures' "$run_dir/ios-tests.log"; then
+  echo 'PASS six iOS Now Playing lifecycle tests' | tee "$run_dir/RESULTS.txt"
 else
-  echo "FAIL iOS lifecycle tests exit=$result; require five executed tests" | tee "$run_dir/RESULTS.txt"
+  echo "FAIL iOS lifecycle tests exit=$result; require six executed tests" | tee "$run_dir/RESULTS.txt"
   result=1
 fi
 echo 'NOT TESTED: physical lock-screen card, end-to-end profile switch, Bluetooth disconnection, full regression suite' >> "$run_dir/RESULTS.txt"
