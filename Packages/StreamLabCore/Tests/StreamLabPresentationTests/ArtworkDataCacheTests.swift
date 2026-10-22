@@ -87,6 +87,37 @@ struct ArtworkDataCacheTests {
         }
     }
 
+    @Test func purgeDuringSharedLoadDeliversButDoesNotRepopulateCache() async throws {
+        let gate = ArtworkGate()
+        let cache = ArtworkDataCache(loader: { try await gate.load($0) })
+        let a = Task { try await cache.data(for: first) }
+        let b = Task { try await cache.data(for: first) }
+        try await ready(cache, subscribers: 2, gate: gate, loads: 1)
+        await cache.removeCachedData()
+        await gate.complete(Data([1, 2]))
+        #expect(try await a.value == Data([1, 2]))
+        #expect(try await b.value == Data([1, 2]))
+        #expect(await cache.cachedByteCount == 0)
+        #expect(await cache.subscriberCount == 0)
+        let fresh = Task { try await cache.data(for: first) }
+        try await ready(cache, subscribers: 1, gate: gate, loads: 1)
+        await gate.complete(Data([3]))
+        #expect(try await fresh.value == Data([3]))
+        #expect(await cache.cachedByteCount == 1)
+    }
+
+    @Test func repeatedPurgeAndReloadStaysBounded() async throws {
+        let counter = ArtworkCounter()
+        let cache = ArtworkDataCache(loader: { await counter.load($0) })
+        for _ in 0..<10 {
+            _ = try await cache.data(for: first)
+            #expect(await cache.cachedByteCount == 4)
+            await cache.removeCachedData()
+            #expect(await cache.cachedByteCount == 0)
+        }
+        #expect(await counter.calls == 10)
+    }
+
     @Test func failuresCanBeRetried() async throws {
         let cache = ArtworkDataCache(loader: { _ in throw ArtworkLoadError.invalidResponse })
         for _ in 0..<2 {

@@ -16,6 +16,8 @@ assert not list(ui.rglob("*.storyboard")), "Obsolete Storyboard resources remain
 # SwiftUI owns all screens. UIKit is limited to media/scene adapters, including
 # UIImage artwork passed to the system Now Playing card (not an app screen).
 bridges = {
+    # System memory-warning notification only; all rendering remains SwiftUI.
+    "Packages/StreamLabUI/Sources/StreamLabDesignSystem/Images/ArtworkMemoryLifecycle.swift",
     "App/Application/DownloadBackgroundDelegate.swift",
     # System notification settings and foreground/background state only.
     "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Downloads/DownloadNotifications.swift",

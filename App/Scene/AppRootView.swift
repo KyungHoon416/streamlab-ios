@@ -28,6 +28,7 @@ import StreamLabDesignSystem
         }
         .tint(StreamLabTheme.accent)
         .modifier(StreamLabMotionPolicy())
+        .modifier(ArtworkMemoryLifecycle())
         .progressViewStyle(StreamLabProgressStyle())
         .onAppear { startupLog.notice("[Startup] SwiftUI root appeared") }
         .task { await account.prepare() }

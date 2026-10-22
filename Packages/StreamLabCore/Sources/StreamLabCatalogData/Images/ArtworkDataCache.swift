@@ -7,6 +7,7 @@ public actor ArtworkDataCache {
     public typealias Loader = @Sendable (URL) async throws -> Data
     private struct Pending {
         let generation: UUID
+        let cacheEpoch: UUID
         let task: Task<Void, Never>
         var waiters: [UUID: CheckedContinuation<Data, any Error>]
     }
@@ -16,6 +17,7 @@ public actor ArtworkDataCache {
     private var cache: [URL: Data] = [:]
     private var order: [URL] = []
     private var bytes = 0
+    private var cacheEpoch = UUID()
     private var pending: [URL: Pending] = [:]
 
     public init(byteLimit: Int = 16 * 1024 * 1024, itemLimit: Int = 8 * 1024 * 1024,
@@ -45,7 +47,7 @@ public actor ArtworkDataCache {
                         catch { result = .failure(error) }
                         await self?.finish(url, generation: generation, result: result)
                     }
-                    pending[url] = Pending(generation: generation, task: task, waiters: [waiter: continuation])
+                    pending[url] = Pending(generation: generation, cacheEpoch: cacheEpoch, task: task, waiters: [waiter: continuation])
                 }
             }
         } onCancel: {
@@ -70,7 +72,7 @@ public actor ArtworkDataCache {
             guard data.count <= itemLimit else { return .failure(ArtworkLoadError.tooLarge) }
             return .success(data)
         }
-        if case .success(let data) = checked, data.count <= byteLimit {
+        if case .success(let data) = checked, request.cacheEpoch == cacheEpoch, data.count <= byteLimit {
             cache[url] = data; bytes += data.count; touch(url)
             while bytes > byteLimit, let oldest = order.first {
                 order.removeFirst()
@@ -81,7 +83,11 @@ public actor ArtworkDataCache {
     }
 
     private func touch(_ url: URL) { order.removeAll { $0 == url }; order.append(url) }
-    public func removeCachedData() { cache.removeAll(); order.removeAll(); bytes = 0 }
+    /// Keep subscribers alive, but prevent pre-purge requests from repopulating memory.
+    public func removeCachedData() {
+        cacheEpoch = UUID()
+        cache.removeAll(); order.removeAll(); bytes = 0
+    }
     public var cachedByteCount: Int { bytes }
     public var subscriberCount: Int { pending.values.reduce(0) { $0 + $1.waiters.count } }
 }
