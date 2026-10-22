@@ -611,6 +611,10 @@ import StreamLabPresentation
         saveProgress()
     }
 
+    func recordHUDInteraction(_ action: String, displayedTime: Double, scrubbing: Bool) {
+        qoeLog.notice("hud_action=\(action, privacy: .public) displayed=\(displayedTime) model=\(self.position) actual=\(self.player?.currentTime().seconds ?? -1) rate=\(self.player?.rate ?? 0) scrubbing=\(scrubbing) seeking=\(self.isSeeking)")
+    }
+
     func togglePlayback() {
         guard !syncRestartPending else { return }
         guard session.isActive, foreground, player != nil else { return }
@@ -637,6 +641,7 @@ import StreamLabPresentation
         let seekTicket = seekGeneration
         let resumeAfterSeek = wantsPlayback || playAfterSeek
         let intentTicket = playbackIntentGeneration
+        qoeLog.notice("seek_started generation=\(seekTicket) target=\(destination) actual=\(player.currentTime().seconds) resume=\(resumeAfterSeek)")
         seekStarted = .now
         seekMessage = ""
         isSeeking = true
@@ -670,6 +675,7 @@ import StreamLabPresentation
             if self.wantsPlayback { player.play() } else { player.pause() }
             if !completed { self.seekMessage = "재생 위치 이동이 취소되었습니다. 다시 시도해 주세요." }
             _ = self.sample(ticket: ticket)
+            self.qoeLog.notice("seek_completed generation=\(seekTicket) completed=\(completed) target=\(destination) actual=\(player.currentTime().seconds) displayed=\(self.position) rate=\(player.rate)")
         }
     }
 

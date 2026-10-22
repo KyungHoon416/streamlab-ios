@@ -1424,6 +1424,52 @@ import XCTest
         exercisePlaybackResumeAfterRelaunch(mockOffline: false)
     }
 
+    func testHLSRestartAndSliderKeepTimeAdvancing() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=hls-clock-\(UUID())",
+                               "--ui-test-keep-playback-controls"]
+        app.launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        openPlaybackSource("apple-bipbop-v1", in: app)
+        tap(app.buttons["playback-forward"], in: app)
+        expectPlayback("재생 중", in: app)
+        closePlayback(app)
+        openPlayback(app)
+        openPlaybackSource("apple-bipbop-v1", in: app)
+        XCTAssertTrue(app.staticTexts["playback-resumed"].waitForExistence(timeout: 10))
+        tap(app.buttons["playback-restart"], in: app)
+        expectPlayback("재생 중", in: app)
+        assertPlaybackClockAdvances(app)
+        app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0)
+        expectPlayback("재생 중", in: app)
+        assertPlaybackClockAdvances(app)
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("일시 정지", in: app)
+        app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0.15)
+        guard waitForPausedSeek(app, timePattern: "00:0[3-5]:[0-5][0-9] / 00:30:00") else { return }
+        app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0)
+        guard waitForPausedSeek(app, timePattern: "00:00:0[0-1] / 00:30:00") else { return }
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("재생 중", in: app)
+        assertPlaybackClockAdvances(app)
+        closePlayback(app)
+    }
+
+    private func assertPlaybackClockAdvances(_ app: XCUIApplication) {
+        guard let before = playbackTimes(app)?.position else {
+            XCTFail("Playback clock missing")
+            return
+        }
+        let advances = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            guard let now = self.playbackTimes(app)?.position else { return false }
+            return now >= before + 2
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [advances], timeout: 12), .completed,
+                       "Playback time must advance after seek, not remain at its optimistic target")
+    }
+
     func testPlaybackResumeWithOfflineMutationTransport() {
         exercisePlaybackResumeAfterRelaunch(mockOffline: true)
     }

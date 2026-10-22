@@ -203,6 +203,10 @@ import StreamLabDesignSystem
             scrubbing = false
             revealControls()
         }
+        .onChange(of: model.isSeeking) { _, value in
+            // A committed seek must never leave the HUD displaying a drag preview.
+            if value { scrubbing = false }
+        }
         .onChange(of: phase) { _, value in
             model.setForeground(value == .active)
             if value != .active { scrubbing = false; revealControls() }
@@ -391,6 +395,8 @@ import StreamLabDesignSystem
                         iconButton(model.status == .ended ? "다시 재생" : (model.status == .playing ? "일시 정지" : "재생"),
                                    symbol: model.status == .ended ? "arrow.counterclockwise" : (model.status == .playing ? "pause.fill" : "play.fill"),
                                    id: "playback-toggle", size: 64) {
+                            model.recordHUDInteraction("toggle", displayedTime: scrubbing ? scrubPosition : model.position, scrubbing: scrubbing)
+                            scrubbing = false
                             model.togglePlayback()
                         }
                         .disabled(model.player == nil || model.status == .loading || model.isSeeking)
@@ -420,7 +426,12 @@ import StreamLabDesignSystem
         Text(model.resumeMessage).font(.caption)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("playback-resumed")
-        Button("처음부터 보기") { revealControls(); model.restartFromBeginning() }
+        Button("처음부터 보기") {
+            model.recordHUDInteraction("restart", displayedTime: scrubbing ? scrubPosition : model.position, scrubbing: scrubbing)
+            scrubbing = false
+            revealControls()
+            model.restartFromBeginning()
+        }
             .fixedSize(horizontal: true, vertical: false)
             .frame(minHeight: 44)
             .disabled(!model.canSeek)
@@ -432,13 +443,24 @@ import StreamLabDesignSystem
             if model.duration > 0 {
                 Slider(value: Binding(get: {
                     min(model.duration, max(0, scrubbing ? scrubPosition : model.position))
-                }, set: { scrubPosition = $0 }), in: 0...max(1, model.duration)) {
+                }, set: {
+                    // Slider may deliver its new value before editing=true. Retain
+                    // that value instead of overwriting it with the old player time.
+                    scrubPosition = $0
+                    scrubbing = true
+                }), in: 0...max(1, model.duration)) {
                     Text("재생 위치")
                 } onEditingChanged: { editing in
                     revealControls()
-                    if editing { scrubPosition = model.position }
-                    scrubbing = editing
-                    if !editing { model.seek(to: scrubPosition) }
+                    if editing {
+                        if !scrubbing { scrubPosition = model.position }
+                        scrubbing = true
+                    } else if scrubbing {
+                        let destination = scrubPosition
+                        model.recordHUDInteraction("scrub_end", displayedTime: destination, scrubbing: scrubbing)
+                        scrubbing = false
+                        model.seek(to: destination)
+                    }
                 }
                 .frame(minHeight: 44)
                 .disabled(!model.canSeek)
