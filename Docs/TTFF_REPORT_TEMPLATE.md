@@ -1,4 +1,4 @@
-# StreamLab 실기기 첫 프레임 준비 시간 보고서
+# StreamLab 실기기 재생 품질 보고서
 
 측정 상태: **NOT TESTED — 실측 로그 수령 전**
 
@@ -13,6 +13,12 @@
 | 전체 시도 / 첫 프레임 관측 / 미관측 | NOT TESTED |
 | 실패 / 로그 누락 | NOT TESTED |
 | p50 / p95 / 최소 / 최대 | NOT TESTED |
+| 재버퍼링 지표 관측 / 누락 | NOT TESTED |
+| 재버퍼링 총 횟수 / 누적 대기 시간 | NOT TESTED |
+| 재버퍼링 발생 시도 비율 / 분모 | NOT TESTED |
+| 시도별 누적 재버퍼링 p50 / p95 | NOT TESTED |
+| 실패 시도 비율 / 종료 요약 수 | NOT TESTED |
+| 원본 로그 SHA-256 | 미입력 |
 | 합의한 성능 목표 / 판정 | NOT TESTED |
 
 측정 정의: load 진단 시작 → AVPlayerLayer.isReadyForDisplay 최초 관측.
