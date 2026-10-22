@@ -1457,6 +1457,41 @@ import XCTest
         closePlayback(app)
     }
 
+    func testHLSPlayingSliderMiddleThenBeginningClockAdvances() {
+        let app = launch(keepPlaybackControls: true)
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        openPlaybackSource("apple-bipbop-v1", in: app)
+        let slider = app.sliders["playback-position"]
+        // Use only the timeline while playing. Never pause or use skip/restart buttons.
+        for (target, lower, upper, label) in [(CGFloat(0.5), 850.0, 950.0, "middle"),
+                                             (CGFloat(0), 0.0, 15.0, "beginning")] {
+            slider.adjust(toNormalizedSliderPosition: target)
+            let landed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                guard app.buttons["playback-toggle"].isEnabled,
+                      app.staticTexts["playback-status"].label == "재생 중",
+                      let time = self.playbackTimes(app)?.position else { return false }
+                return time >= lower && time <= upper
+            }, object: nil)
+            guard XCTWaiter.wait(for: [landed], timeout: 20) == .completed else {
+                captureFailure(app, name: "Playing slider did not land at \(label)")
+                XCTFail("Timeline must reach \(label) while remaining in playing state")
+                return
+            }
+            let before = app.staticTexts["playback-time"].label
+            assertPlaybackClockAdvances(app)
+            let after = app.staticTexts["playback-time"].label
+            print("PLAYING_SLIDER \(label): \(before) -> \(after)")
+            let screenshot = XCTAttachment(screenshot: app.screenshot())
+            screenshot.name = "Playing slider \(label): \(before) -> \(after)"
+            screenshot.lifetime = .keepAlways
+            add(screenshot)
+            XCTAssertFalse(app.staticTexts["playback-seek-message"].exists)
+        }
+        closePlayback(app)
+    }
+
     private func assertPlaybackClockAdvances(_ app: XCUIApplication) {
         guard let before = playbackTimes(app)?.position else {
             XCTFail("Playback clock missing")
