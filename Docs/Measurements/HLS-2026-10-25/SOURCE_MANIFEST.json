@@ -1,0 +1,20 @@
+{
+  "sources": [
+    {
+      "path": "hls-20-device-take2.log",
+      "bytes": 56436809,
+      "sha256": "dc3a76eeb27655d8d1041914e372257015e3d3fd20bfa3c2d0b285279bcce0d0",
+      "hls_starts": 15,
+      "hls_summaries": 15
+    },
+    {
+      "path": "hls-device-extra5.log",
+      "bytes": 27631543,
+      "sha256": "afe56730352fa724deb052dcb0e68e4463acb03ddbbeea703e8e10627b5f21ec",
+      "hls_starts": 7,
+      "hls_summaries": 7
+    }
+  ],
+  "same_session": "사용자가 기존 측정과 같은 앱 세션 유지 확인; 추가 횟수는 로그상 7회",
+  "overlapping_attempt_ids": []
+}

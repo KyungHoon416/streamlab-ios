@@ -1,0 +1,87 @@
+기본	20:41:03.562315+0900	StreamLab	summary attempt=91537918-F44D-40DC-BBF7-1AB5CC0D2291 source=bundled-demo-v1 first_frame_ready_seconds=0.48369545832974836 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:41:03.587702+0900	StreamLab	attempt_started attempt=2B52877E-5AD6-406B-BB2C-25744EEAAC58 source=apple-bipbop-v1
+기본	20:41:12.035387+0900	StreamLab	summary attempt=2B52877E-5AD6-406B-BB2C-25744EEAAC58 source=apple-bipbop-v1 first_frame_ready_seconds=0.4968021249951562 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:41:13.520605+0900	StreamLab	attempt_started attempt=5D8C1272-B6AB-49D8-8AB3-EFD64B411F6D source=bundled-demo-v1
+기본	20:41:16.144670+0900	StreamLab	summary attempt=5D8C1272-B6AB-49D8-8AB3-EFD64B411F6D source=bundled-demo-v1 first_frame_ready_seconds=0.4870130416675238 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:41:16.166028+0900	StreamLab	attempt_started attempt=C5ADDCFE-6B9E-4D97-A379-8848DBCB4A8A source=apple-bipbop-v1
+기본	20:41:25.548860+0900	StreamLab	summary attempt=C5ADDCFE-6B9E-4D97-A379-8848DBCB4A8A source=apple-bipbop-v1 first_frame_ready_seconds=0.49033245832833927 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:41:27.456871+0900	StreamLab	attempt_started attempt=97B02116-1C27-475A-A2CD-FD26B088EEC0 source=bundled-demo-v1
+기본	20:41:30.485375+0900	StreamLab	summary attempt=97B02116-1C27-475A-A2CD-FD26B088EEC0 source=bundled-demo-v1 first_frame_ready_seconds=0.6155520416650688 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:41:30.495095+0900	StreamLab	attempt_started attempt=E1B5BC4B-7DF0-46D5-8DF5-380B0FE67321 source=apple-bipbop-v1
+기본	20:41:39.405168+0900	StreamLab	summary attempt=E1B5BC4B-7DF0-46D5-8DF5-380B0FE67321 source=apple-bipbop-v1 first_frame_ready_seconds=0.4954963333293563 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:41:41.144330+0900	StreamLab	attempt_started attempt=38F5936F-AF75-4D21-825D-226C34E15C9C source=bundled-demo-v1
+기본	20:41:43.826755+0900	StreamLab	summary attempt=38F5936F-AF75-4D21-825D-226C34E15C9C source=bundled-demo-v1 first_frame_ready_seconds=0.5578094999946188 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:41:43.840353+0900	StreamLab	attempt_started attempt=88488C51-1D13-459C-8A9C-562371151CD4 source=apple-bipbop-v1
+기본	20:41:50.382196+0900	StreamLab	summary attempt=88488C51-1D13-459C-8A9C-562371151CD4 source=apple-bipbop-v1 first_frame_ready_seconds=0.9893444166664267 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:41:52.583334+0900	StreamLab	attempt_started attempt=A292CB44-7FE8-4549-BDB3-C3DCACA6D732 source=bundled-demo-v1
+기본	20:41:55.167191+0900	StreamLab	summary attempt=A292CB44-7FE8-4549-BDB3-C3DCACA6D732 source=bundled-demo-v1 first_frame_ready_seconds=0.5137829583400162 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:41:55.181855+0900	StreamLab	attempt_started attempt=65304F5F-B449-4D9D-B0C1-FB60A6CC089B source=apple-bipbop-v1
+기본	20:42:01.885155+0900	StreamLab	summary attempt=65304F5F-B449-4D9D-B0C1-FB60A6CC089B source=apple-bipbop-v1 first_frame_ready_seconds=0.7289408333308529 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:42:03.860004+0900	StreamLab	attempt_started attempt=1CD0D9C6-A5BB-462D-BB4F-66BA934EBE36 source=bundled-demo-v1
+기본	20:42:06.636501+0900	StreamLab	summary attempt=1CD0D9C6-A5BB-462D-BB4F-66BA934EBE36 source=bundled-demo-v1 first_frame_ready_seconds=0.5107754166674567 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:42:06.650264+0900	StreamLab	attempt_started attempt=F7F38D3B-586E-4B06-B8C8-7AB559A8F7B6 source=apple-bipbop-v1
+기본	20:42:14.131992+0900	StreamLab	summary attempt=F7F38D3B-586E-4B06-B8C8-7AB559A8F7B6 source=apple-bipbop-v1 first_frame_ready_seconds=1.0037640833324986 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:42:15.755165+0900	StreamLab	attempt_started attempt=894C8F0A-1A6B-46FD-BF94-A6DD94D2C182 source=bundled-demo-v1
+기본	20:42:18.463859+0900	StreamLab	summary attempt=894C8F0A-1A6B-46FD-BF94-A6DD94D2C182 source=bundled-demo-v1 first_frame_ready_seconds=0.48602433332416695 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:42:18.483753+0900	StreamLab	attempt_started attempt=DC0B1D43-2764-4542-8778-E8B94A8E1EE1 source=apple-bipbop-v1
+기본	20:42:23.736207+0900	StreamLab	summary attempt=DC0B1D43-2764-4542-8778-E8B94A8E1EE1 source=apple-bipbop-v1 first_frame_ready_seconds=1.0014187916676747 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:42:25.331698+0900	StreamLab	attempt_started attempt=7434F308-45F3-4C0A-9C4D-9212E90BD4EA source=bundled-demo-v1
+기본	20:42:28.026097+0900	StreamLab	summary attempt=7434F308-45F3-4C0A-9C4D-9212E90BD4EA source=bundled-demo-v1 first_frame_ready_seconds=0.49498658333322965 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:42:28.055435+0900	StreamLab	attempt_started attempt=FBEE0E0D-DF00-4774-9358-F8C764E08E71 source=apple-bipbop-v1
+기본	20:42:37.030103+0900	StreamLab	summary attempt=FBEE0E0D-DF00-4774-9358-F8C764E08E71 source=apple-bipbop-v1 first_frame_ready_seconds=0.48907324999163393 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:42:38.675895+0900	StreamLab	attempt_started attempt=B0770478-C0B1-4C43-A645-945E462D3074 source=bundled-demo-v1
+기본	20:42:41.942940+0900	StreamLab	summary attempt=B0770478-C0B1-4C43-A645-945E462D3074 source=bundled-demo-v1 first_frame_ready_seconds=0.492569291673135 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:42:41.965909+0900	StreamLab	attempt_started attempt=7283AADB-10C3-4038-AB24-A3CAA138F652 source=apple-bipbop-v1
+기본	20:42:52.227587+0900	StreamLab	summary attempt=7283AADB-10C3-4038-AB24-A3CAA138F652 source=apple-bipbop-v1 first_frame_ready_seconds=0.48375508333265316 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:42:54.103707+0900	StreamLab	attempt_started attempt=8BAA73DD-6E37-480A-8D22-116C7DA25F01 source=bundled-demo-v1
+기본	20:42:56.515053+0900	StreamLab	summary attempt=8BAA73DD-6E37-480A-8D22-116C7DA25F01 source=bundled-demo-v1 first_frame_ready_seconds=0.4931262500031153 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:42:56.536026+0900	StreamLab	attempt_started attempt=D000CC8B-9E2E-4611-8CC3-8C14C8A3CA0E source=apple-bipbop-v1
+기본	20:43:06.698297+0900	StreamLab	summary attempt=D000CC8B-9E2E-4611-8CC3-8C14C8A3CA0E source=apple-bipbop-v1 first_frame_ready_seconds=0.7352660416654544 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:43:10.817676+0900	StreamLab	attempt_started attempt=A6C71FC5-F07A-469C-B35F-1F38139A0B23 source=bundled-demo-v1
+기본	20:43:13.657489+0900	StreamLab	summary attempt=A6C71FC5-F07A-469C-B35F-1F38139A0B23 source=bundled-demo-v1 first_frame_ready_seconds=0.5074697083327919 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:43:13.688996+0900	StreamLab	attempt_started attempt=4809FB9F-55C7-4805-8A3B-BCB7497CE3E5 source=apple-bipbop-v1
+기본	20:43:21.424346+0900	StreamLab	summary attempt=4809FB9F-55C7-4805-8A3B-BCB7497CE3E5 source=apple-bipbop-v1 first_frame_ready_seconds=1.2688309583318187 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:43:23.359424+0900	StreamLab	attempt_started attempt=8AF15DFF-204B-4409-8F9C-E0B11401C3D9 source=bundled-demo-v1
+기본	20:43:25.810445+0900	StreamLab	summary attempt=8AF15DFF-204B-4409-8F9C-E0B11401C3D9 source=bundled-demo-v1 first_frame_ready_seconds=0.4647045416641049 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:43:25.830897+0900	StreamLab	attempt_started attempt=0638EEA7-13E8-4756-AFF1-259C8A744161 source=apple-bipbop-v1
+기본	20:43:35.801834+0900	StreamLab	summary attempt=0638EEA7-13E8-4756-AFF1-259C8A744161 source=apple-bipbop-v1 first_frame_ready_seconds=1.006437999996706 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:43:37.496093+0900	StreamLab	attempt_started attempt=08098358-1D8A-422D-8F54-45FB254A24B5 source=bundled-demo-v1
+기본	20:43:40.311538+0900	StreamLab	summary attempt=08098358-1D8A-422D-8F54-45FB254A24B5 source=bundled-demo-v1 first_frame_ready_seconds=0.4863946666591801 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:43:40.324424+0900	StreamLab	attempt_started attempt=25FC8193-3A81-4726-873D-0AF8D76A21C2 source=apple-bipbop-v1
+기본	20:43:51.931982+0900	StreamLab	summary attempt=25FC8193-3A81-4726-873D-0AF8D76A21C2 source=apple-bipbop-v1 first_frame_ready_seconds=0.7397410416742787 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:43:53.918174+0900	StreamLab	attempt_started attempt=62C679B4-04E5-4C0D-BF7A-2A9CCD33694A source=bundled-demo-v1
+기본	20:43:56.745500+0900	StreamLab	summary attempt=62C679B4-04E5-4C0D-BF7A-2A9CCD33694A source=bundled-demo-v1 first_frame_ready_seconds=0.48015925000072457 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:43:56.767967+0900	StreamLab	attempt_started attempt=83215765-1ACD-43E8-8353-D05D095D9EC7 source=apple-bipbop-v1
+기본	20:44:05.191893+0900	StreamLab	summary attempt=83215765-1ACD-43E8-8353-D05D095D9EC7 source=apple-bipbop-v1 first_frame_ready_seconds=0.7470111250004265 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:44:06.859232+0900	StreamLab	attempt_started attempt=F8FBCADD-C34C-419F-AEDF-272131DE78E6 source=bundled-demo-v1
+기본	20:44:09.548994+0900	StreamLab	summary attempt=F8FBCADD-C34C-419F-AEDF-272131DE78E6 source=bundled-demo-v1 first_frame_ready_seconds=0.4775194166577421 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:44:09.581020+0900	StreamLab	attempt_started attempt=24E6EFBF-2C10-42CD-B9B1-A9DDE4948C7B source=apple-bipbop-v1
+기본	20:44:17.652475+0900	StreamLab	summary attempt=24E6EFBF-2C10-42CD-B9B1-A9DDE4948C7B source=apple-bipbop-v1 first_frame_ready_seconds=1.0160155833291356 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:48:52.535866+0900	StreamLab	attempt_started attempt=43D25FFE-D2F5-4D60-8610-F9DCDD79718E source=bundled-demo-v1
+기본	20:48:56.354414+0900	StreamLab	summary attempt=43D25FFE-D2F5-4D60-8610-F9DCDD79718E source=bundled-demo-v1 first_frame_ready_seconds=0.517043083338649 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:48:56.380625+0900	StreamLab	attempt_started attempt=A79CE7B3-6A6D-42BB-85EE-2330FC6AF4E6 source=apple-bipbop-v1
+기본	20:49:06.096137+0900	StreamLab	summary attempt=A79CE7B3-6A6D-42BB-85EE-2330FC6AF4E6 source=apple-bipbop-v1 first_frame_ready_seconds=2.0917455833259737 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:49:07.578258+0900	StreamLab	attempt_started attempt=BD7F6392-6E81-43FD-B29C-9E2FFE369FDE source=bundled-demo-v1
+기본	20:49:10.426858+0900	StreamLab	summary attempt=BD7F6392-6E81-43FD-B29C-9E2FFE369FDE source=bundled-demo-v1 first_frame_ready_seconds=0.5009329166641692 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:49:10.435523+0900	StreamLab	attempt_started attempt=C05B2732-0CEA-41F9-90B2-A4AB1F236B4B source=apple-bipbop-v1
+기본	20:49:17.899163+0900	StreamLab	summary attempt=C05B2732-0CEA-41F9-90B2-A4AB1F236B4B source=apple-bipbop-v1 first_frame_ready_seconds=0.47492604167200625 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:49:19.378839+0900	StreamLab	attempt_started attempt=C32DF6AF-3E96-45FF-98C0-2BCFD81BE253 source=bundled-demo-v1
+기본	20:49:21.965540+0900	StreamLab	summary attempt=C32DF6AF-3E96-45FF-98C0-2BCFD81BE253 source=bundled-demo-v1 first_frame_ready_seconds=0.4925302916672081 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:49:21.976459+0900	StreamLab	attempt_started attempt=13E33EAF-4405-4BE1-A9E8-7EFD85794DB1 source=apple-bipbop-v1
+기본	20:49:29.185295+0900	StreamLab	summary attempt=13E33EAF-4405-4BE1-A9E8-7EFD85794DB1 source=apple-bipbop-v1 first_frame_ready_seconds=0.7420372500055237 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:49:30.621119+0900	StreamLab	attempt_started attempt=B17A28BB-BCAE-42C5-91FE-DFCA9A288799 source=bundled-demo-v1
+기본	20:49:33.485717+0900	StreamLab	summary attempt=B17A28BB-BCAE-42C5-91FE-DFCA9A288799 source=bundled-demo-v1 first_frame_ready_seconds=0.5162317083304515 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:49:33.516485+0900	StreamLab	attempt_started attempt=EB01F29B-F9CC-4428-836A-B3402A86A9E1 source=apple-bipbop-v1
+기본	20:49:40.799570+0900	StreamLab	summary attempt=EB01F29B-F9CC-4428-836A-B3402A86A9E1 source=apple-bipbop-v1 first_frame_ready_seconds=1.0095795416709734 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:49:42.640624+0900	StreamLab	attempt_started attempt=55350D6A-D696-4758-85CD-DD43746CE894 source=bundled-demo-v1
+기본	20:49:44.917150+0900	StreamLab	summary attempt=55350D6A-D696-4758-85CD-DD43746CE894 source=bundled-demo-v1 first_frame_ready_seconds=0.4769157916744007 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:49:44.944196+0900	StreamLab	attempt_started attempt=F35C5B82-66AA-4744-8250-F5B102F861E6 source=apple-bipbop-v1
+기본	20:49:52.525367+0900	StreamLab	summary attempt=F35C5B82-66AA-4744-8250-F5B102F861E6 source=apple-bipbop-v1 first_frame_ready_seconds=0.9860195416695205 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:49:53.872627+0900	StreamLab	attempt_started attempt=CB024940-2D0A-4B57-A1C8-66C9333DAE57 source=bundled-demo-v1
+기본	20:49:56.060584+0900	StreamLab	summary attempt=CB024940-2D0A-4B57-A1C8-66C9333DAE57 source=bundled-demo-v1 first_frame_ready_seconds=0.46875291666947305 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:49:56.073884+0900	StreamLab	attempt_started attempt=B267579C-1E9E-4C35-A3E5-A8BDA9DD0072 source=apple-bipbop-v1
+기본	20:50:06.818243+0900	StreamLab	summary attempt=B267579C-1E9E-4C35-A3E5-A8BDA9DD0072 source=apple-bipbop-v1 first_frame_ready_seconds=0.4743834999972023 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:50:08.502176+0900	StreamLab	attempt_started attempt=0F24976B-A8CE-4209-B843-B87583BE9F62 source=bundled-demo-v1
+기본	20:50:10.684027+0900	StreamLab	summary attempt=0F24976B-A8CE-4209-B843-B87583BE9F62 source=bundled-demo-v1 first_frame_ready_seconds=0.4989129583409522 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0
+기본	20:50:10.697014+0900	StreamLab	attempt_started attempt=A1A15C4E-F4A7-4C38-9A7A-1BBA9FE4B95E source=apple-bipbop-v1
+기본	20:50:19.100867+0900	StreamLab	summary attempt=A1A15C4E-F4A7-4C38-9A7A-1BBA9FE4B95E source=apple-bipbop-v1 first_frame_ready_seconds=1.0012261666706763 rebuffer_count=0 rebuffer_seconds=0.000000 failures=0 invalid_transitions=0

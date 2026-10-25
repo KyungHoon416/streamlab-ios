@@ -1,3 +1,34 @@
+# 실기기 Instruments 메모리 검증 — 2026-10-25 절차
+
+현재 상태: 실기기 Allocations 반복 측정 대기. HLS 첫 프레임 22회 측정과 별도 실행한다.
+
+1. 최신 코드/측정 커밋을 기록하고 기본 StreamLab Scheme, 실제 iPhone을 선택한다.
+   Edit Scheme → Profile → Build Configuration을 Release로 확인한다.
+   기존 DEBUG 오류 주입 실행 인자, Zombies 등 별도 진단 옵션은 해제한다.
+2. Product → Profile (⌘I)로 Instruments를 연다. Allocations를 선택하고 대상이
+   실제 iPhone의 StreamLab인지 확인한 뒤 Record를 누른다.
+3. 같은 프로필로 홈에 들어가 10초 대기하고 Allocations의 Mark Generation으로 기준을 남긴다.
+4. 같은 작품에서 상세 → 데모 재생 → HLS 스트리밍 선택 → 영상이 나온 뒤 5초 → X로 닫기 → 홈 복귀를
+   20회 반복한다. HLS만 카운트한다. 재생 바 조작/다른 앱 이동/프로필 변경은 섞지 않는다.
+5. 5·10·15·20회 홈 복귀 시 10초 대기하고 Mark Generation을 누른다.
+   마지막 표시 이후 홈에서 30초 더 대기하고 마지막 세대 표시를 남긴다.
+6. 앱을 종료하지 않은 상태에서 Instruments 기록을 멈추고 File → Save로
+   바탕화면에 memory-hls-20.trace를 저장한다. 앱 종료 시 해제된 메모리를 정상 회수 증거로 삼지 않는다.
+7. 전체 Allocations 타임라인, Generations 표의 Persistent Bytes/남아 있는 할당 수를 캡처한다.
+   증가하는 세대의 상세 타입/Call Tree도 가능하면 캡처한다. 지표 이름은 Xcode 버전별로 다를 수 있다.
+8. .trace의 전체 경로 또는 파일(첨부가 어려우면 Finder에서 압축한 zip), 위 스크린샷,
+   기기/iOS/Xcode/커밋/Release/반복 횟수/특이사항을 전달한다. 콘솔 텍스트만으로 대체하지 않는다.
+
+Leaks는 별도 측정으로 추가할 수 있다. Allocations는 생존 객체 증가를 확인하고,
+Leaks의 0건만으로 유지 순환이나 불필요한 객체 보유가 없다고 결론내리지 않는다.
+캐시/AVFoundation 초기 할당으로 기준보다 메모리가 높아질 수 있으므로 각 반복 구간에서
+남는 객체와 증가 추세/호출 경로를 비교한다. Instruments 실행의 TTFF는 기존 일반 실행 수치와 섞지 않는다.
+
+참고: [Apple 메모리 측정 및 세대 표시](https://developer.apple.com/documentation/xcode/gathering-information-about-memory-use),
+[Apple Instruments 프로파일링](https://help.apple.com/xcode/mac/current/en.lproj/devcc15e6912.html).
+
+---
+
 # Simulator 메모리 진단
 
 2026-10-12: Instruments가 시작 구간에 Malloc 32 Bytes 1개를 보고했다.
