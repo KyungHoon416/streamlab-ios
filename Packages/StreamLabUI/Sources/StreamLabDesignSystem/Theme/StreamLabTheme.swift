@@ -2,8 +2,11 @@ import SwiftUI
 import StreamLabDomain
 
 public enum StreamLabTheme {
+    private static let bundledArtworkURLs: [URL?] = (0..<6).map {
+        Bundle.module.url(forResource: "poster-\($0)", withExtension: "png")
+    }
     public static func bundledArtworkURL(seed: Int) -> URL? {
-        Bundle.module.url(forResource: "poster-\(abs(seed % 6))", withExtension: "png")
+        bundledArtworkURLs[abs(seed % 6)]
     }
 
     public static let accent = Color(red: 0.9, green: 0.04, blue: 0.1)
@@ -34,7 +37,7 @@ public struct StreamLabButtonStyle: ButtonStyle {
     @State private var generation = UUID()
     public init(title: CatalogTitle) { self.title = title }
     private var url: URL? {
-        title.artworkURL ?? Bundle.module.url(forResource: "poster-\(abs(title.visualSeed % 6))", withExtension: "png")
+        title.artworkURL ?? StreamLabTheme.bundledArtworkURL(seed: title.visualSeed)
     }
     public var body: some View {
         let hue = Double(title.visualSeed % 360) / 360

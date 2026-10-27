@@ -27,10 +27,15 @@ import StreamLabDomain
     private var flushing = false
     public private(set) var reconciliationCount = 0
 
+    private static var cachedDefaultDirectory: URL?
+
     public static func defaultDirectory() throws -> URL {
-        try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
+        if let cachedDefaultDirectory { return cachedDefaultDirectory }
+        let directory = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
                                     appropriateFor: nil, create: true)
             .appendingPathComponent("StreamLab/Mutations", isDirectory: true)
+        cachedDefaultDirectory = directory
+        return directory
     }
 
     public init(directory: URL, scope: MutationScope,

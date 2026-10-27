@@ -149,8 +149,9 @@ import StreamLabPresentation
     private func activateStore(accountID: String) async throws {
         guard storageHealthy else { throw CocoaError(.fileReadCorruptFile) }
         if blockedAccounts.contains(accountID) { try await clear(accountID: accountID) }
-        blockedAccounts.remove(accountID)
-        try save()
+        // Normal restoration does not change the journal. Persist only an actual
+        // unblock; enqueue/expiry/restore transitions already persist their changes.
+        if blockedAccounts.remove(accountID) != nil { try save() }
         activeAccount = accountID
         completionNotificationsSuppressed = false
         await restore()

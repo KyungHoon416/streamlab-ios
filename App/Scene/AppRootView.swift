@@ -109,6 +109,8 @@ import StreamLabDesignSystem
     let onLogout: () -> Void
     @ObservedObject private var notificationNavigation = DownloadNotificationNavigation.shared
     @State private var selectedTab = 0
+    // Build each navigation subtree on first selection, then keep its state.
+    @State private var visitedTabs: Set<Int> = [0]
     @State private var downloadsPath: [String] = []
     @State private var homePath: [String] = []
     @State private var searchPath: [String] = []
@@ -125,20 +127,28 @@ import StreamLabDesignSystem
                     .toolbar { profileToolbar }
             }
             .tabItem { Label("홈", systemImage: "house.fill") }.tag(0)
-            NavigationStack(path: $searchPath) {
-                SearchView(session: session)
-                    .navigationDestination(for: String.self) { id in
-                        DetailView(id: id, session: session)
+            ZStack {
+                if selectedTab == 1 || visitedTabs.contains(1) {
+                    NavigationStack(path: $searchPath) {
+                        SearchView(session: session)
+                            .navigationDestination(for: String.self) { id in
+                                DetailView(id: id, session: session)
+                            }
+                            .toolbar { profileToolbar }
                     }
-                    .toolbar { profileToolbar }
+                }
             }
             .tabItem { Label("검색", systemImage: "magnifyingglass") }.tag(1)
-            NavigationStack(path: $downloadsPath) {
-                DownloadsView(session: session)
-                    .navigationDestination(for: String.self) { id in
-                        DetailView(id: id, session: session)
+            ZStack {
+                if selectedTab == 2 || visitedTabs.contains(2) {
+                    NavigationStack(path: $downloadsPath) {
+                        DownloadsView(session: session)
+                            .navigationDestination(for: String.self) { id in
+                                DetailView(id: id, session: session)
+                            }
+                            .toolbar { profileToolbar }
                     }
-                    .toolbar { profileToolbar }
+                }
             }
             .tabItem { Label("다운로드", systemImage: "arrow.down.circle") }.tag(2)
         }
@@ -146,6 +156,7 @@ import StreamLabDesignSystem
             session.setSynchronizationActive(phase == .active)
             openRequestedDownloads()
         }
+        .onChange(of: selectedTab) { _, tab in visitedTabs.insert(tab) }
         .onChange(of: notificationNavigation.request) { _, _ in openRequestedDownloads() }
         .onChange(of: phase) { _, value in
             session.setSynchronizationActive(value == .active)
