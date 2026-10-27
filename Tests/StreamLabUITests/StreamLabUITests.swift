@@ -247,6 +247,10 @@ import XCTest
         }
         XCTAssertTrue(card.exists && card.isHittable)
         print("Poster frame: \(card.frame)")
+        let posterSnapshot = XCTAttachment(screenshot: card.screenshot())
+        posterSnapshot.name = "poster-rendered-bounds"
+        posterSnapshot.lifetime = .keepAlways
+        add(posterSnapshot)
         // Tap inside the artwork, away from the title and top-left badge.
         card.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 80, dy: 100)).tap()
         XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 10))
@@ -2579,7 +2583,10 @@ import XCTest
             return false
         }
 
-        for attempt in 0...12 {
+        // Episode descriptions can exceed 5,500pt at AX5. Keep a finite budget
+        // large enough to reach the footer; full visibility/hit checks stay unchanged.
+        let maximumAttempts = 24
+        for attempt in 0...maximumAttempts {
             let scrollFrame = scroll.frame
             var viewport = scrollFrame.intersection(app.frame)
             if app.navigationBars.firstMatch.exists {
@@ -2594,7 +2601,7 @@ import XCTest
             let frame = element.frame
             print("[DetailScroll] \(element.identifier) attempt=\(attempt) frame=\(frame) viewport=\(viewport) hittable=\(element.isHittable)")
             if viewport.contains(frame) && element.isHittable { return true }
-            guard attempt < 12, viewport.width > 0, viewport.height > 80 else { break }
+            guard attempt < maximumAttempts, viewport.width > 0, viewport.height > 80 else { break }
 
             // Keep both ends inside the visible content, away from navigation and tab bars.
             let distance = min(viewport.height * 0.55, max(-viewport.height * 0.55, frame.midY - viewport.midY))

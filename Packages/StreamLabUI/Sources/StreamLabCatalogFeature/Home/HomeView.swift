@@ -4,7 +4,6 @@ import StreamLabPresentation
 import StreamLabDesignSystem
 
 @MainActor public struct HomeView: View {
-    @Environment(\.streamLabContrast) private var contrast
     @StateObject private var model: CatalogScreenModel
     @ObservedObject private var myList: MyListStore
     @State private var category: Category = .recommended
@@ -51,7 +50,11 @@ import StreamLabDesignSystem
                         savedContents
                     } else {
                     if let featured = ([home.hero] + home.rails.flatMap(\.items)).first(where: category.includes) {
-                        hero(featured)
+                        HomeHero(title: featured, myList: myList) {
+                            playbackOrientation.begin()
+                            playbackSource = .bundled
+                            playbackTitle = featured
+                        }
                     }
                     if category != .recommended {
                         Text("추천 콘텐츠 중 \(category.rawValue)")
@@ -59,19 +62,8 @@ import StreamLabDesignSystem
                     }
                     continueWatching
                     ForEach(home.rails.filter { $0.items.contains(where: category.includes) }) { rail in
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text(rail.title).font(.title2.bold()).accessibilityAddTraits(.isHeader).padding(.horizontal)
-                            ScrollView(.horizontal) {
-                                LazyHStack(alignment: .top, spacing: 16) {
-                                    ForEach(rail.items.filter(category.includes)) { title in
-                                        NavigationLink(value: title.id) { CatalogPoster(title: title) }
-                                            .buttonStyle(.plain)
-                                            .accessibilityLabel("\(title.name), \(title.rating.rawValue)")
-                                            .accessibilityIdentifier("rail-\(rail.id)-\(title.id)")
-                                    }
-                                }.padding(.horizontal)
-                            }
-                        }
+                        HomeRail(id: rail.id, title: rail.title,
+                                 items: rail.items.filter(category.includes))
                     }
                     }
                 } else if model.store.loading {
@@ -249,7 +241,17 @@ import StreamLabDesignSystem
         }.padding(.horizontal, 20)
     }
 
-    private func hero(_ title: CatalogTitle) -> some View {
+}
+
+/// A concrete view boundary keeps the hero's layout type out of the entire home tree.
+@MainActor private struct HomeHero: View {
+    let title: CatalogTitle
+    @ObservedObject var myList: MyListStore
+    let onPlay: () -> Void
+    @Environment(\.streamLabContrast) private var contrast
+    @Environment(\.dynamicTypeSize) private var textSize
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             NavigationLink(value: title.id) {
                 VStack(alignment: .leading, spacing: 14) {
@@ -271,11 +273,11 @@ import StreamLabDesignSystem
             .accessibilityIdentifier("hero-detail")
             Group {
                 if textSize.isAccessibilitySize {
-                    VStack(spacing: 12) { heroActions(title) }
+                    VStack(spacing: 12) { heroActions }
                 } else {
                     ViewThatFits(in: .horizontal) {
-                        HStack(spacing: 12) { heroActions(title) }
-                        VStack(spacing: 12) { heroActions(title) }
+                        HStack(spacing: 12) { heroActions }
+                        VStack(spacing: 12) { heroActions }
                     }
                 }
             }
@@ -290,12 +292,8 @@ import StreamLabDesignSystem
         .padding(.horizontal, 20)
     }
 
-    @ViewBuilder private func heroActions(_ title: CatalogTitle) -> some View {
-        Button {
-            playbackOrientation.begin()
-            playbackSource = .bundled
-            playbackTitle = title
-        } label: {
+    @ViewBuilder private var heroActions: some View {
+        Button(action: onPlay) {
             Label {
                 Text("데모 재생").fixedSize(horizontal: false, vertical: true)
             } icon: { Image(systemName: "play.fill") }
@@ -307,3 +305,25 @@ import StreamLabDesignSystem
     }
 }
 
+
+@MainActor private struct HomeRail: View {
+    let id: String
+    let title: String
+    let items: [CatalogTitle]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title).font(.title2.bold()).accessibilityAddTraits(.isHeader).padding(.horizontal)
+            ScrollView(.horizontal) {
+                LazyHStack(alignment: .top, spacing: 16) {
+                    ForEach(items) { item in
+                        NavigationLink(value: item.id) { CatalogPoster(title: item) }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("\(item.name), \(item.rating.rawValue)")
+                            .accessibilityIdentifier("rail-\(id)-\(item.id)")
+                    }
+                }.padding(.horizontal)
+            }
+        }
+    }
+}

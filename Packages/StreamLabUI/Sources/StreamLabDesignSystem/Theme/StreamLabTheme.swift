@@ -41,16 +41,12 @@ public struct StreamLabButtonStyle: ButtonStyle {
     }
     public var body: some View {
         let hue = Double(title.visualSeed % 360) / 360
-        // Render either decoded pixels or the placeholder, never both. One
-        // rounded clip bounds scaled-to-fill pixels without a nested rectangular mask.
+        // A single contents layer crops loaded pixels; no per-image GeometryReader
+        // or SwiftUI mask subtree participates in scrolling layout.
         Color.clear
         .overlay {
             if loadedURL == url, let loaded {
-                GeometryReader { geometry in
-                    Image(decorative: loaded.image, scale: 1)
-                        .resizable().scaledToFill()
-                        .frame(width: geometry.size.width, height: geometry.size.height)
-                }
+                ArtworkImageSurface(image: loaded.image)
             } else {
                 ZStack {
                     LinearGradient(colors: [Color(hue: hue, saturation: 0.65, brightness: 0.5), .black], startPoint: .topLeading, endPoint: .bottomTrailing)
@@ -58,9 +54,9 @@ public struct StreamLabButtonStyle: ButtonStyle {
                         .font(.largeTitle)
                         .foregroundStyle(.white.opacity(0.75))
                 }
+                .clipShape(RoundedRectangle(cornerRadius: 16))
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: 16))
         // Artwork is decorative; scaled-to-fill pixels must never intercept nearby controls.
         .allowsHitTesting(false)
         .accessibilityHidden(true)

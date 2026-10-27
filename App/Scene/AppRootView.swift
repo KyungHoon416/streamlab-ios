@@ -186,7 +186,12 @@ import StreamLabDesignSystem
 
     @ToolbarContentBuilder private var profileToolbar: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
-            Button("로그아웃") { confirmingLogout = true }
+            Button { confirmingLogout = true } label: {
+                Label("로그아웃", systemImage: "rectangle.portrait.and.arrow.right")
+                    .labelStyle(.iconOnly)
+                    .frame(minWidth: 44, minHeight: 44)
+            }
+                .accessibilityLabel("로그아웃")
                 .accessibilityIdentifier("account-logout")
         }
         #if DEBUG
