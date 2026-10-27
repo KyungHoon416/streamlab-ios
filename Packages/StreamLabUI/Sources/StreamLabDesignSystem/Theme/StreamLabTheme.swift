@@ -38,19 +38,22 @@ public struct StreamLabButtonStyle: ButtonStyle {
     }
     public var body: some View {
         let hue = Double(title.visualSeed % 360) / 360
-        ZStack {
-            LinearGradient(colors: [Color(hue: hue, saturation: 0.65, brightness: 0.5), .black], startPoint: .topLeading, endPoint: .bottomTrailing)
-            Image(systemName: title.kind == .movie ? "film.stack" : "play.rectangle.on.rectangle")
-                .font(.largeTitle)
-                .foregroundStyle(.white.opacity(0.75))
-        }
+        // Render either decoded pixels or the placeholder, never both. One
+        // rounded clip bounds scaled-to-fill pixels without a nested rectangular mask.
+        Color.clear
         .overlay {
             if loadedURL == url, let loaded {
                 GeometryReader { geometry in
                     Image(decorative: loaded.image, scale: 1)
                         .resizable().scaledToFill()
                         .frame(width: geometry.size.width, height: geometry.size.height)
-                        .clipped()
+                }
+            } else {
+                ZStack {
+                    LinearGradient(colors: [Color(hue: hue, saturation: 0.65, brightness: 0.5), .black], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    Image(systemName: title.kind == .movie ? "film.stack" : "play.rectangle.on.rectangle")
+                        .font(.largeTitle)
+                        .foregroundStyle(.white.opacity(0.75))
                 }
             }
         }

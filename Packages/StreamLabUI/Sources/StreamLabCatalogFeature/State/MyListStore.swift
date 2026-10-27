@@ -13,14 +13,9 @@ import StreamLabCatalogData
     private var queue: DurableMutationStore?
     private var active = true
     private var syncTask: Task<Void, Never>?
-    // One actor owns the mock server file for the entire app process.
-    private static var server: MockMutationServer?
-    private static func transport() throws -> MockMutationServer {
-        if let server { return server }
+    private static func transport() async throws -> MockMutationServer {
         let url = try DurableMutationStore.defaultDirectory().appendingPathComponent("mock-server.json")
-        let created = try MockMutationServer(storageURL: url)
-        server = created
-        return created
+        return try await MockServerRegistry.shared.server(at: url)
     }
     private let snapshotKey = "my-list"
 
@@ -31,7 +26,7 @@ import StreamLabCatalogData
             let scope = MutationScope(accountID: accountID, profileID: profile.id)
             queue = try DurableMutationStore(directory: DurableMutationStore.defaultDirectory(),
                                              scope: scope, seed: accountID == "local-demo" ? legacySeed(defaults: defaults) : [:])
-            items = try read()
+            publish(try read())
             scheduleSync()
         } catch {
             errorMessage = "저장된 리스트를 불러오지 못했습니다. 기존 데이터는 유지됩니다."
@@ -52,7 +47,7 @@ import StreamLabCatalogData
             let change = MyListChange(title: title, isSaved: updated.contains { $0.id == title.id },
                                       observedRevision: queue.committedRevision)
             try queue.set(JSONEncoder().encode(updated), forKey: snapshotKey, myListChange: change)
-            items = updated
+            publish(updated)
             scheduleSync()
         } catch {
             errorMessage = "리스트를 저장하지 못했습니다. 다시 시도해 주세요."
@@ -64,7 +59,7 @@ import StreamLabCatalogData
         do {
             guard let queue else { throw MutationQueueError.inactive }
             try queue.refresh()
-            items = try read()
+            publish(try read())
             scheduleSync()
         } catch {
             errorMessage = "저장된 리스트를 불러오지 못했습니다."
@@ -89,7 +84,7 @@ import StreamLabCatalogData
         syncTask = Task { [weak self] in
             defer { self?.syncTask = nil }
             defer {
-                if let self, self.active { self.items = (try? self.read()) ?? self.items }
+                if let self, self.active, let items = try? self.read() { self.publish(items) }
             }
             do {
                 #if DEBUG
@@ -97,15 +92,23 @@ import StreamLabCatalogData
                     throw URLError(.notConnectedToInternet)
                 }
                 #endif
-                let server = try Self.transport()
+                let server = try await Self.transport()
+                try Task.checkCancellation()
                 try await queue.flush(using: RetryingMutationTransport(base: server), serverWins: server, mergeMyListItems: true)
                 guard let self, self.active else { return }
-                self.items = try self.read()
+                self.publish(try self.read())
             } catch {
                 // Local save already succeeded. Retain requests for the next refresh,
                 // change, or session launch after the bounded retry budget is exhausted.
             }
         }
+    }
+
+    private func publish(_ updated: [CatalogTitle]) {
+        // Reconnection/initial sync often returns the identical local snapshot.
+        // Avoid rebuilding HomeView and every rail for an unchanged list.
+        guard items != updated else { return }
+        items = updated
     }
 
     private func legacySeed(defaults: UserDefaults) throws -> [String: Data] {

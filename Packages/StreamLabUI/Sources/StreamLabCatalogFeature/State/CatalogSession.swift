@@ -20,17 +20,11 @@ import StreamLabDesignSystem
     private var networkObserver: NetworkPathObserver?
     private var recovery: ConnectionRecoveryCoordinator?
     private var searchSyncTask: Task<Void, Never>?
-    private static var searchServer: MockMutationServer?
     private var progressSyncTask: Task<Void, Never>?
-    private static var progressServer: MockMutationServer?
 
-    private static func progressTransport() throws -> MockMutationServer {
-        if let progressServer { return progressServer }
-        // Separate revision stream from My List; both reuse DurableMutationStore.
+    private static func progressTransport() async throws -> MockMutationServer {
         let url = try DurableMutationStore.defaultDirectory().appendingPathComponent("progress-mock-server.json")
-        let server = try MockMutationServer(storageURL: url)
-        progressServer = server
-        return server
+        return try await MockServerRegistry.shared.server(at: url)
     }
 
     private func scheduleProgressSync() {
@@ -44,7 +38,8 @@ import StreamLabDesignSystem
                     throw URLError(.notConnectedToInternet)
                 }
                 #endif
-                let server = try Self.progressTransport()
+                let server = try await Self.progressTransport()
+                try Task.checkCancellation()
                 try await progress.flush(using: RetryingMutationTransport(base: server), snapshots: server)
             } catch {
                 // Preserve the request for the next checkpoint/session launch.
@@ -53,12 +48,9 @@ import StreamLabDesignSystem
         }
     }
 
-    private static func searchTransport() throws -> MockMutationServer {
-        if let searchServer { return searchServer }
+    private static func searchTransport() async throws -> MockMutationServer {
         let url = try DurableMutationStore.defaultDirectory().appendingPathComponent("search-mock-server.json")
-        let server = try MockMutationServer(storageURL: url)
-        searchServer = server
-        return server
+        return try await MockServerRegistry.shared.server(at: url)
     }
 
     private func scheduleSearchSync() {
@@ -72,7 +64,8 @@ import StreamLabDesignSystem
                     throw URLError(.notConnectedToInternet)
                 }
                 #endif
-                let server = try Self.searchTransport()
+                let server = try await Self.searchTransport()
+                try Task.checkCancellation()
                 try await recentSearches.flush(using: RetryingMutationTransport(base: server), snapshots: server)
             } catch {
                 // Keep pending history changes for the next submit or session launch.
