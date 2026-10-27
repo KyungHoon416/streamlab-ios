@@ -36,23 +36,41 @@ public struct StreamLabButtonStyle: ButtonStyle {
     @State private var loadedURL: URL?
     @State private var generation = UUID()
     public init(title: CatalogTitle) { self.title = title }
+    private func placeholder(hue: Double) -> some View {
+        ZStack {
+            LinearGradient(colors: [Color(hue: hue, saturation: 0.65, brightness: 0.5), .black], startPoint: .topLeading, endPoint: .bottomTrailing)
+            Image(systemName: title.kind == .movie ? "film.stack" : "play.rectangle.on.rectangle")
+                .font(.largeTitle)
+                .foregroundStyle(.white.opacity(0.75))
+        }
+    }
+
     private var url: URL? {
         title.artworkURL ?? StreamLabTheme.bundledArtworkURL(seed: title.visualSeed)
     }
     public var body: some View {
         let hue = Double(title.visualSeed % 360) / 360
-        // A single contents layer crops loaded pixels; no per-image GeometryReader
-        // or SwiftUI mask subtree participates in scrolling layout.
-        Color.clear
-        .overlay {
-            if loadedURL == url, let loaded {
-                ArtworkImageSurface(image: loaded.image)
+        Group {
+            if HomeRenderExperiment.current.singleLayerPoster {
+                Color.clear.overlay {
+                    if loadedURL == url, let loaded {
+                        ArtworkImageSurface(image: loaded.image)
+                    } else {
+                        placeholder(hue: hue).clipShape(RoundedRectangle(cornerRadius: 16))
+                    }
+                }
             } else {
-                ZStack {
-                    LinearGradient(colors: [Color(hue: hue, saturation: 0.65, brightness: 0.5), .black], startPoint: .topLeading, endPoint: .bottomTrailing)
-                    Image(systemName: title.kind == .movie ? "film.stack" : "play.rectangle.on.rectangle")
-                        .font(.largeTitle)
-                        .foregroundStyle(.white.opacity(0.75))
+                // Control path matches 340055c: geometry + one outer rounded clip.
+                Color.clear.overlay {
+                    if loadedURL == url, let loaded {
+                        GeometryReader { geometry in
+                            Image(decorative: loaded.image, scale: 1)
+                                .resizable().scaledToFill()
+                                .frame(width: geometry.size.width, height: geometry.size.height)
+                        }
+                    } else {
+                        placeholder(hue: hue)
+                    }
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 16))
             }

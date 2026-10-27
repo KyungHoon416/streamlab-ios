@@ -235,11 +235,22 @@ import XCTest
         XCTAssertTrue(pin.label.contains("고정 해제"))
     }
 
-    func testPosterImageAndSearchThumbnailOpenDetail() {
+    func testHomeExperimentControl() { checkPosterNavigation(mode: "C", poster: "swiftui", home: "inline") }
+    func testHomeExperimentPoster() { checkPosterNavigation(mode: "P", poster: "layer", home: "inline") }
+    func testHomeExperimentSplit() { checkPosterNavigation(mode: "V", poster: "swiftui", home: "split") }
+    func testHomeExperimentCombined() { checkPosterNavigation(mode: "PV", poster: "layer", home: "split") }
+
+    func testPosterImageAndSearchThumbnailOpenDetail() { checkPosterNavigation() }
+
+    private func checkPosterNavigation(mode: String? = nil, poster: String = "layer", home: String = "split") {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=artwork-tap-\(UUID())", "--ui-test-disable-resume"]
+        if let mode { app.launchArguments.append("--home-render-experiment=\(mode)") }
         app.launch()
         choose("adult-a", in: app)
+        let catalog = app.scrollViews["home-catalog"]
+        XCTAssertTrue(catalog.waitForExistence(timeout: 15))
+        XCTAssertEqual(catalog.value as? String, "home_render_experiment=\(mode ?? "PV") poster=\(poster) home=\(home)")
         let card = app.descendants(matching: .any)["rail-trending-title-0001"]
         for _ in 0..<6 {
             if card.exists && card.frame.minY > 100 && card.frame.maxY < app.frame.maxY - 100 { break }

@@ -30,7 +30,10 @@ import StreamLabDesignSystem
         .modifier(StreamLabMotionPolicy())
         .modifier(ArtworkMemoryLifecycle())
         .progressViewStyle(StreamLabProgressStyle())
-        .onAppear { startupLog.notice("[Startup] SwiftUI root appeared") }
+        .onAppear {
+            startupLog.notice("[Startup] SwiftUI root appeared")
+            startupLog.notice("\(HomeRenderExperiment.current.description, privacy: .public)")
+        }
         .task { await account.prepare() }
         #if DEBUG
         .onAppear {

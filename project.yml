@@ -87,3 +87,55 @@ schemes:
       config: Release
       environmentVariables:
         MallocStackLogging: "1"
+
+  StreamLab-Home-C:
+    build:
+      targets:
+        StreamLab: all
+    run:
+      config: Release
+      commandLineArguments:
+        "--home-render-experiment=C": true
+    profile:
+      config: Release
+      commandLineArguments:
+        "--home-render-experiment=C": true
+
+  StreamLab-Home-P:
+    build:
+      targets:
+        StreamLab: all
+    run:
+      config: Release
+      commandLineArguments:
+        "--home-render-experiment=P": true
+    profile:
+      config: Release
+      commandLineArguments:
+        "--home-render-experiment=P": true
+
+  StreamLab-Home-V:
+    build:
+      targets:
+        StreamLab: all
+    run:
+      config: Release
+      commandLineArguments:
+        "--home-render-experiment=V": true
+    profile:
+      config: Release
+      commandLineArguments:
+        "--home-render-experiment=V": true
+
+  StreamLab-Home-PV:
+    build:
+      targets:
+        StreamLab: all
+    run:
+      config: Release
+      commandLineArguments:
+        "--home-render-experiment=PV": true
+    profile:
+      config: Release
+      commandLineArguments:
+        "--home-render-experiment=PV": true

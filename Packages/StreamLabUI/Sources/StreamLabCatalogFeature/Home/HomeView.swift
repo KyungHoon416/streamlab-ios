@@ -4,6 +4,22 @@ import StreamLabPresentation
 import StreamLabDesignSystem
 
 @MainActor public struct HomeView: View {
+    private let session: CatalogSession
+
+    public init(session: CatalogSession) { self.session = session }
+
+    public var body: some View {
+        Group {
+            if HomeRenderExperiment.current.splitHome {
+                ExtractedHomeView(session: session)
+            } else {
+                InlineHomeView(session: session)
+            }
+        }
+    }
+}
+
+@MainActor private struct ExtractedHomeView: View {
     @StateObject private var model: CatalogScreenModel
     @ObservedObject private var myList: MyListStore
     @State private var category: Category = .recommended
@@ -35,13 +51,13 @@ import StreamLabDesignSystem
     @Environment(\.dynamicTypeSize) private var textSize
     @Environment(\.scenePhase) private var phase
 
-    public init(session: CatalogSession) {
+    init(session: CatalogSession) {
         self.session = session
         _myList = ObservedObject(wrappedValue: session.myList)
         _model = StateObject(wrappedValue: CatalogScreenModel(session: session, screen: .home))
     }
 
-    public var body: some View {
+    var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 28) {
                 if let home = model.store.home {
@@ -82,6 +98,10 @@ import StreamLabDesignSystem
         // presentation state outside this boundary so switching does not reload data.
         .id(category)
         .accessibilityIdentifier("home-catalog")
+        #if DEBUG
+        .accessibilityValue(ProcessInfo.processInfo.arguments.contains(where: { $0.hasPrefix("--ui-test-progress-suite=") })
+                            ? HomeRenderExperiment.current.description : "")
+        #endif
         .background(PlaybackPresenterScene(session: playbackOrientation).frame(width: 0, height: 0))
         .background(StreamLabTheme.background)
         .navigationTitle("STREAMLAB")
