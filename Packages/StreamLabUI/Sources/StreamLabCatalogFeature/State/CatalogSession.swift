@@ -95,16 +95,18 @@ import StreamLabDesignSystem
     /// Test sessions can use isolated account/defaults without changing app launch arguments.
     init(profile: ViewerProfile, repository: any CatalogRepository,
          configuration: (id: String, defaults: UserDefaults)) {
+        let span = HomeStartupTrace.begin("SessionInit")
+        defer { withExtendedLifetime(span) {} }
         self.profile = profile
         self.accountID = configuration.id
         self.repository = repository
         let progressDefaults = configuration.defaults
         let progressAccount = configuration.id
-        self.myList = MyListStore(profile: profile, defaults: progressDefaults, accountID: progressAccount)
-        self.languages = PlaybackLanguageStore(profileID: profile.id, defaults: progressDefaults)
-        self.progress = PlaybackProgressStore(profileID: profile.id, defaults: progressDefaults,
-                                              durable: true, accountID: progressAccount)
-        self.recentSearches = RecentSearchStore(profileID: profile.id, accountID: progressAccount)
+        self.myList = HomeStartupTrace.measure("RestoreMyList") { MyListStore(profile: profile, defaults: progressDefaults, accountID: progressAccount) }
+        self.languages = HomeStartupTrace.measure("RestoreLanguages") { PlaybackLanguageStore(profileID: profile.id, defaults: progressDefaults) }
+        self.progress = HomeStartupTrace.measure("RestoreProgress") { PlaybackProgressStore(profileID: profile.id, defaults: progressDefaults,
+                                              durable: true, accountID: progressAccount) }
+        self.recentSearches = HomeStartupTrace.measure("RestoreSearches") { RecentSearchStore(profileID: profile.id, accountID: progressAccount) }
         self.recentSearches.onMutation = { [weak self] in self?.scheduleSearchSync() }
         self.progress.onMutation = { [weak self] in self?.scheduleProgressSync() }
         scheduleProgressSync()

@@ -139,3 +139,18 @@ schemes:
       config: Release
       commandLineArguments:
         "--home-render-experiment=PV": true
+
+  StreamLab-Startup:
+    build:
+      targets:
+        StreamLab: all
+    run:
+      config: Release
+      commandLineArguments:
+        "--trace-home-startup": true
+        "--home-render-experiment=C": true
+    profile:
+      config: Release
+      commandLineArguments:
+        "--trace-home-startup": true
+        "--home-render-experiment=C": true

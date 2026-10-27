@@ -235,6 +235,9 @@ import XCTest
         XCTAssertTrue(pin.label.contains("고정 해제"))
     }
 
+    func testStartupTraceControl() { checkPosterNavigation(mode: "C", poster: "swiftui", home: "inline", trace: true) }
+    func testStartupTraceCombined() { checkPosterNavigation(mode: "PV", poster: "layer", home: "split", trace: true) }
+
     func testHomeExperimentControl() { checkPosterNavigation(mode: "C", poster: "swiftui", home: "inline") }
     func testHomeExperimentPoster() { checkPosterNavigation(mode: "P", poster: "layer", home: "inline") }
     func testHomeExperimentSplit() { checkPosterNavigation(mode: "V", poster: "swiftui", home: "split") }
@@ -242,10 +245,11 @@ import XCTest
 
     func testPosterImageAndSearchThumbnailOpenDetail() { checkPosterNavigation() }
 
-    private func checkPosterNavigation(mode: String? = nil, poster: String = "layer", home: String = "split") {
+    private func checkPosterNavigation(mode: String? = nil, poster: String = "layer", home: String = "split", trace: Bool = false) {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=artwork-tap-\(UUID())", "--ui-test-disable-resume"]
         if let mode { app.launchArguments.append("--home-render-experiment=\(mode)") }
+        if trace { app.launchArguments.append("--trace-home-startup") }
         app.launch()
         choose("adult-a", in: app)
         let catalog = app.scrollViews["home-catalog"]

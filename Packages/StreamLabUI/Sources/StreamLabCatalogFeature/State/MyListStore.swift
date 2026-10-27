@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import StreamLabDesignSystem
 import StreamLabDomain
 import StreamLabPresentation
 import StreamLabCatalogData
@@ -55,6 +56,8 @@ import StreamLabCatalogData
     }
 
     func refresh() {
+        let span = HomeStartupTrace.begin("MyListRefresh")
+        defer { withExtendedLifetime(span) {} }
         guard active else { return }
         do {
             guard let queue else { throw MutationQueueError.inactive }

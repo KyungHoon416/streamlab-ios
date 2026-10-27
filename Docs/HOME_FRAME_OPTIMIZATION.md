@@ -120,3 +120,12 @@ Dynamic Type/textClipped/hitRegion 감사 항목은 그대로 유지한다.
 기존 A/B의 스크롤 동작·열 상태 차이로는 원인을 확정할 수 없어 마련한 측정 구성이다.
 자세한 순서와 파일명은 [HOME_RENDER_EXPERIMENT.md](HOME_RENDER_EXPERIMENT.md)를 따른다.
 성능 개선을 추가로 완료했다는 의미는 아니다.
+
+## 공통 초기 준비 단계 계측
+
+포스터/홈 뷰 분리 독립 비교만으로 초기 지연의 원인을 확정하지 못해,
+`StreamLab-Startup` Release Scheme에 선택형 signpost 계측을 추가했다.
+계정 복원, 프로필/세션/로컬 상태 준비, 홈 요청·발행·body 계산, 첫 hero layout
+관찰 지점과 이미지 로드·디코딩을 같은 Instruments 시간축에서 비교한다.
+[HOME_STARTUP_TRACE.md](HOME_STARTUP_TRACE.md)에 구간 의미와 첫 실기기 측정 방법을 정리했다.
+이 계측을 실제 성능 개선 완료로 취급하지 않는다.

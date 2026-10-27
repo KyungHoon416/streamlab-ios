@@ -45,7 +45,9 @@ import StreamLabDesignSystem
     }
 
     var body: some View {
-        ScrollView {
+        let span = HomeStartupTrace.begin("HomeBodyValue")
+        defer { withExtendedLifetime(span) {} }
+        return ScrollView {
             LazyVStack(alignment: .leading, spacing: 28) {
                 if let home = model.store.home {
                     categoryPicker
@@ -116,7 +118,7 @@ import StreamLabDesignSystem
             if !showing { cancelledPlaybackTitleID = nil }
         }
         .task(id: recentRefresh) { await refreshRecent() }
-        .onAppear { recentRefresh = UUID(); myList.refresh(); model.appear(phase: phase) }
+        .onAppear { HomeStartupTrace.event("HomeAppeared"); recentRefresh = UUID(); myList.refresh(); model.appear(phase: phase) }
         .onDisappear { model.disappear() }
         .onChange(of: phase) { _, value in
             if value == .active { myList.refresh(); recentRefresh = UUID() }
@@ -125,6 +127,8 @@ import StreamLabDesignSystem
     }
 
     private func refreshRecent() async {
+        let span = HomeStartupTrace.begin("HomeRecentWait")
+        defer { withExtendedLifetime(span) {} }
         let ticket = recentRefresh
         let entries = session.progress.recent()
         var result: [RecentItem] = []
@@ -275,6 +279,7 @@ import StreamLabDesignSystem
             .accessibilityLabel("\(title.name), 상세 정보")
             .accessibilityHint("작품 상세 화면을 엽니다")
             .accessibilityIdentifier("hero-detail")
+            .background { HomeStartupLayoutMarker() }
             Group {
                 if textSize.isAccessibilitySize {
                     VStack(spacing: 12) { heroActions(title) }

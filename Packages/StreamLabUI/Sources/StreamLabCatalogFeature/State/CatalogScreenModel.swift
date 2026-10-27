@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import StreamLabDesignSystem
 import StreamLabDomain
 import StreamLabPresentation
 
@@ -12,11 +13,15 @@ import StreamLabPresentation
     let store: CatalogStore
     private let session: CatalogSession
     private let screen: Screen
+    private var homeLoadSpan: HomeStartupTrace.Interval?
+    private var homeReadyMarked = false
     private var started = false
     private var visible = false
     private var active = false
 
     init(session: CatalogSession, screen: Screen) {
+        let span = HomeStartupTrace.begin("ScreenModelInit")
+        defer { withExtendedLifetime(span) {} }
         self.session = session
         self.screen = screen
         self.store = session.makeStore()
@@ -24,7 +29,16 @@ import StreamLabPresentation
     }
 
     private func publishChange() {
-        revision &+= 1
+        if case .home = screen {
+            HomeStartupTrace.measure("HomePublish") { revision &+= 1 }
+            if !store.loading {
+                homeLoadSpan = nil
+                if store.home != nil, !homeReadyMarked {
+                    homeReadyMarked = true
+                    HomeStartupTrace.event("HomeDataReady")
+                }
+            }
+        } else { revision &+= 1 }
     }
 
     func appear(phase: ScenePhase) {
@@ -33,11 +47,14 @@ import StreamLabPresentation
     }
     func disappear() {
         visible = false
+        homeLoadSpan = nil
+        HomeStartupTrace.event("ScreenDisappeared")
         store.suspend()
     }
     func setPhase(_ phase: ScenePhase) {
         active = phase == .active
         guard visible, active, session.isActive else {
+            homeLoadSpan = nil
             store.suspend()
             return
         }
@@ -45,7 +62,9 @@ import StreamLabPresentation
         guard !started else { publishChange(); return }
         started = true
         switch screen {
-        case .home: store.loadHome()
+        case .home:
+            homeLoadSpan = HomeStartupTrace.begin("HomeInitialLoadWait")
+            store.loadHome()
         case .search: store.search("", debounce: .zero)
         case .detail(let id): store.loadDetail(id: id)
         }

@@ -22,9 +22,16 @@ actor ArtworkPipeline {
         try Task.checkCancellation()
         if let image = images[url] { touch(url); return image }
         let epoch = cacheEpoch
-        let data = try await dataCache.data(for: url)
+        let data: Data
+        do {
+            let span = HomeStartupTrace.begin("ArtworkDataWait")
+            defer { withExtendedLifetime(span) {} }
+            data = try await dataCache.data(for: url)
+        }
         try Task.checkCancellation()
         if let image = images[url] { touch(url); return image }
+        let decodeSpan = HomeStartupTrace.begin("ArtworkDecode")
+        defer { withExtendedLifetime(decodeSpan) {} }
         guard let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),
               let image = CGImageSourceCreateThumbnailAtIndex(source, 0, [
                 kCGImageSourceCreateThumbnailFromImageAlways: true,

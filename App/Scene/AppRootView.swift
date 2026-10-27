@@ -13,6 +13,8 @@ import StreamLabDesignSystem
     private let startupLog = Logger(subsystem: "com.example.streamlab.demo", category: "Startup")
 
     init() {
+        let span = HomeStartupTrace.begin("RootInit")
+        defer { withExtendedLifetime(span) {} }
         #if DEBUG
         repository = MockCatalogRepository(responseDelay: ProcessInfo.processInfo.arguments.contains("--ui-test-slow-catalog") ? .seconds(4) : .milliseconds(120))
         #else
@@ -31,10 +33,15 @@ import StreamLabDesignSystem
         .modifier(ArtworkMemoryLifecycle())
         .progressViewStyle(StreamLabProgressStyle())
         .onAppear {
+            HomeStartupTrace.event("RootAppeared")
             startupLog.notice("[Startup] SwiftUI root appeared")
             startupLog.notice("\(HomeRenderExperiment.current.description, privacy: .public)")
         }
-        .task { await account.prepare() }
+        .task {
+            let span = HomeStartupTrace.begin("AccountPrepare")
+            defer { withExtendedLifetime(span) {} }
+            await account.prepare()
+        }
         #if DEBUG
         .onAppear {
             if ProcessInfo.processInfo.arguments.contains("--ui-test-download-notification-launch") {
@@ -84,7 +91,9 @@ import StreamLabDesignSystem
                     .id(session.id)
             } else {
                 ProfileSelectionView { profile in
-                    session = CatalogSession(profile: profile, repository: repository)
+                    session = HomeStartupTrace.measure("ProfileSelection") {
+                        CatalogSession(profile: profile, repository: repository)
+                    }
                 }
 
             }

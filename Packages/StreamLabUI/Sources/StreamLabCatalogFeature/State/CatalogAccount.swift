@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import OSLog
+import StreamLabDesignSystem
 import StreamLabPresentation
 
 /// Local demo credentials in Keychain. No server login or real password authentication.
@@ -25,6 +26,8 @@ import StreamLabPresentation
     }
 
     public init() {
+        let span = HomeStartupTrace.begin("AccountInit")
+        defer { withExtendedLifetime(span) {} }
         do {
             let configuration = Self.configuration()
             storage = AccountLocalData(root: try DurableMutationStore.defaultDirectory(),
