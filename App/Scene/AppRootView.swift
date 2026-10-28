@@ -115,6 +115,25 @@ import StreamLabDesignSystem
     }
 }
 
+/// Process-local diagnostics only; no saved setting can affect normal launches.
+private enum StartupChromeExperiment: String {
+    case baseline, noToolbar = "no-toolbar", noTabs = "no-tabs"
+    static let current: Self = {
+        guard HomeStartupTrace.enabled else { return .baseline }
+        let values = ProcessInfo.processInfo.arguments.filter { $0.hasPrefix("--startup-chrome=") }
+        guard values.count == 1, let raw = values.first?.split(separator: "=", maxSplits: 1).last,
+              let mode = Self(rawValue: String(raw)) else { return .baseline }
+        return mode
+    }()
+    func mark() {
+        switch self {
+        case .baseline: HomeStartupTrace.event("StartupChromeBaseline")
+        case .noToolbar: HomeStartupTrace.event("StartupChromeNoToolbar")
+        case .noTabs: HomeStartupTrace.event("StartupChromeNoTabs")
+        }
+    }
+}
+
 @MainActor private struct CatalogTabs: View {
     let session: CatalogSession
     let onSwitchProfile: () -> Void
@@ -132,17 +151,22 @@ import StreamLabDesignSystem
     var body: some View {
         let span = HomeStartupTrace.begin("CatalogTabsBodyValue")
         defer { withExtendedLifetime(span) {} }
-        return TabView(selection: $selectedTab) {
-            ForEach(CatalogTabKind.allCases) { tab in
-                CatalogTabRoot(tab: tab, session: session,
-                               isLoaded: selectedTab == tab.rawValue || visitedTabs.contains(tab.rawValue),
-                               path: path(for: tab), confirmingLogout: $confirmingLogout,
-                               onSwitchProfile: onSwitchProfile)
-                    .tabItem { Label(tab.title, systemImage: tab.symbol) }
-                    .tag(tab.rawValue)
+        return Group {
+            if StartupChromeExperiment.current == .noTabs {
+                // Remove the tab container, retain the same navigation/content/toolbar.
+                tabRoot(CatalogTabKind(rawValue: selectedTab) ?? .home)
+            } else {
+                TabView(selection: $selectedTab) {
+                    ForEach(CatalogTabKind.allCases) { tab in
+                        tabRoot(tab)
+                            .tabItem { Label(tab.title, systemImage: tab.symbol) }
+                            .tag(tab.rawValue)
+                    }
+                }
             }
         }
         .onAppear {
+            StartupChromeExperiment.current.mark()
             session.setSynchronizationActive(phase == .active)
             openRequestedDownloads()
         }
@@ -163,6 +187,13 @@ import StreamLabDesignSystem
                 .accessibilityIdentifier("confirm-logout")
             Button("취소", role: .cancel) {}
         }
+    }
+
+    private func tabRoot(_ tab: CatalogTabKind) -> some View {
+        CatalogTabRoot(tab: tab, session: session,
+                       isLoaded: selectedTab == tab.rawValue || visitedTabs.contains(tab.rawValue),
+                       path: path(for: tab), confirmingLogout: $confirmingLogout,
+                       onSwitchProfile: onSwitchProfile)
     }
 
     private func openRequestedDownloads() {
@@ -212,9 +243,11 @@ private enum CatalogTabKind: Int, CaseIterable, Identifiable {
                             DetailView(id: id, session: session)
                         }
                         .toolbar {
-                            CatalogProfileToolbar(profile: session.profile,
-                                                  confirmingLogout: $confirmingLogout,
-                                                  onSwitchProfile: onSwitchProfile)
+                            if StartupChromeExperiment.current != .noToolbar {
+                                CatalogProfileToolbar(profile: session.profile,
+                                                      confirmingLogout: $confirmingLogout,
+                                                      onSwitchProfile: onSwitchProfile)
+                            }
                         }
                 }
             } else {

@@ -235,6 +235,29 @@ import XCTest
         XCTAssertTrue(pin.label.contains("고정 해제"))
     }
 
+    func testStartupChromeBaseline() { checkStartupChrome("baseline") }
+    func testStartupChromeNoToolbar() { checkStartupChrome("no-toolbar") }
+    func testStartupChromeNoTabs() { checkStartupChrome("no-tabs") }
+    func testStartupChromeIgnoredWithoutTracing() { checkStartupChrome("no-tabs", tracing: false) }
+
+    private func checkStartupChrome(_ mode: String, tracing: Bool = true) {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=chrome-\(UUID())", "--ui-test-disable-resume",
+                               "--home-render-experiment=C", "--startup-chrome=\(mode)"]
+        if tracing { app.launchArguments.append("--trace-home-startup") }
+        app.launch()
+        choose("adult-a", in: app)
+        XCTAssertTrue(app.descendants(matching: .any)["hero-detail"].waitForExistence(timeout: 15))
+        let effective = tracing ? mode : "baseline"
+        XCTAssertEqual(app.tabBars.buttons["검색"].exists, effective != "no-tabs")
+        XCTAssertEqual(app.buttons["switch-profile"].exists, effective != "no-toolbar")
+        XCTAssertEqual(app.buttons["account-logout"].exists, effective != "no-toolbar")
+        openHomeDetail(app)
+        XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 10))
+        back(app)
+        XCTAssertTrue(app.descendants(matching: .any)["hero-detail"].waitForExistence(timeout: 10))
+    }
+
     func testStartupTraceControl() { checkPosterNavigation(mode: "C", poster: "swiftui", home: "inline", trace: true) }
     func testStartupTraceCombined() { checkPosterNavigation(mode: "PV", poster: "layer", home: "split", trace: true) }
 
