@@ -129,3 +129,12 @@ Dynamic Type/textClipped/hitRegion 감사 항목은 그대로 유지한다.
 관찰 지점과 이미지 로드·디코딩을 같은 Instruments 시간축에서 비교한다.
 [HOME_STARTUP_TRACE.md](HOME_STARTUP_TRACE.md)에 구간 의미와 첫 실기기 측정 방법을 정리했다.
 이 계측을 실제 성능 개선 완료로 취급하지 않는다.
+
+## 초기 구간 후속 개선
+
+초기 단계 trace의 프로필 선택 직후 레이아웃과 이어보기 후속 갱신을 대상으로,
+탭별 네비게이션/툴바의 구체 타입을 공통화하고 이어보기 상태를 해당 섹션으로 분리했다.
+초기 refresh 키 재설정을 제거하고 상세 조회를 최대 4개로 병렬화하며,
+동일 snapshot 재발행과 세션 종료 후 늦은 결과 반영을 차단한다.
+[HOME_STARTUP_FOLLOWUP.md](HOME_STARTUP_FOLLOWUP.md)에 변경 범위와 수정 후 동일 조건
+측정 절차를 정리했다. 실제 초기 지연 감소는 아직 실기기 재측정 전이다.

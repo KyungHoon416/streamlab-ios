@@ -130,39 +130,17 @@ import StreamLabDesignSystem
     @Environment(\.scenePhase) private var phase
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            NavigationStack(path: $homePath) {
-                HomeView(session: session)
-                    .navigationDestination(for: String.self) { id in
-                        DetailView(id: id, session: session)
-                    }
-                    .toolbar { profileToolbar }
+        let span = HomeStartupTrace.begin("CatalogTabsBodyValue")
+        defer { withExtendedLifetime(span) {} }
+        return TabView(selection: $selectedTab) {
+            ForEach(CatalogTabKind.allCases) { tab in
+                CatalogTabRoot(tab: tab, session: session,
+                               isLoaded: selectedTab == tab.rawValue || visitedTabs.contains(tab.rawValue),
+                               path: path(for: tab), confirmingLogout: $confirmingLogout,
+                               onSwitchProfile: onSwitchProfile)
+                    .tabItem { Label(tab.title, systemImage: tab.symbol) }
+                    .tag(tab.rawValue)
             }
-            .tabItem { Label("홈", systemImage: "house.fill") }.tag(0)
-            ZStack {
-                if selectedTab == 1 || visitedTabs.contains(1) {
-                    NavigationStack(path: $searchPath) {
-                        SearchView(session: session)
-                            .navigationDestination(for: String.self) { id in
-                                DetailView(id: id, session: session)
-                            }
-                            .toolbar { profileToolbar }
-                    }
-                }
-            }
-            .tabItem { Label("검색", systemImage: "magnifyingglass") }.tag(1)
-            ZStack {
-                if selectedTab == 2 || visitedTabs.contains(2) {
-                    NavigationStack(path: $downloadsPath) {
-                        DownloadsView(session: session)
-                            .navigationDestination(for: String.self) { id in
-                                DetailView(id: id, session: session)
-                            }
-                            .toolbar { profileToolbar }
-                    }
-                }
-            }
-            .tabItem { Label("다운로드", systemImage: "arrow.down.circle") }.tag(2)
         }
         .onAppear {
             session.setSynchronizationActive(phase == .active)
@@ -196,7 +174,72 @@ import StreamLabDesignSystem
         notificationNavigation.clear()
     }
 
-    @ToolbarContentBuilder private var profileToolbar: some ToolbarContent {
+    private func path(for tab: CatalogTabKind) -> Binding<[String]> {
+        switch tab {
+        case .home: $homePath
+        case .search: $searchPath
+        case .downloads: $downloadsPath
+        }
+    }
+}
+
+private enum CatalogTabKind: Int, CaseIterable, Identifiable {
+    case home, search, downloads
+    var id: Int { rawValue }
+    var title: String {
+        switch self { case .home: "홈"; case .search: "검색"; case .downloads: "다운로드" }
+    }
+    var symbol: String {
+        switch self { case .home: "house.fill"; case .search: "magnifyingglass"; case .downloads: "arrow.down.circle" }
+    }
+}
+
+/// All three tabs share one navigation/toolbar type while retaining independent paths.
+@MainActor private struct CatalogTabRoot: View {
+    let tab: CatalogTabKind
+    let session: CatalogSession
+    let isLoaded: Bool
+    @Binding var path: [String]
+    @Binding var confirmingLogout: Bool
+    let onSwitchProfile: () -> Void
+
+    var body: some View {
+        Group {
+            if isLoaded {
+                NavigationStack(path: $path) {
+                    screen
+                        .navigationDestination(for: String.self) { id in
+                            DetailView(id: id, session: session)
+                        }
+                        .toolbar {
+                            CatalogProfileToolbar(profile: session.profile,
+                                                  confirmingLogout: $confirmingLogout,
+                                                  onSwitchProfile: onSwitchProfile)
+                        }
+                }
+            } else {
+                // A concrete placeholder keeps unvisited tabs visible in TabView.
+                Color.clear
+            }
+        }
+    }
+
+    @ViewBuilder private var screen: some View {
+        switch tab {
+        case .home: HomeView(session: session)
+        case .search: SearchView(session: session)
+        case .downloads: DownloadsView(session: session)
+        }
+    }
+}
+
+@MainActor private struct CatalogProfileToolbar: ToolbarContent {
+    let profile: ViewerProfile
+    @Binding var confirmingLogout: Bool
+    let onSwitchProfile: () -> Void
+    private let notificationNavigation = DownloadNotificationNavigation.shared
+
+    @ToolbarContentBuilder var body: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button { confirmingLogout = true } label: {
                 Label("로그아웃", systemImage: "rectangle.portrait.and.arrow.right")
@@ -221,9 +264,9 @@ import StreamLabDesignSystem
         }
         #endif
         ToolbarItem(placement: .topBarTrailing) {
-            Button(action: onSwitchProfile) { Label(session.profile.displayName, systemImage: session.profile.avatarSymbol) }
+            Button(action: onSwitchProfile) { Label(profile.displayName, systemImage: profile.avatarSymbol) }
                 .accessibilityLabel("프로필 변경")
-                .accessibilityValue(session.profile.displayName)
+                .accessibilityValue(profile.displayName)
                 .accessibilityIdentifier("switch-profile")
         }
     }

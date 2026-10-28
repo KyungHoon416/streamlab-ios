@@ -33,7 +33,9 @@ subsystem: `com.example.streamlab.demo`, category: `PointsOfInterest`.
 | HomePublish | 홈 상태 변경을 Combine에 발행하는 동기 비용 |
 | HomeDataReady | 해당 모델에서 첫 홈 데이터 준비가 관찰됨. 이미지 준비/화면 표시 완료는 아님 |
 | HomeBodyValue | inline/split 홈의 body 값 생성. SwiftUI의 전체 layout/render 시간이 아님 |
-| HomeRecentWait | 이어보기 목록 refresh의 벽시계 시간. 중복 refresh/취소 가능 |
+| HomeRecentWait | 이어보기 섹션 refresh의 벽시계 시간. 최대 4개 상세 조회 병렬 처리, 화면 이탈/비활성화 시 취소 가능 |
+| HomeRecentPublish | 달라진 이어보기 snapshot을 섹션에 발행하는 동기 비용 |
+| CatalogTabsBodyValue | 공통 탭 트리의 SwiftUI 값 구성. 시스템 레이아웃 완료 시간은 아님 |
 | HomeAppeared | 홈 onAppear |
 | HeroFirstLayout | hero-detail 배경의 투명 probe가 window 안에서 양의 크기로 처음 layout된 지점. 실제 첫 표시 프레임 또는 전체 레이아웃 종료를 보장하지 않음 |
 | ArtworkDataWait | 이미지 byte cache/로드 대기. decoded cache hit에는 나타나지 않음 |
@@ -93,3 +95,5 @@ HomeBodyValue/HeroFirstLayout의 위치를 hitch/hang 및 CPU 스택과 맞춘�
 - 실기기 수집 결과와 성능 원인 판단은 아직 미완료이다.
 - 최종 소스로 iOS 패키지 회귀 테스트 4개 통과: ArtworkMemory 2개,
   ArtworkSurface 1개, HomeRenderExperiment 1개. 최종 계정/목록 계측 컴파일 포함.
+
+후속 개선 이후의 동일 조건 측정은 [HOME_STARTUP_FOLLOWUP.md](HOME_STARTUP_FOLLOWUP.md)를 따른다.
