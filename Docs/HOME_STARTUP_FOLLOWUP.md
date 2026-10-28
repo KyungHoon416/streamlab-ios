@@ -76,3 +76,72 @@ Snapshot 발행을 표시한다. 전체 UIKit layout 시간으로 해석하지 �
   1회 실패했지만 표시 시간은 15초였다. 같은 빌드로 해당 테스트를 단독 재실행해
   통과했다. 일괄 실행 전체가 한 번에 통과했다고 기록하지 않는다.
 - 실기기 초기 지연 개선 여부는 `home-startup-stages-fixed1.trace` 수집 후 판정한다.
+
+## 이어보기 실기기 검증 완료 (2026-10-28)
+
+수정 전 `home-startup-stages-1.trace`와 수정 후 `fixed1`, `fixed2`, `fixed3-cool`을 비교했다.
+원본 파일은 사용자 바탕화면에 보존하며 저장소에 포함하지 않는다.
+
+| 항목 | 수정 전 | fixed1 | fixed2 | fixed3-cool |
+| --- | ---: | ---: | ---: | ---: |
+| 열 상태 | Nominal | Nominal | Fair | Fair |
+| 초기 큰 main hang(ms) | 154.487 | 109.693 | 144.848 | 105.888 |
+| 프로필 선택~HeroFirstLayout(ms) | 317.505 | 278.248 | 307.975 | 280.821 |
+| 이어보기 조회 횟수 | 2 | 1 | 1 | 1 |
+| 이어보기 마지막 조회 대기(ms) | 513.324 | 122.925 | 125.306 | 121.546 |
+| 이어보기 후 app update(ms) | 41.934 | 15.271 | 16.066 | 13.213 |
+| HomeBodyValue 횟수 | 4 | 3 | 3 | 3 |
+
+이어보기 중복 조회 제거 및 결과 후속 갱신 개선은 **실기기 검증 완료**로 기록한다.
+수정 후 세 기록에서 결과 발행 이후 홈 body 재계산 및 >33ms hang은 관찰되지 않았다.
+초기 구성 지연은 106~145ms로 변동한다. 전체 성능 목표 달성으로 기록하지 않는다.
+`fixed3-cool`도 실제 열 상태는 Fair였으며, 동일 Fair인 fixed2와 성능이 달라
+열 상태 하나만으로 변동 원인을 설명할 수 없다.
+
+## 후속 수정: 초기 빈 화면과 동일 상태의 중복 갱신 제거
+
+초기 CPU 스택에는 CA commit/layer layout, UIHostingView, AttributeGraph,
+탭 layout, 글꼴/심볼 준비가 중첩되어 있다. 특정 하나의 함수가 106ms 전부를
+유발했다고 볼 수 없다. 뷰 값 계산 자체는 약 1ms 이하이므로 본문 함수만의 비용과
+후속 레이아웃을 구분해야 한다.
+
+코드 및 표식을 대조해 다음 불필요한 갱신을 확인했다.
+- 초기 `home=nil/loading=false`로 빈 ScrollView를 만들고, onAppear의 요청 시작에서
+  loading=true를 발행해 로딩 표시로 다시 레이아웃한다.
+- 이미 로드된 화면의 재등장/active 전환에서도 `publishChange()`를 무조건 호출한다.
+
+이번 수정은 C/P/V/PV 공통으로 첫 프레임부터 동일 로딩 UI를 표시한다.
+홈 adapter는 실제 표시하는 hero/rails/error의 값이 달라질 때만 갱신을 발행한다.
+요청 시작 자체, 변함없는 active 전환과 화면 재등장은 불필요한 홈 갱신을 만들지 않는다.
+오류 발생, 재시도로 오류 제거, 데이터 도착, 기존 화면 데이터 초기화는 발행한다.
+검색·상세의 loading/페이지 상태 발행, 요청 취소/재개, 프로필 권한 확인은 기존 로직을 사용한다.
+홈 데이터 준비 표식은 화면 발행 여부와 별개로 요청 완료 시점에 유지한다.
+
+기존 NavigationStack/TabView를 다른 구조로 교체하거나 초기 비용을 고정 지연으로
+뒤로 미루지 않는다. 제거되는 중복 갱신은 테스트로 검증하되, 시스템 초기 layout의
+얼마가 감소하는지는 아직 실기기에서 측정하지 않았다.
+
+다음 실기기 기록은 최신 코드의 `StreamLab-Startup` Scheme에서 이전과 동일하게
+프로필 선택 후 조작 없이 10초 대기한 **home-startup-presentation-fixed1.trace** 한 파일이다.
+Animation Hitches + Points of Interest + Time Profiler를 사용한다.
+초기 HomeBodyValue/HomePublish 횟수뿐 아니라 첫 hang, HomeDataReady 이후의 update,
+HeroFirstLayout까지의 시간과 thermal을 함께 비교해 비용 이동/회귀 여부를 확인한다.
+
+### 후속 수정 자동 검증 결과
+
+- warnings-as-errors 기기용 Release 빌드 통과.
+- HomePresentationTests 2개 + HomeRecentTests 4개, 합계 6개 통과.
+  초기 요청의 불필요한 발행 억제, 동일 화면의 lifecycle 발행 억제,
+  오류/재시도/성공/데이터 초기화 반영을 확인했다.
+- UI `testStartupTraceControl`, `testStartupTraceCombined` 통과:
+  C/PV 홈 표시, 포스터 상세 이동 및 검색 이동을 확인했다.
+- `testHomeContinueWatchingUsesSavedProgress`는 묶음 및 단독 재실행에서 실패.
+  홈으로 돌아오기 전 50% 탐색 단계에서 5초 안에 재생 버튼이 활성화되지 않았다.
+  실패 캡처의 시간은 15~16초였고 접근성 계층에서 버튼은 Disabled였다.
+  이전 커밋 576405f 검증에서도 동일 테스트/동일 위치/동일 메시지 실패 후
+  재실행 통과 기록이 있다. 이번에는 통과했다고 기록하지 않는다.
+  재생 모델의 탐색 지연 복구는 8초 기준이지만 테스트의 정상 탐색 조건을
+  완화해 통과시키지 않았다. 탐색 안정성은 별도 추적이 필요하다.
+- 앞의 '이어보기 실기기 검증 완료'는 세 trace의 조회/화면 갱신 성능 개선 범위다.
+  모든 재생 탐색 기능의 검증 완료를 의미하지 않는다.
+- 이번 후속 수정의 실기기 지연 감소는 아직 미측정이다.

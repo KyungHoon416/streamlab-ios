@@ -81,7 +81,7 @@ import StreamLabDesignSystem
                                  items: rail.items.filter(category.includes))
                     }
                     }
-                } else if model.store.loading {
+                } else if model.store.errorMessage == nil {
                     ProgressView("홈을 불러오는 중…").frame(maxWidth: .infinity).padding(32)
                 }
                 if let error = model.store.errorMessage {

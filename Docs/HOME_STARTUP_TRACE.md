@@ -30,7 +30,7 @@ subsystem: `com.example.streamlab.demo`, category: `PointsOfInterest`.
 | ScreenModelInit | 화면 모델 및 CatalogStore 생성 |
 | HomeInitialLoadWait | 최초 홈 요청 시작부터 loading 해제 발행까지. 네트워크/mock/스케줄링 대기 포함. 화면 이탈/비활성화 시 조기 종료되므로 HomeDataReady와 함께 확인 |
 | MyListRefresh | 홈 표시/동기화 등에 따른 로컬 목록 새로 읽기와 발행 |
-| HomePublish | 홈 상태 변경을 Combine에 발행하는 동기 비용 |
+| HomePublish | 홈의 실제 표시 내용 변경을 Combine에 발행하는 동기 비용. 동일 내용/초기 로딩 시작은 발행하지 않음 |
 | HomeDataReady | 해당 모델에서 첫 홈 데이터 준비가 관찰됨. 이미지 준비/화면 표시 완료는 아님 |
 | HomeBodyValue | inline/split 홈의 body 값 생성. SwiftUI의 전체 layout/render 시간이 아님 |
 | HomeRecentWait | 이어보기 섹션 refresh의 벽시계 시간. 최대 4개 상세 조회 병렬 처리, 화면 이탈/비활성화 시 취소 가능 |

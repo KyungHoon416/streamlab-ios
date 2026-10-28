@@ -15,6 +15,19 @@ import StreamLabPresentation
     private let screen: Screen
     private var homeLoadSpan: HomeStartupTrace.Interval?
     private var homeReadyMarked = false
+    // Home renders the same loading placeholder before and during its initial request.
+    // Compare only what that screen displays, not request/lifecycle bookkeeping.
+    private struct HomePresentation: Equatable {
+        let hero: CatalogTitle?
+        let rails: [ContentRail]
+        let error: String?
+        @MainActor init(_ store: CatalogStore) {
+            hero = store.home?.hero
+            rails = store.home?.rails ?? []
+            error = store.errorMessage
+        }
+    }
+    private var lastHomePresentation: HomePresentation?
     private var started = false
     private var visible = false
     private var active = false
@@ -25,12 +38,17 @@ import StreamLabPresentation
         self.session = session
         self.screen = screen
         self.store = session.makeStore()
+        if case .home = screen { lastHomePresentation = HomePresentation(store) }
         store.onChange = { [weak self] in self?.publishChange() }
     }
 
     private func publishChange() {
         if case .home = screen {
-            HomeStartupTrace.measure("HomePublish") { revision &+= 1 }
+            let presentation = HomePresentation(store)
+            if presentation != lastHomePresentation {
+                lastHomePresentation = presentation
+                HomeStartupTrace.measure("HomePublish") { revision &+= 1 }
+            }
             if !store.loading {
                 homeLoadSpan = nil
                 if store.home != nil, !homeReadyMarked {
