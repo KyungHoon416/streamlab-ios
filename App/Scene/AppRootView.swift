@@ -157,16 +157,22 @@ private enum StartupChromeExperiment: String {
                 tabRoot(CatalogTabKind(rawValue: selectedTab) ?? .home)
             } else {
                 TabView(selection: $selectedTab) {
-                    ForEach(CatalogTabKind.allCases) { tab in
-                        tabRoot(tab)
-                            .tabItem { Label(tab.title, systemImage: tab.symbol) }
-                            .tag(tab.rawValue)
-                    }
+                    // Declare tab metadata independently of each screen's view tree.
+                    // Keep the content roots and per-tab paths stable across selections.
+                    Tab(CatalogTabKind.home.title, systemImage: CatalogTabKind.home.symbol,
+                        value: CatalogTabKind.home.rawValue) { tabRoot(.home) }
+                    Tab(CatalogTabKind.search.title, systemImage: CatalogTabKind.search.symbol,
+                        value: CatalogTabKind.search.rawValue) { tabRoot(.search) }
+                    Tab(CatalogTabKind.downloads.title, systemImage: CatalogTabKind.downloads.symbol,
+                        value: CatalogTabKind.downloads.rawValue) { tabRoot(.downloads) }
                 }
             }
         }
         .onAppear {
             StartupChromeExperiment.current.mark()
+            if StartupChromeExperiment.current != .noTabs {
+                HomeStartupTrace.event("StartupTabsExplicit")
+            }
             session.setSynchronizationActive(phase == .active)
             openRequestedDownloads()
         }
@@ -214,9 +220,8 @@ private enum StartupChromeExperiment: String {
     }
 }
 
-private enum CatalogTabKind: Int, CaseIterable, Identifiable {
+private enum CatalogTabKind: Int {
     case home, search, downloads
-    var id: Int { rawValue }
     var title: String {
         switch self { case .home: "홈"; case .search: "검색"; case .downloads: "다운로드" }
     }
