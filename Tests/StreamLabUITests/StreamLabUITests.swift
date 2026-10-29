@@ -240,11 +240,15 @@ import XCTest
     func testStartupChromeNoTabs() { checkStartupChrome("no-tabs") }
     func testStartupChromeIgnoredWithoutTracing() { checkStartupChrome("no-tabs", tracing: false) }
 
-    private func checkStartupChrome(_ mode: String, tracing: Bool = true) {
+    func testStartupTabsLegacy() { checkStartupChrome("baseline", builder: "legacy") }
+    func testStartupTabsExplicit() { checkStartupChrome("baseline", builder: "explicit") }
+
+    private func checkStartupChrome(_ mode: String, tracing: Bool = true, builder: String? = nil) {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=chrome-\(UUID())", "--ui-test-disable-resume",
                                "--home-render-experiment=C", "--startup-chrome=\(mode)"]
         if tracing { app.launchArguments.append("--trace-home-startup") }
+        if let builder { app.launchArguments.append("--startup-tab-builder=\(builder)") }
         app.launch()
         choose("adult-a", in: app)
         XCTAssertTrue(app.descendants(matching: .any)["hero-detail"].waitForExistence(timeout: 15))
@@ -256,6 +260,12 @@ import XCTest
         XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 10))
         back(app)
         XCTAssertTrue(app.descendants(matching: .any)["hero-detail"].waitForExistence(timeout: 10))
+        if builder != nil {
+            tap(app.tabBars.buttons["검색"], in: app)
+            tap(app.tabBars.buttons["다운로드"], in: app)
+            tap(app.tabBars.buttons["홈"], in: app)
+            XCTAssertTrue(app.descendants(matching: .any)["hero-detail"].waitForExistence(timeout: 10))
+        }
     }
 
     func testStartupTraceControl() { checkPosterNavigation(mode: "C", poster: "swiftui", home: "inline", trace: true) }

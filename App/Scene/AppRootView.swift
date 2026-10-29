@@ -134,6 +134,19 @@ private enum StartupChromeExperiment: String {
     }
 }
 
+private enum StartupTabBuilder: String {
+    case legacy, explicit
+    static let current: Self = {
+        guard HomeStartupTrace.enabled else { return .explicit }
+        let values = ProcessInfo.processInfo.arguments.filter { $0.hasPrefix("--startup-tab-builder=") }
+        guard values.count == 1,
+              let mode = Self(rawValue: String(values[0].dropFirst("--startup-tab-builder=".count))) else {
+            return .explicit
+        }
+        return mode
+    }()
+}
+
 @MainActor private struct CatalogTabs: View {
     let session: CatalogSession
     let onSwitchProfile: () -> Void
@@ -155,6 +168,14 @@ private enum StartupChromeExperiment: String {
             if StartupChromeExperiment.current == .noTabs {
                 // Remove the tab container, retain the same navigation/content/toolbar.
                 tabRoot(CatalogTabKind(rawValue: selectedTab) ?? .home)
+            } else if StartupTabBuilder.current == .legacy {
+                TabView(selection: $selectedTab) {
+                    ForEach(CatalogTabKind.allCases) { tab in
+                        tabRoot(tab)
+                            .tabItem { Label(tab.title, systemImage: tab.symbol) }
+                            .tag(tab.rawValue)
+                    }
+                }
             } else {
                 TabView(selection: $selectedTab) {
                     // Declare tab metadata independently of each screen's view tree.
@@ -171,7 +192,11 @@ private enum StartupChromeExperiment: String {
         .onAppear {
             StartupChromeExperiment.current.mark()
             if StartupChromeExperiment.current != .noTabs {
-                HomeStartupTrace.event("StartupTabsExplicit")
+                if StartupTabBuilder.current == .legacy {
+                    HomeStartupTrace.event("StartupTabsLegacy")
+                } else {
+                    HomeStartupTrace.event("StartupTabsExplicit")
+                }
             }
             session.setSynchronizationActive(phase == .active)
             openRequestedDownloads()
@@ -220,8 +245,9 @@ private enum StartupChromeExperiment: String {
     }
 }
 
-private enum CatalogTabKind: Int {
+private enum CatalogTabKind: Int, CaseIterable, Identifiable {
     case home, search, downloads
+    var id: Int { rawValue }
     var title: String {
         switch self { case .home: "홈"; case .search: "검색"; case .downloads: "다운로드" }
     }
