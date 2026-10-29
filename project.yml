@@ -154,3 +154,24 @@ schemes:
       commandLineArguments:
         "--trace-home-startup": true
         "--home-render-experiment=C": true
+
+  StreamLab-Chrome-Stages:
+    build:
+      targets:
+        StreamLab: all
+    run:
+      config: Release
+      commandLineArguments:
+        "--trace-home-startup": true
+        "--trace-home-chrome": true
+        "--home-render-experiment=C": true
+        "--startup-chrome=baseline": true
+        "--startup-tab-builder=explicit": true
+    profile:
+      config: Release
+      commandLineArguments:
+        "--trace-home-startup": true
+        "--trace-home-chrome": true
+        "--home-render-experiment=C": true
+        "--startup-chrome=baseline": true
+        "--startup-tab-builder=explicit": true

@@ -37,24 +37,32 @@ public enum HomeStartupTrace {
 /// Marks this probe's first positive-size layout, NOT the end of all SwiftUI layout
 /// or the first displayed frame. Use nearby Animation Hitches / CPU tracks for those.
 public struct HomeStartupLayoutMarker: View {
-    public init() {}
+    private let name: StaticString
+    public init(name: StaticString = "HeroFirstLayout") { self.name = name }
     public var body: some View {
-        if HomeStartupTrace.enabled { LayoutProbe().allowsHitTesting(false).accessibilityHidden(true) }
+        if HomeStartupTrace.enabled { LayoutProbe(name: name).allowsHitTesting(false).accessibilityHidden(true) }
     }
 }
 
 private struct LayoutProbe: UIViewRepresentable {
-    func makeUIView(context: Context) -> ProbeView { ProbeView() }
+    let name: StaticString
+    func makeUIView(context: Context) -> ProbeView { ProbeView(name: name) }
     func updateUIView(_ view: ProbeView, context: Context) {}
 }
 private final class ProbeView: UIView {
     private var marked = false
-    init() { super.init(frame: .zero); isUserInteractionEnabled = false; isAccessibilityElement = false }
+    private let name: StaticString
+    init(name: StaticString) {
+        self.name = name
+        super.init(frame: .zero)
+        isUserInteractionEnabled = false
+        isAccessibilityElement = false
+    }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     override func layoutSubviews() {
         super.layoutSubviews()
         guard !marked, window != nil, bounds.width > 0, bounds.height > 0 else { return }
         marked = true
-        HomeStartupTrace.event("HeroFirstLayout")
+        HomeStartupTrace.event(name)
     }
 }

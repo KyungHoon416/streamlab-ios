@@ -243,11 +243,16 @@ import XCTest
     func testStartupTabsLegacy() { checkStartupChrome("baseline", builder: "legacy") }
     func testStartupTabsExplicit() { checkStartupChrome("baseline", builder: "explicit") }
 
-    private func checkStartupChrome(_ mode: String, tracing: Bool = true, builder: String? = nil) {
+    func testStartupChromeDetailedProbes() {
+        checkStartupChrome("baseline", builder: "explicit", detailed: true)
+    }
+
+    private func checkStartupChrome(_ mode: String, tracing: Bool = true, builder: String? = nil, detailed: Bool = false) {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=chrome-\(UUID())", "--ui-test-disable-resume",
                                "--home-render-experiment=C", "--startup-chrome=\(mode)"]
         if tracing { app.launchArguments.append("--trace-home-startup") }
+        if detailed { app.launchArguments.append("--trace-home-chrome") }
         if let builder { app.launchArguments.append("--startup-tab-builder=\(builder)") }
         app.launch()
         choose("adult-a", in: app)

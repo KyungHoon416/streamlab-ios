@@ -164,6 +164,8 @@ private enum StartupTabBuilder: String {
     var body: some View {
         let span = HomeStartupTrace.begin("CatalogTabsBodyValue")
         defer { withExtendedLifetime(span) {} }
+        let chromeSpan = ChromeStartupTrace.begin("ChromeTabsValue")
+        defer { withExtendedLifetime(chromeSpan) {} }
         return Group {
             if StartupChromeExperiment.current == .noTabs {
                 // Remove the tab container, retain the same navigation/content/toolbar.
@@ -189,7 +191,9 @@ private enum StartupTabBuilder: String {
                 }
             }
         }
+        .background { ChromeLayoutProbe(name: "ChromeTabsLayout") }
         .onAppear {
+            ChromeStartupTrace.event("ChromeTabsAppeared")
             StartupChromeExperiment.current.mark()
             if StartupChromeExperiment.current != .noTabs {
                 if StartupTabBuilder.current == .legacy {
@@ -221,7 +225,9 @@ private enum StartupTabBuilder: String {
     }
 
     private func tabRoot(_ tab: CatalogTabKind) -> some View {
-        CatalogTabRoot(tab: tab, session: session,
+        let span = ChromeStartupTrace.begin(tab.rootTraceName)
+        defer { withExtendedLifetime(span) {} }
+        return CatalogTabRoot(tab: tab, session: session,
                        isLoaded: selectedTab == tab.rawValue || visitedTabs.contains(tab.rawValue),
                        path: path(for: tab), confirmingLogout: $confirmingLogout,
                        onSwitchProfile: onSwitchProfile)
@@ -247,6 +253,9 @@ private enum StartupTabBuilder: String {
 
 private enum CatalogTabKind: Int, CaseIterable, Identifiable {
     case home, search, downloads
+    var rootTraceName: StaticString {
+        switch self { case .home: "ChromeHomeRootValue"; case .search: "ChromeSearchRootValue"; case .downloads: "ChromeDownloadsRootValue" }
+    }
     var id: Int { rawValue }
     var title: String {
         switch self { case .home: "홈"; case .search: "검색"; case .downloads: "다운로드" }
@@ -266,10 +275,12 @@ private enum CatalogTabKind: Int, CaseIterable, Identifiable {
     let onSwitchProfile: () -> Void
 
     var body: some View {
-        Group {
+        let span = ChromeStartupTrace.begin("ChromeNavigationValue")
+        defer { withExtendedLifetime(span) {} }
+        return Group {
             if isLoaded {
                 NavigationStack(path: $path) {
-                    screen
+                    tracedScreen
                         .navigationDestination(for: String.self) { id in
                             DetailView(id: id, session: session)
                         }
@@ -281,11 +292,20 @@ private enum CatalogTabKind: Int, CaseIterable, Identifiable {
                             }
                         }
                 }
+                .background {
+                    if tab == .home { ChromeLayoutProbe(name: "ChromeHomeNavigationLayout") }
+                }
             } else {
                 // A concrete placeholder keeps unvisited tabs visible in TabView.
                 Color.clear
             }
         }
+    }
+
+    private var tracedScreen: some View {
+        let span = ChromeStartupTrace.begin("ChromeScreenValue")
+        defer { withExtendedLifetime(span) {} }
+        return screen
     }
 
     @ViewBuilder private var screen: some View {
@@ -303,7 +323,13 @@ private enum CatalogTabKind: Int, CaseIterable, Identifiable {
     let onSwitchProfile: () -> Void
     private let notificationNavigation = DownloadNotificationNavigation.shared
 
-    @ToolbarContentBuilder var body: some ToolbarContent {
+    var body: some ToolbarContent {
+        let span = ChromeStartupTrace.begin("ChromeToolbarValue")
+        defer { withExtendedLifetime(span) {} }
+        return items
+    }
+
+    @ToolbarContentBuilder private var items: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button { confirmingLogout = true } label: {
                 Label("로그아웃", systemImage: "rectangle.portrait.and.arrow.right")
@@ -336,3 +362,26 @@ private enum CatalogTabKind: Int, CaseIterable, Identifiable {
     }
 }
 
+// Additional probes are opt-in independently of the coarse startup timeline.
+// Value intervals exclude deferred SwiftUI reconciliation/layout. Probe layout
+// is a local geometry milestone, not first display or completion of all layout.
+private enum ChromeStartupTrace {
+    static let enabled = HomeStartupTrace.enabled &&
+        ProcessInfo.processInfo.arguments.contains("--trace-home-chrome")
+    static func begin(_ name: StaticString) -> HomeStartupTrace.Interval? {
+        enabled ? HomeStartupTrace.begin(name) : nil
+    }
+    static func event(_ name: StaticString) {
+        if enabled { HomeStartupTrace.event(name) }
+    }
+}
+
+private struct ChromeLayoutProbe: View {
+    let name: StaticString
+    var body: some View {
+        if ChromeStartupTrace.enabled {
+            HomeStartupLayoutMarker(name: name)
+                .allowsHitTesting(false).accessibilityHidden(true)
+        }
+    }
+}
