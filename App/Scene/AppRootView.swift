@@ -34,6 +34,12 @@ import StreamLabDesignSystem
         .progressViewStyle(StreamLabProgressStyle())
         .onAppear {
             HomeStartupTrace.event("RootAppeared")
+            switch HomeRenderExperiment.current {
+            case .control: HomeStartupTrace.event("HomeModeC")
+            case .poster: HomeStartupTrace.event("HomeModeP")
+            case .split: HomeStartupTrace.event("HomeModeV")
+            case .combined: HomeStartupTrace.event("HomeModePV")
+            }
             startupLog.notice("[Startup] SwiftUI root appeared")
             startupLog.notice("\(HomeRenderExperiment.current.description, privacy: .public)")
         }

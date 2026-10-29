@@ -291,11 +291,19 @@ import XCTest
 
     func testPosterImageAndSearchThumbnailOpenDetail() { checkPosterNavigation() }
 
-    private func checkPosterNavigation(mode: String? = nil, poster: String = "layer", home: String = "split", trace: Bool = false) {
+    func testDefaultPVStartupDetailedTrace() {
+        checkPosterNavigation(mode: "PV", poster: "layer", home: "split", trace: true, detailed: true)
+    }
+
+    private func checkPosterNavigation(mode: String? = nil, poster: String = "layer", home: String = "split", trace: Bool = false, detailed: Bool = false) {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=artwork-tap-\(UUID())", "--ui-test-disable-resume"]
         if let mode { app.launchArguments.append("--home-render-experiment=\(mode)") }
         if trace { app.launchArguments.append("--trace-home-startup") }
+        if detailed {
+            app.launchArguments += ["--trace-home-chrome", "--startup-chrome=baseline",
+                                    "--startup-tab-builder=explicit", "--startup-tab-style=bar-only"]
+        }
         app.launch()
         choose("adult-a", in: app)
         let catalog = app.scrollViews["home-catalog"]

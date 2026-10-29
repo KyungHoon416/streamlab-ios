@@ -225,3 +225,26 @@ schemes:
         "--startup-chrome=baseline": true
         "--startup-tab-builder=explicit": true
         "--startup-tab-style=bar-only": true
+
+  StreamLab-Home-PV-Trace:
+    build:
+      targets:
+        StreamLab: all
+    run:
+      config: Release
+      commandLineArguments:
+        "--trace-home-startup": true
+        "--trace-home-chrome": true
+        "--home-render-experiment=PV": true
+        "--startup-chrome=baseline": true
+        "--startup-tab-builder=explicit": true
+        "--startup-tab-style=bar-only": true
+    profile:
+      config: Release
+      commandLineArguments:
+        "--trace-home-startup": true
+        "--trace-home-chrome": true
+        "--home-render-experiment=PV": true
+        "--startup-chrome=baseline": true
+        "--startup-tab-builder=explicit": true
+        "--startup-tab-style=bar-only": true
