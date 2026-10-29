@@ -172,35 +172,11 @@ private enum StartupTabBuilder: String {
         defer { withExtendedLifetime(span) {} }
         let chromeSpan = ChromeStartupTrace.begin("ChromeTabsValue")
         defer { withExtendedLifetime(chromeSpan) {} }
-        return Group {
-            if StartupChromeExperiment.current == .noTabs {
-                // Remove the tab container, retain the same navigation/content/toolbar.
-                tabRoot(CatalogTabKind(rawValue: selectedTab) ?? .home)
-            } else if StartupTabBuilder.current == .legacy {
-                TabView(selection: $selectedTab) {
-                    ForEach(CatalogTabKind.allCases) { tab in
-                        tabRoot(tab)
-                            .tabItem { Label(tab.title, systemImage: tab.symbol) }
-                            .tag(tab.rawValue)
-                    }
-                }
-            } else {
-                TabView(selection: $selectedTab) {
-                    // Declare tab metadata independently of each screen's view tree.
-                    // Keep the content roots and per-tab paths stable across selections.
-                    Tab(CatalogTabKind.home.title, systemImage: CatalogTabKind.home.symbol,
-                        value: CatalogTabKind.home.rawValue) { tabRoot(.home) }
-                    Tab(CatalogTabKind.search.title, systemImage: CatalogTabKind.search.symbol,
-                        value: CatalogTabKind.search.rawValue) { tabRoot(.search) }
-                    Tab(CatalogTabKind.downloads.title, systemImage: CatalogTabKind.downloads.symbol,
-                        value: CatalogTabKind.downloads.rawValue) { tabRoot(.downloads) }
-                }
-            }
-        }
-        .modifier(CatalogTabStylePolicy())
+        return tabContainer
         .background { ChromeLayoutProbe(name: "ChromeTabsLayout") }
         .onAppear {
             ChromeStartupTrace.event("ChromeTabsAppeared")
+            HomeStartupTrace.event("StartupChromeCompact")
             HomeStartupTrace.event(StartupTabStyle.current == .automatic ? "StartupTabStyleAutomatic" : "StartupTabStyleBarOnly")
             StartupChromeExperiment.current.mark()
             if StartupChromeExperiment.current != .noTabs {
@@ -229,6 +205,43 @@ private enum StartupTabBuilder: String {
             Button("로그아웃", role: .destructive, action: onLogout)
                 .accessibilityIdentifier("confirm-logout")
             Button("취소", role: .cancel) {}
+        }
+    }
+
+    // The experiment is process-constant. Erase only this container boundary so
+    // normal launches do not instantiate a nested conditional type containing
+    // every diagnostic tab hierarchy. Screen roots and their identities stay typed.
+    private var tabContainer: AnyView {
+        if StartupChromeExperiment.current == .noTabs {
+            return AnyView(tabRoot(CatalogTabKind(rawValue: selectedTab) ?? .home))
+        }
+        if StartupTabBuilder.current == .legacy {
+            return AnyView(legacyTabs.modifier(CatalogTabStylePolicy()))
+        }
+        if StartupTabStyle.current == .automatic {
+            return AnyView(explicitTabs.tabViewStyle(.automatic))
+        }
+        return AnyView(explicitTabs.tabViewStyle(.tabBarOnly))
+    }
+
+    private var explicitTabs: some View {
+        TabView(selection: $selectedTab) {
+            Tab(CatalogTabKind.home.title, systemImage: CatalogTabKind.home.symbol,
+                value: CatalogTabKind.home.rawValue) { tabRoot(.home) }
+            Tab(CatalogTabKind.search.title, systemImage: CatalogTabKind.search.symbol,
+                value: CatalogTabKind.search.rawValue) { tabRoot(.search) }
+            Tab(CatalogTabKind.downloads.title, systemImage: CatalogTabKind.downloads.symbol,
+                value: CatalogTabKind.downloads.rawValue) { tabRoot(.downloads) }
+        }
+    }
+
+    private var legacyTabs: some View {
+        TabView(selection: $selectedTab) {
+            ForEach(CatalogTabKind.allCases) { tab in
+                tabRoot(tab)
+                    .tabItem { Label(tab.title, systemImage: tab.symbol) }
+                    .tag(tab.rawValue)
+            }
         }
     }
 
@@ -288,17 +301,9 @@ private enum CatalogTabKind: Int, CaseIterable, Identifiable {
         return Group {
             if isLoaded {
                 NavigationStack(path: $path) {
-                    tracedScreen
-                        .navigationDestination(for: String.self) { id in
-                            DetailView(id: id, session: session)
-                        }
-                        .toolbar {
-                            if StartupChromeExperiment.current != .noToolbar {
-                                CatalogProfileToolbar(profile: session.profile,
-                                                      confirmingLogout: $confirmingLogout,
-                                                      onSwitchProfile: onSwitchProfile)
-                            }
-                        }
+                    CatalogNavigationScreen(tab: tab, session: session,
+                                            confirmingLogout: $confirmingLogout,
+                                            onSwitchProfile: onSwitchProfile)
                 }
                 .background {
                     if tab == .home { ChromeLayoutProbe(name: "ChromeHomeNavigationLayout") }
@@ -310,10 +315,30 @@ private enum CatalogTabKind: Int, CaseIterable, Identifiable {
         }
     }
 
-    private var tracedScreen: some View {
+}
+
+// Keep NavigationStack's content type small. Destination and toolbar metadata
+// are evaluated inside this stable screen boundary, not in its generic signature.
+@MainActor private struct CatalogNavigationScreen: View {
+    let tab: CatalogTabKind
+    let session: CatalogSession
+    @Binding var confirmingLogout: Bool
+    let onSwitchProfile: () -> Void
+
+    var body: some View {
         let span = ChromeStartupTrace.begin("ChromeScreenValue")
         defer { withExtendedLifetime(span) {} }
         return screen
+            .navigationDestination(for: String.self) { id in
+                DetailView(id: id, session: session)
+            }
+            .toolbar {
+                if StartupChromeExperiment.current != .noToolbar {
+                    CatalogProfileToolbar(profile: session.profile,
+                                          confirmingLogout: $confirmingLogout,
+                                          onSwitchProfile: onSwitchProfile)
+                }
+            }
     }
 
     @ViewBuilder private var screen: some View {

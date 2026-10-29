@@ -2526,6 +2526,28 @@ import XCTest
         assertVisibleKidsRows(app)
     }
 
+    func testTabDetailPathsSurviveSwitchAndResetWithProfile() {
+        let app = launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 10))
+        app.tabBars.buttons["검색"].tap()
+        expectCount(24, in: app)
+        tap(searchRows(app).firstMatch, in: app)
+        XCTAssertTrue(app.buttons["playback-open"].waitForExistence(timeout: 10))
+        app.tabBars.buttons["홈"].tap()
+        XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 10))
+        back(app)
+        XCTAssertTrue(app.descendants(matching: .any)["hero-detail"].waitForExistence(timeout: 10))
+        app.tabBars.buttons["검색"].tap()
+        XCTAssertTrue(app.buttons["playback-open"].waitForExistence(timeout: 10))
+        back(app)
+        tap(app.buttons["switch-profile"], in: app)
+        choose("adult-a", in: app)
+        XCTAssertTrue(app.descendants(matching: .any)["hero-detail"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.staticTexts["detail-title"].exists)
+    }
+
     func testSearchPagesSurviveDetailAndTabNavigation() {
         let app = launch()
         choose("adult-a", in: app)
