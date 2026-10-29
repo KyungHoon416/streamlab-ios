@@ -191,9 +191,11 @@ private enum StartupTabBuilder: String {
                 }
             }
         }
+        .modifier(CatalogTabStylePolicy())
         .background { ChromeLayoutProbe(name: "ChromeTabsLayout") }
         .onAppear {
             ChromeStartupTrace.event("ChromeTabsAppeared")
+            HomeStartupTrace.event(StartupTabStyle.current == .automatic ? "StartupTabStyleAutomatic" : "StartupTabStyleBarOnly")
             StartupChromeExperiment.current.mark()
             if StartupChromeExperiment.current != .noTabs {
                 if StartupTabBuilder.current == .legacy {
@@ -382,6 +384,29 @@ private struct ChromeLayoutProbe: View {
         if ChromeStartupTrace.enabled {
             HomeStartupLayoutMarker(name: name)
                 .allowsHitTesting(false).accessibilityHidden(true)
+        }
+    }
+}
+
+/// Choose the app's tab-bar presentation explicitly; retain automatic as a
+/// process-local profiling control. No state is persisted between launches.
+private enum StartupTabStyle: String {
+    case automatic, barOnly = "bar-only"
+    static let current: Self = {
+        guard HomeStartupTrace.enabled else { return .barOnly }
+        let prefix = "--startup-tab-style="
+        let arguments = ProcessInfo.processInfo.arguments.filter { $0.hasPrefix(prefix) }
+        guard arguments.count == 1,
+              let value = Self(rawValue: String(arguments[0].dropFirst(prefix.count))) else { return .barOnly }
+        return value
+    }()
+}
+
+private struct CatalogTabStylePolicy: ViewModifier {
+    @ViewBuilder func body(content: Content) -> some View {
+        switch StartupTabStyle.current {
+        case .automatic: content.tabViewStyle(.automatic)
+        case .barOnly: content.tabViewStyle(.tabBarOnly)
         }
     }
 }

@@ -247,12 +247,20 @@ import XCTest
         checkStartupChrome("baseline", builder: "explicit", detailed: true)
     }
 
-    private func checkStartupChrome(_ mode: String, tracing: Bool = true, builder: String? = nil, detailed: Bool = false) {
+    func testStartupTabStyleAutomatic() {
+        checkStartupChrome("baseline", builder: "explicit", detailed: true, style: "automatic")
+    }
+    func testStartupTabStyleBarOnly() {
+        checkStartupChrome("baseline", builder: "explicit", detailed: true, style: "bar-only")
+    }
+
+    private func checkStartupChrome(_ mode: String, tracing: Bool = true, builder: String? = nil, detailed: Bool = false, style: String? = nil) {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=chrome-\(UUID())", "--ui-test-disable-resume",
                                "--home-render-experiment=C", "--startup-chrome=\(mode)"]
         if tracing { app.launchArguments.append("--trace-home-startup") }
         if detailed { app.launchArguments.append("--trace-home-chrome") }
+        if let style { app.launchArguments.append("--startup-tab-style=\(style)") }
         if let builder { app.launchArguments.append("--startup-tab-builder=\(builder)") }
         app.launch()
         choose("adult-a", in: app)

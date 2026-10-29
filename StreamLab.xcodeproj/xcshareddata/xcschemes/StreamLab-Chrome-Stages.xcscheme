@@ -62,6 +62,7 @@
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
+         <CommandLineArgument argument = "--startup-tab-style=automatic" isEnabled = "YES" />
          <CommandLineArgument argument = "--trace-home-chrome" isEnabled = "YES" />
          <CommandLineArgument
             argument = "--home-render-experiment=C"
@@ -92,6 +93,7 @@
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
+         <CommandLineArgument argument = "--startup-tab-style=automatic" isEnabled = "YES" />
          <CommandLineArgument argument = "--trace-home-chrome" isEnabled = "YES" />
          <CommandLineArgument
             argument = "--home-render-experiment=C"
