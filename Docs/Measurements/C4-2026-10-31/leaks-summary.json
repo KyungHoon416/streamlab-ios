@@ -1,0 +1,48 @@
+[
+  {
+    "part": 1,
+    "runs_in_file": 1,
+    "new_run_start": "2026-10-26T21:29:14.753+09:00",
+    "new_run_duration_seconds": 327.438527,
+    "leak_rows_in_file": 0,
+    "snapshot_records_present_for_each_run": [
+      true
+    ]
+  },
+  {
+    "part": 2,
+    "runs_in_file": 2,
+    "new_run_start": "2026-10-26T21:39:11.174+09:00",
+    "new_run_duration_seconds": 343.593471,
+    "leak_rows_in_file": 0,
+    "snapshot_records_present_for_each_run": [
+      true,
+      true
+    ]
+  },
+  {
+    "part": 3,
+    "runs_in_file": 3,
+    "new_run_start": "2026-10-26T21:49:33.493+09:00",
+    "new_run_duration_seconds": 343.814824,
+    "leak_rows_in_file": 0,
+    "snapshot_records_present_for_each_run": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "part": 4,
+    "runs_in_file": 4,
+    "new_run_start": "2026-10-26T22:11:55.917+09:00",
+    "new_run_duration_seconds": 332.761495,
+    "leak_rows_in_file": 0,
+    "snapshot_records_present_for_each_run": [
+      true,
+      true,
+      true,
+      true
+    ]
+  }
+]

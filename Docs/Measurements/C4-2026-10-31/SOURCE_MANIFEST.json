@@ -1,0 +1,153 @@
+{
+  "tool_commit": "1e84650",
+  "window_rule": "App Update containing first ProfileSelection start to first HeroFirstLayout + 50ms; event-start inclusion; duration not clipped",
+  "sources": [
+    {
+      "record": "entry3",
+      "trace_filename": "home-pv-direct-entry3.trace",
+      "run": 1,
+      "toc_sha256": "3d89bf4246de2e959d68c16382dd25b0d813b4f4ddb611d4c8064ae7e666082b",
+      "events_sha256": "864549a2a02ca83e0f8855fe4f2f41f887fa8ffcddaaf34781d8e0c55d7193bb",
+      "prior_analysis_sha256": "c243b0e2026b95232bd057976c93873b25e3d2f4ac518f938a5902cc92f99f35",
+      "profile_selection_s": 2.8825975,
+      "hero_first_layout_s": 3.175110708,
+      "window_start_s": 2.880869,
+      "window_end_s": 3.225110708,
+      "configuration_markers": [
+        "HomeModePV",
+        "StartupChromeBaseline",
+        "StartupTabStyleBarOnly",
+        "StartupTabsExplicit"
+      ]
+    },
+    {
+      "record": "compact1",
+      "trace_filename": "home-pv-chrome-compact1.trace",
+      "run": 1,
+      "toc_sha256": "1ed0397d239c849656f11db99aa73f5d97948a7ad5a9d7b1b43ca79219aeda67",
+      "events_sha256": "eb0dedc9c7ebc626f4e044565ff1e532326f3a1cdc21767b71c4002f368a3005",
+      "prior_analysis_sha256": "b962da71a5c5752ef86bef12eb3c83744036455d547bdf14df413d9baebf2c5a",
+      "profile_selection_s": 2.834109041,
+      "hero_first_layout_s": 3.17695575,
+      "window_start_s": 2.831766416,
+      "window_end_s": 3.2269557499999997,
+      "configuration_markers": [
+        "HomeModePV",
+        "StartupChromeBaseline",
+        "StartupChromeCompact",
+        "StartupTabStyleBarOnly",
+        "StartupTabsExplicit"
+      ]
+    },
+    {
+      "record": "compact2",
+      "trace_filename": "home-pv-chrome-compact2.trace",
+      "run": 1,
+      "toc_sha256": "13e1d45b4743acbe53ef3abc1d8e0b11f8aad971f95f1b3db6077f8a150d96f9",
+      "events_sha256": "3878af7157c620fc1292bbe9719a00a6d9acae950c9e61e136afd33c47f66daf",
+      "prior_analysis_sha256": "f987aff4c00d745dfb3f5d63efb990625a941478b81428ad5a9642def0fab4b9",
+      "profile_selection_s": 2.437023916,
+      "hero_first_layout_s": 3.406520708,
+      "window_start_s": 2.429718583,
+      "window_end_s": 3.4565207079999998,
+      "configuration_markers": [
+        "HomeModePV",
+        "StartupChromeBaseline",
+        "StartupChromeCompact",
+        "StartupTabStyleBarOnly",
+        "StartupTabsExplicit"
+      ]
+    },
+    {
+      "record": "repeat1",
+      "trace_filename": "home-pv-pages-repeat1.trace",
+      "run": 1,
+      "toc_sha256": "4243d2437edfef515dd49bf12b6f14be50f18833d26d79c2bcbd54ab74163342",
+      "events_sha256": "d7183dce9c01a42aff3f7f11b98d7292c636a42927287c7912f0daa36150d3c8",
+      "prior_analysis_sha256": "9d97c0cdc1bad2cc067e7782105cef57edc3254ecc1b798f63e5e9b38b036ab9",
+      "profile_selection_s": 4.117514041,
+      "hero_first_layout_s": 4.39424975,
+      "window_start_s": 4.115853333,
+      "window_end_s": 4.44424975,
+      "configuration_markers": [
+        "HomeModePV",
+        "StartupChromeBaseline",
+        "StartupChromeCompact",
+        "StartupTabStyleBarOnly",
+        "StartupTabsExplicit"
+      ]
+    },
+    {
+      "record": "repeat2",
+      "trace_filename": "home-pv-pages-repeat2.trace",
+      "run": 1,
+      "toc_sha256": "244c5f5afb6e5b44ed6e40498d1654e2878697606b1aed29ce9e2d36d94f08b2",
+      "events_sha256": "bb55719caaf7b23a98b0fa80e2c578a80a24a6aa05bd331ddb194cc3005127a8",
+      "prior_analysis_sha256": "33f642c05f42d465d1efcff7105fa3fdbb3664e1f442977562cf6ee247136a13",
+      "profile_selection_s": 1.941172708,
+      "hero_first_layout_s": 2.240123541,
+      "window_start_s": 1.940215791,
+      "window_end_s": 2.290123541,
+      "configuration_markers": [
+        "HomeModePV",
+        "StartupChromeBaseline",
+        "StartupChromeCompact",
+        "StartupTabStyleBarOnly",
+        "StartupTabsExplicit"
+      ]
+    },
+    {
+      "record": "repeat3",
+      "trace_filename": "home-pv-pages-repeat3.trace",
+      "run": 1,
+      "toc_sha256": "c632647ce4da9ccc2c402b54d2948954134f14aa854647a526f3887d056c2bd1",
+      "events_sha256": "a8cac6f274f551ce254e0f658bb5dd81fd0f7c7a1c92140dc9aafe103fce8d0b",
+      "prior_analysis_sha256": "86af032a6482a6d66561c6d4bafcfa9f0e698565f3e3cb519cbefbf1f316cb16",
+      "profile_selection_s": 3.695413875,
+      "hero_first_layout_s": 3.978920166,
+      "window_start_s": 3.694177375,
+      "window_end_s": 4.028920166,
+      "configuration_markers": [
+        "HomeModePV",
+        "StartupChromeBaseline",
+        "StartupChromeCompact",
+        "StartupTabStyleBarOnly",
+        "StartupTabsExplicit"
+      ]
+    },
+    {
+      "record": "staged1",
+      "trace_filename": "home-pv-navigation-staged1.trace",
+      "run": 1,
+      "toc_sha256": "d43aee13b1b70259cc07cd24b8598c43965997c4d62e541f7975b01d7287173e",
+      "events_sha256": "e6e2d49a558694a9f2f55633de2cd6b35405ce9257af40118a65a0640fd0f84e",
+      "prior_analysis_sha256": "d8c2ea0299105e990b7fcc26b39dfac8f02dc82bf1b95ab0f6e3c69c581d7d58",
+      "profile_selection_s": 3.725954291,
+      "hero_first_layout_s": 4.0689575,
+      "window_start_s": 3.724043541,
+      "window_end_s": 4.1189575,
+      "configuration_markers": [
+        "HomeModePV",
+        "StartupChromeBaseline",
+        "StartupChromeCompact",
+        "StartupNavigationStaged",
+        "StartupTabStyleBarOnly",
+        "StartupTabsExplicit"
+      ]
+    }
+  ],
+  "reused_evidence": [
+    {
+      "filename": "memory-hls-analysis-20261026/REPORT.md",
+      "sha256": "cdf85c177bc7f1ed0730c37bbeac95a5778233e56035a422ac12e59d0ba4bb88"
+    },
+    {
+      "filename": "hls-leaks-parts/RESULTS.txt",
+      "sha256": "4b2f45e6fda922d2258804660d2c51df789ac72daac1eaad6014578ecbacc273"
+    },
+    {
+      "filename": "hls-leaks-parts/summary.json",
+      "sha256": "98cb7ddac0b2bdb8d5bcaf4769217583981afbecaafe4b2d61f3cf1765b2e336"
+    }
+  ]
+}
