@@ -301,7 +301,11 @@ import XCTest
     }
 
     func testStagedNavigationSurvivesBackgroundDuringEntry() {
-        let app = launch()
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=staged-entry-\(UUID())",
+                               "--ui-test-disable-resume", "--trace-home-startup",
+                               "--startup-navigation=staged"]
+        app.launch()
         enterDemoIfNeeded(app)
         tap(app.buttons["profile-adult-a"], in: app)
         XCUIDevice.shared.press(.home)

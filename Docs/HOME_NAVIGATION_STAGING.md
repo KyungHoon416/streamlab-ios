@@ -1,5 +1,10 @@
 # 탭 표시와 네비게이션 초기 구성 분리
 
+> 2026-10-30 후속 결정: 실기기에서 홈 주요 레이아웃이 늦어져 기본 구성을 즉시 방식으로 복원했다.
+> 아래 단계 구성은 `--trace-home-startup --startup-navigation=staged`로 켜는 진단 모드에만 적용된다.
+> 현재 기본 실행은 `StartupNavigationImmediate`를 기록하며 `NavigationStageReady`는 발생하지 않는다.
+> 당시 구현/검증 경위는 아래에 보존한다.
+
 ## 설계
 
 기존 반복 기록에서 탭 구성과 네비게이션 배치가 약 100ms의 한 초기 갱신에 몰렸다.
@@ -27,7 +32,8 @@ NavigationStageReady를 기록한다. ChromeTabsLayout과 ChromeHomeNavigationLa
 준비 단계가 추가되므로 두 layout 표식 사이 시간이 줄었는지만으로 성공 판정하지 않는다.
 
 --trace-home-startup가 켜져 있을 때만 --startup-navigation=immediate로 이전 즉시 구성
-방식을 선택할 수 있다. 일반 실행은 단계 구성이며 설정을 디스크에 저장하지 않는다.
+방식을 선택할 수 있다. 현재 일반 실행은 즉시 구성이며 설정을 디스크에 저장하지 않는다. 단계 모드는
+--startup-navigation=staged를 명시해야 한다. 중복/상충 인자는 즉시 구성으로 처리한다.
 즉시 구성은 StartupNavigationImmediate를 기록한다.
 
 ## 실기기 확인

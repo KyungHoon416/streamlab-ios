@@ -461,10 +461,14 @@ private struct CatalogTabStylePolicy: ViewModifier {
 }
 
 
-/// Diagnostic control is process-local; normal launches use staged construction.
+/// Staging delayed HomeView.appear and its data request in device measurements.
+/// Keep it opt-in for diagnostics; normal launches construct navigation immediately.
 private enum StartupNavigationStage {
-    static let enabled = !(HomeStartupTrace.enabled &&
-        ProcessInfo.processInfo.arguments.contains("--startup-navigation=immediate"))
+    static let enabled: Bool = {
+        guard HomeStartupTrace.enabled else { return false }
+        let values = ProcessInfo.processInfo.arguments.filter { $0.hasPrefix("--startup-navigation=") }
+        return values == ["--startup-navigation=staged"]
+    }()
 }
 
 /// Wait for a visible tab shell to cross a display refresh boundary. This is not
