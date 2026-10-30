@@ -295,11 +295,29 @@ import XCTest
         checkPosterNavigation(mode: "PV", poster: "layer", home: "split", trace: true, detailed: true)
     }
 
-    private func checkPosterNavigation(mode: String? = nil, poster: String = "layer", home: String = "split", trace: Bool = false, detailed: Bool = false) {
+    func testImmediateNavigationDiagnostic() {
+        checkPosterNavigation(mode: "PV", poster: "layer", home: "split", trace: true,
+                              detailed: true, immediate: true)
+    }
+
+    func testStagedNavigationSurvivesBackgroundDuringEntry() {
+        let app = launch()
+        enterDemoIfNeeded(app)
+        tap(app.buttons["profile-adult-a"], in: app)
+        XCUIDevice.shared.press(.home)
+        app.activate()
+        XCTAssertTrue(app.descendants(matching: .any)["hero-detail"].waitForExistence(timeout: 15))
+        XCTAssertFalse(app.descendants(matching: .any)["catalog-navigation-preparing"].exists)
+        tap(app.tabBars.buttons["검색"], in: app)
+        expectCount(24, in: app)
+    }
+
+    private func checkPosterNavigation(mode: String? = nil, poster: String = "layer", home: String = "split", trace: Bool = false, detailed: Bool = false, immediate: Bool = false) {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=artwork-tap-\(UUID())", "--ui-test-disable-resume"]
         if let mode { app.launchArguments.append("--home-render-experiment=\(mode)") }
         if trace { app.launchArguments.append("--trace-home-startup") }
+        if immediate { app.launchArguments.append("--startup-navigation=immediate") }
         if detailed {
             app.launchArguments += ["--trace-home-chrome", "--startup-chrome=baseline",
                                     "--startup-tab-builder=explicit", "--startup-tab-style=bar-only"]

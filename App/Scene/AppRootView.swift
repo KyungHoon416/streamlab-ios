@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import OSLog
 import StreamLabDomain
 import StreamLabCatalogData
@@ -158,6 +159,7 @@ private enum StartupTabBuilder: String {
     let onSwitchProfile: () -> Void
     let onLogout: () -> Void
     @ObservedObject private var notificationNavigation = DownloadNotificationNavigation.shared
+    @State private var navigationReady = !StartupNavigationStage.enabled
     @State private var selectedTab = 0
     // Build each navigation subtree on first selection, then keep its state.
     @State private var visitedTabs: Set<Int> = [0]
@@ -174,9 +176,22 @@ private enum StartupTabBuilder: String {
         defer { withExtendedLifetime(chromeSpan) {} }
         return tabContainer
         .background { ChromeLayoutProbe(name: "ChromeTabsLayout") }
+        .background {
+            if !navigationReady {
+                CatalogFirstFrameGate(active: phase == .active) {
+                    guard session.isActive else { return }
+                    var transaction = Transaction()
+                    transaction.disablesAnimations = true
+                    withTransaction(transaction) { navigationReady = true }
+                    HomeStartupTrace.event("NavigationStageReady")
+                }
+                .allowsHitTesting(false).accessibilityHidden(true)
+            }
+        }
         .onAppear {
             ChromeStartupTrace.event("ChromeTabsAppeared")
             HomeStartupTrace.event("StartupChromeCompact")
+            HomeStartupTrace.event(StartupNavigationStage.enabled ? "StartupNavigationStaged" : "StartupNavigationImmediate")
             HomeStartupTrace.event(StartupTabStyle.current == .automatic ? "StartupTabStyleAutomatic" : "StartupTabStyleBarOnly")
             StartupChromeExperiment.current.mark()
             if StartupChromeExperiment.current != .noTabs {
@@ -249,7 +264,7 @@ private enum StartupTabBuilder: String {
         let span = ChromeStartupTrace.begin(tab.rootTraceName)
         defer { withExtendedLifetime(span) {} }
         return CatalogTabRoot(tab: tab, session: session,
-                       isLoaded: selectedTab == tab.rawValue || visitedTabs.contains(tab.rawValue),
+                       isLoaded: navigationReady && (selectedTab == tab.rawValue || visitedTabs.contains(tab.rawValue)),
                        path: path(for: tab), confirmingLogout: $confirmingLogout,
                        onSwitchProfile: onSwitchProfile)
     }
@@ -309,8 +324,11 @@ private enum CatalogTabKind: Int, CaseIterable, Identifiable {
                     if tab == .home { ChromeLayoutProbe(name: "ChromeHomeNavigationLayout") }
                 }
             } else {
-                // A concrete placeholder keeps unvisited tabs visible in TabView.
-                Color.clear
+                // Tab chrome can commit before the first navigation subtree.
+                // Hidden/unvisited tabs do not create screen models or start loads.
+                StreamLabTheme.background
+                    .overlay { ProgressView("화면을 준비하고 있어요") }
+                    .accessibilityIdentifier("catalog-navigation-preparing")
             }
         }
     }
@@ -439,5 +457,74 @@ private struct CatalogTabStylePolicy: ViewModifier {
         case .automatic: content.tabViewStyle(.automatic)
         case .barOnly: content.tabViewStyle(.tabBarOnly)
         }
+    }
+}
+
+
+/// Diagnostic control is process-local; normal launches use staged construction.
+private enum StartupNavigationStage {
+    static let enabled = !(HomeStartupTrace.enabled &&
+        ProcessInfo.processInfo.arguments.contains("--startup-navigation=immediate"))
+}
+
+/// Wait for a visible tab shell to cross a display refresh boundary. This is not
+/// proof of physical display completion, and it does not reduce total CPU work.
+@MainActor private struct CatalogFirstFrameGate: UIViewRepresentable {
+    let active: Bool
+    let onReady: () -> Void
+
+    func makeUIView(context: Context) -> GateView { GateView() }
+    func updateUIView(_ view: GateView, context: Context) {
+        view.onReady = onReady
+        view.active = active
+        view.updateLink()
+    }
+    static func dismantleUIView(_ view: GateView, coordinator: ()) { view.cancel() }
+
+    final class GateView: UIView {
+        var onReady: (() -> Void)?
+        var active = false
+        private var link: CADisplayLink?
+        private var firstTick = false
+        private var finished = false
+
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            updateLink()
+        }
+        func updateLink() {
+            guard window != nil, active, !finished else { cancel(); return }
+            guard link == nil else { return }
+            let proxy = WeakTarget(self)
+            let next = CADisplayLink(target: proxy, selector: #selector(WeakTarget.tick))
+            link = next
+            next.add(to: .main, forMode: .common)
+        }
+        func cancel() {
+            link?.invalidate()
+            link = nil
+            firstTick = false
+        }
+        fileprivate func tick() {
+            guard window != nil, active, !finished else { cancel(); return }
+            guard firstTick else { firstTick = true; return }
+            finished = true
+            cancel()
+            // Avoid publishing SwiftUI state while UIKit is delivering the tick.
+            DispatchQueue.main.async { [weak self] in
+                guard let self, self.window != nil, self.active else {
+                    self?.finished = false
+                    self?.updateLink()
+                    return
+                }
+                self.onReady?()
+            }
+        }
+    }
+
+    @MainActor private final class WeakTarget: NSObject {
+        weak var view: GateView?
+        init(_ view: GateView) { self.view = view }
+        @objc func tick() { view?.tick() }
     }
 }
