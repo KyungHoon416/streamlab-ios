@@ -1,0 +1,13 @@
+{
+  "hang_ms": 153.25675,
+  "page_in_count": 387,
+  "page_union_ms": 61.9147489999996,
+  "blocked_ms": 56.782503999994276,
+  "page_blocked_overlap_ms": 48.82145999999564,
+  "overlap_percent_of_blocked": 85.97975883557471,
+  "inputs": {
+    "waits.xml": "7523d097665b5ef8a59a1e4ed6b6e8536fd030c0379585fe5728448df1482e8f",
+    "extra.xml": "84c0adfdf97f4249e25da5904dae1af0426114652810f7f1b2a93e68ae1ce402",
+    "events.xml": "f113a121dfb7820063e09fe0ed5b194a7fa0906c946f7fe8c90f9c4b37c35b84"
+  }
+}
