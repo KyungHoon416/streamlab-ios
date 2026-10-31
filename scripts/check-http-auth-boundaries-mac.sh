@@ -13,16 +13,24 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 for kind in loader auth mutation; do
-  python3 "scripts/http-$kind-fixture.py" --ready-file "$run_dir/$kind-url.txt" > "$run_dir/$kind-server.log" 2>&1 &
+  python3 -u "scripts/http-$kind-fixture.py" --ready-file "$run_dir/$kind-url.txt" > "$run_dir/$kind-server.log" 2>&1 &
   pid=$!
   pids+=("$pid")
-  for _ in {1..100}; do
+  # Cold CI runners may take longer than five seconds to start Python/HTTPServer.
+  # This only bounds fixture readiness; request/retry budgets remain unchanged.
+  for _ in {1..600}; do
     [ -s "$run_dir/$kind-url.txt" ] && break
     kill -0 "$pid" 2>/dev/null || break
     sleep 0.05
   done
   if [ ! -s "$run_dir/$kind-url.txt" ]; then
-    echo "FAIL $kind fixture startup" | tee "$run_dir/RESULTS.txt"
+    echo "FAIL $kind fixture startup (readiness budget: 30 seconds)" | tee "$run_dir/RESULTS.txt"
+    if kill -0 "$pid" 2>/dev/null; then
+      echo 'Fixture process is alive but did not publish readiness.' | tee -a "$run_dir/RESULTS.txt"
+    else
+      echo 'Fixture process exited before readiness.' | tee -a "$run_dir/RESULTS.txt"
+    fi
+    cat "$run_dir/$kind-server.log"
     exit 1
   fi
 done

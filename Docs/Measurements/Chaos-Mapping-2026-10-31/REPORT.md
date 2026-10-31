@@ -21,3 +21,7 @@ F06/F09/F10 복합 통합과 실제 OS 강제 종료/메모리 압박은 매핑 
 - bash 문법, workflow YAML 구문, git diff 공백 검사 PASS.
 - 원시 로그는 ignored Docs/Validation에 보관하며 MANIFEST.json에 SHA-256 기록.
 - Release iOS Simulator 빌드 PASS (warnings-as-errors 유지, 서명 없음).
+
+## 원격 CI 1차
+
+`f0fbfa6`, run 41174798707의 Core는 테스트 전에 auth fixture 준비 제한(5초)으로 실패했다. artifact의 auth-server.log에는 Python 예외가 없었으며, 최초 로그만으로 import/DNS/스케줄링 중 어느 부분이 지연됐는지는 식별할 수 없다. 준비 예산을 30초로 늘리고 unbuffered 출력과 살아 있는 프로세스/조기 종료 진단을 추가했다. HTTP 요청·재시도 제한은 변경하지 않았다. 이 실패를 테스트 통과로 계산하지 않는다.
