@@ -1,0 +1,10 @@
+PASS Core focused entitlement 7
+PASS Core full: 244 executed; 11 optional HTTP/Keychain tests skipped
+PASS iOS playback/Now Playing: 10 executed, zero failures
+PASS UI final: 4 executed, zero failures
+PASS Release build and exclusion of three Debug injection flags
+PASS script gates: UI 6 cases, lifecycle 4 cases
+PASS bash syntax / git diff --check
+HISTORY initial UI: 3 failed, 1 passed; local entitlement popup connection fixed
+HISTORY lifecycle wrapper: count mismatch reported FAIL despite 10 tests passing; corrected gate verified against actual log
+NOT TESTED physical device entitlement flow, real FairPlay/license server, full F09, mid-play expiry, full UI suite

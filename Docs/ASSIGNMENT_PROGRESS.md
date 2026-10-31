@@ -1,3 +1,10 @@
+## 2026-10-31 — 과제 Mock 재생 권한 경계 구현
+
+- 원문의 A2/C2 Mock 요구에 맞춰 계정·프로필·작품·미디어별 권한, 만료, 키 상태 검사 인터페이스를 추가했다. 취소된 늦은 응답 차단과 플레이어 생성 직전 재검사를 적용했다.
+- 로컬 데모에도 권한 오류 안내/제한된 수동 재시도를 연결했다. 다운로드 파일 만료 정책은 유지한다.
+- [변경·검증 결과](Measurements/Playback-Entitlement-2026-10-31/REPORT.md) · [실기기 확인](PLAYBACK_ENTITLEMENT_QA.md) · [ADR 0029](ADR/0029-mock-playback-entitlement.md).
+- 실제 FairPlay/운영 라이선스, 재생 중 만료, F09 전체 완료와 구분한다. 추가 trace 수집은 필요 없다.
+
 ## 2026-10-31 — 실기기 로그인 유지 확인 및 프로필 전환 경계 회귀
 
 - 사용자 확인 완료: 최신 코드 로그인 후 재실행 유지, 홈 잠금·해제 후 탭 이동 정상. [실기기 후속 기록](Measurements/Auth-Unlock-Restore-2026-10-31/REPORT.md). 잠금 상태 OS cold launch 확인으로 확대하지 않는다.

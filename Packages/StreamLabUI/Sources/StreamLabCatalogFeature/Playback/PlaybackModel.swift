@@ -184,10 +184,12 @@ import StreamLabPresentation
 
     @Published private(set) var retryBudget = PlaybackRetryBudget()
     @Published private(set) var failureIsMediaReset = false
+    @Published private(set) var failureIsEntitlement = false
     private var mediaResetObserver: PlaybackMediaResetObserver?
     private var itemEndObserver: PlaybackItemEndObserver?
     private var itemReachedEnd = false
     private var audioSessionOwner: UUID?
+    private let entitlementProvider: any PlaybackEntitlementProvider
     private let syncDeviceID: String?
     private var syncedProgress: SyncedPlaybackProgress?
     private var syncRestartPending = false
@@ -244,7 +246,9 @@ import StreamLabPresentation
         #endif
     }
 
-    init(titleID: String, session: CatalogSession, syncDeviceID: String? = nil) {
+    init(titleID: String, session: CatalogSession, syncDeviceID: String? = nil,
+         entitlementProvider: (any PlaybackEntitlementProvider)? = nil) {
+        self.entitlementProvider = entitlementProvider ?? Self.demoEntitlementProvider()
         self.syncDeviceID = syncDeviceID
         self.titleID = titleID
         self.session = session
@@ -264,6 +268,20 @@ import StreamLabPresentation
         pictureInPicture.onFailure = { [weak self] message in self?.pipMessage = message }
     }
 
+    private static func demoEntitlementProvider() -> any PlaybackEntitlementProvider {
+        #if DEBUG
+        let arguments = ProcessInfo.processInfo.arguments
+        let outcomes: [MockPlaybackEntitlementProvider.Outcome]
+        if arguments.contains("--ui-test-entitlement-expired-once") { outcomes = [.expired] }
+        else if arguments.contains("--ui-test-entitlement-key-unavailable-once") { outcomes = [.keyUnavailable] }
+        else if arguments.contains("--ui-test-entitlement-renewal-failed-once") { outcomes = [.renewalFailed] }
+        else { outcomes = [] }
+        return MockPlaybackEntitlementProvider(outcomes: outcomes)
+        #else
+        return MockPlaybackEntitlementProvider()
+        #endif
+    }
+
     var canSeek: Bool {
         player?.currentItem?.status == .readyToPlay && duration > 0 && !isSeeking && !syncRestartPending
     }
@@ -276,6 +294,7 @@ import StreamLabPresentation
         }
         guard session.isActive else { return }
         failureIsMediaReset = false
+        failureIsEntitlement = false
         diagnostics.begin(at: ProcessInfo.processInfo.systemUptime)
         let attempt = UUID()
         diagnosticAttempt = attempt
@@ -298,6 +317,9 @@ import StreamLabPresentation
         let repository = session.repository
         let profile = session.profile
         let id = titleID
+        let entitlementScope = PlaybackEntitlementScope(accountID: session.accountID,
+            profileID: profile.id, titleID: id, mediaID: self.source.progressID)
+        let entitlementProvider = self.entitlementProvider
         loadTask = Task { [weak self] in
             do {
                 let title = try await repository.detail(id: id, profile: profile)
@@ -306,6 +328,8 @@ import StreamLabPresentation
                     self.fail("이 프로필에서는 재생할 수 없는 콘텐츠입니다.")
                     return
                 }
+                let grant = try await entitlementProvider.authorize(entitlementScope)
+                guard !Task.isCancelled, self.generation == ticket, self.session.isActive else { return }
                 self.nowPlayingTitle = title.name
                 self.nowPlayingArtworkURL = StreamLabTheme.bundledArtworkURL(seed: title.visualSeed)
                 if let deviceID = self.syncDeviceID {
@@ -315,7 +339,12 @@ import StreamLabPresentation
                     self.syncedProgress = progress
                     self.syncMessage = "가상 기기 \(deviceID) · 서버 진도 불러옴"
                 }
+                // Recheck after optional progress I/O, immediately before creating the player.
+                try grant.validate(for: entitlementScope, at: Date())
                 self.prepare(ticket: ticket)
+            } catch let error as PlaybackEntitlementError {
+                guard !Task.isCancelled, let self, self.generation == ticket, self.session.isActive else { return }
+                self.fail(error.message, entitlement: true)
             } catch {
                 guard !Task.isCancelled, let self, self.generation == ticket else { return }
                 self.fail("재생 권한을 확인하지 못했습니다. 다시 시도해 주세요.")
@@ -1070,10 +1099,11 @@ import StreamLabPresentation
         prepareAudio(player: player, ticket: generation)
     }
 
-    private func fail(_ message: String, mediaReset: Bool = false) {
+    private func fail(_ message: String, mediaReset: Bool = false, entitlement: Bool = false) {
         if diagnosticAttempt != nil { observePlayback(.failed) }
         stop()
         failureIsMediaReset = mediaReset
+        failureIsEntitlement = entitlement
         status = .failed(message)
     }
 

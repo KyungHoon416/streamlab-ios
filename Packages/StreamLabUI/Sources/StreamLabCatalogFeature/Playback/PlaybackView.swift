@@ -213,7 +213,7 @@ import StreamLabDesignSystem
         }
         .onChange(of: model.status) { _, value in
             if value != .playing { revealControls() }
-            if case .failed = value, model.source.isHLS || model.failureIsMediaReset {
+            if case .failed = value, model.source.isHLS || model.failureIsMediaReset || model.failureIsEntitlement {
                 showsPlaybackFailure = true
             }
         }

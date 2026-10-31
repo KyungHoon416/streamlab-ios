@@ -2155,6 +2155,36 @@ import XCTest
         XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 5))
     }
 
+    func testExpiredPlaybackEntitlementBlocksLocalDemoAndRenews() {
+        exerciseEntitlementFailure("--ui-test-entitlement-expired-once", message: "권한이 만료")
+    }
+
+    func testUnavailablePlaybackKeyBlocksAndRecovers() {
+        exerciseEntitlementFailure("--ui-test-entitlement-key-unavailable-once", message: "키를 사용할 수 없습니다")
+    }
+
+    func testPlaybackEntitlementRenewalFailureIsRecoverable() {
+        exerciseEntitlementFailure("--ui-test-entitlement-renewal-failed-once", message: "권한을 갱신하지 못했습니다")
+    }
+
+    private func exerciseEntitlementFailure(_ argument: String, message: String) {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=entitlement-\(UUID())", argument,
+                               "--ui-test-disable-resume", "--ui-test-keep-playback-controls"]
+        app.launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        let alert = app.alerts["영상을 불러올 수 없습니다"]
+        XCTAssertTrue(alert.waitForExistence(timeout: 15))
+        XCTAssertTrue(alert.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", message)).firstMatch.exists)
+        XCTAssertTrue(alert.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "남은 재시도: 3회")).firstMatch.exists)
+        alert.buttons["재시도"].tap()
+        expectPlayback("재생 중", in: app)
+        XCTAssertFalse(alert.exists)
+        closePlayback(app)
+    }
+
     func testMediaResetRequiresUserRetryAndRecreatesPlayback() {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=reset-\(UUID())",

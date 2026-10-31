@@ -1,0 +1,45 @@
+{
+  "base": "407bb5a",
+  "files": [
+    {
+      "path": "Docs/Validation/playback-entitlement-ldrS1F/core-focused.log",
+      "sha256": "ae0b875d250df73425ab342efdb623b3315320e39ba746d0cb393bb5559b4f82",
+      "bytes": 2592
+    },
+    {
+      "path": "Docs/Validation/playback-entitlement-ldrS1F/core-full.log",
+      "sha256": "ac8b62c3afa792348ffc3b5ac3ba598147aaef3719786889e23f9a8ad5334926",
+      "bytes": 46401
+    },
+    {
+      "path": "Docs/Validation/playback-entitlement-ldrS1F/release.log",
+      "sha256": "720e1c3969f60df763d221c162e1ca27b9b2a306059594ebc0b3694594477522",
+      "bytes": 103941
+    },
+    {
+      "path": "Docs/Validation/playback-entitlement-FqI3ai/ui-tests.log",
+      "sha256": "7dba6fe5aaffb52042e3f8b42de89d3e225c617bff771d710362ad2a6e772913",
+      "bytes": 502763
+    },
+    {
+      "path": "Docs/Validation/playback-entitlement-ldrS1F/ui-tests.log",
+      "sha256": "610e05a72ece446148067bfb9c4a8bc60f4d428f8e5e30b3e13712027dd0ca30",
+      "bytes": 497779
+    },
+    {
+      "path": "Docs/Validation/playback-entitlement-ldrS1F/signing.log",
+      "sha256": "7e8b215e8df61277d89e021c9f6dd1ae6d73dffb9e366892f0884bc5dc46473f",
+      "bytes": 601
+    },
+    {
+      "path": "Docs/Validation/playback-entitlement-ldrS1F/environment.txt",
+      "sha256": "e5a092ff0df6524428e86663f4477af08266babb2522ae94a8bea4c932f12d03",
+      "bytes": 1006
+    },
+    {
+      "path": "Docs/Validation/playback-session-lifecycle-ELCqQK/ios-tests.log",
+      "sha256": "f0c0e9e5f268c3b5bfefbacfda3e5f07af231a86e192e1d42fb4c14520a152c0",
+      "bytes": 365794
+    }
+  ]
+}

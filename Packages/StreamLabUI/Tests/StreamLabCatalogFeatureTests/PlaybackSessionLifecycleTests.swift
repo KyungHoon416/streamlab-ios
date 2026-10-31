@@ -3,6 +3,7 @@ import Foundation
 import MediaPlayer
 import StreamLabCatalogData
 import StreamLabDomain
+import StreamLabPresentation
 import XCTest
 @testable import StreamLabCatalogFeature
 
@@ -21,6 +22,35 @@ final class PlaybackSessionLifecycleTests: XCTestCase {
         }
         XCTFail("Bundled playback did not become ready: \(model.status)")
         throw CancellationError()
+    }
+
+    @MainActor
+    func testRejectedEntitlementsCannotCreatePlayerAndRenewalRecovers() async throws {
+        let name = "entitlement-player-\(UUID())"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
+        let repository = MockCatalogRepository(responseDelay: .zero)
+        let profile = ViewerProfile.demo[0]
+        let title = try await repository.home(profile: profile).hero
+        let session = CatalogSession(profile: profile, repository: repository, configuration: (name, defaults))
+        defer { session.invalidate(); defaults.removePersistentDomain(forName: name) }
+        for outcome in [MockPlaybackEntitlementProvider.Outcome.expired, .keyUnavailable, .denied, .renewalFailed] {
+            let provider = MockPlaybackEntitlementProvider(outcomes: [outcome])
+            let model = PlaybackModel(titleID: title.id, session: session, entitlementProvider: provider)
+            model.load(.bundled)
+            let deadline = ContinuousClock.now.advanced(by: .seconds(10))
+            while ContinuousClock.now < deadline {
+                if case .failed = model.status { break }
+                try await Task.sleep(for: .milliseconds(20))
+            }
+            guard case .failed = model.status else { XCTFail("Entitlement must reject before playback"); return }
+            XCTAssertNil(model.player)
+            XCTAssertFalse(model.canSeek)
+            model.retryPlayback()
+            try await waitForPlayback(model)
+            let count = await provider.requests
+            XCTAssertEqual(count, 2)
+            model.stop()
+        }
     }
 
     @MainActor

@@ -1,3 +1,8 @@
+## Mock 재생 권한 — 2026-10-31
+
+재생 시작 전에 계정·프로필·작품·영상 소스별 권한, 만료, 키 상태를 확인합니다. 오류 안내와 수동 재시도를 연결했으며 실제 FairPlay/운영 라이선스 서버는 아닙니다.
+[설계](Docs/ADR/0029-mock-playback-entitlement.md) · [검증](Docs/Measurements/Playback-Entitlement-2026-10-31/REPORT.md) · [실기기 확인](Docs/PLAYBACK_ENTITLEMENT_QA.md)
+
 ## 오프라인 HLS 다운로드 — 2026-10-20
 
 상세 화면에서 Apple HLS 샘플을 Wi-Fi로 다운로드하고, 앱 재실행 후 저장한 파일을
