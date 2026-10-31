@@ -1,0 +1,26 @@
+{
+  "testedCommit": "971bc9b99c9980d6ff033f48cac43022866b2ff3",
+  "successRun": "https://github.com/KyungHoon416/streamlab-ios/actions/runs/41171528946",
+  "files": [
+    {
+      "path": "Docs/Validation/ci-first-run/failure.log",
+      "sha256": "dc7c7d509986f37448e40bb64fd64e34e8457be3a747d479c6759efdb840ed05",
+      "bytes": 10004
+    },
+    {
+      "path": "Docs/Validation/ci-second-run/all-jobs.log",
+      "sha256": "7a382c8cc84cd3cbe6d86d16726a48dc029c19b76746f2af5b3f76c45dccd4fa",
+      "bytes": 668229
+    },
+    {
+      "path": "Docs/Validation/ci-second-run/run.json",
+      "sha256": "030115e99517c87339766e540c5e15a1898ba2ffa055be682aee7f1d40291e20",
+      "bytes": 3493
+    },
+    {
+      "path": "Docs/Validation/playback-session-lifecycle-ZIVGKH/ios-tests.log",
+      "sha256": "700e3955a2dc5008a511275f0e0780be48a701ef193a116566b7ae3ebca9c9b0",
+      "bytes": 375094
+    }
+  ]
+}

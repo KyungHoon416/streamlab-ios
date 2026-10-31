@@ -1,0 +1,9 @@
+PASS remote core-chaos and ios-playback jobs
+PASS Core 247; conditional integrations 11 skipped
+PASS three chaos suites, 1000 seeds each
+PASS iOS package tests 16
+PASS TTFF parser 6
+PASS Release build
+PASS validation artifact upload
+HISTORY first run failed before iOS tests due conflicting warning flags; corrected
+NOT TESTED full F01-F10, full app UI, physical performance, production DRM

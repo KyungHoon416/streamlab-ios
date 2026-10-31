@@ -17,3 +17,16 @@ workflow 추가 커밋 push 후 실제 실행 결과를 후속 기록한다. 로
 ### 첫 원격 실행 41171286951
 
 [실행 링크](https://github.com/KyungHoon416/streamlab-ios/actions/runs/41171286951), 커밋 5418ff2. Core/카오스 작업 성공. iOS는 Xcode 26.6에서 패키지 컴파일의 `-warnings-as-errors`와 `-suppress-warnings`가 충돌하여 테스트 실행 전에 실패했다. 경고 검증을 끄지 않고 iOS test/Release build에 `SWIFT_SUPPRESS_WARNINGS=NO`를 명시하도록 수정했다. 첫 실행을 iOS PASS로 계산하지 않는다.
+
+### 수정 후 원격 실행 41171528946 — PASS
+
+[성공 실행](https://github.com/KyungHoon416/streamlab-ios/actions/runs/41171528946), 검증 커밋 971bc9b99c9980d6ff033f48cac43022866b2ff3. core-chaos/ios-playback 두 job 및 로그 artifact 업로드 모두 success.
+
+- Core: XCTest 31개 + Swift Testing 227개(조건부 11개 skipped) = 실제 통과 247개.
+- 카오스: durable queue/domain conflict/virtual retry clock 각각 1000개 seed 완료.
+- TTFF 집계 6개 PASS.
+- iOS 패키지 재생/권한/콜백 16개, 0실패.
+- Xcode 26.6에서 서명 없는 실기기 Release 빌드 성공.
+- 수정한 경고 옵션으로 로컬 Xcode 27에서도 iOS 16개 PASS.
+
+이 결과 이후 문서 전용 커밋은 CI 경로 필터로 재실행하지 않는다. 실행 코드/워크플로 수정이 생기면 새로 검증해야 한다. 사용자 실기기 재측정은 필요 없다.

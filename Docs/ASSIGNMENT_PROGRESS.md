@@ -1,7 +1,7 @@
 ## 2026-10-31 — 실기기 로그 변경 회귀 확인 및 CI 연결
 
 - 사용자 보고: 최신 코드에서 이어보기·하단 시간·다운로드 완료/삭제 정상. 기능 회귀 완료로 기록하며 원시 오류 로그 개인정보 검사 완료로 확대하지 않는다.
-- GitHub Actions에 Core/카오스 3종과 iOS 플레이어 16개·Release 빌드를 연결했다. 실행 결과는 별도 보고서에 기록한다.
+- GitHub Actions에 Core/카오스 3종과 iOS 플레이어 16개·Release 빌드를 연결했다. 첫 원격 Xcode 경고 옵션 충돌을 수정한 뒤 Core/카오스·iOS/Release 두 job 모두 PASS. [실행 증빙](Measurements/CI-2026-10-31/REPORT.md).
 - [CI 범위·재현 방법](CI_VALIDATION.md). 전체 F01~F10, 실제 HTTP/Keychain opt-in, 앱 전체 UI/실기기 계측과 구분한다.
 
 ## 2026-10-31 — C2 재생·다운로드 진단 로그 최소화
