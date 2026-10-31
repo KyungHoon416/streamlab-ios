@@ -1,0 +1,78 @@
+name: StreamLab validation
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['Docs/**', '**/*.md']
+  pull_request:
+    paths-ignore: ['Docs/**', '**/*.md']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core-chaos:
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Record toolchain
+        run: |
+          mkdir -p Docs/Validation/ci
+          { xcodebuild -version; swift --version; sw_vers; } | tee Docs/Validation/ci/environment.txt
+      - name: Core and three deterministic chaos suites
+        run: bash scripts/check-domain-chaos-mac.sh
+      - name: TTFF report parser regression
+        run: |
+          set -o pipefail
+          python3 scripts/test-ttff-summary.py 2>&1 | tee Docs/Validation/ci/ttff.log
+      - name: Preserve validation logs
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: core-chaos-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            Docs/Validation/**/*.log
+            Docs/Validation/**/RESULTS.txt
+            Docs/Validation/**/environment.txt
+          retention-days: 14
+          if-no-files-found: error
+
+  ios-playback:
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Record toolchain
+        run: |
+          mkdir -p Docs/Validation/ci
+          { xcodebuild -version; swift --version; sw_vers; xcrun simctl list devices available; } | tee Docs/Validation/ci/environment.txt
+      - name: Playback, entitlement and callback regression
+        run: bash scripts/check-playback-session-lifecycle-mac.sh
+      - name: Release compile without signing credentials
+        run: |
+          set -o pipefail
+          xcodebuild -project StreamLab.xcodeproj -scheme StreamLab -configuration Release \
+            -destination 'generic/platform=iOS' -derivedDataPath "$RUNNER_TEMP/streamlab-release" \
+            CODE_SIGNING_ALLOWED=NO SWIFT_TREAT_WARNINGS_AS_ERRORS=YES build \
+            2>&1 | tee Docs/Validation/ci/release.log
+      - name: Preserve validation logs
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: ios-playback-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            Docs/Validation/**/*.log
+            Docs/Validation/**/RESULTS.txt
+            Docs/Validation/**/environment.txt
+          retention-days: 14
+          if-no-files-found: error
