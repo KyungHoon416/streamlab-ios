@@ -1,0 +1,43 @@
+{
+  "method": "exclusive ordered calling-context groups, not file ownership",
+  "groups": [
+    {
+      "context": "swift_runtime_context",
+      "count": 50,
+      "blocked_ms": 5.832253999999537
+    },
+    {
+      "context": "named_vector_glyph",
+      "count": 43,
+      "blocked_ms": 6.425623000000158
+    },
+    {
+      "context": "no_stack",
+      "count": 12,
+      "blocked_ms": 3.109501000000403
+    },
+    {
+      "context": "other",
+      "count": 19,
+      "blocked_ms": 2.7201679999997452
+    },
+    {
+      "context": "other_coreui",
+      "count": 4,
+      "blocked_ms": 0.18462500000016036
+    },
+    {
+      "context": "font_outline",
+      "count": 2,
+      "blocked_ms": 0.6489170000003597
+    }
+  ],
+  "mmap_range_matches": 62,
+  "mmap_matched_blocked_ms": 10.641291000001107,
+  "other_stack_code_matches": 0,
+  "inputs": {
+    "waits.xml": "7523d097665b5ef8a59a1e4ed6b6e8536fd030c0379585fe5728448df1482e8f",
+    "page-files.json": "4b2871dba141d05f8a875c2e5b7483c64e892b33f281c02e52cb7c042d03235d",
+    "unmapped-contexts.json": "345e4b2a5bb70882d6f8acdd87fd077dfa881beae87d33d64d9a0c884c4ce01f"
+  }
+}

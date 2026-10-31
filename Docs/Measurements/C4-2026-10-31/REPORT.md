@@ -22,6 +22,8 @@
 
 추가 [페이지 소속 분석](current-home/PAGE_FILES.md)에서 SwiftUI/UIKitCore/SwiftUICore 등 시스템 코드 페이지와의 대응을 확인했다. 특정 물리 파일과 수정 가능한 앱 결함은 미확정이다.
 
+[미식별 페이지 추가 분석](current-home/UNMAPPED_PAGES.md): 18.92ms를 아이콘/런타임/글꼴 등의 호출 문맥으로 분류했다. 이 trace의 파일 매핑 정보가 부족해 정확한 파일명 추가 식별은 제한되며, 수정 가능한 앱 결함은 확인되지 않았다.
+
 ## 초기 진입 7개 기록 재집계
 
 | 기록 | 열 상태 | Update 수 | Update p50 / p95 (ms) | Hitch 수 / 합계 (ms) | 프로필→홈 레이아웃 (ms) |
