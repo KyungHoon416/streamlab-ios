@@ -16,7 +16,23 @@
     {
       "path": "Docs/Validation/combined-final-2026-10-31/native-ui.log",
       "sha256": "7a23f90cc912f4570a2f760b72124ce1ae363662090e47062622a2d8c5e09455"
+    },
+    {
+      "path": "Docs/Validation/combined-final-2026-10-31/remote-core.log",
+      "sha256": "9dff45028697becab6e9d92798d58537b9cc7350286808d9fbec27600fb8ac8a"
+    },
+    {
+      "path": "Docs/Validation/combined-final-2026-10-31/remote-ios.log",
+      "sha256": "439eeb84afcce5c15b6a5a9abb529df3bac29e7629b950e656f525ff61951df7"
+    },
+    {
+      "path": "Docs/Validation/combined-final-2026-10-31/remote-release.log",
+      "sha256": "339b20b454d4573aee0103bb1a900c7f599d54e20a445b9ebbed3ec1320e2b1b"
     }
   ],
-  "note": "Native run includes two passes and a prior F09 scroll-header assertion failure; final F09 passed in its dedicated rerun. Not a claim that the earlier three-test wrapper passed."
+  "note": "Native run includes two passes and a prior F09 scroll-header assertion failure; final F09 passed in its dedicated rerun. Not a claim that the earlier three-test wrapper passed.",
+  "remote_run": 41179216970,
+  "tested_commit": "d23d98dcb67980ff760054142b4901751329d740",
+  "remote_conclusion": "success",
+  "remote_url": "https://github.com/KyungHoon416/streamlab-ios/actions/runs/41179216970"
 }

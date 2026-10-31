@@ -27,4 +27,8 @@ F09 모델 테스트는 통과했지만 실제 파일/UI 테스트에서 재시�
 - F09 최종 단독 재실행 PASS 90.865초. 실제 완료 파일에서 만료 안내 → 화면 내 재시도 → 갱신 불가/남은 2회 → 닫기 → 목록/파일 유지 확인.
 - 앞선 3개 묶음 실행은 F09의 화면 밖 프로필 제목 hittable 검사 때문에 FAIL이었다. 목록은 닫기 전 스크롤 위치를 유지하므로 제목을 다시 노출한 뒤 검사하도록 보완했다. 제품 변경 없이 해당 테스트만 재실행했으며 이전 묶음 실행 전체를 PASS로 표시하지 않는다.
 - `MANIFEST.json`에 최종 근거 로그 SHA-256 기록. 앱 기능 수정 이후 최종 19개와 Release를 확인했다. 이후 변경은 UI 검사의 목록 스크롤 처리와 문서/검증 스크립트뿐이다.
-- 원격 CI: 새 소스 푸시 후 결과를 추가한다. 이전 41175096564는 Core PASS / iOS FAIL.
+- 원격 CI **SUCCESS**: [41179216970](https://github.com/KyungHoon416/streamlab-ios/actions/runs/41179216970), 구현 커밋 `d23d98dcb67980ff760054142b4901751329d740`.
+  - Core XCTest 31 + Swift Testing 229 = 260 PASS. 실제 loopback HTTP/더미 Keychain 경계, 카오스 3종 각 1000 seed, TTFF 파서 6개 PASS.
+  - iOS 재생 19개 PASS(31.107초), generic iOS Release 빌드 PASS. 원격 로그도 MANIFEST에 보존했다.
+  - 이전 41175096564는 Core PASS / iOS FAIL이며 과거 실패를 삭제하거나 성공으로 변경하지 않았다.
+- 현재 기본 앱 전체 회귀·실제 ENOSPC·운영 DRM을 완료했다고 표시하지 않는다. 실기기 순서는 [CHAOS_ACCEPTANCE](../../CHAOS_ACCEPTANCE.md) 및 [최신 아키텍처](../../ARCHITECTURE_CURRENT.md)에 있다.

@@ -4,5 +4,6 @@ PASS F06 native combined failure/disk/pin recovery 165.208s
 PASS F09 downloaded file expired/unavailable renewal/close 90.865s (dedicated rerun)
 PASS normal downloaded relaunch/playback/delete 115.564s
 PASS bash syntax and git diff --check
-REMOTE PENDING new source push; previous run 41175096564 Core PASS / iOS FAIL
+PASS REMOTE run 41179216970 on d23d98d: Core 31+229=260, 3x1000 chaos seeds, 6 parser tests, iOS 19, iOS Release build
+PREVIOUS run 41175096564 Core PASS / iOS FAIL (historical)
 NOT TESTED physical ENOSPC, production DRM, actual OS memory pressure/kill, full app regression

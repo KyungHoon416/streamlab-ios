@@ -1,8 +1,10 @@
+[최신 한글 아키텍처](Docs/ARCHITECTURE_CURRENT.md) · [아키텍처 PDF](Docs/Architecture/streamlab-architecture-ko.pdf)
+
 [F01–F10 검증 범위와 실기기 순서](Docs/CHAOS_ACCEPTANCE.md)
 
 ## 자동 검증 — 2026-10-31
 
-main push/PR에서 Core·고정 시드 카오스 3종, iOS 재생 경계 19개와 Release 빌드를 실행합니다. 문서만 바뀌면 제외합니다. [CI 사용법과 범위](Docs/CI_VALIDATION.md) · [실제 실행 결과](Docs/Measurements/CI-2026-10-31/REPORT.md). 전체 F01~F10 완료와는 별개입니다.
+main push/PR에서 Core·고정 시드 카오스 3종, iOS 재생 경계 19개와 Release 빌드를 실행합니다. 문서만 바뀌면 제외합니다. [CI 사용법과 범위](Docs/CI_VALIDATION.md) · [최신 실행 결과](Docs/Measurements/Combined-Failures-2026-10-31/REPORT.md). 전체 F01~F10 완료와는 별개입니다.
 
 ## Mock 재생 권한 — 2026-10-31
 
@@ -11,7 +13,7 @@ main push/PR에서 Core·고정 시드 카오스 3종, iOS 재생 경계 19개�
 
 ## 오프라인 HLS 다운로드 — 2026-10-20
 
-상세 화면에서 Apple HLS 샘플을 Wi-Fi로 다운로드하고, 앱 재실행 후 저장한 파일을
+상세 화면에서 Apple HLS 샘플을 Wi-Fi 또는 셀룰러로 다운로드하고, 앱 재실행 후 저장한 파일을
 재생하거나 고정/삭제할 수 있습니다. 실제 작품 영상은 아닙니다. 계정·프로필별 기록과
 로그아웃 정리를 적용하며, 동시 2개·총 1GB 예산으로 비고정 오래된 파일을 정리합니다.
 시스템 비동기 쓰기로 순간적인 디스크 사용량의 절대 상한까지 보장하지는 않습니다.

@@ -2,7 +2,7 @@
 
 - 이전 원격 Core 성공, iOS F05의 AVPlayer 5초 해제 검사 실패를 확인했다. 앱 소유 모델/아이템/재생/Now Playing 해제를 검사하고 OS 객체 해제 시점은 별도로 남긴다.
 - 실제 HLS 전송 실패·디스크 압박·고정 보호·재시도, 다운로드 영상 만료 권한·갱신 불가, 자막/오류/종료 6순서 테스트를 추가했다.
-- [범위와 최종 실행 증빙](Measurements/Combined-Failures-2026-10-31/REPORT.md). 실제 OS ENOSPC·비행기 모드·운영 DRM은 자동 주입 검증과 구분한다.
+- 로컬 재생 19개·다운로드 3개 시나리오 및 원격 Core 260개/카오스/iOS 19개/Release PASS. [범위와 최종 실행 증빙](Measurements/Combined-Failures-2026-10-31/REPORT.md). 실제 OS ENOSPC·비행기 모드·운영 DRM은 자동 주입 검증과 구분한다.
 
 ## 2026-10-31 — F01~F10 증빙 매핑 및 누락 race 보강
 
