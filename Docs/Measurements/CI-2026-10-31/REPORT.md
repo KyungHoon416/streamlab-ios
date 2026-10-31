@@ -13,3 +13,7 @@
 ## GitHub 실행
 
 workflow 추가 커밋 push 후 실제 실행 결과를 후속 기록한다. 로컬 PASS만으로 GitHub PASS를 주장하지 않는다.
+
+### 첫 원격 실행 41171286951
+
+[실행 링크](https://github.com/KyungHoon416/streamlab-ios/actions/runs/41171286951), 커밋 5418ff2. Core/카오스 작업 성공. iOS는 Xcode 26.6에서 패키지 컴파일의 `-warnings-as-errors`와 `-suppress-warnings`가 충돌하여 테스트 실행 전에 실패했다. 경고 검증을 끄지 않고 iOS test/Release build에 `SWIFT_SUPPRESS_WARNINGS=NO`를 명시하도록 수정했다. 첫 실행을 iOS PASS로 계산하지 않는다.

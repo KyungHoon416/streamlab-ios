@@ -44,7 +44,7 @@ xcodebuild -scheme "$package_scheme" -configuration Debug \
   -only-testing:StreamLabCatalogFeatureTests/PlaybackSessionLifecycleTests \
   -only-testing:StreamLabCatalogFeatureTests/PlaybackOrientationCallbackTests \
   -only-testing:StreamLabCatalogFeatureTests/PlaybackEntitlementBoundaryTests \
-  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=NO test > "$run_dir/ios-tests.log" 2>&1
+  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES SWIFT_SUPPRESS_WARNINGS=NO CODE_SIGNING_ALLOWED=NO test > "$run_dir/ios-tests.log" 2>&1
 result=$?
 if [ "$result" -eq 0 ] && grep -q 'Executed 16 tests, with 0 failures' "$run_dir/ios-tests.log" &&
    grep -Eq 'testRejectedEntitlementsCannotCreatePlayerAndRenewalRecovers.*passed' "$run_dir/ios-tests.log" &&
