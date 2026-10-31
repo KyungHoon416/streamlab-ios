@@ -43,15 +43,20 @@ xcodebuild -scheme "$package_scheme" -configuration Debug \
   -only-testing:StreamLabCatalogFeatureTests/PlaybackNowPlayingTests \
   -only-testing:StreamLabCatalogFeatureTests/PlaybackSessionLifecycleTests \
   -only-testing:StreamLabCatalogFeatureTests/PlaybackOrientationCallbackTests \
+  -only-testing:StreamLabCatalogFeatureTests/PlaybackEntitlementBoundaryTests \
   SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=NO test > "$run_dir/ios-tests.log" 2>&1
 result=$?
-if [ "$result" -eq 0 ] && grep -q 'Executed 12 tests, with 0 failures' "$run_dir/ios-tests.log" &&
+if [ "$result" -eq 0 ] && grep -q 'Executed 16 tests, with 0 failures' "$run_dir/ios-tests.log" &&
    grep -Eq 'testRejectedEntitlementsCannotCreatePlayerAndRenewalRecovers.*passed' "$run_dir/ios-tests.log" &&
    grep -Eq 'testRotationRejectionCanArriveOffMainActor.*passed' "$run_dir/ios-tests.log" &&
-   grep -Eq 'testRestoreRejectionCanArriveOffMainActor.*passed' "$run_dir/ios-tests.log"; then
-  echo 'PASS twelve iOS playback session and Now Playing tests' | tee "$run_dir/RESULTS.txt"
+   grep -Eq 'testRestoreRejectionCanArriveOffMainActor.*passed' "$run_dir/ios-tests.log" &&
+   grep -Eq 'testCloseRejectsLateEntitlementSuccess.*passed' "$run_dir/ios-tests.log" &&
+   grep -Eq 'testInvalidatedSessionRejectsLateEntitlementSuccess.*passed' "$run_dir/ios-tests.log" &&
+   grep -Eq 'testOldProfileReplyCannotReplaceNewPlayer.*passed' "$run_dir/ios-tests.log" &&
+   grep -Eq 'testPersistentRenewalFailureExhaustsRetryBudget.*passed' "$run_dir/ios-tests.log"; then
+  echo 'PASS sixteen iOS playback session and Now Playing tests' | tee "$run_dir/RESULTS.txt"
 else
-  echo "FAIL iOS lifecycle tests exit=$result; require twelve executed tests" | tee "$run_dir/RESULTS.txt"
+  echo "FAIL iOS lifecycle tests exit=$result; require sixteen executed tests" | tee "$run_dir/RESULTS.txt"
   result=1
 fi
 echo 'NOT TESTED: physical lock-screen card, SwiftUI profile-switch navigation, Bluetooth disconnection, full regression suite' >> "$run_dir/RESULTS.txt"

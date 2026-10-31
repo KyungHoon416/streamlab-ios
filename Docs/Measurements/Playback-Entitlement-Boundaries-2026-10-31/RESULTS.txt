@@ -1,0 +1,5 @@
+PASS 16 iOS tests (4 new entitlement boundary tests)
+PASS 10 result-gate cases
+PASS bash syntax and git diff --check
+DEVICE USER REPORT: expired-once retry, video/time progression and close passed
+NOT TESTED: physical key/renewal error flow, real DRM/license server, full UI suite

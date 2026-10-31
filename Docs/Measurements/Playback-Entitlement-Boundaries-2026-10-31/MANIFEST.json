@@ -1,0 +1,20 @@
+{
+  "base": "5bb9c00",
+  "files": [
+    {
+      "path": "Docs/Validation/playback-session-lifecycle-RgIvzJ/ios-tests.log",
+      "bytes": 374729,
+      "sha256": "05bd012017c15cd5582ea2b669081e86019debca9fe1c5e1954024ad00a961a5"
+    },
+    {
+      "path": "Docs/Validation/playback-session-lifecycle-RgIvzJ/RESULTS.txt",
+      "bytes": 177,
+      "sha256": "d402776d221a9f836f3aa2bfa93fb94e807aebe04e494b7b4c874f15daa1984c"
+    },
+    {
+      "path": "Docs/Validation/playback-session-lifecycle-RgIvzJ/environment.txt",
+      "bytes": 354,
+      "sha256": "6049b2ee27b079322f4316057911ff2f7ef42c55b55f6228ed0c5bfbac926750"
+    }
+  ]
+}
