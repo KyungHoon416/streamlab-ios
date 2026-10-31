@@ -196,6 +196,7 @@ import StreamLabPresentation
     @Published private(set) var syncMessage = ""
 
     #if DEBUG
+    private let debugLifetimeID = UUID()
     private var injectedMediaReset = false
     private var injectedUnrequestedPause = false
     #endif
@@ -205,6 +206,9 @@ import StreamLabPresentation
     }
 
     func retryPlayback() {
+        #if DEBUG
+        qoeLog.notice("retry_boundary model=\(self.debugLifetimeID.uuidString, privacy: .public) remaining=\(self.retryBudget.remaining) allowed=\(self.canRetryPlayback)")
+        #endif
         guard canRetryPlayback, retryBudget.consume() else { return }
         load()
     }
@@ -272,6 +276,11 @@ import StreamLabPresentation
         #if DEBUG
         let arguments = ProcessInfo.processInfo.arguments
         let outcomes: [MockPlaybackEntitlementProvider.Outcome]
+        if arguments.contains("--ui-test-entitlement-offline-expired") {
+            // Deterministic offline license boundary: cached expired grant, then
+            // renewal unavailable. Never silently issue a valid grant on retry.
+            return MockPlaybackEntitlementProvider(outcomes: [.expired], fallback: .renewalFailed)
+        }
         if arguments.contains("--ui-test-entitlement-expired-once") { outcomes = [.expired] }
         else if arguments.contains("--ui-test-entitlement-key-unavailable-once") { outcomes = [.keyUnavailable] }
         else if arguments.contains("--ui-test-entitlement-renewal-failed-once") { outcomes = [.renewalFailed] }
@@ -287,6 +296,9 @@ import StreamLabPresentation
     }
 
     func load(_ source: Source? = nil) {
+        #if DEBUG
+        qoeLog.notice("load_boundary model=\(self.debugLifetimeID.uuidString, privacy: .public) explicitSource=\(source != nil) remaining=\(self.retryBudget.remaining)")
+        #endif
         stop()
         if let source {
             self.source = source
@@ -421,7 +433,14 @@ import StreamLabPresentation
         itemEndObserver = nil
         guard let item = player?.currentItem else { return }
         let seekTicket = seekGeneration
-        itemEndObserver = PlaybackItemEndObserver(item: item) { [weak self] in
+        itemEndObserver = PlaybackItemEndObserver(item: item, failure: { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self, self.generation == ticket,
+                      self.seekGeneration == seekTicket, self.session.isActive,
+                      !self.itemReachedEnd else { return }
+                self.fail("영상 재생이 중단되었습니다. 연결 상태를 확인하고 다시 시도해 주세요.")
+            }
+        }) { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self, self.generation == ticket,
                       self.seekGeneration == seekTicket, self.session.isActive,
@@ -445,7 +464,8 @@ import StreamLabPresentation
             // Native PiP transport controls modify AVPlayer directly.
             wantsPlayback = player.timeControlStatus != .paused
         }
-        if item.status == .failed {
+        // Match the notification path: a late failure cannot undo an accepted end.
+        if item.status == .failed && !itemReachedEnd {
             fail("영상을 재생할 수 없습니다. 연결 상태를 확인하고 다시 시도해 주세요.")
             return false
         }

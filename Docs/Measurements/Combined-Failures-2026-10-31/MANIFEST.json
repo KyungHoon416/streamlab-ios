@@ -1,0 +1,22 @@
+{
+  "base_commit": "5203dcf",
+  "logs": [
+    {
+      "path": "Docs/Validation/combined-final-2026-10-31/ios-tests.log",
+      "sha256": "0fc3dd6b8524101c4aa7785bdf0613e3385644a2cd61e2968518d6e9af5b69bd"
+    },
+    {
+      "path": "Docs/Validation/combined-final-2026-10-31/release.log",
+      "sha256": "701e5332697bfadd6d8618a23742ad00bf3e8bdeae9199145cfb71d961dcca00"
+    },
+    {
+      "path": "Docs/Validation/combined-final-2026-10-31/f09-ui.log",
+      "sha256": "5a0e6babc30cd3bc5e4ac253e09de74c8ec48239d4e6d20d84186fbd4e80653c"
+    },
+    {
+      "path": "Docs/Validation/combined-final-2026-10-31/native-ui.log",
+      "sha256": "7a23f90cc912f4570a2f760b72124ce1ae363662090e47062622a2d8c5e09455"
+    }
+  ],
+  "note": "Native run includes two passes and a prior F09 scroll-header assertion failure; final F09 passed in its dedicated rerun. Not a claim that the earlier three-test wrapper passed."
+}

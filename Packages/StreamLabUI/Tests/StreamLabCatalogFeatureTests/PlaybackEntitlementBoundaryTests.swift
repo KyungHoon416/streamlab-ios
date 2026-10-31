@@ -98,6 +98,33 @@ final class PlaybackEntitlementBoundaryTests: XCTestCase {
         try await exerciseLateReply(invalidate: true, replaceProfile: true)
     }
 
+    @MainActor func testDownloadedSourceExpiredGrantAndOfflineRenewalNeverCreatePlayer() async throws {
+        let name = "f09-\(UUID())"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
+        let repository = MockCatalogRepository(responseDelay: .zero)
+        let profile = ViewerProfile.demo[0]
+        let title = try await repository.home(profile: profile).hero
+        let session = CatalogSession(profile: profile, repository: repository, configuration: (name, defaults))
+        defer { session.invalidate(); defaults.removePersistentDomain(forName: name) }
+        let provider = MockPlaybackEntitlementProvider(outcomes: [.expired], fallback: .renewalFailed)
+        let model = PlaybackModel(titleID: title.id, session: session, entitlementProvider: provider)
+        model.load(.downloadedHLS)
+        for remaining in stride(from: 3, through: 0, by: -1) {
+            try await waitUntil { model.failureIsEntitlement }
+            XCTAssertNil(model.player)
+            XCTAssertNil(PlaybackNowPlaying.shared.session)
+            XCTAssertEqual(model.retryBudget.remaining, remaining)
+            XCTAssertEqual(model.source, .downloadedHLS)
+            XCTAssertTrue(model.status.label.contains(remaining == 3 ? "권한이 만료" : "권한을 갱신하지 못했습니다"))
+            if remaining > 0 { model.retryPlayback() }
+        }
+        model.retryPlayback()
+        let count = await provider.requests
+        XCTAssertEqual(count, 4)
+        model.stop()
+        XCTAssertEqual(model.status, .idle)
+    }
+
     @MainActor func testPersistentRenewalFailureExhaustsRetryBudget() async throws {
         let name = "entitlement-retry-\(UUID())"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: name))

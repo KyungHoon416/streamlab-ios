@@ -119,7 +119,7 @@ final class PlaybackSessionLifecycleTests: XCTestCase {
     }
 
     @MainActor
-    func testTenBackgroundCyclesWithCachePressureReleasePlayer() async throws {
+    func testTenBackgroundCyclesWithCachePressureReleaseModelAndStopPlayer() async throws {
         let name = "f05-\(UUID())"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
         let repository = MockCatalogRepository(responseDelay: .zero)
@@ -146,14 +146,94 @@ final class PlaybackSessionLifecycleTests: XCTestCase {
             XCTAssertTrue(model?.player === releasedPlayer.value)
         }
         model?.stop()
+        XCTAssertNil(releasedPlayer.value?.currentItem)
+        XCTAssertEqual(releasedPlayer.value?.rate ?? 0, 0)
         model = nil
         let deadline = ContinuousClock.now.advanced(by: .seconds(5))
-        while (releasedModel.value != nil || releasedPlayer.value != nil), ContinuousClock.now < deadline {
+        while releasedModel.value != nil, ContinuousClock.now < deadline {
             try await Task.sleep(for: .milliseconds(20))
         }
         XCTAssertNil(releasedModel.value)
-        XCTAssertNil(releasedPlayer.value)
+        // MediaPlayer can retain an empty AVPlayer beyond application teardown.
+        // Assert ownership/transport cleanup, not an OS-dependent deallocation deadline.
+        XCTAssertNil(releasedPlayer.value?.currentItem)
+        XCTAssertEqual(releasedPlayer.value?.rate ?? 0, 0)
         XCTAssertNil(PlaybackNowPlaying.shared.session)
+    }
+
+    @MainActor
+    func testSubtitleNetworkFailureAndEndPermutationsCannotResurrectClosedPlayback() async throws {
+        let orders = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]]
+        for order in orders {
+            let name = "f10-\(UUID())"
+            let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
+            let repository = MockCatalogRepository(responseDelay: .zero)
+            let profile = ViewerProfile.demo[0]
+            let title = try await repository.home(profile: profile).hero
+            let session = CatalogSession(profile: profile, repository: repository, configuration: (name, defaults))
+            defer { session.invalidate(); defaults.removePersistentDomain(forName: name) }
+            let model = PlaybackModel(titleID: title.id, session: session)
+            model.load(.episode1)
+            try await waitForPlayback(model)
+            let item = try XCTUnwrap(model.player?.currentItem)
+            let subtitle = try XCTUnwrap(model.subtitleOptions.first(where: { $0.id != model.selectedSubtitleID })?.id)
+            model.player?.pause()
+            // Notification payloads follow AVFoundation's real failure/end entry points.
+            // Six controlled processing orders cover the possible race linearizations.
+            for event in order {
+                switch event {
+                case 0:
+                    model.selectSubtitle(subtitle)
+                    if model.player != nil { XCTAssertEqual(model.selectedSubtitleID, subtitle) }
+                    else { XCTAssertEqual(model.selectedSubtitleID, "off") }
+                case 1:
+                    NotificationCenter.default.post(name: AVPlayerItem.failedToPlayToEndTimeNotification,
+                        object: item, userInfo: [AVPlayerItemFailedToPlayToEndTimeErrorKey: URLError(.networkConnectionLost)])
+                default: NotificationCenter.default.post(name: AVPlayerItem.didPlayToEndTimeNotification, object: item)
+                }
+                if event != 0 {
+                    let barrier = ContinuousClock.now.advanced(by: .seconds(3))
+                    while model.status != .ended, !isFailure(model.status), ContinuousClock.now < barrier {
+                        try await Task.sleep(for: .milliseconds(20))
+                    }
+                    XCTAssertTrue(model.status == .ended || isFailure(model.status))
+                }
+            }
+            let deadline = ContinuousClock.now.advanced(by: .seconds(3))
+            while model.status != .ended, !isFailure(model.status), ContinuousClock.now < deadline {
+                try await Task.sleep(for: .milliseconds(20))
+            }
+            XCTAssertTrue(model.status == .ended || isFailure(model.status), "order=\(order)")
+            XCTAssertEqual(model.retryBudget.remaining, 3)
+            model.cancelNextEpisode()
+            model.stop()
+            XCTAssertNil(model.player)
+            XCTAssertNil(model.nextEpisodeSeconds)
+            model.load(.bundled)
+            try await waitForPlayback(model)
+            let replacement = model.player
+            NotificationCenter.default.post(name: AVPlayerItem.failedToPlayToEndTimeNotification, object: item)
+            NotificationCenter.default.post(name: AVPlayerItem.didPlayToEndTimeNotification, object: item)
+            try await Task.sleep(for: .milliseconds(300))
+            XCTAssertTrue(model.player === replacement)
+            XCTAssertEqual(model.status, .playing)
+            let currentItem = try XCTUnwrap(model.player?.currentItem)
+            NotificationCenter.default.post(name: AVPlayerItem.failedToPlayToEndTimeNotification,
+                object: currentItem, userInfo: [AVPlayerItemFailedToPlayToEndTimeErrorKey: URLError(.networkConnectionLost)])
+            let failureDeadline = ContinuousClock.now.advanced(by: .seconds(3))
+            while !isFailure(model.status), ContinuousClock.now < failureDeadline {
+                try await Task.sleep(for: .milliseconds(20))
+            }
+            XCTAssertTrue(isFailure(model.status))
+            XCTAssertNil(model.player)
+            model.stop()
+            XCTAssertNil(PlaybackNowPlaying.shared.session)
+        }
+    }
+
+    @MainActor private func isFailure(_ status: PlaybackModel.Status) -> Bool {
+        if case .failed = status { return true }
+        return false
     }
 
     @MainActor

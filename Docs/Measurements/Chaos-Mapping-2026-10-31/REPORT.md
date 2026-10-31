@@ -29,3 +29,5 @@ F06/F09/F10 복합 통합과 실제 OS 강제 종료/메모리 압박은 매핑 
 ## 푸시 및 원격 검증 상태
 
 구현 `f0fbfa6`, fixture 준비 보강 `41a31fe`를 main에 푸시했다. 보강 후 로컬 Core/HTTP wrapper 전체 재실행 PASS (`Docs/Validation/http-boundaries-wbN7VQ`). 새 원격 run [41175096564](https://github.com/KyungHoon416/streamlab-ios/actions/runs/41175096564)는 기록 시점 pending이며 원격 PASS로 표시하지 않는다.
+
+후속 확인: run 41175096564는 Core PASS/iOS F05 assertion FAIL로 종료했다. 원격 대기 기록을 성공으로 해석하지 않는다. [원인 분석·후속 검증](../Combined-Failures-2026-10-31/REPORT.md).

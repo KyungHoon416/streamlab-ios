@@ -18,11 +18,19 @@ final class PlaybackMediaResetObserver: @unchecked Sendable {
 /// Immutable token ownership permits removal during nonisolated deinitialization.
 final class PlaybackItemEndObserver: @unchecked Sendable {
     private let token: NSObjectProtocol
-    init(item: AVPlayerItem, handler: @escaping @Sendable () -> Void) {
+    private let failureToken: NSObjectProtocol
+    init(item: AVPlayerItem, failure: @escaping @Sendable () -> Void, handler: @escaping @Sendable () -> Void) {
         token = NotificationCenter.default.addObserver(
             forName: AVPlayerItem.didPlayToEndTimeNotification,
             object: item, queue: .main
         ) { _ in handler() }
+        failureToken = NotificationCenter.default.addObserver(
+            forName: AVPlayerItem.failedToPlayToEndTimeNotification,
+            object: item, queue: .main
+        ) { _ in failure() }
     }
-    deinit { NotificationCenter.default.removeObserver(token) }
+    deinit {
+        NotificationCenter.default.removeObserver(token)
+        NotificationCenter.default.removeObserver(failureToken)
+    }
 }

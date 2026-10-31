@@ -8,7 +8,15 @@ import StreamLabDesignSystem
     @ObservedObject private var notifications = DownloadNotifications.shared
     @Environment(\.scenePhase) private var phase
     @StateObject private var orientation = PlaybackOrientationSession()
-    @State private var playing: OfflineDownload?
+    private struct PlaybackPresentation: Identifiable {
+        let record: OfflineDownload
+        let model: PlaybackModel
+        var id: UUID { record.id }
+    }
+    @State private var playing: PlaybackPresentation?
+    // SwiftUI clears the item binding before onDismiss; keep teardown ownership
+    // separately, but deliver the model atomically with the record in the item.
+    @State private var retainedPlaybackModel: PlaybackModel?
 
     public init(session: CatalogSession) { self.session = session }
 
@@ -57,7 +65,7 @@ import StreamLabDesignSystem
                             .accessibilityIdentifier("download-validation-expire")
                         Button("검증: 만료 파일 재생 시도") {
                             guard let item = items.first(where: { $0.state == .expired }), playing == nil else { return }
-                            orientation.begin(); playing = item
+                            openPlayback(item)
                         }.accessibilityIdentifier("download-validation-play-expired")
                         Button("검증: 전송 오류 발생") { store.validationInterruptTransfer() }
                             .accessibilityIdentifier("download-validation-interrupt")
@@ -87,8 +95,7 @@ import StreamLabDesignSystem
                                 .fixedSize(horizontal: false, vertical: true)
                             OfflineDownloadActions(item: item, session: session, idPrefix: "library-\(item.titleID)") {
                                 guard session.isActive, playing == nil else { return }
-                                orientation.begin()
-                                playing = item
+                                openPlayback(item)
                             }
                             NavigationLink(value: item.titleID) {
                                 Label("작품 상세 보기", systemImage: "chevron.right")
@@ -115,12 +122,26 @@ import StreamLabDesignSystem
         }
         .navigationTitle("다운로드")
         .navigationBarTitleDisplayMode(.inline)
-        .fullScreenCover(item: $playing, onDismiss: { orientation.finish() }) { item in
-            PlaybackView(titleID: item.titleID, title: item.title, session: session,
-                         orientationSession: orientation, initialSource: .downloadedHLS)
-                .id("\(session.id.uuidString):\(item.id.uuidString)")
+        .fullScreenCover(item: $playing, onDismiss: {
+            retainedPlaybackModel?.stop()
+            retainedPlaybackModel = nil
+            orientation.finish()
+        }) { presentation in
+            PlaybackView(titleID: presentation.record.titleID, title: presentation.record.title,
+                         session: session, orientationSession: orientation,
+                         initialSource: .downloadedHLS, externalModel: presentation.model)
         }
     }
+
+    private func openPlayback(_ item: OfflineDownload) {
+        guard session.isActive, playing == nil else { return }
+        let model = PlaybackModel(titleID: item.titleID, session: session)
+        retainedPlaybackModel = model
+        orientation.begin()
+        model.load(.downloadedHLS)
+        playing = PlaybackPresentation(record: item, model: model)
+    }
+
     @ViewBuilder private var storageSummary: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("기기 전체 다운로드 예산").font(.headline)

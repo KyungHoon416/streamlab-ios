@@ -27,17 +27,29 @@ import XCTest
         XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("1화"))
     }
 
-    private func launchDownloadLifecycle(slow: Bool = false, transferPressure: Bool = false) throws -> XCUIApplication {
+    private func launchDownloadLifecycle(slow: Bool = false, transferPressure: Bool = false, extraArguments: [String] = [], cleanStart: Bool = false) throws -> XCUIApplication {
         try XCTSkipUnless(ProcessInfo.processInfo.environment["STREAMLAB_TEST_DOWNLOADS"] == "1",
                           "Requires real external HLS transfers; run the download lifecycle gate.")
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=download-lifecycle-\(UUID())",
                                "--ui-test-download-lifecycle", "--ui-test-disable-resume"]
+        app.launchArguments += extraArguments
         if slow { app.launchArguments.append("--ui-test-slow-catalog") }
         if transferPressure { app.launchArguments.append("--ui-test-transfer-pressure") }
         app.launch()
         choose("adult-a", in: app)
+        if cleanStart {
+            // A previously failed UI run may leave a pinned package behind.
+            // Use the real account cleanup boundary, not filesystem deletion.
+            tap(app.buttons["account-logout"], in: app)
+            tap(app.sheets.buttons.matching(identifier: "confirm-logout").firstMatch, in: app)
+            XCTAssertTrue(app.buttons["demo-sign-in"].waitForExistence(timeout: 20))
+            choose("adult-a", in: app)
+        }
         tap(app.tabBars.buttons["다운로드"], in: app)
+        if cleanStart {
+            XCTAssertTrue(downloadSnapshot(app).contains("native=0;active=0;queued=0;complete=0;records=0;"))
+        }
         addTeardownBlock { @MainActor [weak self] in
             guard let self else { return }
             app.activate()
@@ -233,6 +245,109 @@ import XCTest
         XCTAssertTrue(recovered.contains("started=2;"), recovered)
         XCTAssertTrue(firstPlay.exists)
         XCTAssertTrue(pin.label.contains("고정 해제"))
+    }
+
+    private func revealCombinedDownloadElement(_ element: XCUIElement, in app: XCUIApplication) {
+        let scroll = app.scrollViews["downloads-scroll"]
+        for attempt in 0..<12 {
+            if element.exists && element.isHittable { return }
+            if element.exists, !element.frame.isEmpty {
+                if element.frame.midY < scroll.frame.midY { scroll.swipeDown() }
+                else { scroll.swipeUp() }
+            } else if attempt < 6 { scroll.swipeDown() }
+            else { scroll.swipeUp() }
+        }
+        XCTAssertTrue(element.exists && element.isHittable)
+    }
+
+    func testF06ConcurrentFailureDiskPressurePreservesPinnedAndRecovers() throws {
+        let app = try launchDownloadLifecycle(extraArguments: ["--ui-test-combined-download-failure"], cleanStart: true)
+        tap(app.buttons["download-validation-three"], in: app)
+        let stopped = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            let state = self.downloadSnapshot(app)
+            return state.contains("native=0;active=0;queued=0;complete=0;records=3;") &&
+                state.contains("cleaning=0") && state.contains("files=0;")
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [stopped], timeout: 120), .completed)
+        let state = downloadSnapshot(app)
+        XCTAssertTrue(state.contains("peak=2;"), state)
+        XCTAssertTrue(state.contains("started=2;"), state)
+        XCTAssertTrue(state.contains("disk=3;"), state)
+        let failed = app.staticTexts["library-title-0001-failed"]
+        revealCombinedDownloadElement(failed, in: app)
+        XCTAssertTrue(failed.exists)
+        XCTAssertFalse(failed.label.contains("저장 공간이 부족"), failed.label)
+        let disk = app.staticTexts["library-title-0002-failed"]
+        revealCombinedDownloadElement(disk, in: app)
+        XCTAssertTrue(disk.label.contains("저장 공간이 부족"), disk.label)
+        revealCombinedDownloadElement(app.buttons["download-validation-low-disk"], in: app)
+        tap(app.buttons["download-validation-low-disk"], in: app)
+        let firstRetry = app.buttons["library-title-0001-retry"]
+        revealCombinedDownloadElement(firstRetry, in: app)
+        tap(firstRetry, in: app)
+        let firstPlay = app.buttons["library-title-0001-play"]
+        XCTAssertTrue(firstPlay.waitForExistence(timeout: 180))
+        let pin = app.buttons["library-title-0001-pin"]
+        revealCombinedDownloadElement(pin, in: app)
+        tap(pin, in: app)
+        // The 1GB budget cannot admit two 500MB reservations plus a pinned file.
+        // Verify pin protection in the recovery phase of this same failure scenario.
+        revealCombinedDownloadElement(app.buttons["download-validation-low-disk"], in: app)
+        tap(app.buttons["download-validation-low-disk"], in: app)
+        let retry = app.buttons["library-title-0002-retry"]
+        revealCombinedDownloadElement(retry, in: app)
+        tap(retry, in: app)
+        XCTAssertTrue(retry.waitForExistence(timeout: 20))
+        let protected = downloadSnapshot(app)
+        XCTAssertTrue(protected.contains("complete=1;records=3;"), protected)
+        XCTAssertTrue(protected.contains("files=1;"), protected)
+        revealCombinedDownloadElement(pin, in: app)
+        XCTAssertTrue(pin.label.contains("고정 해제"))
+        XCTAssertTrue(firstPlay.exists)
+        revealCombinedDownloadElement(app.buttons["download-validation-low-disk"], in: app)
+        tap(app.buttons["download-validation-low-disk"], in: app)
+        revealCombinedDownloadElement(retry, in: app)
+        tap(retry, in: app)
+        XCTAssertTrue(app.buttons["library-title-0002-play"].waitForExistence(timeout: 180))
+        XCTAssertTrue(downloadSnapshot(app).contains("complete=2;records=3;"))
+    }
+
+    func testF09DownloadedHLSExpiredOfflineGrantBlocksRetryAndCloses() throws {
+        let app = try launchDownloadLifecycle(extraArguments: ["--ui-test-entitlement-offline-expired",
+                                                               "--ui-test-keep-playback-controls"], cleanStart: true)
+        tap(app.buttons["download-validation-one"], in: app)
+        let play = app.buttons["library-title-0001-play"]
+        app.scrollViews["downloads-scroll"].swipeUp()
+        XCTAssertTrue(play.waitForExistence(timeout: 180))
+        XCTAssertTrue(downloadSnapshot(app).contains("complete=1;records=1;"))
+        playbackReturnFrame = app.frame
+        tap(play, in: app)
+        let alert = app.alerts["영상을 불러올 수 없습니다"]
+        // Either the modal or persistent inline failure surface is user-visible.
+        // A fast local rejection can precede the full-screen transition finishing.
+        func messageContains(_ text: String) -> Bool {
+            let modal = alert.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
+            let inline = app.staticTexts["playback-status"]
+            return modal.exists || (inline.exists && inline.label.contains(text))
+        }
+        let expired = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in messageContains("권한이 만료") }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [expired], timeout: 15), .completed)
+        let landscape = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            app.frame.width > app.frame.height
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [landscape], timeout: 10), .completed)
+        let retry = alert.exists ? alert.buttons["재시도"] : app.buttons["playback-retry"]
+        XCTAssertTrue(retry.isEnabled, app.debugDescription)
+        tap(retry, in: app)
+        let renewal = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in messageContains("권한을 갱신하지 못했습니다") }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [renewal], timeout: 15), .completed)
+        let budget = app.staticTexts["playback-retry-remaining"]
+        let modalBudget = alert.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "남은 재시도: 2회")).firstMatch
+        XCTAssertTrue(modalBudget.exists || (budget.exists && budget.label.contains("2회")))
+        if alert.exists { alert.buttons["취소"].tap() }
+        else { closePlayback(app, returningToDownloads: true) }
+        XCTAssertTrue(play.waitForExistence(timeout: 15))
+        XCTAssertTrue(downloadSnapshot(app).contains("complete=1;records=1;"))
     }
 
     func testStartupChromeBaseline() { checkStartupChrome("baseline") }
@@ -1888,8 +2003,11 @@ import XCTest
             return
         }
         if returningToDownloads {
-            XCTAssertTrue(app.staticTexts["downloads-profile"].waitForExistence(timeout: 5))
-            XCTAssertTrue(app.staticTexts["downloads-profile"].isHittable)
+            let profile = app.staticTexts["downloads-profile"]
+            XCTAssertTrue(profile.waitForExistence(timeout: 5))
+            // Closing playback preserves the library's scroll position.
+            if !profile.isHittable { revealCombinedDownloadElement(profile, in: app) }
+            XCTAssertTrue(profile.isHittable)
             return
         }
         XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 5))

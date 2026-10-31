@@ -4,6 +4,7 @@ import StreamLabDesignSystem
 @MainActor struct PlaybackView: View {
     @StateObject private var model: PlaybackModel
     private let orientationSession: PlaybackOrientationSession
+    private let ownsModelLifecycle: Bool
     @State private var source: PlaybackModel.Source = .bundled
     @State private var scrubPosition: Double = 0
     @State private var scrubbing = false
@@ -26,12 +27,13 @@ import StreamLabDesignSystem
     @Environment(\.dynamicTypeSize) private var textSize
     private let title: String
 
-    init(titleID: String, title: String, session: CatalogSession, orientationSession: PlaybackOrientationSession, initialSource: PlaybackModel.Source = .bundled, syncDeviceID: String? = nil, onCancelFailure: (@MainActor () -> Void)? = nil) {
+    init(titleID: String, title: String, session: CatalogSession, orientationSession: PlaybackOrientationSession, initialSource: PlaybackModel.Source = .bundled, syncDeviceID: String? = nil, externalModel: PlaybackModel? = nil, onCancelFailure: (@MainActor () -> Void)? = nil) {
         self.onCancelFailure = onCancelFailure
-        _source = State(initialValue: initialSource)
+        ownsModelLifecycle = externalModel == nil
+        _source = State(initialValue: externalModel.flatMap { $0.status == .idle ? nil : $0.source } ?? initialSource)
         self.title = title
         self.orientationSession = orientationSession
-        _model = StateObject(wrappedValue: PlaybackModel(titleID: titleID, session: session, syncDeviceID: syncDeviceID))
+        _model = StateObject(wrappedValue: externalModel ?? PlaybackModel(titleID: titleID, session: session, syncDeviceID: syncDeviceID))
     }
 
     private func timeParts(_ seconds: Double) -> (hours: Int, minutes: Int, seconds: Int) {
@@ -190,9 +192,14 @@ import StreamLabDesignSystem
             guard !started else { return }
             started = true
             model.setForeground(phase == .active)
-            model.load(source)
+            // A download cover can rebuild its content during rotation/alert presentation.
+            // Its parent retains the model until actual dismissal; do not reset retry state.
+            if ownsModelLifecycle { model.load(source) }
+            if ownsModelLifecycle, case .failed = model.status { showsPlaybackFailure = true }
         }
-        .onDisappear { model.stop(); orientationSession.stopRequests() }
+        .onDisappear {
+            if ownsModelLifecycle { model.stop(); orientationSession.stopRequests() }
+        }
         .onChange(of: source) { _, value in
             scrubbing = false
             revealControls()
@@ -213,7 +220,9 @@ import StreamLabDesignSystem
         }
         .onChange(of: model.status) { _, value in
             if value != .playing { revealControls() }
-            if case .failed = value, model.source.isHLS || model.failureIsMediaReset || model.failureIsEntitlement {
+            // Parent-owned download playback uses the persistent inline recovery UI.
+            // Avoid presenting a competing modal during the cover/rotation transition.
+            if ownsModelLifecycle, case .failed = value, model.source.isHLS || model.failureIsMediaReset || model.failureIsEntitlement {
                 showsPlaybackFailure = true
             }
         }

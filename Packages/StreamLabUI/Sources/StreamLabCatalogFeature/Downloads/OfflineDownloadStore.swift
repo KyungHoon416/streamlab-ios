@@ -33,14 +33,21 @@ import StreamLabPresentation
 
     private func validationApplyTransferPressureIfReady() {
         guard validationEnabled,
-              ProcessInfo.processInfo.arguments.contains("--ui-test-transfer-pressure"),
+              (ProcessInfo.processInfo.arguments.contains("--ui-test-transfer-pressure") ||
+               ProcessInfo.processInfo.arguments.contains("--ui-test-combined-download-failure")),
               !validationInjectedTransferPressure, tasks.count == 2,
               records.filter({ tasks[$0.id] != nil && $0.relativePath != nil }).count == 2 else { return }
         validationInjectedTransferPressure = true
+        let active = records.filter { tasks[$0.id] != nil }.sorted { $0.titleID < $1.titleID }
+        let separateFailure = ProcessInfo.processInfo.arguments.contains("--ui-test-combined-download-failure")
+        // F06: fail one actual transfer independently before disk pressure cancels its peer.
+        if separateFailure, let first = active.first {
+            stopTransfer(first.id, message: OfflineDownloadFailure.message(for: URLError(.networkConnectionLost)))
+        }
         validationLowDisk = true
         // Both native transfers have received package destinations. Inject only the
         // capacity reading; cancellation, callbacks and file cleanup remain real.
-        for id in Array(tasks.keys) { checkTransferCapacity(id) }
+        for record in active where !separateFailure || record.id != active.first?.id { checkTransferCapacity(record.id) }
     }
 
     // Opt-in observation only: uses real OS tasks, journal and package paths.
