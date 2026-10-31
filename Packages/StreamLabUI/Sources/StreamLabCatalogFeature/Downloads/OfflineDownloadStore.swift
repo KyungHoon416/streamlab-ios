@@ -1,5 +1,6 @@
 import AVFoundation
 import Combine
+import CoreTelephony
 import Foundation
 import StreamLabDomain
 import StreamLabPresentation
@@ -81,6 +82,15 @@ import StreamLabPresentation
         validationSnapshot = "native=\(native.count);active=\(owned.filter { $0.state == .downloading }.count);queued=\(owned.filter { $0.state == .queued }.count);complete=\(owned.filter { $0.state == .complete }.count);records=\(owned.count);disk=\(disk?.records.filter { $0.accountID == accountID }.count ?? -1);files=\(files);peak=\(validationPeak);started=\(validationStarted.count);notifications=\(notificationCount);attempt=\(owned.first?.id.uuidString ?? "none");paused=\(owned.filter { $0.state == .paused }.count);suspended=\(native.filter { $0.state == .suspended }.count);cleaning=\(cleaning.count)"
     }
     #endif
+    private let cellularData = CTCellularData()
+    private func logTransfer(_ task: AVAssetDownloadTask, event: String) {
+        let configuration = downloads.configuration
+        NSLog("Offline HLS diagnostic event=%@ task=%ld state=%ld cellularAllowed=%d expensiveAllowed=%d constrainedAllowed=%d discretionary=%d cellularRestriction=%lu progress=%.6f",
+              event, task.taskIdentifier, task.state.rawValue,
+              configuration.allowsCellularAccess, configuration.allowsExpensiveNetworkAccess,
+              configuration.allowsConstrainedNetworkAccess, configuration.isDiscretionary,
+              cellularData.restrictedState.rawValue, task.progress.fractionCompleted)
+    }
     private var blockedAccounts: Set<String> = []
     private var activeAccount: String?
     private var tasks: [UUID: AVAssetDownloadTask] = [:]
@@ -110,6 +120,10 @@ import StreamLabPresentation
     private override init() {
         journalURL = try? DurableMutationStore.defaultDirectory().appendingPathComponent("offline-downloads.json")
         super.init()
+        // No account, asset URL, token or device identifier is logged.
+        cellularData.cellularDataRestrictionDidUpdateNotifier = { state in
+            NSLog("Offline HLS diagnostic cellularRestriction=%lu (0=unknown,1=restricted,2=notRestricted)", state.rawValue)
+        }
         do {
             guard let journalURL else { throw CocoaError(.fileReadUnknown) }
             if FileManager.default.fileExists(atPath: journalURL.path) {
@@ -368,6 +382,12 @@ import StreamLabPresentation
                 records[i].state = .downloading
                 do { try save() } catch { task.cancel(); reportStorageFailure(); return }
                 tasks[id] = task; observe(task, id: id); task.resume()
+                logTransfer(task, event: "start")
+                Task { [weak self, weak task] in
+                    try? await Task.sleep(for: .seconds(10))
+                    guard let self, let task, self.tasks[id] === task else { return }
+                    self.logTransfer(task, event: "after10s")
+                }
                 #if DEBUG
                 if validationEnabled {
                     validationStarted.insert(id)
@@ -597,6 +617,10 @@ extension OfflineDownloadStore: AVAssetDownloadDelegate {
             #endif
             if records[i].state == .removing || blockedAccounts.contains(records[i].accountID) { assetDownloadTask.cancel() }
         }
+    }
+
+    nonisolated public func urlSession(_ session: URLSession, taskIsWaitingForConnectivity task: URLSessionTask) {
+        NSLog("Offline HLS diagnostic event=waitingForConnectivity task=%ld", task.taskIdentifier)
     }
 
     nonisolated public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
