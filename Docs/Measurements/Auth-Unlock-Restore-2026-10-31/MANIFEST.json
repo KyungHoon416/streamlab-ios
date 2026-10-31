@@ -22,5 +22,11 @@
     "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/State/CatalogAccount.swift": "3089c95c097f373a133ef6fbe73a243eb521410837f1bec4f9e46582e953d8ac",
     "Tests/StreamLabUITests/StreamLabUITests.swift": "03dec13a2ff6787fc1823f405452ef3bda9dedf75b710515ac28471497829f8f",
     "scripts/check-demo-authentication-mac.sh": "90e2b8cedab7abe898b0445f7269db58ad09682810a3bbe092908c3db7d4d7ab"
+  },
+  "device_followup": {
+    "date": "2026-10-31",
+    "source": "user conversation",
+    "result": "PASS: login relaunch persistence; home lock/unlock; tab navigation",
+    "raw_evidence_attached": false
   }
 }

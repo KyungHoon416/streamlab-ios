@@ -1,0 +1,10 @@
+PASS four profile boundary UI tests
+NOT TESTED: production permissions/DRM, real HLS, physical device profile switching, full UI suite
+
+Test Case '-[StreamLabUITests.StreamLabUITests testPlaybackCloseDuringAuthorizationAndReopenForKids]' passed (58.308 seconds).
+Test Case '-[StreamLabUITests.StreamLabUITests testProfileSwitchDuringPaginationRemovesOverlayAndOldResults]' passed (43.113 seconds).
+Test Case '-[StreamLabUITests.StreamLabUITests testSearchPaginationAndProfileSwitch]' passed (32.333 seconds).
+Test Case '-[StreamLabUITests.StreamLabUITests testTabDetailPathsSurviveSwitchAndResetWithProfile]' passed (44.875 seconds).
+PASS Core catalog: 7 tests
+PASS result-gate checks: 6 (complete, nonzero exit, each missing required test)
+PASS bash syntax and git diff --check

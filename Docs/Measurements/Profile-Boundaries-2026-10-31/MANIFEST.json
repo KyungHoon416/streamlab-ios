@@ -1,0 +1,15 @@
+{
+  "tested_app_commit": "c16260a",
+  "commands": [
+    "bash scripts/check-profile-boundaries-mac.sh",
+    "swift test --package-path Packages/StreamLabCore --scratch-path /private/tmp/streamlab-profile-boundaries-core -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete --filter MockCatalogRepositoryTests"
+  ],
+  "ui_passed": 4,
+  "core_passed": 7,
+  "gate_checks_passed": 6,
+  "sha256": {
+    "Docs/Validation/profile-boundaries-8g2K2Y/ui-tests.log": "496b8453326059bc6d349c9fe09e114cb1f72bd68fc2b82fde697eab509a7af1",
+    "Docs/Validation/profile-boundaries-8g2K2Y/core.log": "236262122bad7ea3bfe6a017b79e74dd0ad298f5e8d66365a1533ea11597f128",
+    "scripts/check-profile-boundaries-mac.sh": "17e774dea5bec3fefc02a5849239068db4921dedb96e38156a63ec8f9fb434a7"
+  }
+}

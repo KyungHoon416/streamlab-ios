@@ -12,3 +12,5 @@ PASS Release has no diagnostic/simulated-unlock symbols
 PASS bash syntax and git diff --check
 Hardware Keychain lock diagnostic: PASS reported by user on previous build
 NOT TESTED actual locked OS cold launch, pre-first-unlock boot, production endpoint/TLS
+
+USER PASS 2026-10-31: login survives relaunch; home lock/unlock and tab navigation normal. Raw evidence not supplied; locked cold launch still untested.
