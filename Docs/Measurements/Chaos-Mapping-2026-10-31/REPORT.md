@@ -25,3 +25,7 @@ F06/F09/F10 복합 통합과 실제 OS 강제 종료/메모리 압박은 매핑 
 ## 원격 CI 1차
 
 `f0fbfa6`, run 41174798707의 Core는 테스트 전에 auth fixture 준비 제한(5초)으로 실패했다. artifact의 auth-server.log에는 Python 예외가 없었으며, 최초 로그만으로 import/DNS/스케줄링 중 어느 부분이 지연됐는지는 식별할 수 없다. 준비 예산을 30초로 늘리고 unbuffered 출력과 살아 있는 프로세스/조기 종료 진단을 추가했다. HTTP 요청·재시도 제한은 변경하지 않았다. 이 실패를 테스트 통과로 계산하지 않는다.
+
+## 푸시 및 원격 검증 상태
+
+구현 `f0fbfa6`, fixture 준비 보강 `41a31fe`를 main에 푸시했다. 보강 후 로컬 Core/HTTP wrapper 전체 재실행 PASS (`Docs/Validation/http-boundaries-wbN7VQ`). 새 원격 run [41175096564](https://github.com/KyungHoon416/streamlab-ios/actions/runs/41175096564)는 기록 시점 pending이며 원격 PASS로 표시하지 않는다.

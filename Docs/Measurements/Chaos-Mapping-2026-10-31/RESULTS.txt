@@ -1,0 +1,7 @@
+PASS local Core 260 tests, three chaos suites x 1000 seeds
+PASS local iOS playback 17 tests
+PASS local Release simulator build
+PASS fail-closed gates: Core 8 cases, iOS 12 cases
+PASS local Core/HTTP rerun after fixture readiness change
+PENDING remote CI run 41175096564 on 41a31fe
+PARTIAL F01-F10: see CHAOS_ACCEPTANCE.md for integration and device limits
