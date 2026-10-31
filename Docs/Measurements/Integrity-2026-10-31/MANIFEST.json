@@ -1,0 +1,13 @@
+{
+  "tested_app_base": "80dc849",
+  "command": "bash scripts/check-domain-chaos-mac.sh",
+  "core_log_sha256": "52b5fc4154bb5976d7a20f484d18d7b49f6c04073b5d1864e7840c4aaa3ef18a",
+  "script_sha256": "25299b03b3deb0cd0da37ad7f965279854e5a43b4ee87863e97a693c5facbd15",
+  "xctest_count": 31,
+  "swift_testing_counts": [
+    209,
+    7
+  ],
+  "total_tests": 247,
+  "seeds_per_chaos_suite": 1000
+}

@@ -1,0 +1,11 @@
+	 Executed 31 tests, with 0 failures (0 unexpected) in 0.013 (0.015) seconds
+	 Executed 31 tests, with 0 failures (0 unexpected) in 0.013 (0.018) seconds
+RETRY CLOCK CHAOS PASS seeds=1000 replay=1...1000
+DOMAIN CHAOS PASS seeds=1000 replay=1...1000
+CHAOS PASS seeds=1000 replay=1...1000 eventsPerSeed=24
+✔ Test run with 209 tests in 36 suites passed after 23.210 seconds.
+✔ Test run with 7 tests in 1 suite passed after 0.058 seconds.
+PASS Core and all three chaos suites seeds=1000 each
+NOT TESTED: iOS UI, actual HTTP/network recovery, all B2 invariants, full Part D chaos scenarios
+PASS gate-negative-checks count=9
+PASS bash-syntax and git-diff-check

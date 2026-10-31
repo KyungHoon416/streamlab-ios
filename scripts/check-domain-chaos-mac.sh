@@ -17,11 +17,16 @@ swift test --package-path Packages/StreamLabCore --scratch-path "$core_dir" \
 result=${PIPESTATUS[0]}
 expected_count=1000
 if [ -n "${STREAMLAB_CHAOS_SEED:-}" ]; then expected_count=1; fi
-if [ "$result" -eq 0 ] && grep -q 'Suite "B2 seeded domain conflict chaos" passed' "$run_dir/core.log" &&
-   grep -q "DOMAIN CHAOS PASS seeds=$expected_count " "$run_dir/core.log"; then
-  echo "PASS Core and seeded domain conflict chaos seeds=$expected_count" | tee "$run_dir/RESULTS.txt"
+if [ "$result" -eq 0 ] &&
+   grep -q 'Suite "B2 seeded domain conflict chaos" passed' "$run_dir/core.log" &&
+   grep -q 'Suite "B2 seeded durable queue chaos" passed' "$run_dir/core.log" &&
+   grep -q 'Suite "B2 virtual clock retry chaos" passed' "$run_dir/core.log" &&
+   grep -q "^DOMAIN CHAOS PASS seeds=$expected_count " "$run_dir/core.log" &&
+   grep -q "^CHAOS PASS seeds=$expected_count " "$run_dir/core.log" &&
+   grep -q "^RETRY CLOCK CHAOS PASS seeds=$expected_count " "$run_dir/core.log"; then
+  echo "PASS Core and all three chaos suites seeds=$expected_count each" | tee "$run_dir/RESULTS.txt"
 else
-  echo "FAIL Core/seeded chaos exit=$result; require suite and seed completion" | tee "$run_dir/RESULTS.txt"
+  echo "FAIL Core/seeded chaos exit=$result; require all three suites and seed completion" | tee "$run_dir/RESULTS.txt"
   result=1
 fi
 echo 'NOT TESTED: iOS UI, actual HTTP/network recovery, all B2 invariants, full Part D chaos scenarios' >> "$run_dir/RESULTS.txt"
