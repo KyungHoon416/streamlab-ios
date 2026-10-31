@@ -599,10 +599,6 @@ extension OfflineDownloadStore: AVAssetDownloadDelegate {
                   storageHealthy else { assetDownloadTask.cancel(); return }
             guard let relative = OfflineDownloadBudget.relativePath(location: location, home: home) else {
                 NSLog("Offline HLS rejected package location outside app container")
-                #if DEBUG
-                let diagnostic = "Offline HLS path diagnostic: home=\(home.path) parent=\(location.deletingLastPathComponent().path) extension=\(location.pathExtension)\n"
-                FileHandle.standardOutput.write(Data(diagnostic.utf8))
-                #endif
                 assetDownloadTask.cancel(); return
             }
             #if DEBUG
@@ -626,7 +622,7 @@ extension OfflineDownloadStore: AVAssetDownloadDelegate {
     nonisolated public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
         MainActor.assumeIsolated {
             guard let text = task.taskDescription, let id = UUID(uuidString: text), let i = index(id) else { return }
-            if let error = error as NSError? { NSLog("Offline HLS transfer failed: %@ %ld", error.domain, error.code) }
+            if let error = error as NSError? { NSLog("Offline HLS transfer failed: %@", SafeDiagnosticError.summary(error)) }
             let completedWhilePaused = records[i].state == .paused
             let stopMessage = records[i].message
             let transferError = error

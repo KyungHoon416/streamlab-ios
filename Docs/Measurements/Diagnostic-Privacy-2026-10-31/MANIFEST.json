@@ -1,0 +1,35 @@
+{
+  "base": "a2b6e94",
+  "files": [
+    {
+      "path": "Docs/Validation/playback-session-lifecycle-em3vc2/ios-tests.log",
+      "sha256": "8aa847e84e04bfdf5ee01f32aeb34ef77fcada53d076f18b5a711f4e1ceda56a",
+      "bytes": 375257
+    },
+    {
+      "path": "Docs/Validation/playback-session-lifecycle-em3vc2/RESULTS.txt",
+      "sha256": "d402776d221a9f836f3aa2bfa93fb94e807aebe04e494b7b4c874f15daa1984c",
+      "bytes": 177
+    },
+    {
+      "path": "Docs/Validation/playback-session-lifecycle-em3vc2/environment.txt",
+      "sha256": "b54f3c0dccb6f15fe2243f2d06eed68e52479cbf273abc643b2b3bc16e633b20",
+      "bytes": 633
+    },
+    {
+      "path": "Docs/Validation/playback-session-lifecycle-em3vc2/privacy-core.log",
+      "sha256": "01ea1dc90d54b8c0d0bf3238a3e2152a34aafb1d52d820fb445773e15838a823",
+      "bytes": 1162
+    },
+    {
+      "path": "Docs/Validation/playback-session-lifecycle-em3vc2/release.log",
+      "sha256": "d36a25e1b0e9ab7c65023093f5c36d624b0688ba29484b9889cd059856a5dbd3",
+      "bytes": 135776
+    },
+    {
+      "path": "Docs/Validation/playback-session-lifecycle-em3vc2/ttff-tests.log",
+      "sha256": "326ec1006fe0860424d6c3dd6d4f2871650ccd52eebfa260203b375b11336066",
+      "bytes": 104
+    }
+  ]
+}

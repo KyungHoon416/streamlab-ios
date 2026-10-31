@@ -472,14 +472,14 @@ import StreamLabPresentation
             needsInitialPosition = false
             if progressEnabled, let saved = initialProgressPosition() {
                 #if DEBUG
-                progressLog.notice("restore profile=\(self.session.profile.id, privacy: .private) title=\(self.titleID, privacy: .private) source=\(self.source.progressID, privacy: .public) seconds=\(saved, privacy: .private)")
+                progressLog.notice("restore saved_position_available=true")
                 #endif
                 restoringPosition = true
                 seek(to: saved)
                 return true
             }
             #if DEBUG
-            progressLog.notice("fresh profile=\(self.session.profile.id, privacy: .private) title=\(self.titleID, privacy: .private) source=\(self.source.progressID, privacy: .public) seconds=0")
+            progressLog.notice("fresh saved_position_available=false")
             #endif
             if source.isHLS {
                 // No saved record for this profile: explicitly position the VOD at zero.

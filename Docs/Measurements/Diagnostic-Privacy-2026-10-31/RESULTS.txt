@@ -1,0 +1,6 @@
+PASS privacy formatter 3
+PASS iOS playback lifecycle 16
+PASS TTFF summary 6
+PASS Release build
+PASS git diff --check
+NOT TESTED device download failure/path rejection, comprehensive log audit

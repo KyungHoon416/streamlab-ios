@@ -1,6 +1,7 @@
 import SwiftUI
 import UIKit
 import OSLog
+import StreamLabPresentation
 
 /// One rotation lifetime per player, independent of representable reconstruction.
 @MainActor final class PlaybackOrientationSession: ObservableObject {
@@ -87,9 +88,9 @@ import OSLog
         let logger = Logger(subsystem: "com.example.streamlab.demo", category: "PlaybackOrientation")
         return { error in
             if restoring {
-                logger.error("restore declined: \(error.localizedDescription, privacy: .public)")
+                logger.error("restore declined: \(SafeDiagnosticError.summary(error), privacy: .public)")
             } else {
-                logger.error("rotation declined: \(error.localizedDescription, privacy: .public)")
+                logger.error("rotation declined: \(SafeDiagnosticError.summary(error), privacy: .public)")
             }
         }
     }
