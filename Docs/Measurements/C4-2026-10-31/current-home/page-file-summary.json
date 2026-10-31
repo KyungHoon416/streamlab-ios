@@ -1,0 +1,189 @@
+{
+  "method": "fault page contains stack frame PC with binary metadata; unmatched data pages not inferred from caller",
+  "groups": [
+    {
+      "binary": "SwiftUI",
+      "count": 163,
+      "blocked_ms": 19.480124000000654,
+      "page_duration_ms": 25.292337999995862,
+      "top_frames": [
+        [
+          "<deduplicated_symbol>",
+          18
+        ],
+        [
+          "specialized _UIHostingView.init(rootView:)",
+          3
+        ],
+        [
+          "assignWithCopy for _FocusableModifier",
+          1
+        ],
+        [
+          "0x1a115392c",
+          1
+        ],
+        [
+          "0x1a12ffbfc",
+          1
+        ],
+        [
+          "type metadata accessor for ModifiedContent<_ViewModifier_Content<UnidentifiedSharingPickerModifier>, SharingActivityPickerModifier>",
+          1
+        ]
+      ]
+    },
+    {
+      "binary": "unmapped",
+      "count": 130,
+      "blocked_ms": 18.921088000000363,
+      "page_duration_ms": 23.476582999998108,
+      "top_frames": [
+        [
+          null,
+          130
+        ]
+      ]
+    },
+    {
+      "binary": "UIKitCore",
+      "count": 29,
+      "blocked_ms": 4.465084000000452,
+      "page_duration_ms": 5.31533400000006,
+      "top_frames": [
+        [
+          "-[UITabBarController initWithNibName:bundle:]",
+          1
+        ],
+        [
+          "-[UITabBarController _updateVisualStyleForTraitCollection:]",
+          1
+        ],
+        [
+          "0x19e4bfa1c",
+          1
+        ],
+        [
+          "block_copy_helper.53",
+          1
+        ],
+        [
+          "0x19e434f3c",
+          1
+        ],
+        [
+          "0x19e4310d4",
+          1
+        ]
+      ]
+    },
+    {
+      "binary": "SwiftUICore",
+      "count": 32,
+      "blocked_ms": 3.635706000001626,
+      "page_duration_ms": 4.591081999999691,
+      "top_frames": [
+        [
+          "specialized AnimatorState.combine(newAnimation:newInterval:at:in:environment:)",
+          2
+        ],
+        [
+          "specialized AnimatorState.forkListeners(animation:state:interval:)",
+          2
+        ],
+        [
+          "specialized LazySubviewPlacements.updateValue()",
+          2
+        ],
+        [
+          "specialized LazyStack<>.log(_:)",
+          2
+        ],
+        [
+          "specialized combineAnimation<A>(into:state:value:elapsed:newAnimation:newValue:)",
+          1
+        ],
+        [
+          "type metadata accessor for PlatformItem",
+          1
+        ]
+      ]
+    },
+    {
+      "binary": "StreamLab",
+      "count": 19,
+      "blocked_ms": 1.3133350000011923,
+      "page_duration_ms": 1.9960800000000667,
+      "top_frames": [
+        [
+          "MyListStore.init(profile:defaults:accountID:)",
+          1
+        ],
+        [
+          "type metadata accessor for DurableMutation",
+          1
+        ],
+        [
+          "PlaybackProgressStore.init(profileID:defaults:durable:directory:accountID:)",
+          1
+        ],
+        [
+          "RecentSearchStore.init(profileID:accountID:directory:)",
+          1
+        ],
+        [
+          "protocol witness for View.body.getter in conformance CatalogTabs",
+          1
+        ],
+        [
+          "type metadata accessor for HomeView",
+          1
+        ]
+      ]
+    },
+    {
+      "binary": "CoreGraphics",
+      "count": 14,
+      "blocked_ms": 1.0061230000002475,
+      "page_duration_ms": 1.2433319999995973,
+      "top_frames": [
+        [
+          "0x198dbf874",
+          1
+        ],
+        [
+          "0x198dd5774",
+          1
+        ],
+        [
+          "0x198deea0c",
+          1
+        ],
+        [
+          "0x198df918c",
+          1
+        ],
+        [
+          "0x198db7854",
+          1
+        ],
+        [
+          "0x198dea408",
+          1
+        ]
+      ]
+    }
+  ],
+  "inputs": {
+    "waits.xml": "7523d097665b5ef8a59a1e4ed6b6e8536fd030c0379585fe5728448df1482e8f",
+    "extra.xml": "84c0adfdf97f4249e25da5904dae1af0426114652810f7f1b2a93e68ae1ce402",
+    "images.xml": "d5b9efae64791ab75259f1e0443d9a852bc61da0131875dc69f3862ac362de0c"
+  },
+  "checks": {
+    "events": 387,
+    "matched_events": 257,
+    "unmapped_events": 130,
+    "overlapping_event_intervals": 0,
+    "blocked_sum_matches_prior_union": true
+  }
+}
