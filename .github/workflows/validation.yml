@@ -27,8 +27,8 @@ jobs:
         run: |
           mkdir -p Docs/Validation/ci
           { xcodebuild -version; swift --version; sw_vers; } | tee Docs/Validation/ci/environment.txt
-      - name: Core and three deterministic chaos suites
-        run: bash scripts/check-domain-chaos-mac.sh
+      - name: Core, loopback HTTP and deterministic chaos
+        run: bash scripts/check-assignment-core-mac.sh
       - name: TTFF report parser regression
         run: |
           set -o pipefail

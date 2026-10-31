@@ -1,0 +1,29 @@
+{
+  "base_commit": "812dc8f",
+  "logs": [
+    {
+      "path": "Docs/Validation/http-boundaries-kRiXW6/core.log",
+      "sha256": "f3f292cb9c65ee8c6531745ec98e8729c756642b2109594748bd558d0b61630c"
+    },
+    {
+      "path": "Docs/Validation/http-boundaries-kRiXW6/loader-server.log",
+      "sha256": "6ac8eb1fcc43a2fc88f823cbbf2039bccdd457bab6b94434483465215c379ed7"
+    },
+    {
+      "path": "Docs/Validation/http-boundaries-kRiXW6/mutation-server.log",
+      "sha256": "0c80d79cc607b222374ad9b1944dc21bd03438cb77328aa7710979e6bd858dbe"
+    },
+    {
+      "path": "Docs/Validation/http-boundaries-kRiXW6/auth-server.log",
+      "sha256": "4f3d11f2bd57fca3be61bc6f4e4b1134d9a2ae6ebd1554b8758c81b17a1307b8"
+    },
+    {
+      "path": "Docs/Validation/playback-session-lifecycle-MUzhYl/ios-tests.log",
+      "sha256": "37a6d645798377c64b6b09ce752b7823d93bbd3df2744265a5a798c96e4eb530"
+    },
+    {
+      "path": "Docs/Validation/playback-session-lifecycle-MUzhYl/schemes.log",
+      "sha256": "04fac43aa39c5dc16101b1a099661911cedef42eca046436f2a4acd3d41fbe1a"
+    }
+  ]
+}

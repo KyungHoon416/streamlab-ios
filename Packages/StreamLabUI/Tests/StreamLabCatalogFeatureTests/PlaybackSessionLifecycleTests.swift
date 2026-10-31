@@ -6,6 +6,12 @@ import StreamLabDomain
 import StreamLabPresentation
 import XCTest
 @testable import StreamLabCatalogFeature
+@testable import StreamLabDesignSystem
+
+@MainActor private final class PlaybackWeakReference<Value: AnyObject> {
+    weak var value: Value?
+    init(_ value: Value?) { self.value = value }
+}
 
 final class PlaybackSessionLifecycleTests: XCTestCase {
     @MainActor
@@ -77,7 +83,7 @@ final class PlaybackSessionLifecycleTests: XCTestCase {
     }
 
     @MainActor
-    func testProfileReplacementStopsOldPlayerAndKeepsNewMetadata() async throws {
+    func testProfileReplacementDuringSeekStopsOldPlayerAndKeepsNewMetadata() async throws {
         let name = "playback-lifecycle-" + UUID().uuidString
         let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
         let repository = MockCatalogRepository(responseDelay: .zero)
@@ -91,6 +97,9 @@ final class PlaybackSessionLifecycleTests: XCTestCase {
         oldModel.load(.bundled)
         try await waitForPlayback(oldModel)
         let oldPlayer = try XCTUnwrap(oldModel.player)
+        oldModel.seek(to: 10)
+        XCTAssertTrue(oldModel.isSeeking)
+        // Invalidate before the asynchronous seek callback can publish into the old profile.
         oldSession.invalidate()
         XCTAssertFalse(oldSession.isActive)
         XCTAssertEqual(oldPlayer.rate, 0)
@@ -107,6 +116,44 @@ final class PlaybackSessionLifecycleTests: XCTestCase {
         XCTAssertEqual(PlaybackNowPlaying.shared.session?.nowPlayingInfoCenter.nowPlayingInfo?[MPMediaItemPropertyTitle] as? String, newTitle.name)
         XCTAssertTrue((newModel.player?.rate ?? 0) > 0)
         XCTAssertTrue(PlaybackNowPlaying.shared.session!.remoteCommandCenter.playCommand.isEnabled)
+    }
+
+    @MainActor
+    func testTenBackgroundCyclesWithCachePressureReleasePlayer() async throws {
+        let name = "f05-\(UUID())"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
+        let repository = MockCatalogRepository(responseDelay: .zero)
+        let profile = ViewerProfile.demo[0]
+        let title = try await repository.home(profile: profile).hero
+        let session = CatalogSession(profile: profile, repository: repository, configuration: (name, defaults))
+        defer { session.invalidate(); defaults.removePersistentDomain(forName: name) }
+        var model: PlaybackModel? = PlaybackModel(titleID: title.id, session: session)
+        model?.load(.bundled)
+        try await waitForPlayback(try XCTUnwrap(model))
+        let releasedModel = PlaybackWeakReference(model)
+        let releasedPlayer = PlaybackWeakReference(model?.player)
+        let artworkURL = try XCTUnwrap(StreamLabTheme.bundledArtworkURL(seed: 0))
+        let cache = ArtworkDataCache(loader: { try Data(contentsOf: $0) })
+        let pipeline = ArtworkPipeline(dataCache: cache)
+        for _ in 0..<10 {
+            _ = try await pipeline.image(for: artworkURL)
+            model?.setForeground(false)
+            await pipeline.releaseMemory()
+            let bytes = await pipeline.cachedDecodedBytes
+            XCTAssertEqual(bytes, 0)
+            model?.setForeground(true)
+            try await waitForPlayback(try XCTUnwrap(model))
+            XCTAssertTrue(model?.player === releasedPlayer.value)
+        }
+        model?.stop()
+        model = nil
+        let deadline = ContinuousClock.now.advanced(by: .seconds(5))
+        while (releasedModel.value != nil || releasedPlayer.value != nil), ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        XCTAssertNil(releasedModel.value)
+        XCTAssertNil(releasedPlayer.value)
+        XCTAssertNil(PlaybackNowPlaying.shared.session)
     }
 
     @MainActor

@@ -1,6 +1,8 @@
+[F01–F10 검증 범위와 실기기 순서](Docs/CHAOS_ACCEPTANCE.md)
+
 ## 자동 검증 — 2026-10-31
 
-main push/PR에서 Core·고정 시드 카오스 3종, iOS 재생 경계 16개와 Release 빌드를 실행합니다. 문서만 바뀌면 제외합니다. [CI 사용법과 범위](Docs/CI_VALIDATION.md) · [실제 실행 결과](Docs/Measurements/CI-2026-10-31/REPORT.md). 전체 F01~F10 완료와는 별개입니다.
+main push/PR에서 Core·고정 시드 카오스 3종, iOS 재생 경계 17개와 Release 빌드를 실행합니다. 문서만 바뀌면 제외합니다. [CI 사용법과 범위](Docs/CI_VALIDATION.md) · [실제 실행 결과](Docs/Measurements/CI-2026-10-31/REPORT.md). 전체 F01~F10 완료와는 별개입니다.
 
 ## Mock 재생 권한 — 2026-10-31
 

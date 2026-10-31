@@ -122,7 +122,18 @@ public final class CatalogStore {
                 guard let self, self.generation == ticket,
                       self.profile == requestedProfile, !Task.isCancelled else { return }
                 switch response {
-                case .home(let value): self.home = value
+                case .home(let value):
+                    // Stable first occurrence wins within each rendered collection.
+                    // The same title may legitimately appear in different recommendation rails.
+                    var railIDs = Set<String>()
+                    let rails = value.rails.filter { railIDs.insert($0.id).inserted }.map { rail in
+                        var itemIDs = Set<String>()
+                        return ContentRail(id: rail.id, title: rail.title,
+                            items: rail.items.filter { itemIDs.insert($0.id).inserted })
+                    }
+                    var progressIDs = Set<String>()
+                    self.home = HomeSnapshot(hero: value.hero, rails: rails,
+                        continueWatching: value.continueWatching.filter { progressIDs.insert($0.id).inserted })
                 case .detail(let value):
                     self.detail = value
                     if value == nil { self.errorMessage = "콘텐츠가 없거나 이 프로필에서 이용할 수 없습니다." }

@@ -6,8 +6,8 @@
 
 | 작업 | 범위 | 시간 제한 |
 |---|---|---|
-| core-chaos | Core 전체, durable queue/domain conflict/virtual clock retry 각각 seed 1~1000, TTFF parser 6개 | 20분 |
-| ios-playback | 가용 iPhone simulator 자동 선택, 재생·권한·회전 콜백 16개, 서명 없는 Release 빌드 | 30분 |
+| core-chaos | Core 전체 및 loopback HTTP/더미 Keychain, durable queue/domain conflict/virtual clock retry 각각 seed 1~1000, TTFF parser 6개 | 20분 |
+| ios-playback | 가용 iPhone simulator 자동 선택, 재생·권한·회전 콜백 17개, 서명 없는 Release 빌드 | 30분 |
 
 동일 ref의 새 실행이 생기면 오래된 실행을 취소한다. macos-26의 기본 Xcode를 사용하며 실제 버전을 environment.txt에 기록한다. 로컬 Xcode 27과 CI 기본 Xcode가 같다고 가정하지 않는다. Xcode 26.6의 패키지 경고 억제 기본값과 warnings-as-errors가 충돌하지 않도록 SWIFT_SUPPRESS_WARNINGS=NO를 명시한다. 경고 검증을 끄지 않는다. 공식 액션은 확인한 v6 commit SHA에 고정했다. contents: read만 부여하고 checkout 자격 증명은 보관하지 않는다. 배포·릴리스·실기기 설치·서명 인증서/비밀키 업로드는 하지 않는다.
 
@@ -20,15 +20,15 @@ GitHub 저장소 → Actions → StreamLab validation에서 실행/결과를 확
 로컬 재현:
 
 ```bash
-bash scripts/check-domain-chaos-mac.sh
+bash scripts/check-assignment-core-mac.sh
 python3 scripts/test-ttff-summary.py
 bash scripts/check-playback-session-lifecycle-mac.sh
 ```
 
-카오스 개별 재현은 `STREAMLAB_CHAOS_SEED=42 bash scripts/check-domain-chaos-mac.sh`. CI 기본값은 세 suite 모두 1000개 seed다.
+카오스 개별 재현은 `STREAMLAB_CHAOS_SEED=42 bash scripts/check-assignment-core-mac.sh`. CI 기본값은 세 suite 모두 1000개 seed다.
 
 ## 미포함 범위
 
-전체 F01~F10, 실제 HTTP/시스템 Keychain opt-in 통합, 앱 전체 UI/접근성, 실제 HLS/DRM, 실기기 전력·프레임·메모리 계측은 이 workflow에 포함되지 않는다. 16개는 패키지의 iOS 플레이어 테스트이며 앱 UI 테스트가 아니다. 이번 CI 구성을 과제 전체 통과로 표시하지 않는다.
+전체 F01~F10, 앱 전체 UI/접근성, 실제 HLS/DRM, 실기기 전력·프레임·메모리 계측은 이 workflow에 포함되지 않는다. 17개는 패키지의 iOS 플레이어 테스트이며 앱 UI 테스트가 아니다. 이번 CI 구성을 과제 전체 통과로 표시하지 않는다.
 
 공식 runner 기준: https://github.com/actions/runner-images/blob/main/images/macos/macos-26-Readme.md
