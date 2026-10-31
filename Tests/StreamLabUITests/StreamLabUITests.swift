@@ -1944,6 +1944,33 @@ import XCTest
         }
     }
 
+    func testLockedStartupWaitsAndRestoresExistingLoginAfterUnlock() {
+        let app = XCUIApplication()
+        let scope = "--ui-test-progress-suite=locked-start-\(UUID())"
+        app.launchArguments = [scope]
+        app.launch()
+        enterDemoIfNeeded(app)
+        XCTAssertTrue(app.buttons["profile-adult-a"].waitForExistence(timeout: 15))
+        app.terminate()
+        app.launchArguments = [scope, "--ui-test-auth-locked-start"]
+        app.launch()
+        XCTAssertTrue(app.buttons["account-test-unlock"].waitForExistence(timeout: 15))
+        XCTAssertFalse(app.buttons["demo-sign-in"].exists)
+        XCTAssertFalse(app.buttons["profile-adult-a"].exists)
+        tap(app.buttons["account-restore-retry"], in: app)
+        XCTAssertTrue(app.buttons["account-test-unlock"].exists)
+        XCTAssertFalse(app.buttons["demo-sign-in"].exists)
+        tap(app.buttons["account-test-unlock"], in: app)
+        XCTAssertTrue(app.buttons["profile-adult-a"].waitForExistence(timeout: 15))
+        XCTAssertFalse(app.buttons["demo-sign-in"].exists)
+        XCTAssertFalse(app.staticTexts["logout-error"].exists)
+        // Once prepared, foreground notifications must not reset an active profile.
+        choose("adult-a", in: app)
+        XCUIDevice.shared.press(.home)
+        app.activate()
+        XCTAssertTrue(app.buttons["hero-my-list"].waitForExistence(timeout: 15))
+    }
+
     func testDemoLoginAtMaximumTextSize() {
         let app = launch(largeText: true)
         let scroll = app.scrollViews["demo-sign-in-scroll"]

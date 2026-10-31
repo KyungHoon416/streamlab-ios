@@ -19,7 +19,7 @@ iPhone 17 Pro / iOS 26.4 simulator에서 **5개 UI 테스트, 실패 0개**로 �
 
 ## 남은 실기기 확인
 
-[순서와 결과 전달 방법](DEVICE_CHECK.md)을 따른다. Instruments/trace 없이 결과 화면 캡처와 기종/iOS 버전으로 확인한다. 실기기 잠금 보호는 아직 PASS로 기록하지 않는다.
+[순서와 결과 전달 방법](DEVICE_CHECK.md)을 따른다. Instruments/trace 없이 결과 화면 캡처와 기종/iOS 버전으로 확인한다. 자동 검증 당시 실기기 잠금 보호는 미판정이었다. 이후 사용자 PASS 확인은 아래 후속 확인에 기록했다.
 
 기본 정책은 WhenUnlockedThisDeviceOnly를 유지한다. 인증정보의 메모리 사본을 잠금마다 삭제하거나 다운로드 전체를 중단하는 기능을 추가한 것은 아니다. 앱 재시작이 잠금 상태에서 OS에 의해 이루어지는 경우, 재부팅 후 첫 잠금 해제 전 상태, 운영 서버/TLS는 이번 범위 밖이다.
 
@@ -30,3 +30,7 @@ iPhone 17 Pro / iOS 26.4 simulator에서 **5개 UI 테스트, 실패 0개**로 �
 로컬 원시 UI 로그/xcresult/서명 기록은 Docs/Validation/demo-authentication-hx96mF/에 보존한다. Release 빌드 로그는 /private/tmp/streamlab-auth-lock-release.log에 있으며 Git에는 요약과 해시를 남긴다.
 
 보조 OSLog 수집은 대상 simulator가 종료된 상태여서 exit 149로 수집하지 못했다. 따라서 OSLog에 인증 오류가 없었다고 주장하지 않는다. 위 PASS의 근거는 5개 개별 UI 테스트 결과와 xcresult이며 원시 UI 로그에 보존했다.
+
+## 실기기 후속 확인 — 2026-10-31
+
+사용자가 최신 코드를 받은 뒤 실기기 잠금 진단에서 PASS를 확인했다고 보고했다. 진단의 잠금 중 읽기 거부·해제 후 동일 값 복구·더미 삭제 확인을 **사용자 보고 기준 완료**로 갱신한다. 별도 캡처/원시 로그와 이번 확인의 기종·OS 버전은 제공되지 않았다. 기존 시뮬레이터 자동 검증과 증거 출처를 구분한다. 잠금 상태 cold launch나 운영 서버 인증까지 완료한 것은 아니다.

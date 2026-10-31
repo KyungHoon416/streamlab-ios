@@ -12,6 +12,12 @@
     "Tests/StreamLabUITests/StreamLabUITests.swift": "a85c5e3381e506c01c35982bef846fe4dde793c0e811d6b99ca517776686d5c4",
     "scripts/check-demo-authentication-mac.sh": "67b73fde303830aa4a613e76750fd1489cba400778273ced9a2b92f8fe5b50eb"
   },
-  "hardware_lock_result": "pending",
-  "auxiliary_authentication_log": "unavailable: sim target not booted; exit 149"
+  "hardware_lock_result": "PASS (user-reported)",
+  "auxiliary_authentication_log": "unavailable: sim target not booted; exit 149",
+  "hardware_lock_confirmation": {
+    "date": "2026-10-31",
+    "source": "user conversation: latest code device diagnostic displayed PASS",
+    "raw_evidence_attached": false,
+    "device_and_os_for_this_run": "not supplied"
+  }
 }

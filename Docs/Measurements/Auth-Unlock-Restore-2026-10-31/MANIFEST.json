@@ -1,0 +1,26 @@
+{
+  "base": "998a789",
+  "initial_command": "bash scripts/check-demo-authentication-mac.sh",
+  "initial_result": {
+    "passed": 5,
+    "failed": 1,
+    "exit": 65
+  },
+  "focused_tests": [
+    "testDemoLoginRestoresAndLogoutSurvivesRelaunch",
+    "testLockedStartupWaitsAndRestoresExistingLoginAfterUnlock"
+  ],
+  "focused_exit": 0,
+  "unique_scenarios_eventually_passed": 6,
+  "sha256": {
+    "Docs/Validation/demo-authentication-g1BuJn/ui-tests.log": "54058c8c8a161d72f092e24afadeff098ec7d6982a640707590e5b506768c5b3",
+    "Docs/Validation/auth-unlock-focused/ui-tests.log": "297276df317d98eb72a675efa7a44815d125d41b2af36bc913b2c7598d6c19c8",
+    "/private/tmp/streamlab-auth-unlock-release-final.log": "0e11786baeff3824c2462977d0cd458aa40e005d4bae43c04d20907547ab9e64"
+  },
+  "source_sha256": {
+    "App/Scene/AppRootView.swift": "5b68f5cddc4a9c74680f1a4cdc4b89c25f8e1ae855c230165e41c5e4af63452e",
+    "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/State/CatalogAccount.swift": "3089c95c097f373a133ef6fbe73a243eb521410837f1bec4f9e46582e953d8ac",
+    "Tests/StreamLabUITests/StreamLabUITests.swift": "03dec13a2ff6787fc1823f405452ef3bda9dedf75b710515ac28471497829f8f",
+    "scripts/check-demo-authentication-mac.sh": "90e2b8cedab7abe898b0445f7269db58ad09682810a3bbe092908c3db7d4d7ab"
+  }
+}

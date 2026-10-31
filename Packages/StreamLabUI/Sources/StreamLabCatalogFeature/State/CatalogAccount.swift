@@ -1,6 +1,8 @@
 import Combine
 import Foundation
 import OSLog
+import UIKit
+import Security
 import StreamLabDesignSystem
 import StreamLabPresentation
 
@@ -10,6 +12,20 @@ import StreamLabPresentation
     @Published public private(set) var isBusy = false
     @Published public private(set) var errorMessage: String?
     @Published public private(set) var isRestoring = true
+    @Published public private(set) var waitingForProtectedData = false
+    #if DEBUG
+    private var simulatedLock = ProcessInfo.processInfo.arguments.contains("--ui-test-auth-locked-start")
+    public func simulateProtectedDataUnlock() {
+        simulatedLock = false
+        NotificationCenter.default.post(name: UIApplication.protectedDataDidBecomeAvailableNotification, object: nil)
+    }
+    #endif
+    private var protectedDataAvailable: Bool {
+        #if DEBUG
+        if simulatedLock { return false }
+        #endif
+        return UIApplication.shared.isProtectedDataAvailable
+    }
     private var prepared = false
     private var tokenStore: KeychainTokenStore?
     private var authentication: AuthenticationSession?
@@ -28,15 +44,14 @@ import StreamLabPresentation
     public init() {
         let span = HomeStartupTrace.begin("AccountInit")
         defer { withExtendedLifetime(span) {} }
-        do {
-            let configuration = Self.configuration()
-            storage = AccountLocalData(root: try DurableMutationStore.defaultDirectory(),
-                                       accountID: configuration.id, defaults: configuration.defaults)
-            // Demo-only namespace; these locally issued credentials never authenticate a server.
-            tokenStore = try KeychainTokenStore(service: "com.streamlab.demo.authentication.v1")
-        } catch {
-            errorMessage = "계정 저장소를 열지 못했습니다. 앱을 다시 실행해 주세요."
-        }
+    }
+
+    private func openStores() throws {
+        guard storage == nil || tokenStore == nil else { return }
+        let configuration = Self.configuration()
+        storage = AccountLocalData(root: try DurableMutationStore.defaultDirectory(),
+                                   accountID: configuration.id, defaults: configuration.defaults)
+        tokenStore = try KeychainTokenStore(service: "com.streamlab.demo.authentication.v1")
     }
 
     private func report(_ error: any Error, operation: String, message: String) {
@@ -71,11 +86,19 @@ import StreamLabPresentation
 
     /// No account content is shown until local cleanup state and Keychain agree.
     public func prepare() async {
-        guard !prepared else { return }
+        guard !prepared, !isBusy else { return }
+        guard protectedDataAvailable else {
+            waitingForProtectedData = true
+            isRestoring = true
+            return
+        }
         prepared = true
+        waitingForProtectedData = false
+        errorMessage = nil
         isBusy = true
-        defer { isBusy = false; isRestoring = false }
+        defer { isBusy = false; isRestoring = waitingForProtectedData }
         do {
+            try openStores()
             guard let storage, let tokenStore else { throw CocoaError(.fileReadUnknown) }
             let tokenSignedOut = try await tokenStore.hasLogoutMarker(account: storage.accountID)
             if storage.isSignedOut || tokenSignedOut {
@@ -89,6 +112,13 @@ import StreamLabPresentation
             }
         } catch {
             isSignedOut = true
+            // Lock can arrive after the preflight while an actor operation is in flight.
+            // Do not replace credentials or expose sign-in just because Keychain is locked.
+            if !protectedDataAvailable || (error as? TokenStoreError) == .status(errSecInteractionNotAllowed) {
+                prepared = false
+                waitingForProtectedData = true
+                return
+            }
             report(error, operation: "restore", message: "데모 계정을 복원하지 못했습니다. 다시 시도해 주세요.")
         }
     }

@@ -28,6 +28,7 @@ xcodebuild -project StreamLab.xcodeproj -scheme StreamLab -configuration Debug \
   -only-testing:StreamLabUITests/StreamLabUITests/testLogoutClearsAllProfilesAndStaysSignedOutAfterRelaunch \
   -only-testing:StreamLabUITests/StreamLabUITests/testLogoutClearsPendingOfflineChanges \
   -only-testing:StreamLabUITests/StreamLabUITests/testKeychainLockDiagnosticCancellationCleansDummyItem \
+  -only-testing:StreamLabUITests/StreamLabUITests/testLockedStartupWaitsAndRestoresExistingLoginAfterUnlock \
   SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- test > "$run_dir/ui-tests.log" 2>&1
 result=$?
 app_path="$build_dir/DerivedData/Build/Products/Debug-iphonesimulator/StreamLab.app"
@@ -45,6 +46,7 @@ echo "Authentication diagnostic collection exit=$?" >> "$run_dir/environment.txt
 if [ "$result" -eq 0 ]; then
   if ! grep -Eq 'testDemoLoginAtMaximumTextSize.*passed' "$run_dir/ui-tests.log" ||
      ! grep -Eq 'testDemoLoginRestoresAndLogoutSurvivesRelaunch.*passed' "$run_dir/ui-tests.log" ||
+     ! grep -Eq 'testLockedStartupWaitsAndRestoresExistingLoginAfterUnlock.*passed' "$run_dir/ui-tests.log" ||
      ! grep -Eq 'testLogoutClearsPendingOfflineChanges.*passed' "$run_dir/ui-tests.log" ||
      ! grep -Eq 'testKeychainLockDiagnosticCancellationCleansDummyItem.*passed' "$run_dir/ui-tests.log" ||
      ! grep -Eq 'testLogoutClearsAllProfilesAndStaysSignedOutAfterRelaunch.*passed' "$run_dir/ui-tests.log"; then

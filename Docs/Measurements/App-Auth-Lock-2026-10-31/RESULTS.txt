@@ -11,3 +11,5 @@ PASS diagnostic symbols: Debug 201, Release 0
 PASS bash syntax / git diff --check
 UNAVAILABLE auxiliary simulator authentication.log: target device not booted, exit 149; UI log/xcresult available
 NOT TESTED hardware locked-device Keychain, locked cold launch, pre-first-unlock boot, production authentication/TLS, full UI suite
+
+FOLLOW-UP 2026-10-31: hardware lock diagnostic PASS reported by user; supersedes locked-device pending only. No raw log/screenshot supplied.

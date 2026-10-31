@@ -52,6 +52,12 @@ import StreamLabDesignSystem
             defer { withExtendedLifetime(span) {} }
             await account.prepare()
         }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.protectedDataDidBecomeAvailableNotification)) { _ in
+            Task { await account.prepare() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            Task { await account.prepare() }
+        }
         #if DEBUG
         .overlay(alignment: .bottomTrailing) {
             if ProcessInfo.processInfo.arguments.contains("--diagnose-keychain-lock") {
@@ -73,10 +79,22 @@ import StreamLabDesignSystem
     private var content: some View {
         Group {
             if account.isRestoring {
-                ProgressView("데모 계정을 확인하고 있어요")
+                VStack(spacing: 16) {
+                    ProgressView(account.waitingForProtectedData ? "잠금을 해제하면 로그인 상태를 복원합니다" : "데모 계정을 확인하고 있어요")
+                        .accessibilityIdentifier("account-restoring")
+                    if account.waitingForProtectedData {
+                        Button("복원 다시 시도") { Task { await account.prepare() } }
+                            .accessibilityIdentifier("account-restore-retry")
+                        #if DEBUG
+                        if ProcessInfo.processInfo.arguments.contains("--ui-test-auth-locked-start") {
+                            Button("잠금 해제 테스트") { account.simulateProtectedDataUnlock() }
+                                .accessibilityIdentifier("account-test-unlock")
+                        }
+                        #endif
+                    }
+                }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(StreamLabTheme.background)
-                    .accessibilityIdentifier("account-restoring")
             } else if account.isSignedOut {
                 GeometryReader { geometry in
                     ScrollView {
