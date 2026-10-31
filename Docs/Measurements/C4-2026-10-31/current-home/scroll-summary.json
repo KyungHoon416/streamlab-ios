@@ -1,0 +1,31 @@
+{
+  "run": 1,
+  "process": "StreamLab",
+  "window_seconds": {
+    "start": 15.0,
+    "end": 35.876725
+  },
+  "window_policy": "event start in [start,end); durations are not clipped",
+  "percentile_method": "nearest-rank",
+  "capture_status": "available",
+  "missing_tables": [],
+  "app_updates": {
+    "count": 982,
+    "p50_ms": 3.103375,
+    "p95_ms": 7.557166,
+    "max_ms": 22.108791,
+    "total_ms": 3562.5623299999975
+  },
+  "hitches": {
+    "count": 3,
+    "p50_ms": 8.335041,
+    "p95_ms": 8.335083,
+    "max_ms": 8.335083,
+    "total_ms": 25.005164999999998
+  },
+  "limitations": [
+    "App Update durations are not FPS or display-frame intervals.",
+    "No hitches recorded does not prove no main-thread delay.",
+    "No automatic performance PASS; compare equivalent windows and conditions."
+  ]
+}

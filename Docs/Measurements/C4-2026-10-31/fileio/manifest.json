@@ -1,0 +1,30 @@
+{
+  "power": {
+    "trace": "c4-hls-power-1.trace",
+    "instrument_types": [
+      "com.apple.dt-perfteam.hangs",
+      "com-apple-hitches",
+      "com.apple.xray.instrument-type.device-thermal-state",
+      "com.apple.xray.instrument-type.poi",
+      "com.apple.xray.instrument-type.metal-display",
+      "com.apple.xray.instrument-type.coresampler2",
+      "com.apple.dt.instruments.thread-activity"
+    ],
+    "template_sha256": "6cffbcfb820811fd880b80158411caea9e33500101428d2d200d8f2bcd2e3fdf",
+    "toc_sha256": "076ac4bc6efdfb4f765153cbd6991d95b371fe1e7f0a2c2afc99af3af665927e"
+  },
+  "fileio": {
+    "trace": "c4-download-fileio-1.trace",
+    "instrument_types": [
+      "com.apple.dt-perfteam.hangs",
+      "com-apple-hitches",
+      "com.apple.xray.instrument-type.device-thermal-state",
+      "com.apple.xray.instrument-type.metal-display",
+      "com.apple.xray.instrument-type.coresampler2",
+      "com.apple.dt.instruments.thread-activity",
+      "com.apple.dt.instruments.fs-syscalls"
+    ],
+    "template_sha256": "47801b110a4bdcef6157c0525ef0b1339c09c649678deb4d7c3989609471ade0",
+    "toc_sha256": "90ce2449bd5f2c3c2f116d8648df64b58adb8dd02a86928f37bb600ea825bdd2"
+  }
+}

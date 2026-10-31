@@ -1,0 +1,15 @@
+{
+  "trace": "c4-hls-power-2.trace",
+  "run": 1,
+  "user_confirmed_network": "Wi-Fi",
+  "user_confirmed_charging": "cable connected",
+  "duration_seconds": 183.317795,
+  "thermal": "Nominal",
+  "inputs": {
+    "system.xml": "9f75f16c254bdec23430d58bd64264d027d52cc8d42083d4eb9994bd7668a2da",
+    "process.xml": "60846b35ae18433c727246a323bacee695952d21a2f9e9e15b46bd5c0a6ff0f5",
+    "impact.xml": "f35948ac2b373e975d87132a2798bd4d2262167c0ae16309f0068bbed50ad053",
+    "context.xml": "1e8a7984c911837ed11dfdc7a2a12207d51034e0733fd38a86bbcb277a6d5b9d"
+  },
+  "toc_sha256": "3a2b74ff7915ab1563384f8cc77ae730835808cd67453551dc7ee086df0e2c12"
+}

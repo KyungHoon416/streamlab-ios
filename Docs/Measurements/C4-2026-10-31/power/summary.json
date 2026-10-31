@@ -1,0 +1,110 @@
+[
+  {
+    "window": "home_before",
+    "start": 5,
+    "end": 30,
+    "metrics": {
+      "cpu": {
+        "coverage_seconds": 24.999998957999995,
+        "weighted_mean": 0.08985639796921457,
+        "max": 6.0
+      },
+      "display": {
+        "coverage_seconds": 24.999998957999995,
+        "weighted_mean": 1.4479994182606157,
+        "max": 3.0
+      },
+      "gpu": {
+        "coverage_seconds": 24.999998958999996,
+        "weighted_mean": 0.020720347386795252,
+        "max": 1.0
+      },
+      "network": {
+        "coverage_seconds": 24.99999979,
+        "weighted_mean": 0.0,
+        "max": 0.0
+      }
+    }
+  },
+  {
+    "window": "planned_playback",
+    "start": 30,
+    "end": 150,
+    "metrics": {
+      "cpu": {
+        "coverage_seconds": 119.99999500000007,
+        "weighted_mean": 0.4263587397832802,
+        "max": 11.0
+      },
+      "display": {
+        "coverage_seconds": 119.99999500000007,
+        "weighted_mean": 2.1081912295329674,
+        "max": 4.0
+      },
+      "gpu": {
+        "coverage_seconds": 119.9999949990001,
+        "weighted_mean": 0.032827650989758976,
+        "max": 1.0
+      },
+      "network": {
+        "coverage_seconds": 119.99999907999997,
+        "weighted_mean": 0.009130435139166669,
+        "max": 0.1
+      }
+    }
+  },
+  {
+    "window": "home_after",
+    "start": 150,
+    "end": 180,
+    "metrics": {
+      "cpu": {
+        "coverage_seconds": 29.999998750000003,
+        "weighted_mean": 0.5581872861144729,
+        "max": 5.0
+      },
+      "display": {
+        "coverage_seconds": 29.999998750000003,
+        "weighted_mean": 1.868245527843565,
+        "max": 3.0
+      },
+      "gpu": {
+        "coverage_seconds": 29.999998750000003,
+        "weighted_mean": 0.06963580815815885,
+        "max": 1.0
+      },
+      "network": {
+        "coverage_seconds": 29.999999792999972,
+        "weighted_mean": 0.0,
+        "max": 0.0
+      }
+    }
+  },
+  {
+    "window": "late_home",
+    "start": 160,
+    "end": 180,
+    "metrics": {
+      "cpu": {
+        "coverage_seconds": 19.99999916599998,
+        "weighted_mean": 0.20525862720428567,
+        "max": 3.0
+      },
+      "display": {
+        "coverage_seconds": 19.99999916599998,
+        "weighted_mean": 1.6520791563917012,
+        "max": 2.0
+      },
+      "gpu": {
+        "coverage_seconds": 19.999999165000048,
+        "weighted_mean": 0.0,
+        "max": 0.0
+      },
+      "network": {
+        "coverage_seconds": 19.999999875999976,
+        "weighted_mean": 0.0,
+        "max": 0.0
+      }
+    }
+  }
+]
