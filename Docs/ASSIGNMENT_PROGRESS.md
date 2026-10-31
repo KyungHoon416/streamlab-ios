@@ -1,3 +1,10 @@
+## 2026-10-31 — 앱 데모 인증 연결·실기기 잠금 진단
+
+- iPhone 17 Pro / iOS 26.4 simulator UI 5개 PASS: 최대 글자 로그인, 로그인 복원/로그아웃 재실행, 전체 프로필 정리, 오프라인 변경 정리, 잠금 진단 더미 중단/정리 반복.
+- 앱 인증 연결 결함은 발견되지 않았다. Debug 전용 더미 Keychain 잠금 진단을 추가하고 Release 제외까지 확인했다.
+- 실기기용 Release 컴파일 PASS. 실제 잠금 중 읽기 차단은 사용자 기기 확인 대기이며 완료로 기록하지 않았다.
+- [검증 결과](Measurements/App-Auth-Lock-2026-10-31/REPORT.md) · [실기기 순서](Measurements/App-Auth-Lock-2026-10-31/DEVICE_CHECK.md). 운영 서버 인증/TLS·잠금 상태 cold launch는 별도 범위다.
+
 ## 2026-10-31 — 실제 HTTP·인증 만료·로그아웃 경계
 
 - Core 248개 PASS. 실제 HTTP 10개와 시스템 Keychain 1개를 활성화해 검증했다.

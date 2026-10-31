@@ -9,6 +9,9 @@ import StreamLabDesignSystem
 
 @MainActor struct AppRootView: View {
     @State private var session: CatalogSession?
+    #if DEBUG
+    @State private var showingKeychainDiagnostic = false
+    #endif
     @StateObject private var account = CatalogAccount()
     private let repository: MockCatalogRepository
     private let startupLog = Logger(subsystem: "com.example.streamlab.demo", category: "Startup")
@@ -50,6 +53,15 @@ import StreamLabDesignSystem
             await account.prepare()
         }
         #if DEBUG
+        .overlay(alignment: .bottomTrailing) {
+            if ProcessInfo.processInfo.arguments.contains("--diagnose-keychain-lock") {
+                Button("잠금 검증") { showingKeychainDiagnostic = true }
+                    .buttonStyle(.borderedProminent)
+                    .padding()
+                    .accessibilityIdentifier("keychain-lock-open")
+            }
+        }
+        .sheet(isPresented: $showingKeychainDiagnostic) { KeychainLockDiagnosticView() }
         .onAppear {
             if ProcessInfo.processInfo.arguments.contains("--ui-test-download-notification-launch") {
                 DownloadNotificationNavigation.shared.simulateTap()

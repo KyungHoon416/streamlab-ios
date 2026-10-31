@@ -1,0 +1,13 @@
+PASS iPhone 17 Pro simulator / iOS 26.4: 5 UI tests, 0 failures
+Test Case '-[StreamLabUITests.StreamLabUITests testDemoLoginAtMaximumTextSize]' passed (14.588 seconds).
+Test Case '-[StreamLabUITests.StreamLabUITests testDemoLoginRestoresAndLogoutSurvivesRelaunch]' passed (36.061 seconds).
+Test Case '-[StreamLabUITests.StreamLabUITests testKeychainLockDiagnosticCancellationCleansDummyItem]' passed (15.960 seconds).
+Test Case '-[StreamLabUITests.StreamLabUITests testLogoutClearsAllProfilesAndStaysSignedOutAfterRelaunch]' passed (131.906 seconds).
+Test Case '-[StreamLabUITests.StreamLabUITests testLogoutClearsPendingOfflineChanges]' passed (129.504 seconds).
+PASS Debug simulator build with warnings as errors
+PASS app signature verification
+PASS generic iOS Release build with warnings as errors (unsigned, compile-only)
+PASS diagnostic symbols: Debug 201, Release 0
+PASS bash syntax / git diff --check
+UNAVAILABLE auxiliary simulator authentication.log: target device not booted, exit 149; UI log/xcresult available
+NOT TESTED hardware locked-device Keychain, locked cold launch, pre-first-unlock boot, production authentication/TLS, full UI suite

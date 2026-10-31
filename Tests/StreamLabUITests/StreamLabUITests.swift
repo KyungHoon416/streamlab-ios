@@ -1928,6 +1928,22 @@ import XCTest
         }
     }
 
+    func testKeychainLockDiagnosticCancellationCleansDummyItem() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=lock-probe-\(UUID())", "--diagnose-keychain-lock"]
+        app.launch()
+        tap(app.buttons["keychain-lock-open"], in: app)
+        let status = app.staticTexts["keychain-lock-status"]
+        for _ in 0..<2 {
+            tap(app.buttons["keychain-lock-start"], in: app)
+            expectation(for: NSPredicate(format: "label BEGINSWITH %@", "준비 완료:"), evaluatedWith: status)
+            waitForExpectations(timeout: 15)
+            tap(app.buttons["keychain-lock-cancel"], in: app)
+            expectation(for: NSPredicate(format: "label == %@", "중단됨: 잠금 보호 미판정 · 더미 정리 완료"), evaluatedWith: status)
+            waitForExpectations(timeout: 15)
+        }
+    }
+
     func testDemoLoginAtMaximumTextSize() {
         let app = launch(largeText: true)
         let scroll = app.scrollViews["demo-sign-in-scroll"]
