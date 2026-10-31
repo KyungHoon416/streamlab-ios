@@ -13,7 +13,7 @@ import StreamLabDesignSystem
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("오프라인 다운로드").font(.headline).accessibilityAddTraits(.isHeader)
-            Text("Wi-Fi에서 Apple HLS 샘플을 저장합니다. 실제 작품 영상이 아닙니다. 총 1GB, 동시 2개까지 관리하며 공간이 부족하면 고정하지 않은 오래된 파일을 정리합니다.")
+            Text("Wi-Fi 또는 셀룰러 데이터로 Apple HLS 샘플을 저장합니다. 실제 작품 영상이 아닙니다. 총 1GB, 동시 2개까지 관리하며 공간이 부족하면 고정하지 않은 오래된 파일을 정리합니다.")
                 .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             if let item = record {
                 OfflineDownloadActions(item: item, session: session, play: play)
@@ -54,7 +54,7 @@ import StreamLabDesignSystem
                     Text("다운로드 중 · \(min(99, Int(fraction * 100)))%")
                         .monospacedDigit().accessibilityIdentifier("\(idPrefix)-percentage")
                     ProgressView(value: fraction)
-                    Text("Wi-Fi 연결을 유지해 주세요. 앱을 나가도 다운로드가 계속됩니다.")
+                    Text("네트워크 연결을 유지해 주세요. 앱을 나가도 다운로드가 계속됩니다. 셀룰러 연결에서는 모바일 데이터가 사용됩니다.")
                         .font(.caption).fixedSize(horizontal: false, vertical: true)
                 }.accessibilityElement(children: .contain)
                     .accessibilityIdentifier("\(idPrefix)-progress")

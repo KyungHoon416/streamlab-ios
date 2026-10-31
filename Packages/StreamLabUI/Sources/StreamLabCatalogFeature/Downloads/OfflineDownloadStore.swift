@@ -102,7 +102,8 @@ import StreamLabPresentation
         let config = URLSessionConfiguration.background(withIdentifier: Self.sessionIdentifier)
         config.isDiscretionary = false
         config.sessionSendsLaunchEvents = true
-        config.allowsCellularAccess = false
+        config.allowsCellularAccess = true
+        config.allowsExpensiveNetworkAccess = true
         return AVAssetDownloadURLSession(configuration: config, assetDownloadDelegate: self, delegateQueue: .main)
     }()
 
