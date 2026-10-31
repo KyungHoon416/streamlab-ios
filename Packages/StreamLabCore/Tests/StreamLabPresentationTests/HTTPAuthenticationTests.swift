@@ -106,4 +106,44 @@ struct HTTPAuthenticationTests {
         try await run(success: false)
         print("HTTP AUTH PASS failure")
     }
+
+    @Test func logoutRejectsSuccessfulHTTPResponseAlreadyInFlight() async throws {
+        let fixture = try Fixture()
+        try await fixture.command("configure", body: "{\"mode\":\"delayed-resource\"}")
+        let session = try AuthenticationSession(token: "fixture-valid", refresh: { try await fixture.refresh() })
+        let origin = URL(string: "https://auth.example.invalid")!
+        let client = try AuthenticatedHTTPClient(origin: origin, session: session, transport: { request in
+            var routed = request
+            routed.url = fixture.url.appendingPathComponent("resource")
+            return try await HTTPMutationTransport.load(routed)
+        })
+        var request = URLRequest(url: origin.appendingPathComponent("resource"))
+        request.httpMethod = "POST"
+        request.httpBody = Data("{}".utf8)
+        let immutable = request
+        let task = Task { try await client.execute(immutable) }
+        defer { task.cancel() }
+        do {
+            let clock = ContinuousClock()
+            let limit = clock.now.advanced(by: .seconds(5))
+            while try await fixture.stats().accepted != 1 {
+                guard clock.now < limit else { throw URLError(.timedOut) }
+                try await Task.sleep(for: .milliseconds(5))
+            }
+            // The server has received the request but cannot reply until logout finishes.
+            await session.invalidate()
+            try await fixture.command("release")
+            await #expect(throws: AuthenticationError.invalidated) { try await task.value }
+            await #expect(throws: AuthenticationError.invalidated) { try await client.execute(immutable) }
+            let stats = try await fixture.stats()
+            #expect(stats.accepted == 1)
+            #expect(stats.refreshCalls == 0)
+            print("HTTP AUTH PASS logout-in-flight")
+        } catch {
+            await session.invalidate()
+            try? await fixture.command("release")
+            throw error
+        }
+    }
+
 }

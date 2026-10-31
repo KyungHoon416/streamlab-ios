@@ -1,0 +1,20 @@
+{
+  "tested_base": "091db6c",
+  "command": "bash scripts/check-http-auth-boundaries-mac.sh",
+  "core_log_sha256": "63a6595a66cdf1ce2f1832e21d7c02ca719bce5842ad88868684a671ecc69cab",
+  "source_sha256": {
+    "scripts/check-http-auth-boundaries-mac.sh": "b3c0223ecdbc3e14833d74ed05c779ad1e02eb6695239c15df748a32c22533fc",
+    "scripts/check-http-auth-mac.sh": "fe03696b5eae8a0ac18f7d8c9bd8ef1c4603b3084eb944b59051dea505c88847",
+    "scripts/http-auth-fixture.py": "179140d54429d3fc4667bdf7bc63162380a442b8ff0d2ff3e8756a53a161dc8d",
+    "Packages/StreamLabCore/Tests/StreamLabPresentationTests/HTTPAuthenticationTests.swift": "ddc3f763e3fa62b1fb10ab8968ebbb04067a2f6ae251f62dcc86dfc58e1bdea7"
+  },
+  "xctest_count": 31,
+  "swift_testing_counts": [
+    210,
+    7
+  ],
+  "total_tests": 248,
+  "http_tests": 10,
+  "keychain_system_tests": 1,
+  "gate_checks": 22
+}

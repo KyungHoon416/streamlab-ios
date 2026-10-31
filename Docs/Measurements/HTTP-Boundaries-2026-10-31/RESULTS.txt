@@ -1,0 +1,19 @@
+PASS Core, real loopback HTTP and authentication/logout boundaries
+NOT TESTED: production endpoints, TLS, iOS locked-device Keychain, app login/logout wiring, full assignment acceptance
+
+HTTP LOADER PASS redirect
+HTTP AUTH PASS failure
+HTTP AUTH PASS success
+HTTP AUTH PASS logout-in-flight
+KEYCHAIN PASS dummy-item-lifecycle
+HTTP LOADER PASS cancellation
+HTTP QUEUE PASS conflict
+HTTP QUEUE PASS lost-ack
+HTTP QUEUE PASS cancellation
+HTTP QUEUE PASS retry-budget
+HTTP LOADER PASS streaming-limit
+✔ Test run with 210 tests in 36 suites passed after 23.389 seconds.
+✔ Test run with 7 tests in 1 suite passed after 0.055 seconds.
+XCTest: 31 tests, 0 failures
+PASS 22 result-gate checks
+PASS bash syntax and git diff --check

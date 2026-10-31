@@ -33,10 +33,11 @@ swift test --package-path Packages/StreamLabCore --scratch-path "$core_dir" \
 result=${PIPESTATUS[0]}
 if [ "$result" -eq 0 ] && grep -q 'Suite "B3 HTTP authentication integration" passed' "$run_dir/core.log" &&
    grep -q 'HTTP AUTH PASS success' "$run_dir/core.log" &&
-   grep -q 'HTTP AUTH PASS failure' "$run_dir/core.log"; then
+   grep -q 'HTTP AUTH PASS failure' "$run_dir/core.log" &&
+   grep -q 'HTTP AUTH PASS logout-in-flight' "$run_dir/core.log"; then
   echo 'PASS Core and HTTP authentication integration' | tee "$run_dir/RESULTS.txt"
 else
-  echo "FAIL Core/HTTP auth exit=$result; require suite and both markers" | tee "$run_dir/RESULTS.txt"
+  echo "FAIL Core/HTTP auth exit=$result; require suite and all three markers" | tee "$run_dir/RESULTS.txt"
   result=1
 fi
 echo 'NOT TESTED: iOS UI, TLS, Keychain, app sign-in/out wiring, external server, full B3/F02' >> "$run_dir/RESULTS.txt"
