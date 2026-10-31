@@ -1,0 +1,35 @@
+{
+  "base": "0227379",
+  "files": [
+    {
+      "path": "Docs/Validation/playback-session-lifecycle-OETPP1/ios-tests.log",
+      "bytes": 326628,
+      "sha256": "44c8b78ba7d9abdc6bd2f905ea35720eff949e175b0d560890687484a2fd642c"
+    },
+    {
+      "path": "Docs/Validation/playback-session-lifecycle-o52QSY/ios-tests.log",
+      "bytes": 367979,
+      "sha256": "238e600b9bf78807a5a938cd6fac1a73f8ac91c1538c3f7463cbc156de9bd978"
+    },
+    {
+      "path": "Docs/Validation/playback-session-lifecycle-o52QSY/RESULTS.txt",
+      "bytes": 176,
+      "sha256": "dbc10b82ffc4d48b0d81b29b2a0dd3b7e0188867f9d6700f854fefcd1ea6763f"
+    },
+    {
+      "path": "Docs/Validation/playback-entitlement-2nwPgg/ui-tests.log",
+      "bytes": 498074,
+      "sha256": "24c592652e12a6b9f167f5ccc031686a9f1bb51842600548c65ae48ebf2a16d0"
+    },
+    {
+      "path": "Docs/Validation/playback-entitlement-2nwPgg/RESULTS.txt",
+      "bytes": 133,
+      "sha256": "639f8a18b2a821aa1509dfca9296c8c3a42ae35309287b90fb767cad2ad8ecba"
+    },
+    {
+      "path": "Docs/Validation/playback-entitlement-2nwPgg/release.log",
+      "bytes": 101817,
+      "sha256": "762eaba7941d50562725663caf8160bcffba32cd32bdfa9c7bc9dee58037ca5b"
+    }
+  ]
+}

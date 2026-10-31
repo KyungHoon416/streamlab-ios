@@ -2,6 +2,8 @@
 
 운영 DRM 서버 연결이 필요 없는 앱 오류·재시도 흐름이다. 새 Instruments trace는 필요 없다.
 
+2026-10-31 실기기에서 발견한 화면 회전 오류 콜백의 큐 불일치를 수정했다. 반드시 해당 수정 이후 코드를 새로 빌드한다. 디버거를 끄거나 중단점을 무시하여 우회할 문제가 아니다. [수정 기록](Measurements/Playback-Orientation-2026-10-31/REPORT.md).
+
 1. 최신 main을 pull하고 원래 StreamLab.xcodeproj를 연다. Scheme StreamLab의 Run을 Debug로 선택한다.
 2. Edit Scheme → Run → Arguments에 `--ui-test-entitlement-expired-once` 하나만 체크한다.
 3. 실기기에 새로 실행 → 성인 프로필 → 작품 상세 → 데모 재생. 권한 만료 안내가 나오고 영상이 시작하지 않아야 한다.

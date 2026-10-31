@@ -56,10 +56,8 @@ import OSLog
         guard requestedLandscape != landscape else { return }
         requestedLandscape = landscape
         logger.notice("request: landscape=\(landscape)")
-        let logger = self.logger
-        scene.requestGeometryUpdate(.iOS(interfaceOrientations: landscape ? .landscape : .portrait)) { error in
-            logger.error("rotation declined: \(error.localizedDescription, privacy: .public)")
-        }
+        scene.requestGeometryUpdate(.iOS(interfaceOrientations: landscape ? .landscape : .portrait),
+                                    errorHandler: Self.geometryErrorHandler(restoring: false))
     }
 
     /// Freeze outgoing callbacks before dismissal starts; retain the original geometry.
@@ -78,9 +76,21 @@ import OSLog
         }
         self.scene = nil
         logger.notice("finish: restoring mask=\(originalOrientation.rawValue)")
-        let logger = self.logger
-        scene.requestGeometryUpdate(.iOS(interfaceOrientations: originalOrientation)) { error in
-            logger.error("restore declined: \(error.localizedDescription, privacy: .public)")
+        scene.requestGeometryUpdate(.iOS(interfaceOrientations: originalOrientation),
+                                    errorHandler: Self.geometryErrorHandler(restoring: true))
+    }
+
+    // UIKit may invoke the error handler off the main queue. Creating this closure
+    // inside the MainActor methods above gives it an invalid actor precondition.
+    // Keep this logging-only callback nonisolated; never capture session/UI state.
+    nonisolated static func geometryErrorHandler(restoring: Bool) -> @Sendable (any Error) -> Void {
+        let logger = Logger(subsystem: "com.example.streamlab.demo", category: "PlaybackOrientation")
+        return { error in
+            if restoring {
+                logger.error("restore declined: \(error.localizedDescription, privacy: .public)")
+            } else {
+                logger.error("rotation declined: \(error.localizedDescription, privacy: .public)")
+            }
         }
     }
 }
