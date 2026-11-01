@@ -1,0 +1,7 @@
+PASS iOS package 22 tests, 0 failures (23.115 seconds)
+PASS mandatory marker gate (14 markers)
+PASS app UI runtime expiry/retry/time/close (1 test, 39.856 seconds)
+PASS Release iOS Simulator build
+PASS bash syntax and git diff whitespace
+PENDING remote CI
+NOT TESTED physical-device runtime expiry; production DRM; exact execution while OS suspended

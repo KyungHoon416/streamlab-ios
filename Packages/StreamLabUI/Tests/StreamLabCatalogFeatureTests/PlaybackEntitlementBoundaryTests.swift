@@ -9,6 +9,74 @@ import XCTest
 @testable import StreamLabCatalogFeature
 
 final class PlaybackEntitlementBoundaryTests: XCTestCase {
+    private final class EntitlementClock: @unchecked Sendable {
+        private let lock = NSLock()
+        private var value = Date()
+        func now() -> Date { lock.withLock { value } }
+        func advance(_ seconds: TimeInterval) { lock.withLock { value.addTimeInterval(seconds) } }
+    }
+
+    @MainActor private func exerciseRuntimeExpiry(paused: Bool = false, background: Bool = false) async throws {
+        let name = "runtime-entitlement-\(UUID())"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
+        let repository = MockCatalogRepository(responseDelay: .zero)
+        let profile = ViewerProfile.demo[0]
+        let title = try await repository.home(profile: profile).hero
+        let session = CatalogSession(profile: profile, repository: repository, configuration: (name, defaults))
+        defer { session.invalidate(); defaults.removePersistentDomain(forName: name) }
+        let clock = EntitlementClock()
+        let provider = MockPlaybackEntitlementProvider(now: { clock.now() })
+        let model = PlaybackModel(titleID: title.id, session: session,
+            entitlementProvider: provider, entitlementNow: { clock.now() })
+        model.load(.bundled)
+        try await waitUntil { model.status == .playing }
+        let oldPlayer = try XCTUnwrap(model.player)
+        if paused {
+            model.togglePlayback()
+            try await waitUntil { model.status == .paused }
+        }
+        if background { model.setForeground(false) }
+        clock.advance(300) // Exact expiry boundary, without waiting five minutes.
+        if background {
+            model.setForeground(true)
+            XCTAssertTrue(model.failureIsEntitlement, "Foreground must validate synchronously")
+        }
+        try await waitUntil { model.failureIsEntitlement }
+        XCTAssertTrue(model.status.label.contains("권한이 만료"))
+        XCTAssertNil(model.player)
+        XCTAssertNil(oldPlayer.currentItem)
+        XCTAssertEqual(oldPlayer.rate, 0)
+        XCTAssertNil(PlaybackNowPlaying.shared.session)
+        XCTAssertEqual(model.retryBudget.remaining, 3)
+        try await Task.sleep(for: .milliseconds(300))
+        let beforeRetry = await provider.requests
+        XCTAssertEqual(beforeRetry, 1, "Expiry must not silently renew")
+        model.retryPlayback()
+        try await waitUntil { model.status == .playing }
+        XCTAssertFalse(model.failureIsEntitlement)
+        XCTAssertEqual(model.retryBudget.remaining, 2)
+        let afterRetry = await provider.requests
+        XCTAssertEqual(afterRetry, 2)
+        model.stop()
+        clock.advance(301)
+        model.setForeground(false); model.setForeground(true)
+        XCTAssertEqual(model.status, .idle)
+        model.load(.bundled)
+        try await waitUntil { model.status == .playing }
+        XCTAssertEqual(model.retryBudget.remaining, 3)
+        model.stop()
+    }
+
+    @MainActor func testPlayingGrantExpiresAndManualRetryObtainsNewGrant() async throws {
+        try await exerciseRuntimeExpiry()
+    }
+    @MainActor func testPausedGrantExpiresWithoutResumingPlayback() async throws {
+        try await exerciseRuntimeExpiry(paused: true)
+    }
+    @MainActor func testForegroundReturnRejectsExpiredGrantBeforeResuming() async throws {
+        try await exerciseRuntimeExpiry(background: true)
+    }
+
     private actor HeldEntitlement: PlaybackEntitlementProvider {
         private var reply: CheckedContinuation<PlaybackEntitlement, Never>?
         private var scope: PlaybackEntitlementScope?

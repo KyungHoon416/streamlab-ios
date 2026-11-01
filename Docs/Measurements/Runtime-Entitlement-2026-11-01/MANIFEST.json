@@ -1,0 +1,20 @@
+{
+  "logs": [
+    {
+      "path": "Docs/Validation/runtime-entitlement-2026-11-01/ios.log",
+      "sha256": "ba94fdb1f9c34592b05c64c7b59ce220a2bc2bade029f73c073f899a5ae4f6a5",
+      "bytes": 164191
+    },
+    {
+      "path": "Docs/Validation/runtime-entitlement-2026-11-01/ui.log",
+      "sha256": "ff27f3ccf9a9fe5f98c377dcec92fb2151b8530a03231f57039fee5e13dca843",
+      "bytes": 155797
+    },
+    {
+      "path": "Docs/Validation/runtime-entitlement-2026-11-01/release.log",
+      "sha256": "ee0bed760706977ef632079bfd872f304fc59acae74d4c26a28baf2c6372e53b",
+      "bytes": 241551
+    }
+  ],
+  "environment": "Xcode 27; iOS Simulator 26.4; iPhone 17 Pro; warnings-as-errors, suppression disabled"
+}

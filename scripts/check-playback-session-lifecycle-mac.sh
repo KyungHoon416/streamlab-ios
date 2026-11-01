@@ -46,7 +46,7 @@ xcodebuild -scheme "$package_scheme" -configuration Debug \
   -only-testing:StreamLabCatalogFeatureTests/PlaybackEntitlementBoundaryTests \
   SWIFT_TREAT_WARNINGS_AS_ERRORS=YES SWIFT_SUPPRESS_WARNINGS=NO CODE_SIGNING_ALLOWED=NO test > "$run_dir/ios-tests.log" 2>&1
 result=$?
-if [ "$result" -eq 0 ] && grep -q 'Executed 19 tests, with 0 failures' "$run_dir/ios-tests.log" &&
+if [ "$result" -eq 0 ] && grep -q 'Executed 22 tests, with 0 failures' "$run_dir/ios-tests.log" &&
    grep -Eq 'testRejectedEntitlementsCannotCreatePlayerAndRenewalRecovers.*passed' "$run_dir/ios-tests.log" &&
    grep -Eq 'testRotationRejectionCanArriveOffMainActor.*passed' "$run_dir/ios-tests.log" &&
    grep -Eq 'testRestoreRejectionCanArriveOffMainActor.*passed' "$run_dir/ios-tests.log" &&
@@ -57,10 +57,13 @@ if [ "$result" -eq 0 ] && grep -q 'Executed 19 tests, with 0 failures' "$run_dir
    grep -Eq 'testProfileReplacementDuringSeekStopsOldPlayerAndKeepsNewMetadata.*passed' "$run_dir/ios-tests.log" &&
    grep -Eq 'testTenBackgroundCyclesWithCachePressureReleaseModelAndStopPlayer.*passed' "$run_dir/ios-tests.log" &&
    grep -Eq 'testDownloadedSourceExpiredGrantAndOfflineRenewalNeverCreatePlayer.*passed' "$run_dir/ios-tests.log" &&
+   grep -Eq 'testPlayingGrantExpiresAndManualRetryObtainsNewGrant.*passed' "$run_dir/ios-tests.log" &&
+   grep -Eq 'testPausedGrantExpiresWithoutResumingPlayback.*passed' "$run_dir/ios-tests.log" &&
+   grep -Eq 'testForegroundReturnRejectsExpiredGrantBeforeResuming.*passed' "$run_dir/ios-tests.log" &&
    grep -Eq 'testSubtitleNetworkFailureAndEndPermutationsCannotResurrectClosedPlayback.*passed' "$run_dir/ios-tests.log"; then
-  echo 'PASS nineteen iOS playback session and Now Playing tests' | tee "$run_dir/RESULTS.txt"
+  echo 'PASS twenty-two iOS playback session and Now Playing tests' | tee "$run_dir/RESULTS.txt"
 else
-  echo "FAIL iOS lifecycle tests exit=$result; require nineteen executed tests" | tee "$run_dir/RESULTS.txt"
+  echo "FAIL iOS lifecycle tests exit=$result; require twenty-two executed tests" | tee "$run_dir/RESULTS.txt"
   result=1
 fi
 echo 'NOT TESTED: physical lock-screen card, SwiftUI profile-switch navigation, Bluetooth disconnection, full regression suite' >> "$run_dir/RESULTS.txt"

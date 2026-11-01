@@ -145,3 +145,7 @@ SwiftUI 화면과 네이티브 AVPlayer·HLS 다운로드를 결합한 iOS 앱�
 | Docs/Measurements/C4-2026-10-31/REPORT.md | 기존 성능 자료와 해석 한계 |
 
 다음 개발은 운영 서버 계약과 연결 범위를 확정한 뒤 진행합니다. 현재 테스트나 Mock 결과를 운영 인증·DRM·다기기 완료로 표시하지 않습니다.
+
+## 2026-11-01 후속: 실행 중 권한 검사
+
+PlaybackModel이 수락한 grant를 보관하고 기존 샘플링, 재생/탐색 재개, 화면 복귀 시 만료를 검사한다. 만료 시 플레이어·Now Playing·파일 lease를 정리하고 수동 재시도로만 새 grant를 요청한다. [검증 기록](Measurements/Runtime-Entitlement-2026-11-01/REPORT.md). 동봉 PDF는 위에 명시한 2026-10-31 스냅샷이다.

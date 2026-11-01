@@ -14,7 +14,7 @@ Presentation의 actor Mock은 valid/expired/denied/keyUnavailable/renewalFailed�
 
 ## 한계
 
-이 Mock은 실제 인증 서버, HTTP playback/session, FairPlay 키 취득·복호화, 영속 라이선스, 신뢰 시계가 아니다. 로컬 Mock 재시도 성공은 오프라인에서 실제 라이선스를 갱신했다는 의미가 아니다. 시작 시점 검증만 하며 재생 중 만료 타이머는 제공하지 않는다. F09 전체(실제 저장 HLS와 오프라인 만료 조합)는 이번 테스트만으로 완료 처리하지 않는다. 실제 파일 만료는 이 grant로 해제할 수 없다.
+이 Mock은 실제 인증 서버, HTTP playback/session, FairPlay 키 취득·복호화, 영속 라이선스, 신뢰 시계가 아니다. 로컬 Mock 재시도 성공은 오프라인에서 실제 라이선스를 갱신했다는 의미가 아니다. 2026-11-01부터 수락한 grant를 보관하고 기존 250ms 재생 샘플링(일시정지 포함), 재생/탐색 재개 전, 포그라운드 복귀 시 재검사한다. 만료 시 기존 실패 정리 경로로 아이템·Now Playing·파일 lease를 해제하며 수동 재시도만 새 grant를 요청한다. 앱이 OS에 의해 suspended된 동안 정확한 만료 시각 실행은 보장하지 않으며 복귀 시 검사한다. F09 전체(실제 저장 HLS와 오프라인 만료 조합)는 이번 테스트만으로 완료 처리하지 않는다. 실제 파일 만료는 이 grant로 해제할 수 없다.
 
 ## 검증
 

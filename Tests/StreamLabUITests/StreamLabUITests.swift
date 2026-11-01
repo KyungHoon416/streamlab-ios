@@ -2273,6 +2273,30 @@ import XCTest
         XCTAssertTrue(app.staticTexts["detail-title"].waitForExistence(timeout: 5))
     }
 
+    func testRuntimeEntitlementExpiryStopsPlaybackAndRetryRestoresTime() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=runtime-expiry-\(UUID())",
+            "--ui-test-entitlement-expires-during-playback-once",
+            "--ui-test-disable-resume", "--ui-test-keep-playback-controls"]
+        app.launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        let alert = app.alerts["영상을 불러올 수 없습니다"]
+        XCTAssertTrue(alert.waitForExistence(timeout: 20))
+        XCTAssertTrue(alert.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "권한이 만료")).firstMatch.exists)
+        XCTAssertTrue(alert.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "남은 재시도: 3회")).firstMatch.exists)
+        alert.buttons["재시도"].tap()
+        expectPlayback("재생 중", in: app)
+        let ticking = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            (self.playbackTimes(app)?.position ?? 0) >= 2
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [ticking], timeout: 10), .completed)
+        XCTAssertFalse(alert.exists)
+        closePlayback(app)
+    }
+
     func testExpiredPlaybackEntitlementBlocksLocalDemoAndRenews() {
         exerciseEntitlementFailure("--ui-test-entitlement-expired-once", message: "권한이 만료")
     }

@@ -14,3 +14,15 @@
 인수는 Debug 전용이며 새 플레이어 모델마다 첫 요청만 실패시킨다. Release에는 오류 주입이 없다. 실제 HLS 다운로드 파일 만료/재다운로드 검증과 구분한다. 이 절차에서 비행기 모드의 로컬 데모를 재생해도 실제 오프라인 DRM 라이선스 검증이 되지는 않는다.
 
 자동 검증: `bash scripts/check-playback-entitlement-mac.sh` 및 `bash scripts/check-playback-session-lifecycle-mac.sh`.
+
+## 재생 도중 만료 — 2026-11-01
+
+1. 최신 코드를 설치한다. Scheme `StreamLab` → Edit Scheme → Run → Info → Debug.
+2. 기존 entitlement 오류 주입 인수는 끄고 Run → Arguments에 `--ui-test-entitlement-expires-during-playback-once`만 추가·체크한다.
+3. 성인 프로필 → 작품 상세 → 데모 재생. 처음에는 영상·하단 시간이 진행하고 첫 권한 수락 약 10초 후 만료 안내와 재생 중단이 나오는지 확인한다.
+4. ‘재시도’ → 영상과 하단 시간 진행 → 닫기 → 탭 이동을 확인한다. 첫 grant만 짧게 만들므로 재시도 직후 다시 10초 만료되지는 않는다.
+5. 다시 상세에서 새 플레이어를 열어 즉시 일시정지하고 10초 이상 기다린다. 만료 안내가 나오는지 확인한다.
+6. 다시 새 플레이어를 열어 홈 화면으로 나간 뒤 15초 대기하고 복귀한다. 만료 안내가 나오고 수동 재시도로 복구되는지 확인한다.
+7. 끝나면 인수를 해제한다. 새 trace는 필요 없으며 각 단계의 성공/실패와 오류 로그만 알려주면 된다.
+
+이 인수는 Debug 전용이다. 일반 Mock grant는 기존 데모 정책인 5분이며 이제 재생 중에도 유효기간을 적용한다. 실제 라이선스 서버·FairPlay 검증은 아니다. 앱 suspend 중 정확한 순간 실행을 보장하는 테스트도 아니다. [자동 검증 보고서](Measurements/Runtime-Entitlement-2026-11-01/REPORT.md).

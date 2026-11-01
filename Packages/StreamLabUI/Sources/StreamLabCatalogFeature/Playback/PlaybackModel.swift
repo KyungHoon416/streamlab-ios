@@ -190,6 +190,8 @@ import StreamLabPresentation
     private var itemReachedEnd = false
     private var audioSessionOwner: UUID?
     private let entitlementProvider: any PlaybackEntitlementProvider
+    private let entitlementNow: @Sendable () -> Date
+    private var activeEntitlement: PlaybackEntitlement?
     private let syncDeviceID: String?
     private var syncedProgress: SyncedPlaybackProgress?
     private var syncRestartPending = false
@@ -197,6 +199,7 @@ import StreamLabPresentation
 
     #if DEBUG
     private let debugLifetimeID = UUID()
+    private var injectedEntitlementExpiry = false
     private var injectedMediaReset = false
     private var injectedUnrequestedPause = false
     #endif
@@ -251,7 +254,9 @@ import StreamLabPresentation
     }
 
     init(titleID: String, session: CatalogSession, syncDeviceID: String? = nil,
-         entitlementProvider: (any PlaybackEntitlementProvider)? = nil) {
+         entitlementProvider: (any PlaybackEntitlementProvider)? = nil,
+         entitlementNow: @escaping @Sendable () -> Date = { Date() }) {
+        self.entitlementNow = entitlementNow
         self.entitlementProvider = entitlementProvider ?? Self.demoEntitlementProvider()
         self.syncDeviceID = syncDeviceID
         self.titleID = titleID
@@ -340,7 +345,7 @@ import StreamLabPresentation
                     self.fail("이 프로필에서는 재생할 수 없는 콘텐츠입니다.")
                     return
                 }
-                let grant = try await entitlementProvider.authorize(entitlementScope)
+                var grant = try await entitlementProvider.authorize(entitlementScope, now: self.entitlementNow)
                 guard !Task.isCancelled, self.generation == ticket, self.session.isActive else { return }
                 self.nowPlayingTitle = title.name
                 self.nowPlayingArtworkURL = StreamLabTheme.bundledArtworkURL(seed: title.visualSeed)
@@ -352,7 +357,17 @@ import StreamLabPresentation
                     self.syncMessage = "가상 기기 \(deviceID) · 서버 진도 불러옴"
                 }
                 // Recheck after optional progress I/O, immediately before creating the player.
-                try grant.validate(for: entitlementScope, at: Date())
+                try grant.validate(for: entitlementScope, at: self.entitlementNow())
+                #if DEBUG
+                if !self.injectedEntitlementExpiry,
+                   ProcessInfo.processInfo.arguments.contains("--ui-test-entitlement-expires-during-playback-once") {
+                    self.injectedEntitlementExpiry = true
+                    grant = PlaybackEntitlement(scope: grant.scope, allowed: grant.allowed,
+                        keyState: grant.keyState, issuedAt: grant.issuedAt,
+                        expiresAt: min(grant.expiresAt, self.entitlementNow().addingTimeInterval(10)))
+                }
+                #endif
+                self.activeEntitlement = grant
                 self.prepare(ticket: ticket)
             } catch let error as PlaybackEntitlementError {
                 guard !Task.isCancelled, let self, self.generation == ticket, self.session.isActive else { return }
@@ -452,8 +467,24 @@ import StreamLabPresentation
         }
     }
 
+    /// Checks the accepted grant without requesting/renewing it. Called before
+    /// transport resumes and during sampling; foreground restoration also samples.
+    private func validateActiveEntitlement() -> Bool {
+        guard let grant = activeEntitlement else { return false }
+        do {
+            try grant.validate(for: grant.scope, at: entitlementNow())
+            return true
+        } catch let error as PlaybackEntitlementError {
+            fail(error.message, entitlement: true)
+        } catch {
+            fail("재생 권한을 확인하지 못했습니다. 다시 시도해 주세요.", entitlement: true)
+        }
+        return false
+    }
+
     private func sample(ticket: Int) -> Bool {
         guard generation == ticket, session.isActive, let player, let item = player.currentItem else { return false }
+        if !itemReachedEnd, !validateActiveEntitlement() { return false }
         pictureInPicture.checkStartTimeout()
         if foreground {
             pictureInPicture.setAutomaticStartEnabled(source.isHLS && wantsPlayback && !isSeeking && player.rate > 0)
@@ -618,7 +649,8 @@ import StreamLabPresentation
                           self.playbackIntentGeneration == intent, self.session.isActive,
                           self.audioSessionOwner == owner else { return }
                     self.audioResumePending = false
-                    guard success, self.playbackAllowed, !self.isSeeking, !self.syncRestartPending else { return }
+                    guard success, self.playbackAllowed, !self.isSeeking, !self.syncRestartPending,
+                          self.validateActiveEntitlement() else { return }
                     self.wantsPlayback = true
                     self.player?.play()
                     _ = self.sample(ticket: ticket)
@@ -643,7 +675,8 @@ import StreamLabPresentation
             wantsPlayback = false
             player.pause()
         case .play:
-            guard playbackAllowed, !syncRestartPending, !isSeeking, player.currentItem?.status == .readyToPlay else { return }
+            guard playbackAllowed, !syncRestartPending, !isSeeking, player.currentItem?.status == .readyToPlay,
+                  validateActiveEntitlement() else { return }
             if status == .ended { seek(to: 0, playAfterSeek: true); return }
             progressReady = true
             wantsPlayback = true
@@ -678,7 +711,7 @@ import StreamLabPresentation
     }
 
     func seek(to seconds: Double, playAfterSeek: Bool = false) {
-        guard playbackAllowed, canSeek, seconds.isFinite, let player else { return }
+        guard playbackAllowed, canSeek, seconds.isFinite, let player, validateActiveEntitlement() else { return }
         autoAdvance.reset()
         nextEpisodeStarted = nil
         nextEpisodeSeconds = nil
@@ -712,6 +745,7 @@ import StreamLabPresentation
                 return
             }
             #endif
+            guard self.validateActiveEntitlement() else { return }
             self.seekStarted = nil
             self.isSeeking = false
             if completed {
@@ -814,6 +848,7 @@ import StreamLabPresentation
     }
 
     func stop() {
+        activeEntitlement = nil
         if let offlineLease { OfflineDownloadStore.shared.release(offlineLease); self.offlineLease = nil }
         if let owner = nowPlayingOwner {
             PlaybackNowPlaying.shared.end(owner: owner)
