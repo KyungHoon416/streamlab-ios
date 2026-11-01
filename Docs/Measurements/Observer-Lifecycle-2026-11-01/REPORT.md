@@ -14,7 +14,7 @@
 - 실제 재생/닫기 10회 및 늦은 알림 시험 PASS(7.250초). 관찰자별 10회 생성/해제·객체 필터·콜백 capture 해제 PASS.
 - 최초 테스트 빌드에서 Xcode 27의 변경하지 않는 weak 지역 변수 경고가 오류로 처리됐다. 기존과 같은 weak reference 래퍼로 수정해 경고 억제 없이 재실행했다.
 - 앱 관찰자 정리 결함은 발견되지 않아 런타임 변경 없이 테스트와 CI gate만 보강했다.
-- 원격 CI 확인 예정.
+- 원격 CI [#41301603583](https://github.com/KyungHoon416/streamlab-ios/actions/runs/41301603583): **PASS**, 구현 커밋 `b160061e8f92d15fbad3bab4cc40fac49673cc4b`. iOS 25개·필수 표식 gate·Release 빌드 및 Core/HTTP/카오스/F03 SIGKILL/TTFF parser 통과. 원격 iOS 테스트 실행 시간 60.227초. CI.json과 MANIFEST.json에 실행 결과 및 로그 SHA-256을 보관했다.
 
 ## 한계
 

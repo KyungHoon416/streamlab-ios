@@ -3,5 +3,6 @@ PASS 17 mandatory test markers
 PASS 10 observer create/remove cycles per type, exact delivery and capture release
 PASS 10 actual playback/stop cycles with old notifications, then new playback
 PASS shell syntax and whitespace
-PENDING remote CI
+PASS remote CI 41301603583 on b160061e8f92d15fbad3bab4cc40fac49673cc4b
+PASS remote iOS 25, mandatory marker gate, Release, Core/HTTP/chaos/F03 SIGKILL/parser
 NOT TESTED physical Bluetooth/reset/volume event, OS-wide observers, jetsam, AVPlayer internal lifetime

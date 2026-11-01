@@ -5,6 +5,13 @@
       "path": "Docs/Validation/observer-lifecycle-2026-11-01/ios.log",
       "sha256": "0627868d4935ca46e5458186d1b1082f787abbb0bba4e0fc7ac67927e9a95af7",
       "bytes": 119578
+    },
+    {
+      "path": "Docs/Validation/observer-lifecycle-2026-11-01/ci.log",
+      "sha256": "f4188187fee5377a8a20ee1357040096857f3e72ae602d2b340e7a75d85608c6",
+      "bytes": 675988
     }
-  ]
+  ],
+  "tested_commit": "b160061e8f92d15fbad3bab4cc40fac49673cc4b",
+  "ci_url": "https://github.com/KyungHoon416/streamlab-ios/actions/runs/41301603583"
 }
