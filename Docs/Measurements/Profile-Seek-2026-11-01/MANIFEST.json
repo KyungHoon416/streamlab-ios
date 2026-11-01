@@ -9,7 +9,14 @@
       "path": "Docs/Validation/profile-seek-2026-11-01/existing.log",
       "sha256": "90a7dd541f12eb4bd0fce4dd0e8c6170c003969bf483232003eb90473ff468ac",
       "bytes": 84242
+    },
+    {
+      "path": "Docs/Validation/profile-seek-2026-11-01/ci.log",
+      "sha256": "37146ecbc3ce448ca7c5831d96539860e60e40de214c56736164102ffa78e065",
+      "bytes": 675518
     }
   ],
-  "environment": "Xcode 27; iOS Simulator 26.4; iPhone 17 Pro; Debug ad hoc signing; warnings as errors"
+  "environment": "Xcode 27; iOS Simulator 26.4; iPhone 17 Pro; Debug ad hoc signing; warnings as errors",
+  "tested_commit": "dab646c716b1b281e845a1b8d78f17afd420bc63",
+  "ci_url": "https://github.com/KyungHoon416/streamlab-ios/actions/runs/41300550471"
 }

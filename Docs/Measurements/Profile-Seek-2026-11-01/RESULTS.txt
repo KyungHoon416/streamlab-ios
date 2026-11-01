@@ -2,5 +2,6 @@ PASS new F04 UI scenario (1 test, 63.014 seconds)
 PASS existing profile boundary UI scenarios (4 tests)
 PASS all 5 required success markers across the two test runs
 PASS shell syntax and whitespace
-PENDING remote CI
+PASS remote CI 41300550471 on dab646c716b1b281e845a1b8d78f17afd420bc63
+PASS remote Core/HTTP/chaos/F03 SIGKILL/parser, iOS package 22, Release
 NOT TESTED native late seek callback delivery, real HLS network race, physical device
