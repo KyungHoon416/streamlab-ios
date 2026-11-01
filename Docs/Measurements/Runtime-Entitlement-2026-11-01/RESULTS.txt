@@ -3,5 +3,6 @@ PASS mandatory marker gate (14 markers)
 PASS app UI runtime expiry/retry/time/close (1 test, 39.856 seconds)
 PASS Release iOS Simulator build
 PASS bash syntax and git diff whitespace
-PENDING remote CI
+PASS remote CI 41294752235 on 335eec97d67f7de15d252685405959e978ebbefc
+PASS remote Core/loopback HTTP/auth, chaos 3 x 1000 seeds, TTFF parser 6, iOS 22, iOS Release
 NOT TESTED physical-device runtime expiry; production DRM; exact execution while OS suspended

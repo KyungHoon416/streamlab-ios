@@ -14,7 +14,14 @@
       "path": "Docs/Validation/runtime-entitlement-2026-11-01/release.log",
       "sha256": "ee0bed760706977ef632079bfd872f304fc59acae74d4c26a28baf2c6372e53b",
       "bytes": 241551
+    },
+    {
+      "path": "Docs/Validation/runtime-entitlement-2026-11-01/ci.log",
+      "sha256": "0dce62e66f0aa84192ee8f06a06e0ca873f15dac25a7009a9ae059f1e7dfa6cf",
+      "bytes": 674612
     }
   ],
-  "environment": "Xcode 27; iOS Simulator 26.4; iPhone 17 Pro; warnings-as-errors, suppression disabled"
+  "environment": "Xcode 27; iOS Simulator 26.4; iPhone 17 Pro; warnings-as-errors, suppression disabled",
+  "tested_commit": "335eec97d67f7de15d252685405959e978ebbefc",
+  "ci_url": "https://github.com/KyungHoon416/streamlab-ios/actions/runs/41294752235"
 }

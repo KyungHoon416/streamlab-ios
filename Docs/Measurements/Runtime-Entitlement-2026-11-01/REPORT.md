@@ -12,7 +12,7 @@
 - 앱 UI 1개: PASS (39.856초). 첫 grant 10초 후 만료 안내 → 재시도 → 하단 시간 2초 이상 → 닫기.
 - Release iOS Simulator 빌드: PASS. 경고를 오류로 처리하고 경고 억제는 해제했다.
 - 스크립트 문법·필수 14개 테스트 표식·공백 검사: PASS. 원시 로그 위치와 SHA-256은 MANIFEST.json에 기록했다.
-- 원격 CI: 푸시 후 확인 예정.
+- 원격 CI: **PASS**, 구현 커밋 `335eec97d67f7de15d252685405959e978ebbefc`. [실행 #41294752235](https://github.com/KyungHoon416/streamlab-ios/actions/runs/41294752235). Core/실제 loopback HTTP/인증 경계, 카오스 3종 × 1000 seed, TTFF parser 6개, iOS 22개, generic iOS Release 빌드 모두 통과. `CI.json`은 최종 job 결과, `MANIFEST.json`은 원시 로그 해시를 보관한다.
 
 ## 한계 및 실기기
 
