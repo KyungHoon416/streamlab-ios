@@ -41,7 +41,7 @@ test("reject dangerous URLs and malformed metadata", () => {
     "http://example.com/a.m3u8",
     "https://user:pass@example.com/a.m3u8",
     "javascript:alert(1)",
-    "https://example.com/a.mp4",
+    "https://example.com/watch?v=123",
   ])
     assert.throws(() => validateTitle({ ...title, streamURL }));
   for (const patch of [
@@ -53,4 +53,10 @@ test("reject dangerous URLs and malformed metadata", () => {
     { published: "true" },
   ])
     assert.throws(() => validateTitle({ ...title, ...patch }));
+});
+
+test("accept direct MP4 and HLS URLs with query parameters", () => {
+  for (const streamURL of ["https://example.com/a.mp4", "https://example.com/a.mp4?alt=media&token=test", "https://example.com/a.m3u8?version=1"]) {
+    assert.equal(validateTitle({...title, streamURL}).streamURL, streamURL);
+  }
 });

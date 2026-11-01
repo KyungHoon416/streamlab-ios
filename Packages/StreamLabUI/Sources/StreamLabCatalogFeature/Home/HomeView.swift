@@ -68,7 +68,7 @@ import StreamLabDesignSystem
                     if let featured = ([home.hero] + home.rails.flatMap(\.items)).first(where: category.includes) {
                         HomeHero(title: featured, myList: myList) {
                             playbackOrientation.begin()
-                            playbackPresentation = HomePlaybackPresentation(title: featured, source: featured.streamURL == nil ? .bundled : .catalogHLS)
+                            playbackPresentation = HomePlaybackPresentation(title: featured, source: PlaybackModel.Source.catalogSource(for: featured))
                         }
                     }
                     if category != .recommended {

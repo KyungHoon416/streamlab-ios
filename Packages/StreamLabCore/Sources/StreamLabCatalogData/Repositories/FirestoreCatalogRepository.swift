@@ -51,7 +51,7 @@ public actor FirestoreCatalogRepository: CatalogRepository {
             for key in ["artworkURL", "streamURL"] {
                 if let value = fields[key]?.stringValue, !value.isEmpty {
                     guard let url = URL(string: value), url.scheme == "https", url.host != nil, url.user == nil, url.password == nil,
-                          key != "streamURL" || url.path.hasSuffix(".m3u8") else { throw URLError(.unsupportedURL) }
+                          key != "streamURL" || ["m3u8", "mp4"].contains(url.pathExtension) else { throw URLError(.unsupportedURL) }
                     object[key] = value
                 }
             }

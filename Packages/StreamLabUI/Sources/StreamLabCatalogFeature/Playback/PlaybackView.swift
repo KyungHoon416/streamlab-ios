@@ -222,7 +222,7 @@ import StreamLabDesignSystem
             if value != .playing { revealControls() }
             // Parent-owned download playback uses the persistent inline recovery UI.
             // Avoid presenting a competing modal during the cover/rotation transition.
-            if ownsModelLifecycle, case .failed = value, model.source.isHLS || model.failureIsMediaReset || model.failureIsEntitlement {
+            if ownsModelLifecycle, case .failed = value, model.source.usesNativeTracks || model.failureIsMediaReset || model.failureIsEntitlement {
                 showsPlaybackFailure = true
             }
         }
@@ -270,7 +270,7 @@ import StreamLabDesignSystem
             }
             VStack(alignment: .leading, spacing: 4) {
                 Text(title).font(.headline).fixedSize(horizontal: false, vertical: true)
-                Text(source == .catalogHLS ? source.rawValue : "테스트 영상 · \(source.rawValue)")
+                Text(source.isCatalog ? source.rawValue : "테스트 영상 · \(source.rawValue)")
                     .accessibilityIdentifier("playback-source-label")
                     .font(.caption).foregroundStyle(.white.opacity(contrast == .increased ? 1 : 0.8))
                     .fixedSize(horizontal: false, vertical: true)
@@ -699,7 +699,7 @@ import StreamLabDesignSystem
         NavigationStack {
             List {
                 Section {
-                    ForEach(PlaybackModel.Source.allCases.filter { source == .catalogHLS ? $0 == .catalogHLS : ($0 != .downloadedHLS && $0 != .catalogHLS) }) { option in
+                    ForEach(PlaybackModel.Source.allCases.filter { source.isCatalog ? $0 == source : ($0 != .downloadedHLS && !$0.isCatalog) }) { option in
                         Button {
                             source = option
                             sourceSheet = false

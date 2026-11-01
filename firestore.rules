@@ -20,7 +20,7 @@ service cloud.firestore {
         && d.durationMinutes is int && d.durationMinutes > 0 && d.durationMinutes <= 10000
         && d.kind in ['movie','series'] && d.rating in ['ALL','7+','12+','15+','19+']
         && (d.artworkURL == '' || httpsURL(d.artworkURL))
-        && (d.streamURL == '' || (httpsURL(d.streamURL) && d.streamURL.matches('https://.+\\.m3u8(\\?.*)?')))
+        && (d.streamURL == '' || (httpsURL(d.streamURL) && d.streamURL.matches('https://.+\\.(m3u8|mp4)(\\?.*)?')))
         && d.visualSeed is int && d.visualSeed >= 0 && d.visualSeed <= 1000000
         && d.popularity is int && d.popularity >= 0 && d.popularity <= 1000000
         && d.published is bool && (!d.published || d.streamURL != '')

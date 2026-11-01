@@ -58,10 +58,10 @@ export function validateTitle(input) {
         d[key].length > 2048
       )
         throw Error("자격 증명이 없는 HTTPS 주소만 사용할 수 있습니다.");
-      if (key === "streamURL" && !u.pathname.endsWith(".m3u8"))
-        throw Error("영상 주소는 HLS .m3u8 주소여야 합니다.");
+      if (key === "streamURL" && ! /\.(m3u8|mp4)$/.test(u.pathname))
+        throw Error("영상 주소는 HLS .m3u8 또는 MP4 .mp4 주소여야 합니다.");
     }
   if (typeof d.published !== "boolean" || (d.published && !d.streamURL))
-    throw Error("공개하려면 HLS 주소를 입력하세요.");
+    throw Error("공개하려면 영상 주소를 입력하세요.");
   return d;
 }

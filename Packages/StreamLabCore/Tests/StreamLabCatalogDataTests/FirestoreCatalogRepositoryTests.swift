@@ -34,6 +34,12 @@ struct FirestoreCatalogRepositoryTests {
         let repo = FirestoreCatalogRepository(projectID: "example-project") { _ in data }
         #expect(try await repo.detail(id: "sample", profile: ViewerProfile.demo[2]) == nil)
     }
+    @Test func mp4URLWithQueryIsPreserved() async throws {
+        let url = "https://example.com/video.mp4?alt=media&token=test"
+        let data = try response(stream: url)
+        let repo = FirestoreCatalogRepository(projectID: "example-project") { _ in data }
+        #expect(try await repo.detail(id: "sample", profile: ViewerProfile.demo[0])?.streamURL?.absoluteString == url)
+    }
     @Test func malformedOrPrivateResponseFailsClosed() async throws {
         for data in [try response(published: false), try response(stream: "http://example.com/a.m3u8"), try response(stream: "")] {
             let repo = FirestoreCatalogRepository(projectID: "example-project") { _ in data }

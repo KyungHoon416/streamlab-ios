@@ -56,6 +56,12 @@ before(async () => {
 after(async () => {
   await env?.cleanup();
 });
+
+test("admin can publish MP4, but not a web page URL", async () => {
+  const db=env.authenticatedContext('owner',token).firestore();
+  await assertSucceeds(setDoc(doc(db,'titles/mp4'),{...data('mp4',true),streamURL:'https://example.com/video.mp4?alt=media&token=test'}));
+  await assertFails(setDoc(doc(db,'titles/webpage'),{...data('webpage',true),streamURL:'https://example.com/watch?v=123'}));
+});
 test("admin create, revision update, public query, unpublish and denied deletion", async () => {
   const admin = env.authenticatedContext("owner", token).firestore(),
     anon = env.unauthenticatedContext().firestore();

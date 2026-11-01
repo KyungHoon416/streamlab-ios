@@ -11,6 +11,7 @@ import StreamLabPresentation
     enum Source: String, CaseIterable, Identifiable {
         case bundled = "오프라인 데모", hls = "HLS 스트리밍"
         case catalogHLS = "등록된 HLS 영상"
+        case catalogMP4 = "등록된 MP4 영상"
         case downloadedHLS = "다운로드한 HLS 샘플"
         case hlsAudio = "HLS 오디오 비교 · 영어 / 화면 해설"
         case hlsStandardAudio = "HLS 오디오 비교 · 일반 영어만"
@@ -20,6 +21,12 @@ import StreamLabPresentation
         case hlsEpisode1 = "HLS 테스트 시즌 · 1화"
         case hlsEpisode2 = "HLS 테스트 시즌 · 2화"
         var id: String { rawValue }
+        var usesNativeTracks: Bool { isHLS || isCatalog }
+        var isCatalog: Bool { self == .catalogHLS || self == .catalogMP4 }
+        static func catalogSource(for title: CatalogTitle) -> Source {
+            guard let url = title.streamURL else { return .bundled }
+            return url.pathExtension == "mp4" ? .catalogMP4 : .catalogHLS
+        }
         var isHLS: Bool {
             switch self {
             case .catalogHLS, .hls, .hlsAudio, .hlsStandardAudio, .hlsEpisode1, .hlsEpisode2, .downloadedHLS: true
@@ -38,6 +45,7 @@ import StreamLabPresentation
             switch self {
             case .bundled: "bundled-demo-v1"
             case .catalogHLS: "catalog-hls-v1"
+            case .catalogMP4: "catalog-mp4-v1"
             case .hls, .downloadedHLS: "apple-bipbop-v1"
             case .hlsAudio: "apple-trailer-audio-v1"
             case .hlsStandardAudio: "apple-bipbop-standard-v1"
@@ -50,7 +58,7 @@ import StreamLabPresentation
         }
         var url: URL? {
             switch self {
-            case .catalogHLS, .downloadedHLS: nil // Resolved from the repository or download store.
+            case .catalogHLS, .catalogMP4, .downloadedHLS: nil // Resolved from the repository or download store.
             case .bundled, .episode1, .episode2, .episode3: Bundle.module.url(forResource: "playback-demo", withExtension: "mp4")
             case .hls, .hlsEpisode1: URL(string: "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8")
             case .hlsStandardAudio: URL(string: "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8")
@@ -384,7 +392,7 @@ import StreamLabPresentation
     }
 
     private func prepare(ticket: Int) {
-        var url = source == .catalogHLS ? catalogURL : source.url
+        var url = source.isCatalog ? catalogURL : source.url
         if source == .downloadedHLS {
             guard let (savedURL, lease) = OfflineDownloadStore.shared.acquire(session: session, titleID: titleID) else {
                 fail("다운로드 파일이 없거나 이용 기간이 만료되어 재생할 수 없습니다. 다시 다운로드해 주세요.")
@@ -973,7 +981,7 @@ import StreamLabPresentation
     }
 
     private func prepareSubtitles(player: AVPlayer, ticket: Int) {
-        if !source.isHLS {
+        if !source.usesNativeTracks {
             for (id, label) in [("ko", "한국어 · 데모"), ("en", "English · Demo")] {
                 #if DEBUG
                 // Deterministic missing-language fixture; never affects production/HLS.
@@ -1040,7 +1048,7 @@ import StreamLabPresentation
     }
 
     func retrySubtitles() {
-        guard session.isActive, let player, source.isHLS, !subtitlesLoading else { return }
+        guard session.isActive, let player, source.usesNativeTracks, !subtitlesLoading else { return }
         subtitleTask?.cancel()
         subtitleMessage = ""
         prepareSubtitles(player: player, ticket: generation)
@@ -1126,7 +1134,7 @@ import StreamLabPresentation
                 self.audioLoading = false
                 self.audioGroup = group
                 guard let group else {
-                    self.audioMessage = self.source.isHLS ? "선택 가능한 대체 오디오 트랙이 없습니다." : "이 데모 영상은 무음입니다."
+                    self.audioMessage = self.source.usesNativeTracks ? "선택 가능한 대체 오디오 트랙이 없습니다." : "이 데모 영상은 무음입니다."
                     return
                 }
                 self.audioOptions = []

@@ -58,7 +58,7 @@ import StreamLabDomain
                         }
                     }
                     Button {
-                        openPlayback(title.streamURL == nil ? .bundled : .catalogHLS)
+                        openPlayback(PlaybackModel.Source.catalogSource(for: title))
                     } label: {
                         Label {
                             Text(title.streamURL == nil ? "데모 영상 재생" : "영상 재생")
@@ -98,7 +98,7 @@ import StreamLabDomain
                     if title.streamURL == nil {
                         DetailEpisodeSection(title: title, positions: episodePositions, onSelect: openPlayback)
                     }
-                    Text(title.streamURL == nil ? "오리지널 Mock 콘텐츠 · 재생 버튼은 테스트 영상을 엽니다." : "관리자가 등록한 HLS 영상입니다. 이 작품의 다운로드는 아직 지원하지 않습니다.")
+                    Text(title.streamURL == nil ? "오리지널 Mock 콘텐츠 · 재생 버튼은 테스트 영상을 엽니다." : "관리자가 등록한 영상입니다. 이 작품의 다운로드는 아직 지원하지 않습니다.")
                         .font(.callout).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -158,7 +158,7 @@ import StreamLabDomain
     }
 
     private func previewArtwork(_ title: CatalogTitle) -> some View {
-        Button { openPlayback(title.streamURL == nil ? .bundled : .catalogHLS) } label: {
+        Button { openPlayback(PlaybackModel.Source.catalogSource(for: title)) } label: {
             CatalogArtwork(title: title)
                 .frame(height: 230)
                 .overlay {

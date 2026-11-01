@@ -19,7 +19,7 @@
         <p>승인된 관리자 Google 계정으로 로그인하세요.</p>
         <button class="primary" id="login">Google 계정으로 로그인</button>
         <p class="muted">
-          공개한 작품 정보와 HLS 주소는 앱 사용자가 조회할 수 있습니다.
+            공개한 작품 정보와 영상 주소는 앱 사용자가 조회할 수 있습니다.
         </p>
       </section>
       <p id="message" role="status" aria-live="polite"></p>
@@ -110,13 +110,13 @@
                 /><small>비워 두면 앱의 기본 포스터를 사용합니다.</small></label
               >
               <label
-                >HLS 영상 주소<input
+                >영상 URL (HLS 또는 MP4)<input
                   name="streamURL"
                   type="url"
                   placeholder="https://…/master.m3u8"
                 /><small
-                  >이용 권한이 있는 HTTPS HLS 주소를 입력하세요. 업로드·인코딩
-                  기능은 포함되지 않습니다.</small
+                  >이용 권한이 있는 HTTPS .m3u8 또는 .mp4 주소를 입력하세요.
+                  YouTube 같은 웹페이지 주소는 지원하지 않습니다.</small
                 ></label
               >
               <div class="grid">
