@@ -22,6 +22,13 @@ import {
 } from "firebase/firestore";
 import config from "./firebase-config.json";
 import { canManage, validateTitle } from "./catalog.js";
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage";
+import { VideoUpload } from "./upload.js";
 const app = initializeApp(config),
   auth = getAuth(app),
   db = getFirestore(app);
@@ -36,6 +43,82 @@ let titles = [],
 const message = (text) => {
   $("message").textContent = text;
 };
+const storage = getStorage(app);
+let uploading = false;
+function uploadBusy(value) {
+  uploading = value;
+  busy = value;
+  for (const element of form.elements) element.disabled = value;
+  form.elements.id.disabled = value || !!selected;
+  $("upload-cancel").disabled = false;
+  $("upload-cancel").hidden = !value;
+  $("upload-progress").hidden = !value;
+}
+const uploader = new VideoUpload({
+  start: (path, file, metadata) =>
+    uploadBytesResumable(storageRef(storage, path), file, metadata),
+  getURL: getDownloadURL,
+  progress: (fraction) => {
+    const percent = Math.floor(fraction * 100);
+    $("upload-progress").value = percent;
+    $("upload-status").textContent =
+      percent === 100 ? "영상 URL을 확인하고 있어요…" : `업로드 중 ${percent}%`;
+  },
+  completed: (url) => {
+    form.elements.streamURL.value = url;
+    $("video-file").value = "";
+    $("upload-status").textContent =
+      "업로드 완료. 영상 URL이 입력됐습니다. 저장을 눌러 작품에 반영하세요.";
+  },
+  failed: (e) => {
+    const messages = {
+      "storage/unauthorized":
+        "업로드 권한이 없습니다. 관리자 계정과 Storage 보안 규칙을 확인하세요.",
+      "storage/bucket-not-found":
+        "Storage가 아직 준비되지 않았습니다. 결제 연결과 버킷 생성을 확인하세요.",
+      "storage/retry-limit-exceeded":
+        "전송 시간이 초과됐습니다. 네트워크를 확인하고 다시 업로드하세요.",
+      "storage/canceled": "업로드를 취소했습니다.",
+      "storage/quota-exceeded": "Storage 사용량 또는 결제 상태를 확인하세요.",
+    };
+    $("upload-status").textContent =
+      messages[e.code] ??
+      (e.code
+        ? "업로드하지 못했습니다. 네트워크와 Storage 설정을 확인한 뒤 다시 시도하세요."
+        : e.message);
+  },
+  settled: () => uploadBusy(false),
+});
+function cancelUpload() {
+  uploader.cancel();
+  if (uploading) {
+    uploadBusy(false);
+    $("upload-status").textContent =
+      "업로드를 취소했습니다. 기존 영상 URL은 유지됩니다. 전송 완료 직후 취소한 파일은 Storage에 남을 수 있습니다.";
+  }
+}
+$("upload-cancel").onclick = cancelUpload;
+$("upload-start").onclick = () => {
+  if (!allowed || busy) return;
+  if (!selected) {
+    $("upload-status").textContent = "작품 정보를 먼저 비공개로 저장해 주세요.";
+    return;
+  }
+  const file = $("video-file").files[0];
+  uploadBusy(true);
+  $("upload-progress").value = 0;
+  $("upload-status").textContent = "MP4 파일을 확인하고 있어요…";
+  uploader.run(file, `videos/${selected}/${crypto.randomUUID()}.mp4`, {
+    contentType: "video/mp4",
+    customMetadata: { titleId: selected, uploadedBy: auth.currentUser.uid },
+  });
+};
+window.addEventListener("beforeunload", (event) => {
+  if (uploading) {
+    event.preventDefault();
+    event.returnValue = "";
+  }
+});
 function reset(item = null) {
   selected = item?.id ?? null;
   revision = item?.revision ?? 0;
@@ -50,6 +133,7 @@ function reset(item = null) {
   form.elements.id.disabled = !!selected;
   $("form-title").textContent = selected ? "작품 수정" : "새 작품";
   $("saved").textContent = "";
+  $("upload-status").textContent = "";
 }
 function render() {
   const term = $("search").value.trim().toLocaleLowerCase();
@@ -116,8 +200,12 @@ $("login").onclick = async () => {
     error(e);
   }
 };
-$("logout").onclick = () => signOut(auth).catch(error);
+$("logout").onclick = () => {
+  cancelUpload();
+  signOut(auth).catch(error);
+};
 onAuthStateChanged(auth, async (user) => {
+  cancelUpload();
   const ticket = ++epoch;
   allowed = false;
   titles = [];

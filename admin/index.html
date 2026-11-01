@@ -19,7 +19,7 @@
         <p>승인된 관리자 Google 계정으로 로그인하세요.</p>
         <button class="primary" id="login">Google 계정으로 로그인</button>
         <p class="muted">
-            공개한 작품 정보와 영상 주소는 앱 사용자가 조회할 수 있습니다.
+          공개한 작품 정보와 영상 주소는 앱 사용자가 조회할 수 있습니다.
         </p>
       </section>
       <p id="message" role="status" aria-live="polite"></p>
@@ -136,6 +136,37 @@
                     value="1"
                 /></label>
               </div>
+              <section class="upload-panel" aria-labelledby="upload-title">
+                <h3 id="upload-title">MP4 파일 업로드</h3>
+                <p>
+                  작품을 먼저 비공개로 저장한 뒤 파일을 선택하세요. 최대 500MB,
+                  MP4 형식을 지원합니다.
+                </p>
+                <label
+                  >MP4 파일<input
+                    id="video-file"
+                    type="file"
+                    accept=".mp4,video/mp4"
+                /></label>
+                <button type="button" id="upload-start">파일 업로드</button>
+                <button type="button" id="upload-cancel" hidden>
+                  업로드 취소
+                </button>
+                <progress
+                  id="upload-progress"
+                  max="100"
+                  value="0"
+                  hidden
+                  aria-label="영상 업로드 진행률"
+                ></progress>
+                <p id="upload-status" role="status" aria-live="polite"></p>
+                <small
+                  >완료되면 영상 URL이 입력됩니다. 아래 ‘저장’을 눌러 작품에
+                  반영하세요. MP4를 HLS로 변환하지 않습니다. 업로드한 파일은
+                  저장하지 않거나 URL을 교체해도 Storage에 남습니다. 공개 후
+                  영상 URL을 가진 사람은 재생할 수 있습니다.</small
+                >
+              </section>
               <label class="check"
                 ><input name="published" type="checkbox" /> 앱에 공개</label
               >

@@ -219,3 +219,14 @@ footer {
     display: none;
   }
 }
+
+.upload-panel {
+  margin: 24px 0;
+  padding: 20px;
+  background: #f3f6f2;
+  border-radius: 12px;
+}
+.upload-panel progress {
+  width: 100%;
+  margin-top: 12px;
+}

@@ -2,7 +2,7 @@
 
 관리자 주소: https://streamlab-ios-eba4f.web.app
 
-프로젝트 `streamlab-ios-eba4f`, Spark 요금제를 유지한다. Firestore `(default)`는 서울 `asia-northeast3`, 삭제 방지 활성화 상태다. Storage, Functions, 영상 업로드·인코딩은 만들지 않았다.
+프로젝트 `streamlab-ios-eba4f`. 2026-11-02 사용자가 Blaze 결제 연결을 완료했다. Firestore `(default)`는 서울 `asia-northeast3`, 삭제 방지 활성화 상태다. MP4 업로드용 기본 Storage 버킷도 서울에 생성했다. Functions 및 영상 인코딩은 사용하지 않는다. Storage 저장·다운로드 사용량에 따라 비용이 발생한다.
 
 ## 연결 범위
 
@@ -12,7 +12,17 @@
 
 영상 URL은 `.m3u8` 또는 `.mp4`로 끝나는 HTTPS 파일 경로를 받는다. 뒤에 쿼리 파라미터가 붙어도 된다. YouTube 재생 페이지 등 HTML URL은 받지 않는다. iOS는 MP4에 별도 진도 ID를 사용하고 실제 파일의 자막·음성 트랙을 조회한다. 기존 번들 데모의 안내 자막을 외부 MP4에 표시하지 않는다. MP4 코덱은 iOS에서 재생 가능해야 한다. HLS 변환·인코딩은 하지 않는다.
 
-**직접 파일 업로드는 미완료:** Firebase Storage를 사용하려면 Blaze/결제 계정 연결이 필요하다. 기존 무료 범위 결정과 달라 사용자 선택을 기다리는 중이다. Storage 버킷·업로드 버튼·업로드 규칙을 배포하지 않았다. URL 지원만으로 파일 업로드 완료라고 표시하지 않는다.
+### MP4 직접 업로드 (2026-11-02)
+
+관리자에서 작품을 비공개로 먼저 저장 → MP4 파일 선택 → 파일 업로드 → 완료 후 저장 → 필요하면 공개 순서다. 파일당 500,000,000바이트(500MB) 이하로 제한한다. 원래 파일명은 업로드 경로에 사용하지 않으며 `videos/{titleId}/{UUID}.mp4`에 저장한다. 업로드 진행률과 취소를 제공하고 로그아웃 시 전송 취소·늦은 URL 응답 무시를 수행한다. 브라우저를 닫았다 다시 열어 이어 올리기는 지원하지 않는다.
+
+클라이언트는 확장자·MIME·MP4 ftyp 헤더를 확인한다. 이는 전체 영상 코덱 검증이나 악성코드 검사가 아니다. 서버 규칙은 승인된 Google 관리자만 생성·SDK 조회하도록 제한하며 크기·contentType·작품/업로더 메타데이터를 확인한다. 기존 파일 덮어쓰기와 클라이언트 삭제는 금지한다. 재업로드는 새 객체를 만든다.
+
+업로드 후 생성되는 Firebase download-token URL은 URL을 가진 사람이 재생할 수 있다. 비공개 작품은 Firestore에서 숨기지만, 이미 배포한 URL을 회수하지 않는다. 비공개 영상 보호·DRM 기능으로 간주하지 않는다. 업로드 후 작품을 저장하지 않거나 URL을 교체해도 파일은 Storage에 남는다. 관리자가 콘솔에서 사용 여부를 확인하고 정리해야 하며 자동 삭제는 하지 않는다. 전송 완료와 취소가 맞물리면 완료된 객체가 남을 수 있다.
+
+Storage 에뮬레이터: `firebase emulators:exec --only storage --project demo-streamlab-admin 'npm --prefix admin run test:storage'`. 배포: `firebase deploy --only storage,hosting --project streamlab-ios-eba4f`.
+
+업로드 검증: 관리자·파일·취소/늦은 응답 단위 테스트 9개와 Storage 에뮬레이터 2개 통과. 관리자 생성/조회, 비로그인·다른 계정·미검증·비Google 계정 차단, 파일 형식/메타데이터/빈 파일 거부, 덮어쓰기·삭제 차단을 검사했다. Storage 및 Hosting 배포 완료. 실제 파일 선택은 Chrome 확장 로컬 파일 접근 제한으로 자동 수행하지 못했으며 사용자 업로드 확인 대기다. `streamlab-mp4-upload` 비공개 초안만 만들었고 파일 전송 성공으로 기록하지 않았다.
 
 MP4 URL 확장 검증: Core 266개, iOS 재생 경계 25개, 관리자 입력 4개·Firestore 규칙 4개 통과. 최종 Firebase Scheme Release 빌드 및 Hosting·Firestore 규칙 배포 완료. 실제 MP4 파일의 실기기 재생은 아직 확인하지 않았다.
 

@@ -2,9 +2,9 @@ name: Firebase admin validation
 on:
   push:
     branches: [main]
-    paths: ['admin/**', 'firestore.rules', 'firebase.json', '.github/workflows/firebase-admin.yml']
+    paths: ['admin/**', 'firestore.rules', 'storage.rules', 'firebase.json', '.github/workflows/firebase-admin.yml']
   pull_request:
-    paths: ['admin/**', 'firestore.rules', 'firebase.json', '.github/workflows/firebase-admin.yml']
+    paths: ['admin/**', 'firestore.rules', 'storage.rules', 'firebase.json', '.github/workflows/firebase-admin.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -30,3 +30,6 @@ jobs:
       - run: npm --prefix admin run build
       - name: Verify rules against a local demo project
         run: npx --yes firebase-tools@14.3.1 emulators:exec --only firestore --project demo-streamlab-admin 'npm --prefix admin run test:rules'
+
+      - name: Verify storage upload authorization
+        run: npx --yes firebase-tools@14.3.1 emulators:exec --only storage --project demo-streamlab-admin 'npm --prefix admin run test:storage'
