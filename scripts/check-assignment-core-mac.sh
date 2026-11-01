@@ -16,6 +16,9 @@ for marker in 'F01 PASS order=5,4,3,2,1 latest=5 duplicates=0' \
     result=1
   fi
 done
+bash scripts/check-mutation-process-crash-mac.sh 2>&1 | tee "$run_dir/process.log"
+process_result=${PIPESTATUS[0]}
+if [ "$process_result" -ne 0 ]; then result=1; fi
 if [ "$result" -eq 0 ]; then
   echo 'PASS assignment Core evidence (not full F01-F10 acceptance)' | tee -a "$run_dir/RESULTS.txt"
 else

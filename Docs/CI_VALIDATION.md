@@ -6,7 +6,7 @@
 
 | 작업 | 범위 | 시간 제한 |
 |---|---|---|
-| core-chaos | Core 전체 및 loopback HTTP/더미 Keychain, durable queue/domain conflict/virtual clock retry 각각 seed 1~1000, TTFF parser 6개 | 20분 |
+| core-chaos | Core 전체 및 loopback HTTP/더미 Keychain, durable queue/domain conflict/virtual clock retry 각각 seed 1~1000, TTFF parser 6개, F03 SIGKILL 복구 | 20분 |
 | ios-playback | 가용 iPhone simulator 자동 선택, 재생·권한·회전 콜백 22개, 서명 없는 Release 빌드 | 30분 |
 
 동일 ref의 새 실행이 생기면 오래된 실행을 취소한다. macos-26의 기본 Xcode를 사용하며 실제 버전을 environment.txt에 기록한다. 로컬 Xcode 27과 CI 기본 Xcode가 같다고 가정하지 않는다. Xcode 26.6의 패키지 경고 억제 기본값과 warnings-as-errors가 충돌하지 않도록 SWIFT_SUPPRESS_WARNINGS=NO를 명시한다. 경고 검증을 끄지 않는다. 공식 액션은 확인한 v6 commit SHA에 고정했다. contents: read만 부여하고 checkout 자격 증명은 보관하지 않는다. 배포·릴리스·실기기 설치·서명 인증서/비밀키 업로드는 하지 않는다.
@@ -36,3 +36,5 @@ bash scripts/check-playback-session-lifecycle-mac.sh
 외부 Apple HLS가 필요한 F06/F09 UI 및 정상 다운로드 재생 회귀 3개는 `bash scripts/check-download-combined-mac.sh`로 로컬에서 실행한다. CI 패키지 22개에는 F09 권한 경계와 F10 콜백 순열이 포함되며, 실제 다운로드 UI는 포함하지 않는다.
 
 다운로드 복합 스크립트는 다른 계정의 고정 파일이 기기 전체 예산에 영향을 주므로 기본적으로 전용 시뮬레이터를 생성·정리한다. 명시적 `SIMULATOR_ID` 사용 시 해당 기기는 삭제하지 않는다.
+
+F03 프로세스 검증은 `bash scripts/check-mutation-process-crash-mac.sh`로 실행한다. 별도 macOS 실행 파일이 고유 임시 폴더의 더미 100건만 사용하며 부모가 자신이 만든 자식만 종료한다. 준비 표식·SIGKILL 종료 코드·재실행 결과 표식이 모두 있어야 PASS다. iOS 앱에는 이 도구를 연결하지 않는다.

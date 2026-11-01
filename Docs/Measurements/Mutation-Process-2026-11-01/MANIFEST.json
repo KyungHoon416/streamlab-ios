@@ -1,0 +1,24 @@
+{
+  "logs": [
+    {
+      "path": "Docs/Validation/mutation-process-u1owTF/RESULTS.txt",
+      "sha256": "7b3f6cb387c8586bd967b283e787216169613be2c173d0de8050f35a3f81986c",
+      "bytes": 141
+    },
+    {
+      "path": "Docs/Validation/mutation-process-u1owTF/build.log",
+      "sha256": "3e31c827fde772bcd5c0248644be5edb386e1ebc8dac7117024848395e91d858",
+      "bytes": 808
+    },
+    {
+      "path": "Docs/Validation/mutation-process-u1owTF/environment.txt",
+      "sha256": "6438f55c38a521b56afc47fb45b555a7f1310e8fc2e9e0a59cc2518862c21b96",
+      "bytes": 167
+    },
+    {
+      "path": "Docs/Validation/mutation-process-u1owTF/process.log",
+      "sha256": "2fdd3e0b7202fc08783cbc6029c41e0b2f7ecebf5d0462cb94744f8e34065665",
+      "bytes": 284
+    }
+  ]
+}

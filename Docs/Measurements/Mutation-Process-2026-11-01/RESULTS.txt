@@ -1,0 +1,8 @@
+PASS macOS SIGKILL after local 100 durable mutations
+PASS macOS SIGKILL after server 100 effects before local ACK
+PASS fresh processes preserve original envelopes, values, revision 100, pending 0
+PASS final restart preserves 100 ACKs
+PASS premature child exit rejected (negative check)
+PASS shell syntax and whitespace
+PENDING remote CI
+NOT TESTED iOS jetsam/protection, atomic-write interruption, power loss, production server
