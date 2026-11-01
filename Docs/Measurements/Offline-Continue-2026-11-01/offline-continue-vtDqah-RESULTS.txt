@@ -1,0 +1,2 @@
+FAIL offline Continue Watching UI exit=65; two executed tests must pass
+INJECTED: downloaded file expiry. Real HLS package and local playback path checked. NOT TESTED: physical airplane mode, production DRM.

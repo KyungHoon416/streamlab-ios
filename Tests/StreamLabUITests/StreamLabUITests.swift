@@ -27,12 +27,13 @@ import XCTest
         XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("1화"))
     }
 
-    private func launchDownloadLifecycle(slow: Bool = false, transferPressure: Bool = false, extraArguments: [String] = [], cleanStart: Bool = false) throws -> XCUIApplication {
+    private func launchDownloadLifecycle(slow: Bool = false, transferPressure: Bool = false, extraArguments: [String] = [], cleanStart: Bool = false, disableResume: Bool = true) throws -> XCUIApplication {
         try XCTSkipUnless(ProcessInfo.processInfo.environment["STREAMLAB_TEST_DOWNLOADS"] == "1",
                           "Requires real external HLS transfers; run the download lifecycle gate.")
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=download-lifecycle-\(UUID())",
-                               "--ui-test-download-lifecycle", "--ui-test-disable-resume"]
+                               "--ui-test-download-lifecycle"]
+        if disableResume { app.launchArguments.append("--ui-test-disable-resume") }
         app.launchArguments += extraArguments
         if slow { app.launchArguments.append("--ui-test-slow-catalog") }
         if transferPressure { app.launchArguments.append("--ui-test-transfer-pressure") }
@@ -60,6 +61,50 @@ import XCTest
             }
         }
         return app
+    }
+
+    func testHomeContinuePrefersDownloadedHLSAndRejectsExpiredPackage() throws {
+        let app = try launchDownloadLifecycle(extraArguments: ["--ui-test-keep-playback-controls"],
+                                              cleanStart: true, disableResume: false)
+        tap(app.buttons["download-validation-one"], in: app)
+        let play = app.buttons["library-title-0001-play"]
+        XCTAssertTrue(play.waitForExistence(timeout: 180))
+        revealDownloadElement(play, in: app)
+        playbackReturnFrame = app.frame
+        tap(play, in: app)
+        expectPlayback("재생 중", in: app)
+        assertPlaybackClockAdvances(app)
+        closePlayback(app, returningToDownloads: true)
+        func openRecent() {
+            tap(app.tabBars.buttons["홈"], in: app)
+            let card = app.buttons["continue-title-0001"]
+            for _ in 0..<6 {
+                if card.exists && card.isHittable { break }
+                app.scrollViews["home-catalog"].swipeUp()
+            }
+            XCTAssertTrue(card.waitForExistence(timeout: 10))
+            tap(card, in: app)
+            expectPlayback("재생 중", in: app)
+        }
+        func closeRecent() {
+            tap(app.buttons["playback-close"], in: app)
+            let closed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.buttons["playback-close"])
+            XCTAssertEqual(XCTWaiter.wait(for: [closed], timeout: 10), .completed)
+            XCTAssertTrue(app.tabBars.buttons["다운로드"].waitForExistence(timeout: 10))
+        }
+        openRecent()
+        XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("다운로드한 HLS"), app.staticTexts["playback-source-label"].label)
+        XCTAssertTrue(app.staticTexts["playback-resumed"].waitForExistence(timeout: 10))
+        assertPlaybackClockAdvances(app)
+        closeRecent()
+        tap(app.tabBars.buttons["다운로드"], in: app)
+        let expire = app.buttons["download-validation-expire"]
+        revealDownloadElement(expire, in: app)
+        tap(expire, in: app)
+        openRecent()
+        XCTAssertTrue(app.staticTexts["playback-source-label"].label.contains("HLS 스트리밍"), "An expired file must not be selected")
+        assertPlaybackClockAdvances(app)
+        closeRecent()
     }
 
     func testHLSPauseResumeUsesSameTaskAndCompletes() throws {

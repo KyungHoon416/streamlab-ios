@@ -1,0 +1,9 @@
+376912fdd3e4bdc72979d744ae04f4e2e93cd30c
+ M Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Downloads/OfflineDownloadStore.swift
+ M Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Home/ContinueWatchingSection.swift
+ M Tests/StreamLabUITests/StreamLabUITests.swift
+?? scripts/check-offline-continue-mac.sh
+Xcode 27.0
+Build version 27A266a
+Simulator: 60FFB2E7-DD68-4E4E-A151-2EA71C09F068
+Build directory: /private/tmp/streamlab-download-combined-nLtLTJ

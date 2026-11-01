@@ -39,7 +39,12 @@ import StreamLabDesignSystem
                     ForEach(model.snapshot.items.filter { includes($0.title) }) { item in
                         Button {
                             guard session.isActive else { return }
-                            onPlay(item)
+                            // The progress ID is shared by streaming and downloaded HLS.
+                            // Resolve only on tap: a cached list must not keep stale file state.
+                            let source: PlaybackModel.Source = item.source == .hls &&
+                                OfflineDownloadStore.shared.hasPlayableDownload(session: session, titleID: item.id)
+                                ? .downloadedHLS : item.source
+                            onPlay(HomeRecentModel.Item(title: item.title, entry: item.entry, source: source))
                         } label: {
                             VStack(alignment: .leading, spacing: 8) {
                                 CatalogArtwork(title: item.title).frame(height: 112)

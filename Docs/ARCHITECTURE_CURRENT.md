@@ -149,3 +149,7 @@ SwiftUI 화면과 네이티브 AVPlayer·HLS 다운로드를 결합한 iOS 앱�
 ## 2026-11-01 후속: 실행 중 권한 검사
 
 PlaybackModel이 수락한 grant를 보관하고 기존 샘플링, 재생/탐색 재개, 화면 복귀 시 만료를 검사한다. 만료 시 플레이어·Now Playing·파일 lease를 정리하고 수동 재시도로만 새 grant를 요청한다. [검증 기록](Measurements/Runtime-Entitlement-2026-11-01/REPORT.md). 동봉 PDF는 위에 명시한 2026-10-31 스냅샷이다.
+
+## 2026-11-01 후속: 홈에서 저장 영상 이어보기
+
+홈 카드 선택 시 OfflineDownloadStore가 동일 계정·프로필의 재생 가능한 파일을 조회한다. 유효하면 downloadedHLS를 선택하고, PlaybackModel 준비 시 다시 acquire하여 파일 lease를 확보한다. 작품과 소스는 HomePlaybackPresentation 하나로 전달해 화면이 기본 번들 소스로 열리던 문제를 방지한다. [구현·검증](Measurements/Offline-Continue-2026-11-01/REPORT.md). PDF는 2026-10-31 스냅샷이며 이 후속 변경은 본 문서에 기록한다.

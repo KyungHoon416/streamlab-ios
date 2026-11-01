@@ -541,13 +541,25 @@ import StreamLabPresentation
         // Retain the revocation marker until explicit sign-in succeeds.
     }
 
-    func acquire(session: CatalogSession, titleID: String) -> (URL, UUID)? {
+    // Selection is advisory; acquire rechecks at playback time and owns the lease.
+    // Looking up a source must not update LRU or reserve a file indefinitely.
+    func hasPlayableDownload(session: CatalogSession, titleID: String) -> Bool {
+        playableDownload(session: session, titleID: titleID) != nil
+    }
+
+    private func playableDownload(session: CatalogSession, titleID: String) -> (URL, Int)? {
         refreshExpiration()
         guard storageHealthy, session.isActive, activeAccount == session.accountID,
               !blockedAccounts.contains(session.accountID),
               let item = record(accountID: session.accountID, profileID: session.profile.id, titleID: titleID),
               item.state == .complete, !item.isExpired(at: Date()), let url = localURL(item),
               AVURLAsset(url: url).assetCache?.isPlayableOffline == true, let i = index(item.id) else { return nil }
+        return (url, i)
+    }
+
+    func acquire(session: CatalogSession, titleID: String) -> (URL, UUID)? {
+        guard let (url, i) = playableDownload(session: session, titleID: titleID) else { return nil }
+        let item = records[i]
         records[i].lastUsed = Date()
         do { try save() } catch { reportStorageFailure(); return nil }
         let lease = UUID(); leases[lease] = item.id

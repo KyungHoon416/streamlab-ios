@@ -11,10 +11,9 @@ import StreamLabDesignSystem
     @ObservedObject private var myList: MyListStore
     @State private var category: Category = .recommended
     @StateObject private var playbackOrientation = PlaybackOrientationSession()
-    @State private var playbackTitle: CatalogTitle?
+    @State private var playbackPresentation: HomePlaybackPresentation?
     @State private var cancelledPlaybackTitleID: String?
     @State private var showsCancelledPlaybackDetail = false
-    @State private var playbackSource: PlaybackModel.Source = .bundled
     @State private var recentRefresh = UUID()
     private let session: CatalogSession
     private enum Category: String, CaseIterable {
@@ -56,8 +55,7 @@ import StreamLabDesignSystem
                     ContinueWatchingSection(session: session, reloadID: recentRefresh,
                                             includes: category.includes) { item in
                         playbackOrientation.begin()
-                        playbackSource = item.source
-                        playbackTitle = item.title
+                        playbackPresentation = HomePlaybackPresentation(title: item.title, source: item.source)
                     }
                     ForEach(home.rails.filter { $0.items.contains(where: category.includes) }) { rail in
                         VStack(alignment: .leading, spacing: 12) {
@@ -99,14 +97,15 @@ import StreamLabDesignSystem
         .background(StreamLabTheme.background)
         .navigationTitle("STREAMLAB")
         .navigationBarTitleDisplayMode(.inline)
-        .fullScreenCover(item: $playbackTitle, onDismiss: {
+        .fullScreenCover(item: $playbackPresentation, onDismiss: {
             playbackOrientation.finish()
             recentRefresh = UUID()
             if cancelledPlaybackTitleID != nil { showsCancelledPlaybackDetail = true }
-        }) { title in
-            PlaybackView(titleID: title.id, title: title.name, session: session, orientationSession: playbackOrientation, initialSource: playbackSource,
-                         onCancelFailure: { cancelledPlaybackTitleID = title.id })
-                .id("\(session.id.uuidString):\(title.id)")
+        }) { presentation in
+            PlaybackView(titleID: presentation.title.id, title: presentation.title.name, session: session,
+                         orientationSession: playbackOrientation, initialSource: presentation.source,
+                         onCancelFailure: { cancelledPlaybackTitleID = presentation.title.id })
+                .id(presentation.id)
         }
         .navigationDestination(isPresented: $showsCancelledPlaybackDetail) {
             if let id = cancelledPlaybackTitleID { DetailView(id: id, session: session) }
@@ -232,8 +231,7 @@ import StreamLabDesignSystem
     @ViewBuilder private func heroActions(_ title: CatalogTitle) -> some View {
         Button {
             playbackOrientation.begin()
-            playbackSource = .bundled
-            playbackTitle = title
+            playbackPresentation = HomePlaybackPresentation(title: title, source: .bundled)
         } label: {
             Label {
                 Text("데모 재생").fixedSize(horizontal: false, vertical: true)

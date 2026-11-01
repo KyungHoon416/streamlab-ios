@@ -12,7 +12,7 @@
 | A2 재생·복구 | 번들/HLS, 탐색, 자막·음성, 이어보기, 재시도, 오디오/회전/종료 경계 구현 | [iOS 패키지 25개](Measurements/Observer-Lifecycle-2026-11-01/REPORT.md). 실제 OS 리셋·모든 블루투스 조건과 동일하지 않음 |
 | A3 진도 동기화 | revision·idempotency·명시적 restart를 사용하는 서버 Mock 및 가상 A/B 구현 | [F08 충돌/수렴](CHAOS_ACCEPTANCE.md). 실제 여러 기기의 운영 서버 동기화는 아님 |
 | B 로컬 우선·정합성 | 원자적 파일 영속 큐, 찜/검색/진도, 프로필·계정 격리, 충돌/재시도/취소 구현 | [실제 HTTP·인증 경계](Measurements/HTTP-Boundaries-2026-10-31/REPORT.md), [100건 SIGKILL 복구](Measurements/Mutation-Process-2026-11-01/REPORT.md). SwiftData DB를 사용한 구조는 아님 |
-| C1 다운로드 | 네이티브 HLS, 백그라운드, 동시 2개, 관리 예산 1GB, 고정/LRU, 일시정지·재개·재시도·만료·공간 부족 정리 구현 | [복합 자동 검증](Measurements/Combined-Failures-2026-10-31/REPORT.md), [실기기 이력](DOWNLOADS_QA.md). 실제 OS ENOSPC는 주입 시험과 구분 |
+| C1 다운로드 | 홈 이어보기의 유효 다운로드 우선 선택, 네이티브 HLS, 백그라운드, 동시 2개, 관리 예산 1GB, 고정/LRU, 일시정지·재개·재시도·만료·공간 부족 정리 구현 | [홈 다운로드 우선 재생](Measurements/Offline-Continue-2026-11-01/REPORT.md), [복합 자동 검증](Measurements/Combined-Failures-2026-10-31/REPORT.md), [실기기 이력](DOWNLOADS_QA.md). 실제 OS ENOSPC는 주입 시험과 구분 |
 | C2 인증·권한 | Keychain 복원/잠금·로그아웃, 재생 grant 만료·키 상태 Mock, 진단 로그 최소화 | [로그인/잠금](Measurements/Auth-Unlock-Restore-2026-10-31/REPORT.md), [실행 중 만료 및 실기기 복구](Measurements/Runtime-Entitlement-2026-11-01/REPORT.md), [로그](Measurements/Diagnostic-Privacy-2026-10-31/REPORT.md). 실제 FairPlay/신뢰 시계 아님 |
 | C3 접근성 | Dynamic Type, VoiceOver 정보, 고대비·Reduce Motion 대응 및 사용자 확인 이력 | [작업 이력](ASSIGNMENT_PROGRESS.md). 최신 모든 화면/오류 조합을 통합 감사했다는 뜻은 아님 |
 | C4 성능 | HLS 22회·프레임/Hang/Hitch·메모리/Leaks·전력·파일 I/O 증빙 확보 | [통합 보고서](Measurements/C4-2026-10-31/REPORT.md). 실제 표시 프레임 간격·반복 잔존량 추세·원문 수치 기준의 합격은 미판정 |

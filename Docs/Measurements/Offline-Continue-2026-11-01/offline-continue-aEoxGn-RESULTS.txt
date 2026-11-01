@@ -1,0 +1,2 @@
+PASS home offline-first HLS selection, expired-file fallback and bundled resume regression
+INJECTED: downloaded file expiry. Real HLS package and local playback path checked. NOT TESTED: physical airplane mode, production DRM.
