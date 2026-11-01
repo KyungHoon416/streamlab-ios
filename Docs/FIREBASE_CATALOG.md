@@ -22,7 +22,9 @@
 
 Storage 에뮬레이터: `firebase emulators:exec --only storage --project demo-streamlab-admin 'npm --prefix admin run test:storage'`. 배포: `firebase deploy --only storage,hosting --project streamlab-ios-eba4f`.
 
-업로드 검증: 관리자·파일·취소/늦은 응답 단위 테스트 9개와 Storage 에뮬레이터 2개 통과. 관리자 생성/조회, 비로그인·다른 계정·미검증·비Google 계정 차단, 파일 형식/메타데이터/빈 파일 거부, 덮어쓰기·삭제 차단을 검사했다. Storage 및 Hosting 배포 완료. 실제 파일 선택은 Chrome 확장 로컬 파일 접근 제한으로 자동 수행하지 못했으며 사용자 업로드 확인 대기다. `streamlab-mp4-upload` 비공개 초안만 만들었고 파일 전송 성공으로 기록하지 않았다.
+업로드 검증: 관리자·파일·취소/늦은 응답 단위 테스트 9개와 Storage 에뮬레이터 2개 통과. 관리자 생성/조회, 비로그인·다른 계정·미검증·비Google 계정 차단, 파일 형식/메타데이터/빈 파일 거부, 덮어쓰기·삭제 차단을 검사했다. Storage 및 Hosting 배포 완료.
+
+2026-11-02 실제 전송 확인: 사용자가 데모 MP4를 선택·업로드했고 관리자 화면의 업로드 완료 및 URL 입력을 확인했다. `streamlab-mp4-upload`를 공개 저장(revision 2)한 뒤 서버 조회로 확인했다. 영상 HTTP Range 요청은 206 / `video/mp4` / `bytes 0-31/71397`을 반환했다. 전체 71,397바이트의 SHA-256이 저장소 원본 `playback-demo.mp4`와 일치했다. 실제 파일 전송·저장·공개·부분 다운로드 검증 완료이며 실기기 AVPlayer 영상/시간/탐색 확인은 아직 대기다. [업로드 CI](https://github.com/KyungHoon416/streamlab-ios/actions/runs/41321071403) 성공(`c5aa023`).
 
 MP4 URL 확장 검증: Core 266개, iOS 재생 경계 25개, 관리자 입력 4개·Firestore 규칙 4개 통과. 최종 Firebase Scheme Release 빌드 및 Hosting·Firestore 규칙 배포 완료. 실제 MP4 파일의 실기기 재생은 아직 확인하지 않았다.
 
