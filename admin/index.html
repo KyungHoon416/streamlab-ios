@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>StreamLab · 콘텐츠 관리</title>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/">STREAMLAB <span>관리자</span></a>
+      <div>
+        <span id="identity"></span><button id="logout" hidden>로그아웃</button>
+      </div>
+    </header>
+    <main>
+      <section id="signin">
+        <p class="eyebrow">CONTENT OPERATIONS</p>
+        <h1>작품을 등록하고,<br />앱에 공개하세요.</h1>
+        <p>승인된 관리자 Google 계정으로 로그인하세요.</p>
+        <button class="primary" id="login">Google 계정으로 로그인</button>
+        <p class="muted">
+          공개한 작품 정보와 HLS 주소는 앱 사용자가 조회할 수 있습니다.
+        </p>
+      </section>
+      <p id="message" role="status" aria-live="polite"></p>
+      <section id="workspace" hidden>
+        <div class="heading">
+          <div>
+            <p class="eyebrow">STREAMLAB LIBRARY</p>
+            <h1>콘텐츠 관리</h1>
+            <p class="muted">작품 정보를 저장하고 공개 상태를 관리합니다.</p>
+          </div>
+          <div>
+            <button id="refresh">새로고침</button>
+            <button id="new" class="primary">+ 작품 등록</button>
+          </div>
+        </div>
+        <div class="layout">
+          <section class="library">
+            <label for="search">작품 검색</label
+            ><input id="search" placeholder="제목 또는 작품 ID" />
+            <p id="count" class="muted"></p>
+            <div id="titles"></div>
+          </section>
+          <section class="editor">
+            <h2 id="form-title">새 작품</h2>
+            <form id="editor">
+              <label
+                >작품 ID<input
+                  name="id"
+                  required
+                  maxlength="64"
+                  placeholder="예: streamlab-film-01"
+                /><small>등록 후에는 변경할 수 없습니다.</small></label
+              >
+              <label>제목<input name="name" required maxlength="120" /></label>
+              <div class="grid">
+                <label
+                  >종류<select name="kind">
+                    <option value="movie">영화</option>
+                    <option value="series">시리즈</option>
+                  </select></label
+                ><label
+                  >연령 등급<select name="rating">
+                    <option>ALL</option>
+                    <option>7+</option>
+                    <option>12+</option>
+                    <option>15+</option>
+                    <option>19+</option>
+                  </select></label
+                >
+              </div>
+              <div class="grid">
+                <label
+                  >공개 연도<input
+                    name="year"
+                    type="number"
+                    min="1888"
+                    max="2100"
+                    value="2026"
+                    required /></label
+                ><label
+                  >재생 시간(분)<input
+                    name="durationMinutes"
+                    type="number"
+                    min="1"
+                    max="10000"
+                    value="30"
+                    required
+                /></label>
+              </div>
+              <label
+                >장르<input
+                  name="genre"
+                  required
+                  maxlength="60"
+                  placeholder="다큐멘터리" /></label
+              ><label
+                >작품 소개<textarea
+                  name="synopsis"
+                  rows="4"
+                  maxlength="5000"
+                ></textarea>
+              </label>
+              <label
+                >포스터 주소<input
+                  name="artworkURL"
+                  type="url"
+                  placeholder="https://…"
+                /><small>비워 두면 앱의 기본 포스터를 사용합니다.</small></label
+              >
+              <label
+                >HLS 영상 주소<input
+                  name="streamURL"
+                  type="url"
+                  placeholder="https://…/master.m3u8"
+                /><small
+                  >이용 권한이 있는 HTTPS HLS 주소를 입력하세요. 업로드·인코딩
+                  기능은 포함되지 않습니다.</small
+                ></label
+              >
+              <div class="grid">
+                <label
+                  >정렬 점수<input
+                    name="popularity"
+                    type="number"
+                    min="0"
+                    max="1000000"
+                    value="0" /></label
+                ><label
+                  >기본 포스터 번호<input
+                    name="visualSeed"
+                    type="number"
+                    min="0"
+                    max="1000000"
+                    value="1"
+                /></label>
+              </div>
+              <label class="check"
+                ><input name="published" type="checkbox" /> 앱에 공개</label
+              >
+              <p class="muted">
+                비공개 전환은 새 목록 조회에 반영됩니다. 이미 제공한 영상 URL의
+                접근 권한을 회수하는 기능은 아닙니다.
+              </p>
+              <button id="save" type="submit" class="primary">저장</button>
+              <span id="saved" class="muted"></span>
+            </form>
+          </section>
+        </div>
+      </section>
+    </main>
+    <footer>
+      streamlab-ios-eba4f · 콘텐츠 관리 / 사용자 인증·결제 관리 제외
+    </footer>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

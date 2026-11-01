@@ -13,17 +13,22 @@ import StreamLabDesignSystem
     @State private var showingKeychainDiagnostic = false
     #endif
     @StateObject private var account = CatalogAccount()
-    private let repository: MockCatalogRepository
+    private let repository: any CatalogRepository
+    private let usesFirebase = ProcessInfo.processInfo.arguments.contains("--firebase-catalog")
     private let startupLog = Logger(subsystem: "com.example.streamlab.demo", category: "Startup")
 
     init() {
         let span = HomeStartupTrace.begin("RootInit")
         defer { withExtendedLifetime(span) {} }
-        #if DEBUG
-        repository = MockCatalogRepository(responseDelay: ProcessInfo.processInfo.arguments.contains("--ui-test-slow-catalog") ? .seconds(4) : .milliseconds(120))
-        #else
-        repository = MockCatalogRepository()
-        #endif
+        if usesFirebase {
+            repository = FirestoreCatalogRepository(projectID: "streamlab-ios-eba4f")
+        } else {
+            #if DEBUG
+            repository = MockCatalogRepository(responseDelay: ProcessInfo.processInfo.arguments.contains("--ui-test-slow-catalog") ? .seconds(4) : .milliseconds(120))
+            #else
+            repository = MockCatalogRepository()
+            #endif
+        }
     }
 
     var body: some View {
@@ -102,7 +107,7 @@ import StreamLabDesignSystem
                             Text("StreamLab 데모")
                                 .font(.largeTitle.bold())
                                 .accessibilityAddTraits(.isHeader)
-                            Text("서버 연결 없는 과제용 데모입니다.\n데모 시작을 누르면 이 기기에 로그인 상태가 저장됩니다.")
+                            Text(usesFirebase ? "Firebase에 공개된 작품을 불러옵니다.\n계정과 시청 기록은 아직 기기 내 데모 기능입니다." : "서버 연결 없는 과제용 데모입니다.\n데모 시작을 누르면 이 기기에 로그인 상태가 저장됩니다.")
                                 .accessibilityIdentifier("demo-sign-in-description")
                             if account.isBusy { ProgressView("데모 계정을 준비하고 있어요") }
                             if let error = account.errorMessage {

@@ -48,6 +48,7 @@ public struct CatalogTitle: Codable, Identifiable, Sendable, Hashable {
     public let kind: MediaKind
     public let rating: ContentRating
     public let artworkURL: URL?
+    public let streamURL: URL?
     public let visualSeed: Int
     public let popularity: Int
 

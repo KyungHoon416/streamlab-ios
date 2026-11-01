@@ -231,10 +231,10 @@ import StreamLabDesignSystem
     @ViewBuilder private func heroActions(_ title: CatalogTitle) -> some View {
         Button {
             playbackOrientation.begin()
-            playbackPresentation = HomePlaybackPresentation(title: title, source: .bundled)
+            playbackPresentation = HomePlaybackPresentation(title: title, source: title.streamURL == nil ? .bundled : .catalogHLS)
         } label: {
             Label {
-                Text("데모 재생").fixedSize(horizontal: false, vertical: true)
+                Text(title.streamURL == nil ? "데모 재생" : "영상 재생").fixedSize(horizontal: false, vertical: true)
             } icon: { Image(systemName: "play.fill") }
         }
             .buttonStyle(StreamLabButtonStyle())

@@ -1,0 +1,32 @@
+name: Firebase admin validation
+on:
+  push:
+    branches: [main]
+    paths: ['admin/**', 'firestore.rules', 'firebase.json', '.github/workflows/firebase-admin.yml']
+  pull_request:
+    paths: ['admin/**', 'firestore.rules', 'firebase.json', '.github/workflows/firebase-admin.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  admin-rules:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: admin/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm --prefix admin ci
+      - run: npm --prefix admin test
+      - run: npm --prefix admin run build
+      - name: Verify rules against a local demo project
+        run: npx --yes firebase-tools@14.3.1 emulators:exec --only firestore --project demo-streamlab-admin 'npm --prefix admin run test:rules'

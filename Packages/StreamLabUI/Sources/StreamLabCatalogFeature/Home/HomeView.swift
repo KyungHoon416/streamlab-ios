@@ -68,7 +68,7 @@ import StreamLabDesignSystem
                     if let featured = ([home.hero] + home.rails.flatMap(\.items)).first(where: category.includes) {
                         HomeHero(title: featured, myList: myList) {
                             playbackOrientation.begin()
-                            playbackPresentation = HomePlaybackPresentation(title: featured, source: .bundled)
+                            playbackPresentation = HomePlaybackPresentation(title: featured, source: featured.streamURL == nil ? .bundled : .catalogHLS)
                         }
                     }
                     if category != .recommended {
@@ -253,7 +253,7 @@ import StreamLabDesignSystem
     @ViewBuilder private var heroActions: some View {
         Button(action: onPlay) {
             Label {
-                Text("데모 재생").fixedSize(horizontal: false, vertical: true)
+                Text(title.streamURL == nil ? "데모 재생" : "영상 재생").fixedSize(horizontal: false, vertical: true)
             } icon: { Image(systemName: "play.fill") }
         }
             .buttonStyle(StreamLabButtonStyle())

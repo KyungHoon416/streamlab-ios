@@ -17,3 +17,9 @@ xcuserdata/
 /Docs/Validation/
 /core-fresh.log
 /core-recheck.log
+
+# Firebase admin build/emulator outputs
+admin/node_modules/
+admin/dist/
+*-debug.log
+.firebase/

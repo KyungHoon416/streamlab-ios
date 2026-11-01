@@ -270,7 +270,7 @@ import StreamLabDesignSystem
             }
             VStack(alignment: .leading, spacing: 4) {
                 Text(title).font(.headline).fixedSize(horizontal: false, vertical: true)
-                Text("테스트 영상 · \(source.rawValue)")
+                Text(source == .catalogHLS ? source.rawValue : "테스트 영상 · \(source.rawValue)")
                     .accessibilityIdentifier("playback-source-label")
                     .font(.caption).foregroundStyle(.white.opacity(contrast == .increased ? 1 : 0.8))
                     .fixedSize(horizontal: false, vertical: true)
@@ -699,7 +699,7 @@ import StreamLabDesignSystem
         NavigationStack {
             List {
                 Section {
-                    ForEach(PlaybackModel.Source.allCases.filter { $0 != .downloadedHLS }) { option in
+                    ForEach(PlaybackModel.Source.allCases.filter { source == .catalogHLS ? $0 == .catalogHLS : ($0 != .downloadedHLS && $0 != .catalogHLS) }) { option in
                         Button {
                             source = option
                             sourceSheet = false

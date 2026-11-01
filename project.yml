@@ -248,3 +248,16 @@ schemes:
         "--startup-chrome=baseline": true
         "--startup-tab-builder=explicit": true
         "--startup-tab-style=bar-only": true
+
+  StreamLab-Firebase:
+    build:
+      targets:
+        StreamLab: all
+    run:
+      config: Debug
+      commandLineArguments:
+        "--firebase-catalog": true
+    profile:
+      config: Release
+      commandLineArguments:
+        "--firebase-catalog": true

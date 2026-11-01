@@ -8,7 +8,7 @@
 
 | 영역 | 구현 상태 | 확인 근거와 남은 범위 |
 |---|---|---|
-| A1 홈·검색·프로필 | Mock 카탈로그, 페이지네이션, 검색, 찜, 키즈 제한, 탭/상세 경로 구현 | [프로필 UI 5개](Measurements/Profile-Seek-2026-11-01/REPORT.md), [F01 역순 응답](CHAOS_ACCEPTANCE.md). 운영 콘텐츠 서버는 연결하지 않음 |
+| A1 홈·검색·프로필 | 기존 Mock 및 별도 Firebase 공개 카탈로그 Scheme, 관리자 작품 등록·공개 설정 구현 | [Firebase 연결 범위·검증](FIREBASE_CATALOG.md), [프로필 UI 5개](Measurements/Profile-Seek-2026-11-01/REPORT.md), [F01 역순 응답](CHAOS_ACCEPTANCE.md). 실제 관리자 저장·실기기 원격 재생은 확인 대기 |
 | A2 재생·복구 | 번들/HLS, 탐색, 자막·음성, 이어보기, 재시도, 오디오/회전/종료 경계 구현 | [iOS 패키지 25개](Measurements/Observer-Lifecycle-2026-11-01/REPORT.md). 실제 OS 리셋·모든 블루투스 조건과 동일하지 않음 |
 | A3 진도 동기화 | revision·idempotency·명시적 restart를 사용하는 서버 Mock 및 가상 A/B 구현 | [F08 충돌/수렴](CHAOS_ACCEPTANCE.md). 실제 여러 기기의 운영 서버 동기화는 아님 |
 | B 로컬 우선·정합성 | 원자적 파일 영속 큐, 찜/검색/진도, 프로필·계정 격리, 충돌/재시도/취소 구현 | [실제 HTTP·인증 경계](Measurements/HTTP-Boundaries-2026-10-31/REPORT.md), [100건 SIGKILL 복구](Measurements/Mutation-Process-2026-11-01/REPORT.md). SwiftData DB를 사용한 구조는 아님 |
@@ -26,7 +26,7 @@
 3. **아직 보고받지 않은 실기기 조합**: F09 다운로드 파일+비행기 모드+Mock 만료/갱신 불가, F10 자막 변경+실제 연결 차단 후 닫기/새 재생은 [정확한 순서](CHAOS_ACCEPTANCE.md)를 따른다. 기존 정상 오프라인 재생·일반 권한 만료 복구 확인을 이 조합의 완료로 대신하지 않는다.
 4. **최종 제출 버전 고정**: 제출 커밋과 앱 빌드, 사용한 CI/시뮬레이터/실기기 증빙 버전을 점검표에 기록한다. 날짜가 다른 성능 측정이 최신 빌드와 같다고 주장하지 않는다.
 
-실제 운영 로그인/카탈로그/DRM 서버 구축과 SwiftData 전환은 현재 Mock 구현 범위와 별개다. 단지 서버가 없거나 SwiftData를 사용하지 않는다는 이유만으로 구현된 로컬 영속성을 ‘미구현’으로 표시하지 않는다. 원문에서 추가 필수 조건이 확인되면 별도 작업으로 반영한다.
+Firebase 공개 카탈로그와 관리자 웹은 별도 Scheme으로 연결했다. 실제 운영 사용자 로그인·진도 동기화·DRM 서버와 SwiftData 전환은 현재 데모 구현 범위와 별개다. 단지 SwiftData를 사용하지 않는다는 이유만으로 구현된 로컬 영속성을 ‘미구현’으로 표시하지 않는다. 원문에서 추가 필수 조건이 확인되면 별도 작업으로 반영한다.
 
 ## 현재 근거 읽는 순서
 

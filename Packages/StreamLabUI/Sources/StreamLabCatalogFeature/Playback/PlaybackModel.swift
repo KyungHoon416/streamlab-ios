@@ -10,6 +10,7 @@ import StreamLabPresentation
 @MainActor final class PlaybackModel: ObservableObject {
     enum Source: String, CaseIterable, Identifiable {
         case bundled = "오프라인 데모", hls = "HLS 스트리밍"
+        case catalogHLS = "등록된 HLS 영상"
         case downloadedHLS = "다운로드한 HLS 샘플"
         case hlsAudio = "HLS 오디오 비교 · 영어 / 화면 해설"
         case hlsStandardAudio = "HLS 오디오 비교 · 일반 영어만"
@@ -21,7 +22,7 @@ import StreamLabPresentation
         var id: String { rawValue }
         var isHLS: Bool {
             switch self {
-            case .hls, .hlsAudio, .hlsStandardAudio, .hlsEpisode1, .hlsEpisode2, .downloadedHLS: true
+            case .catalogHLS, .hls, .hlsAudio, .hlsStandardAudio, .hlsEpisode1, .hlsEpisode2, .downloadedHLS: true
             default: false
             }
         }
@@ -36,6 +37,7 @@ import StreamLabPresentation
         var progressID: String {
             switch self {
             case .bundled: "bundled-demo-v1"
+            case .catalogHLS: "catalog-hls-v1"
             case .hls, .downloadedHLS: "apple-bipbop-v1"
             case .hlsAudio: "apple-trailer-audio-v1"
             case .hlsStandardAudio: "apple-bipbop-standard-v1"
@@ -48,7 +50,7 @@ import StreamLabPresentation
         }
         var url: URL? {
             switch self {
-            case .downloadedHLS: nil // Resolved only through the profile-scoped download store.
+            case .catalogHLS, .downloadedHLS: nil // Resolved from the repository or download store.
             case .bundled, .episode1, .episode2, .episode3: Bundle.module.url(forResource: "playback-demo", withExtension: "mp4")
             case .hls, .hlsEpisode1: URL(string: "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8")
             case .hlsStandardAudio: URL(string: "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8")
@@ -118,6 +120,7 @@ import StreamLabPresentation
     private var nextEpisodeStarted: ContinuousClock.Instant?
     private var nowPlayingOwner: UUID?
     private var nowPlayingTitle = "StreamLab"
+    private var catalogURL: URL?
     private var nowPlayingArtworkURL: URL?
     private let titleID: String
     private let session: CatalogSession
@@ -348,6 +351,7 @@ import StreamLabPresentation
                 var grant = try await entitlementProvider.authorize(entitlementScope, now: self.entitlementNow)
                 guard !Task.isCancelled, self.generation == ticket, self.session.isActive else { return }
                 self.nowPlayingTitle = title.name
+                self.catalogURL = title.streamURL
                 self.nowPlayingArtworkURL = StreamLabTheme.bundledArtworkURL(seed: title.visualSeed)
                 if let deviceID = self.syncDeviceID {
                     let identity = ProgressIdentity(profileID: profile.id, titleID: id, sourceID: self.source.progressID)
@@ -380,7 +384,7 @@ import StreamLabPresentation
     }
 
     private func prepare(ticket: Int) {
-        var url = source.url
+        var url = source == .catalogHLS ? catalogURL : source.url
         if source == .downloadedHLS {
             guard let (savedURL, lease) = OfflineDownloadStore.shared.acquire(session: session, titleID: titleID) else {
                 fail("다운로드 파일이 없거나 이용 기간이 만료되어 재생할 수 없습니다. 다시 다운로드해 주세요.")
