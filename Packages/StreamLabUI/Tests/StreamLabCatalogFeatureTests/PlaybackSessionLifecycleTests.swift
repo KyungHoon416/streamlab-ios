@@ -119,6 +119,45 @@ final class PlaybackSessionLifecycleTests: XCTestCase {
     }
 
     @MainActor
+    func testTenPlaybackClosuresIgnoreOldSystemNotifications() async throws {
+        let name = "f05-observers-\(UUID())"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
+        let repository = MockCatalogRepository(responseDelay: .zero)
+        let profile = ViewerProfile.demo[0]
+        let title = try await repository.home(profile: profile).hero
+        let session = CatalogSession(profile: profile, repository: repository, configuration: (name, defaults))
+        defer { session.invalidate(); defaults.removePersistentDomain(forName: name) }
+        let model = PlaybackModel(titleID: title.id, session: session)
+        defer { model.stop() }
+        for _ in 0..<10 {
+            model.load(.bundled)
+            try await waitForPlayback(model)
+            let item = try XCTUnwrap(model.player?.currentItem)
+            model.stop()
+            let center = NotificationCenter.default
+            center.post(name: AVAudioSession.interruptionNotification, object: nil,
+                        userInfo: [AVAudioSessionInterruptionTypeKey: AVAudioSession.InterruptionType.began.rawValue])
+            center.post(name: AVAudioSession.interruptionNotification, object: nil,
+                        userInfo: [AVAudioSessionInterruptionTypeKey: AVAudioSession.InterruptionType.ended.rawValue,
+                                   AVAudioSessionInterruptionOptionKey: AVAudioSession.InterruptionOptions.shouldResume.rawValue])
+            center.post(name: AVAudioSession.routeChangeNotification, object: nil,
+                        userInfo: [AVAudioSessionRouteChangeReasonKey: AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue])
+            center.post(name: AVAudioSession.mediaServicesWereResetNotification, object: nil)
+            center.post(name: AVPlayerItem.didPlayToEndTimeNotification, object: item)
+            center.post(name: AVPlayerItem.failedToPlayToEndTimeNotification, object: item)
+            // Let MainActor tasks created by an incorrectly retained observer execute.
+            try await Task.sleep(for: .milliseconds(100))
+            XCTAssertEqual(model.status, .idle)
+            XCTAssertNil(model.player)
+            XCTAssertNil(PlaybackNowPlaying.shared.session)
+            XCTAssertFalse(model.failureIsMediaReset)
+        }
+        model.load(.bundled)
+        try await waitForPlayback(model)
+        XCTAssertFalse(model.failureIsMediaReset)
+    }
+
+    @MainActor
     func testTenBackgroundCyclesWithCachePressureReleaseModelAndStopPlayer() async throws {
         let name = "f05-\(UUID())"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: name))

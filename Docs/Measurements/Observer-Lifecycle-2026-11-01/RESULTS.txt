@@ -1,0 +1,7 @@
+PASS 25 iOS package tests, 0 failures, 30.430 seconds
+PASS 17 mandatory test markers
+PASS 10 observer create/remove cycles per type, exact delivery and capture release
+PASS 10 actual playback/stop cycles with old notifications, then new playback
+PASS shell syntax and whitespace
+PENDING remote CI
+NOT TESTED physical Bluetooth/reset/volume event, OS-wide observers, jetsam, AVPlayer internal lifetime
