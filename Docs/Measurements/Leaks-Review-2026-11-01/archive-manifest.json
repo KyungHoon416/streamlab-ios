@@ -1,0 +1,86 @@
+{
+  "method": "ZIP member SHA-256; class presence is not snapshot count or status decoding",
+  "records": [
+    {
+      "file": "memory-hls-leaks-part1.trace",
+      "archive": "instrument_data/3843273D-57DD-49D5-8761-BFCCB3364944/run_data/3.run.zip",
+      "member": "3.run",
+      "size": 1630,
+      "sha256": "614787a1a771f28598b3e069bd8e83d4a9e20c23798ccdd2ad6f7f47f8bd1628",
+      "snapshot_class_present": true
+    },
+    {
+      "file": "memory-hls-leaks-part2.trace",
+      "archive": "instrument_data/3843273D-57DD-49D5-8761-BFCCB3364944/run_data/4.run.zip",
+      "member": "4.run",
+      "size": 1652,
+      "sha256": "8f935ff5a05aba67d5ce85df88bcfceb548c1a30bfab6d903684e47b4c3796cf",
+      "snapshot_class_present": true
+    },
+    {
+      "file": "memory-hls-leaks-part2.trace",
+      "archive": "instrument_data/3843273D-57DD-49D5-8761-BFCCB3364944/run_data/3.run.zip",
+      "member": "3.run",
+      "size": 1630,
+      "sha256": "614787a1a771f28598b3e069bd8e83d4a9e20c23798ccdd2ad6f7f47f8bd1628",
+      "snapshot_class_present": true
+    },
+    {
+      "file": "memory-hls-leaks-part3.trace",
+      "archive": "instrument_data/3843273D-57DD-49D5-8761-BFCCB3364944/run_data/4.run.zip",
+      "member": "4.run",
+      "size": 1652,
+      "sha256": "8f935ff5a05aba67d5ce85df88bcfceb548c1a30bfab6d903684e47b4c3796cf",
+      "snapshot_class_present": true
+    },
+    {
+      "file": "memory-hls-leaks-part3.trace",
+      "archive": "instrument_data/3843273D-57DD-49D5-8761-BFCCB3364944/run_data/5.run.zip",
+      "member": "5.run",
+      "size": 1652,
+      "sha256": "7b6d49d22c635db100e3ab90ad20cdc36d77406dc501fad2943820a99092009e",
+      "snapshot_class_present": true
+    },
+    {
+      "file": "memory-hls-leaks-part3.trace",
+      "archive": "instrument_data/3843273D-57DD-49D5-8761-BFCCB3364944/run_data/3.run.zip",
+      "member": "3.run",
+      "size": 1630,
+      "sha256": "614787a1a771f28598b3e069bd8e83d4a9e20c23798ccdd2ad6f7f47f8bd1628",
+      "snapshot_class_present": true
+    },
+    {
+      "file": "memory-hls-leaks-part4.trace",
+      "archive": "instrument_data/3843273D-57DD-49D5-8761-BFCCB3364944/run_data/6.run.zip",
+      "member": "6.run",
+      "size": 1630,
+      "sha256": "474083fc08fd2c26d7168cedd19fe24058e3852d7d8d4887a2bb5c31a42e22c3",
+      "snapshot_class_present": true
+    },
+    {
+      "file": "memory-hls-leaks-part4.trace",
+      "archive": "instrument_data/3843273D-57DD-49D5-8761-BFCCB3364944/run_data/4.run.zip",
+      "member": "4.run",
+      "size": 1652,
+      "sha256": "8f935ff5a05aba67d5ce85df88bcfceb548c1a30bfab6d903684e47b4c3796cf",
+      "snapshot_class_present": true
+    },
+    {
+      "file": "memory-hls-leaks-part4.trace",
+      "archive": "instrument_data/3843273D-57DD-49D5-8761-BFCCB3364944/run_data/5.run.zip",
+      "member": "5.run",
+      "size": 1652,
+      "sha256": "7b6d49d22c635db100e3ab90ad20cdc36d77406dc501fad2943820a99092009e",
+      "snapshot_class_present": true
+    },
+    {
+      "file": "memory-hls-leaks-part4.trace",
+      "archive": "instrument_data/3843273D-57DD-49D5-8761-BFCCB3364944/run_data/3.run.zip",
+      "member": "3.run",
+      "size": 1630,
+      "sha256": "614787a1a771f28598b3e069bd8e83d4a9e20c23798ccdd2ad6f7f47f8bd1628",
+      "snapshot_class_present": true
+    }
+  ],
+  "unique_archive_count": 4
+}
