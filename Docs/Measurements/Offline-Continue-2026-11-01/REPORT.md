@@ -24,7 +24,7 @@ OfflineDownloadStore의 기존 acquire 검사와 소스 선택 검사를 하나�
 
 앞선 실행은 숨기지 않는다. `offline-continue-LP8JBI`는 초기 로그인 화면에서 실패하여 신규 기능에 도달하지 못했다(원인 미확정). `offline-continue-vtDqah`는 HLS 카드가 번들 데모로 열리는 소스 전달 오류를 재현했다. 후자의 앱 코드를 수정한 뒤 최종 실행에서 다운로드·만료·번들 경로를 모두 통과했다. 기본 PV 홈을 UI 검증했으며 비교용 Inline 홈은 동일 구조 수정 및 빌드 확인 범위다.
 
-원격 CI는 푸시 후 결과를 추가 기록한다.
+구현 커밋 `44f5eb1`의 [원격 CI 41305638487](https://github.com/KyungHoon416/streamlab-ios/actions/runs/41305638487) SUCCESS. 코어/HTTP/카오스·SIGKILL 복구, iOS 재생 회귀 25개, warnings-as-errors Release 빌드 PASS. 실행 결과와 전체 로그를 ci.json/ci.log에 보존했다.
 
 ## 실기기 확인
 
