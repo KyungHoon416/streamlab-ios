@@ -38,3 +38,5 @@ bash scripts/check-playback-session-lifecycle-mac.sh
 다운로드 복합 스크립트는 다른 계정의 고정 파일이 기기 전체 예산에 영향을 주므로 기본적으로 전용 시뮬레이터를 생성·정리한다. 명시적 `SIMULATOR_ID` 사용 시 해당 기기는 삭제하지 않는다.
 
 F03 프로세스 검증은 `bash scripts/check-mutation-process-crash-mac.sh`로 실행한다. 별도 macOS 실행 파일이 고유 임시 폴더의 더미 100건만 사용하며 부모가 자신이 만든 자식만 종료한다. 준비 표식·SIGKILL 종료 코드·재실행 결과 표식이 모두 있어야 PASS다. iOS 앱에는 이 도구를 연결하지 않는다.
+
+프로필 전환 UI 5개는 `bash scripts/check-profile-boundaries-mac.sh`로 로컬 실행한다. F04의 탐색 완료 처리 보류 중 닫기→B 프로필→새 재생을 포함한다. 이 UI suite는 현재 원격 패키지 iOS 22개와 별도이며 자동 Actions에 포함됐다고 주장하지 않는다.

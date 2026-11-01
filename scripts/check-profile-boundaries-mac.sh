@@ -27,7 +27,8 @@ xcodebuild -project StreamLab.xcodeproj -scheme StreamLab -configuration Debug \
   -only-testing:StreamLabUITests/StreamLabUITests/testProfileSwitchDuringPaginationRemovesOverlayAndOldResults \
   -only-testing:StreamLabUITests/StreamLabUITests/testTabDetailPathsSurviveSwitchAndResetWithProfile \
   -only-testing:StreamLabUITests/StreamLabUITests/testPlaybackCloseDuringAuthorizationAndReopenForKids \
-  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- test > "$run_dir/ui-tests.log" 2>&1
+  -only-testing:StreamLabUITests/StreamLabUITests/testF04CloseDuringSeekThenSwitchProfileKeepsNewPlaybackIndependent \
+  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES SWIFT_SUPPRESS_WARNINGS=NO CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- test > "$run_dir/ui-tests.log" 2>&1
 result=$?
 app_path="$build_dir/DerivedData/Build/Products/Debug-iphonesimulator/StreamLab.app"
 {
@@ -41,13 +42,14 @@ if [ "$result" -eq 0 ]; then
   if ! grep -Eq 'testSearchPaginationAndProfileSwitch.*passed' "$run_dir/ui-tests.log" ||
      ! grep -Eq 'testProfileSwitchDuringPaginationRemovesOverlayAndOldResults.*passed' "$run_dir/ui-tests.log" ||
      ! grep -Eq 'testTabDetailPathsSurviveSwitchAndResetWithProfile.*passed' "$run_dir/ui-tests.log" ||
+     ! grep -Eq 'testF04CloseDuringSeekThenSwitchProfileKeepsNewPlaybackIndependent.*passed' "$run_dir/ui-tests.log" ||
      ! grep -Eq 'testPlaybackCloseDuringAuthorizationAndReopenForKids.*passed' "$run_dir/ui-tests.log"; then
     echo 'FAIL required profile boundary tests did not all pass' >> "$run_dir/RESULTS.txt"
     result=1
   fi
 fi
 if [ "$result" -eq 0 ]; then
-  echo 'PASS four profile boundary UI tests' | tee "$run_dir/RESULTS.txt"
+  echo 'PASS five profile boundary UI tests' | tee "$run_dir/RESULTS.txt"
 else
   echo "FAIL profile boundary UI exit=$result" | tee "$run_dir/RESULTS.txt"
 fi

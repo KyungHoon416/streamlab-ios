@@ -1,0 +1,15 @@
+{
+  "logs": [
+    {
+      "path": "Docs/Validation/profile-seek-2026-11-01/new.log",
+      "sha256": "eb26d4eb7f9d098661677cf01658995b261da8152bf0d5007a27e40a186c52b8",
+      "bytes": 79024
+    },
+    {
+      "path": "Docs/Validation/profile-seek-2026-11-01/existing.log",
+      "sha256": "90a7dd541f12eb4bd0fce4dd0e8c6170c003969bf483232003eb90473ff468ac",
+      "bytes": 84242
+    }
+  ],
+  "environment": "Xcode 27; iOS Simulator 26.4; iPhone 17 Pro; Debug ad hoc signing; warnings as errors"
+}

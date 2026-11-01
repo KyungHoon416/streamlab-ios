@@ -1598,6 +1598,38 @@ import XCTest
         closePlayback(app)
     }
 
+    func testF04CloseDuringSeekThenSwitchProfileKeepsNewPlaybackIndependent() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=seek-profile-\(UUID())",
+                               "--ui-test-stall-seek-once", "--ui-test-keep-playback-controls"]
+        app.launch()
+        choose("adult-a", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        // Hold completion of A's first seek so closing is tested while it is pending.
+        app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0.5)
+        XCTAssertFalse(app.buttons["playback-toggle"].isEnabled, "A must still be seeking before close")
+        closePlayback(app)
+        back(app)
+        tap(app.buttons["switch-profile"], in: app)
+        choose("adult-b", in: app)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        XCTAssertFalse(app.staticTexts["playback-resumed"].exists, "B must not inherit A's seek position")
+        assertPlaybackClockAdvances(app)
+        // Cross A's eight-second watchdog boundary after B is already playing.
+        let progressed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            (self.playbackTimes(app)?.position ?? 0) >= 10
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [progressed], timeout: 15), .completed)
+        expectPlayback("재생 중", in: app)
+        XCTAssertFalse(app.staticTexts["playback-seek-message"].exists)
+        XCTAssertFalse(app.alerts["영상을 불러올 수 없습니다"].exists)
+        closePlayback(app)
+    }
+
     func testPausedSeekTimeoutRecoversControls() {
         let app = XCUIApplication()
         app.launchArguments.append("--ui-test-stall-seek-once")

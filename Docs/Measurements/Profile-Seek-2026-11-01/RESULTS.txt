@@ -1,0 +1,6 @@
+PASS new F04 UI scenario (1 test, 63.014 seconds)
+PASS existing profile boundary UI scenarios (4 tests)
+PASS all 5 required success markers across the two test runs
+PASS shell syntax and whitespace
+PENDING remote CI
+NOT TESTED native late seek callback delivery, real HLS network race, physical device
