@@ -230,3 +230,17 @@ footer {
   width: 100%;
   margin-top: 12px;
 }
+
+.video-dropzone {
+  border: 2px dashed #849b88;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 20px 0;
+  background: #fff;
+  text-align: center;
+}
+.video-dropzone > strong, .video-dropzone > span { display: block; margin-bottom: 10px; }
+.video-dropzone label { text-align: left; margin: 20px auto 0; max-width: 480px; }
+.video-dropzone.drag-over { border-color: #225b37; background: #e3f0e5; }
+.video-dropzone:focus-within { outline: 2px solid #225b37; outline-offset: 3px; }
+#video-selection { overflow-wrap: anywhere; margin-bottom: 0; }

@@ -68,3 +68,7 @@ swift test --package-path Packages/StreamLabCore --scratch-path /private/tmp/str
 - 기존 `scripts/validate-project.py`는 이전부터 있던 AppRootView의 UIKit 시스템 어댑터를 허용 목록에 포함하지 않아 중단됨. 이 구조 검사기의 통과를 주장하지 않으며, 실제 iOS 빌드 및 패키지 테스트 결과와 구분한다.
 - 사용자 Google 로그인 후 실제 관리자 화면 확인 완료. `apple-hls-sample`을 비공개 생성(revision 1) → 공개(2) → 비공개(3) → 재공개(4)했다. 비공개 상태의 익명 직접 조회는 `PERMISSION_DENIED`, 공개 상태의 iOS 동일 홈·상세 REST 쿼리는 정상 반환됨을 확인했다. 실기기 확인을 위해 Apple 테스트 HLS 샘플 하나를 공개 상태로 남겼다. iPhone 원격 영상·시간·탐색 재생 확인은 아직 대기다.
 - 원격 CI: [Firebase admin validation](https://github.com/KyungHoon416/streamlab-ios/actions/runs/41313300648), [StreamLab validation](https://github.com/KyungHoon416/streamlab-ios/actions/runs/41313300641) 모두 성공(`ddc116f`).
+
+### MP4 드래그 앤 드롭 (2026-11-02)
+
+업로드 영역에 MP4 한 개를 놓거나 기존 파일 선택을 이용합니다. 파일명·크기를 확인한 뒤 파일 업로드를 눌러 전송하고, 완료 후 저장합니다. 드롭만으로 전송하지 않습니다. 확장자·MIME·크기·MP4 헤더를 검증하며 여러 파일은 거절합니다. 작품 변경·로그아웃 후 늦게 끝난 파일 검증이 선택을 되살리지 않도록 방어했습니다. 관리자 단위 테스트 11개와 배포 빌드 통과. 실제 Finder 드래그 동작은 사용자 확인이 남아 있습니다.

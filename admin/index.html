@@ -142,12 +142,13 @@
                   작품을 먼저 비공개로 저장한 뒤 파일을 선택하세요. 최대 500MB,
                   MP4 형식을 지원합니다.
                 </p>
-                <label
-                  >MP4 파일<input
-                    id="video-file"
-                    type="file"
-                    accept=".mp4,video/mp4"
-                /></label>
+                <div id="video-dropzone" class="video-dropzone">
+                  <strong>MP4 영상을 여기에 끌어다 놓으세요</strong>
+                  <span>파일 1개 · 최대 500MB</span>
+                  <label>또는 파일 선택<input id="video-file" type="file"
+                    accept=".mp4,video/mp4" aria-describedby="video-selection" /></label>
+                  <p id="video-selection" role="status" aria-live="polite">선택된 파일 없음</p>
+                </div>
                 <button type="button" id="upload-start">파일 업로드</button>
                 <button type="button" id="upload-cancel" hidden>
                   업로드 취소

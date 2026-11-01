@@ -28,6 +28,7 @@ import {
   uploadBytesResumable,
   getDownloadURL,
 } from "firebase/storage";
+import { VideoSelection } from "./selection.js";
 import { VideoUpload } from "./upload.js";
 const app = initializeApp(config),
   auth = getAuth(app),
@@ -45,8 +46,53 @@ const message = (text) => {
 };
 const storage = getStorage(app);
 let uploading = false;
+const selection = new VideoSelection((file, error) => {
+  $("video-selection").textContent = file
+    ? `${file.name} · ${(file.size / 1_000_000).toLocaleString("ko-KR", { maximumFractionDigits: 2 })} MB`
+    : "선택된 파일 없음";
+  $("upload-status").textContent = error || (file ? "파일이 선택됐습니다. 파일 업로드를 눌러 전송하세요." : "");
+});
+const dropzone = $("video-dropzone");
+let dragDepth = 0;
+function clearDrag() {
+  dragDepth = 0;
+  dropzone.classList.remove("drag-over");
+}
+function chooseFiles(files) {
+  if (!allowed || busy) return;
+  const candidates = Array.from(files);
+  $("video-file").value = "";
+  selection.choose(candidates);
+}
+$("video-file").addEventListener("change", (event) => chooseFiles(event.target.files));
+const isFileDrag = (event) => Array.from(event.dataTransfer?.types ?? []).includes("Files");
+dropzone.addEventListener("dragenter", (event) => {
+  if (!isFileDrag(event)) return;
+  event.preventDefault();
+  if (allowed && !busy && ++dragDepth === 1) dropzone.classList.add("drag-over");
+});
+dropzone.addEventListener("dragleave", () => {
+  if (--dragDepth <= 0) clearDrag();
+});
+dropzone.addEventListener("dragover", (event) => {
+  if (!isFileDrag(event)) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = allowed && !busy ? "copy" : "none";
+});
+dropzone.addEventListener("drop", (event) => {
+  if (!isFileDrag(event)) return;
+  event.preventDefault();
+  clearDrag();
+  chooseFiles(event.dataTransfer.files);
+});
+// A missed drop must not navigate away from an unsaved editor.
+for (const type of ["dragover", "drop"]) document.addEventListener(type, (event) => {
+  if (isFileDrag(event)) event.preventDefault();
+  if (type === "drop") clearDrag();
+});
 function uploadBusy(value) {
   uploading = value;
+  clearDrag();
   busy = value;
   for (const element of form.elements) element.disabled = value;
   form.elements.id.disabled = value || !!selected;
@@ -67,6 +113,7 @@ const uploader = new VideoUpload({
   completed: (url) => {
     form.elements.streamURL.value = url;
     $("video-file").value = "";
+    selection.clear();
     $("upload-status").textContent =
       "업로드 완료. 영상 URL이 입력됐습니다. 저장을 눌러 작품에 반영하세요.";
   },
@@ -104,7 +151,11 @@ $("upload-start").onclick = () => {
     $("upload-status").textContent = "작품 정보를 먼저 비공개로 저장해 주세요.";
     return;
   }
-  const file = $("video-file").files[0];
+  const file = selection.file;
+  if (!file) {
+    $("upload-status").textContent = "유효한 MP4 파일을 먼저 선택하세요.";
+    return;
+  }
   uploadBusy(true);
   $("upload-progress").value = 0;
   $("upload-status").textContent = "MP4 파일을 확인하고 있어요…";
@@ -123,6 +174,8 @@ function reset(item = null) {
   selected = item?.id ?? null;
   revision = item?.revision ?? 0;
   form.reset();
+  selection.clear();
+  clearDrag();
   for (const [k, v] of Object.entries(item ?? {})) {
     const el = form.elements.namedItem(k);
     if (el && k !== "updatedAt") {
