@@ -1,3 +1,5 @@
+[현재 구현·남은 작업](Docs/CURRENT_STATUS.md) · [제출 점검표](Docs/SUBMISSION_CHECKLIST.md) · [5분 시연 대본](Docs/DEMO_SCRIPT.md)
+
 [최신 한글 아키텍처](Docs/ARCHITECTURE_CURRENT.md) · [아키텍처 PDF](Docs/Architecture/streamlab-architecture-ko.pdf)
 
 [F01–F10 검증 범위와 실기기 순서](Docs/CHAOS_ACCEPTANCE.md)
