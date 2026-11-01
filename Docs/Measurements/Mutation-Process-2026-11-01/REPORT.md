@@ -15,7 +15,12 @@
 
 ## 결과
 
-로컬 프로세스 검증 PASS. 원격 CI 확인 예정.
+- 로컬 실제 SIGKILL 2회/재실행 3회: PASS. 100건 유지·중복 효과 0·pending 0·ACK 영속성 확인.
+- 조기 정상 종료를 준비 완료로 오인하지 않는 부정 검증: PASS.
+- 경고 오류 처리/엄격한 동시성 빌드, 셸 문법·공백 검사: PASS.
+- 원격 CI [#41299395393](https://github.com/KyungHoon416/streamlab-ios/actions/runs/41299395393): **PASS**. 구현 커밋 `9515c98dab27fe1a6b88d6ad9c55094f83b8f0b8`.
+- 원격 로그에서 SIGKILL 두 단계와 F03 PROCESS PASS 표식 확인. 기존 Core/실제 loopback HTTP/카오스 3종 × 1000 seed/TTFF parser 6개, iOS 22개, iOS Release 빌드도 통과.
+- 결과 JSON과 원시 로그 SHA-256은 CI.json/MANIFEST.json에 보관했다. 앱 런타임 수정 없이 검증 범위를 보강했다.
 
 ## 범위
 

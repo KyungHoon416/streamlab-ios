@@ -4,5 +4,6 @@ PASS fresh processes preserve original envelopes, values, revision 100, pending 
 PASS final restart preserves 100 ACKs
 PASS premature child exit rejected (negative check)
 PASS shell syntax and whitespace
-PENDING remote CI
+PASS remote CI 41299395393 on 9515c98dab27fe1a6b88d6ad9c55094f83b8f0b8
+PASS remote F03 SIGKILL markers, Core/HTTP/chaos/parser, iOS 22, Release
 NOT TESTED iOS jetsam/protection, atomic-write interruption, power loss, production server
