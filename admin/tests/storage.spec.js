@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import { test, before, after } from "node:test";
 import { readFile } from "node:fs/promises";
 import {
@@ -5,7 +6,7 @@ import {
   assertSucceeds,
   assertFails,
 } from "@firebase/rules-unit-testing";
-import { ref, uploadBytes, getMetadata, deleteObject } from "firebase/storage";
+import { ref, uploadBytes, getMetadata, listAll, deleteObject } from "firebase/storage";
 let env;
 const token = {
   email: "Kkh9172@gmail.com",
@@ -39,6 +40,8 @@ test("admin creates and reads immutable MP4; anonymous cannot read through SDK o
     anon = env.unauthenticatedContext().storage();
   await assertSucceeds(uploadBytes(ref(owner, path), bytes, metadata));
   await assertSucceeds(getMetadata(ref(owner, path)));
+  assert.equal((await listAll(ref(owner, "videos/sample"))).items[0].fullPath, path);
+  await assertFails(listAll(ref(anon, "videos/sample")));
   await assertFails(getMetadata(ref(anon, path)));
   await assertFails(
     uploadBytes(

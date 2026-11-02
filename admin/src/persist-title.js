@@ -10,3 +10,14 @@ export function persistTitle(db, data, editing, previous) {
     tx.set(ref, { ...data, revision: previous + 1, updatedAt: serverTimestamp() });
   });
 }
+
+// Attach the completed upload without saving unrelated editor fields or publishing.
+export function attachDraftVideo(db, id, revision, streamURL) {
+  return runTransaction(db, async tx => {
+    const ref = doc(db, "titles", id);
+    const snap = await tx.get(ref);
+    if (!snap.exists() || snap.data().published || snap.data().revision !== revision)
+      throw Error("CONFLICT");
+    tx.update(ref, { streamURL, revision: revision + 1, updatedAt: serverTimestamp() });
+  });
+}

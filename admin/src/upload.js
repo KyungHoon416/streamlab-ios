@@ -60,7 +60,7 @@ export class VideoUpload {
       );
       if (!current()) return;
       const url = await this.getURL(task.snapshot.ref);
-      if (current()) this.completed(url);
+      if (current()) await this.completed(url);
     } catch (error) {
       if (current()) this.failed(error);
     } finally {

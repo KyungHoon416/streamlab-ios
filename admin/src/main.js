@@ -17,7 +17,7 @@ import {
   orderBy,
   limit,
 } from "firebase/firestore";
-import { persistTitle } from "./persist-title.js";
+import { attachDraftVideo, persistTitle } from "./persist-title.js";
 import config from "./firebase-config.json";
 import { canManage, validateTitle } from "./catalog.js";
 import {
@@ -25,6 +25,8 @@ import {
   ref as storageRef,
   uploadBytesResumable,
   getDownloadURL,
+  getMetadata,
+  listAll,
 } from "firebase/storage";
 import { VideoSelection } from "./selection.js";
 import { VideoUpload } from "./upload.js";
@@ -108,12 +110,33 @@ const uploader = new VideoUpload({
     $("upload-status").textContent =
       percent === 100 ? "영상 URL을 확인하고 있어요…" : `업로드 중 ${percent}%`;
   },
-  completed: (url) => {
+  completed: async (url) => {
+    const item = titles.find(title => title.id === selected);
+    const ticket = epoch;
     form.elements.streamURL.value = url;
     $("video-file").value = "";
     selection.clear();
-    $("upload-status").textContent =
-      "업로드 완료. 영상 URL이 입력됐습니다. 저장을 눌러 작품에 반영하세요.";
+    if (item && !item.published) {
+      $("upload-cancel").disabled = true;
+      $("upload-status").textContent = "영상 URL을 비공개 작품에 저장하고 있습니다…";
+      try {
+        await attachDraftVideo(db, item.id, revision, url);
+      } catch (err) {
+        if (ticket === epoch) {
+          $("upload-status").textContent = "파일 전송은 완료됐지만 URL 저장에 실패했습니다. 작품을 다시 열고 ‘기존 업로드 찾기’를 눌러 주세요.";
+          error(err);
+        }
+        return;
+      }
+      if (epoch !== ticket || selected !== item.id) return;
+      item.streamURL = url;
+      item.revision = ++revision;
+      $("recover-video").hidden = true;
+      $("recover-options").replaceChildren();
+      $("upload-status").textContent = "영상 URL을 저장했습니다. 공개하려면 ‘앱에 공개’를 체크하고 저장하세요.";
+    } else {
+      $("upload-status").textContent = "업로드 완료. 저장을 눌러 공개 작품의 영상을 교체하세요.";
+    }
   },
   failed: (e) => {
     const messages = {
@@ -160,6 +183,8 @@ $("upload-start").onclick = async () => {
       return;
     }
   }
+  ++recoveryGeneration;
+  $("recover-options").replaceChildren();
   uploadBusy(true);
   $("upload-progress").value = 0;
   if (draft) {
@@ -183,6 +208,7 @@ $("upload-start").onclick = async () => {
     revision = 1;
     $("form-title").textContent = "작품 수정";
     $("upload-cancel").disabled = false;
+    $("recover-video").hidden = false;
     titles.push({ ...draft, revision });
     render();
   }
@@ -201,6 +227,9 @@ window.addEventListener("beforeunload", (event) => {
 function reset(item = null) {
   selected = item?.id ?? null;
   revision = item?.revision ?? 0;
+  ++recoveryGeneration;
+  $("recover-options").replaceChildren();
+  $("recover-video").hidden = !item || !!item.streamURL;
   form.reset();
   selection.clear();
   clearDrag();
@@ -216,6 +245,40 @@ function reset(item = null) {
   $("saved").textContent = "";
   $("upload-status").textContent = "";
 }
+let recoveryGeneration = 0;
+$("recover-video").onclick = async () => {
+  if (!allowed || busy || !selected) return;
+  const generation = ++recoveryGeneration;
+  const current = () => allowed && !busy && generation === recoveryGeneration;
+  const options = $("recover-options");
+  options.replaceChildren();
+  $("upload-status").textContent = "이 작품에 업로드한 파일을 찾고 있습니다…";
+  try {
+    const folder = storageRef(storage, `videos/${selected}`);
+    const { items } = await listAll(folder);
+    const files = await Promise.all(items.map(async ref => ({ ref, meta: await getMetadata(ref) })));
+    if (!current()) return;
+    files.sort((a, b) => b.meta.timeCreated.localeCompare(a.meta.timeCreated));
+    $("upload-status").textContent = files.length ? "연결할 파일을 선택한 뒤 공개 여부를 확인하고 저장하세요." : "이 작품에 업로드된 파일이 없습니다.";
+    for (const { ref, meta } of files) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = `${new Date(meta.timeCreated).toLocaleString("ko-KR")} · ${(meta.size / 1e6).toFixed(2)} MB · ${ref.name.slice(0, 8)} 연결`;
+      button.onclick = async () => {
+        if (!current()) return;
+        const choice = ++recoveryGeneration;
+        options.replaceChildren();
+        try {
+          const url = await getDownloadURL(ref);
+          if (choice !== recoveryGeneration || !allowed || busy) return;
+          form.elements.streamURL.value = url;
+          $("upload-status").textContent = "기존 파일을 연결했습니다. 공개 여부를 확인하고 저장하세요.";
+        } catch (err) { if (choice === recoveryGeneration) error(err); }
+      };
+      options.append(button);
+    }
+  } catch (err) { if (current()) { $("upload-status").textContent = "파일 목록을 불러오지 못했습니다."; error(err); } }
+};
 function render() {
   const term = $("search").value.trim().toLocaleLowerCase();
   $("titles").replaceChildren();

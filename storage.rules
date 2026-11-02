@@ -7,6 +7,9 @@ service firebase.storage {
         && request.auth.token.email_verified == true
         && request.auth.token.firebase.sign_in_provider == 'google.com';
     }
+    match /videos/{titleId} {
+      allow list: if admin();
+    }
     match /videos/{titleId}/{fileName} {
       allow read: if admin();
       allow create: if admin() && resource == null

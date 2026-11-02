@@ -148,6 +148,8 @@
                     accept=".mp4,video/mp4" aria-describedby="video-selection" /></label>
                   <p id="video-selection" role="status" aria-live="polite">선택된 파일 없음</p>
                 </div>
+                <button type="button" id="recover-video" hidden>기존 업로드 찾기</button>
+                <div id="recover-options"></div>
                 <button type="button" id="upload-start">파일 업로드</button>
                 <button type="button" id="upload-cancel" hidden>
                   업로드 취소
@@ -161,7 +163,7 @@
                 ></progress>
                 <p id="upload-status" role="status" aria-live="polite"></p>
                 <small
-                  >완료되면 영상 URL이 입력됩니다. 아래 ‘저장’을 눌러 작품에
+                  >비공개 작품에는 업로드한 URL이 자동 저장됩니다. 공개 상태 변경은 아래 ‘저장’을 눌러 작품에
                   반영하세요. MP4를 HLS로 변환하지 않습니다. 업로드한 파일은
                   저장하지 않거나 URL을 교체해도 Storage에 남습니다. 공개 후
                   영상 URL을 가진 사람은 재생할 수 있습니다.</small
