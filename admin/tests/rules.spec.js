@@ -160,3 +160,17 @@ test("a new file upload reserves a private ID before attaching the MP4 URL", asy
   assert.equal(saved.get("streamURL"), ready.streamURL);
   assert.equal(saved.get("revision"), 3);
 });
+
+test("an existing upload can replace the published video without overwriting a newer edit", async () => {
+  const id = "published-file-switch";
+  const admin = env.authenticatedContext("owner", token).firestore();
+  const viewer = env.unauthenticatedContext().firestore();
+  const original = { ...data(id, true), streamURL: "https://example.com/original.mp4" };
+  const replacement = { ...original, streamURL: "https://example.com/previous-upload.mp4" };
+  await persistTitle(admin, original, null, 0);
+  await persistTitle(admin, replacement, id, 1);
+  await assert.rejects(persistTitle(admin, original, id, 1), /CONFLICT/);
+  const saved = await getDoc(doc(viewer, "titles", id));
+  assert.equal(saved.get("streamURL"), replacement.streamURL);
+  assert.equal(saved.get("published"), true);
+});

@@ -60,6 +60,8 @@ function clearDrag() {
 }
 function chooseFiles(files) {
   if (!allowed || busy) return;
+  ++recoveryGeneration;
+  $("recover-options").replaceChildren();
   const candidates = Array.from(files);
   $("video-file").value = "";
   selection.choose(candidates);
@@ -131,7 +133,6 @@ const uploader = new VideoUpload({
       if (epoch !== ticket || selected !== item.id) return;
       item.streamURL = url;
       item.revision = ++revision;
-      $("recover-video").hidden = true;
       $("recover-options").replaceChildren();
       $("upload-status").textContent = "영상 URL을 저장했습니다. 공개하려면 ‘앱에 공개’를 체크하고 저장하세요.";
     } else {
@@ -229,7 +230,7 @@ function reset(item = null) {
   revision = item?.revision ?? 0;
   ++recoveryGeneration;
   $("recover-options").replaceChildren();
-  $("recover-video").hidden = !item || !!item.streamURL;
+  $("recover-video").hidden = !item;
   form.reset();
   selection.clear();
   clearDrag();
@@ -260,10 +261,20 @@ $("recover-video").onclick = async () => {
     if (!current()) return;
     files.sort((a, b) => b.meta.timeCreated.localeCompare(a.meta.timeCreated));
     $("upload-status").textContent = files.length ? "연결할 파일을 선택한 뒤 공개 여부를 확인하고 저장하세요." : "이 작품에 업로드된 파일이 없습니다.";
+    let linked;
+    try {
+      linked = storageRef(storage, form.elements.streamURL.value);
+    } catch {
+      // External catalog URLs do not identify an object in this bucket.
+    }
     for (const { ref, meta } of files) {
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = `${new Date(meta.timeCreated).toLocaleString("ko-KR")} · ${(meta.size / 1e6).toFixed(2)} MB · ${ref.name.slice(0, 8)} 연결`;
+      if (linked?.bucket === ref.bucket && linked.fullPath === ref.fullPath) {
+        button.textContent = button.textContent.replace(/ 연결$/, " · 현재 연결됨");
+        button.disabled = true;
+      }
       button.onclick = async () => {
         if (!current()) return;
         const choice = ++recoveryGeneration;
@@ -271,6 +282,7 @@ $("recover-video").onclick = async () => {
         try {
           const url = await getDownloadURL(ref);
           if (choice !== recoveryGeneration || !allowed || busy) return;
+          selection.clear();
           form.elements.streamURL.value = url;
           $("upload-status").textContent = "기존 파일을 연결했습니다. 공개 여부를 확인하고 저장하세요.";
         } catch (err) { if (choice === recoveryGeneration) error(err); }
