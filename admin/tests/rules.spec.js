@@ -1,3 +1,4 @@
+import { persistTitle } from "../src/persist-title.js";
 import assert from "node:assert/strict";
 import { test, after, before } from "node:test";
 import { readFile } from "node:fs/promises";
@@ -138,4 +139,19 @@ test("fresh iOS playback lookup follows unpublish and replacement on republish",
   const replacement = "https://example.com/replacement.mp4";
   await updateDoc(title, { published: true, streamURL: replacement, revision: 3, updatedAt: serverTimestamp() });
   assert.deepEqual(await playbackURLs(), [replacement]);
+});
+
+test("a new file upload reserves a private ID before attaching the MP4 URL", async () => {
+  const db = env.authenticatedContext("owner", token).firestore();
+  const viewer = env.unauthenticatedContext().firestore();
+  const id = "new-file-draft";
+  const draft = data(id);
+  await persistTitle(db, draft, null, 0);
+  await assertFails(getDoc(doc(viewer, "titles", id)));
+  await assert.rejects(persistTitle(db, draft, null, 0), /EXISTS/);
+  const ready = { ...draft, published: true, streamURL: "https://example.com/upload.mp4" };
+  await persistTitle(db, ready, id, 1);
+  const saved = await getDoc(doc(viewer, "titles", id));
+  assert.equal(saved.get("streamURL"), ready.streamURL);
+  assert.equal(saved.get("revision"), 2);
 });

@@ -16,10 +16,8 @@ import {
   query,
   orderBy,
   limit,
-  doc,
-  runTransaction,
-  serverTimestamp,
 } from "firebase/firestore";
+import { persistTitle } from "./persist-title.js";
 import config from "./firebase-config.json";
 import { canManage, validateTitle } from "./catalog.js";
 import {
@@ -145,19 +143,49 @@ function cancelUpload() {
   }
 }
 $("upload-cancel").onclick = cancelUpload;
-$("upload-start").onclick = () => {
+$("upload-start").onclick = async () => {
   if (!allowed || busy) return;
-  if (!selected) {
-    $("upload-status").textContent = "작품 정보를 먼저 비공개로 저장해 주세요.";
-    return;
-  }
   const file = selection.file;
   if (!file) {
     $("upload-status").textContent = "유효한 MP4 파일을 먼저 선택하세요.";
     return;
   }
+  let draft;
+  if (!selected) {
+    if (!form.reportValidity()) return;
+    try {
+      draft = validateTitle({ ...Object.fromEntries(new FormData(form)), streamURL: "", published: false });
+    } catch (err) {
+      $("upload-status").textContent = err.message;
+      return;
+    }
+  }
   uploadBusy(true);
   $("upload-progress").value = 0;
+  if (draft) {
+    const ticket = epoch;
+    $("upload-status").textContent = "비공개 작품을 저장하고 있어요…";
+    $("upload-cancel").disabled = true;
+    try {
+      await persistTitle(db, draft, null, 0);
+    } catch (err) {
+      if (epoch === ticket) {
+        uploadBusy(false);
+        error(err);
+        $("upload-status").textContent = err.message === "EXISTS"
+          ? "이미 등록된 작품 ID입니다. 다른 ID를 입력하거나 기존 작품을 선택하세요."
+          : "비공개 작품을 저장하지 못했습니다. 다시 시도해 주세요.";
+      }
+      return;
+    }
+    if (epoch !== ticket || !allowed) return;
+    selected = draft.id;
+    revision = 1;
+    $("form-title").textContent = "작품 수정";
+    $("upload-cancel").disabled = false;
+    titles.push({ ...draft, revision });
+    render();
+  }
   $("upload-status").textContent = "MP4 파일을 확인하고 있어요…";
   uploader.run(file, `videos/${selected}/${crypto.randomUUID()}.mp4`, {
     contentType: "video/mp4",
@@ -254,6 +282,7 @@ $("login").onclick = async () => {
   }
 };
 $("logout").onclick = () => {
+  ++epoch;
   cancelUpload();
   signOut(auth).catch(error);
 };
@@ -297,6 +326,11 @@ $("search").oninput = render;
 form.onsubmit = async (e) => {
   e.preventDefault();
   if (!allowed || busy) return;
+  if (selection.file) {
+    $("upload-status").textContent = "선택한 MP4의 파일 업로드를 먼저 눌러 주세요.";
+    $("upload-start").focus();
+    return;
+  }
   let data;
   try {
     data = validateTitle({
@@ -315,18 +349,7 @@ form.onsubmit = async (e) => {
   $("save").disabled = true;
   message("");
   try {
-    await runTransaction(db, async (tx) => {
-      const ref = doc(db, "titles", data.id),
-        snap = await tx.get(ref);
-      if (!editing && snap.exists()) throw Error("EXISTS");
-      if (editing && (!snap.exists() || snap.data().revision !== previous))
-        throw Error("CONFLICT");
-      tx.set(ref, {
-        ...data,
-        revision: previous + 1,
-        updatedAt: serverTimestamp(),
-      });
-    });
+    await persistTitle(db, data, editing, previous);
     if (ticket !== epoch) return;
     await refresh();
     if (ticket !== epoch || !allowed) return;
