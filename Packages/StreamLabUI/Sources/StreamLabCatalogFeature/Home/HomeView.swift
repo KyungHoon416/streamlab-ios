@@ -126,6 +126,9 @@ import StreamLabDesignSystem
             if !showing { cancelledPlaybackTitleID = nil }
         }
         .onAppear { HomeStartupTrace.event("HomeAppeared"); myList.refresh(); model.appear(phase: phase) }
+        .onChange(of: model.store.home?.rails) { previous, _ in
+            if previous != nil, model.store.home?.hero.streamURL != nil { recentRefresh = UUID() }
+        }
         .onDisappear { model.disappear() }
         .onChange(of: phase) { _, value in
             if value == .active { myList.refresh() }

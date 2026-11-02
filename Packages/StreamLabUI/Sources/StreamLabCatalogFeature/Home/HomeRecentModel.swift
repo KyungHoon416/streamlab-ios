@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import StreamLabCatalogData
 import StreamLabDomain
 import StreamLabPresentation
 import StreamLabDesignSystem
@@ -64,7 +65,7 @@ enum RecentTitleResolver {
         defer { withExtendedLifetime(span) {} }
         let ticket = UUID()
         generation = ticket
-        let entries = session.progress.recent()
+        let entries = session.progress.recent(includeOtherSources: session.repository is FirestoreCatalogRepository)
         // HLS and downloaded HLS share a progress ID; preserve the previous first-match policy.
         let sources = Dictionary(PlaybackModel.Source.allCases.map { ($0.progressID, $0) },
                                  uniquingKeysWith: { first, _ in first })
@@ -76,6 +77,7 @@ enum RecentTitleResolver {
         }
         guard !Task.isCancelled, session.isActive, generation == ticket else { return }
         // Preserve progress-store ordering even when detail responses arrive out of order.
+        var displayed = Set<String>()
         let items = eligible.compactMap { entry -> Item? in
             guard let title = resolved.titles[entry.titleID], title.canView(in: profile) else { return nil }
             let source: PlaybackModel.Source
@@ -86,6 +88,7 @@ enum RecentTitleResolver {
                 guard let known = sources[entry.sourceID], !known.isCatalog else { return nil }
                 source = known
             }
+            guard displayed.insert(title.id).inserted else { return nil }
             return Item(title: title, entry: entry, source: source)
         }
         let updated = Snapshot(items: items, failed: resolved.failed)

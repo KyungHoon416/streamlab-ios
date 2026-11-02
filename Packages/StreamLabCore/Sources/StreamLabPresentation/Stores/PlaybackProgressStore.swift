@@ -136,8 +136,8 @@ import StreamLabDomain
         public let updatedAt: Date
     }
 
-    /// One latest playable source per title, never reads another profile's prefix.
-    public func recent(limit: Int = 20) -> [Entry] {
+    /// Limit distinct titles. Catalog callers can resolve the matching file after title lookup.
+    public func recent(limit: Int = 20, includeOtherSources: Bool = false) -> [Entry] {
         let entries = records.compactMap { key, data -> Entry? in
             guard key.hasPrefix(prefix),
                   let record = try? JSONDecoder().decode(Record.self, from: data),
@@ -155,7 +155,12 @@ import StreamLabDomain
             return ($0.titleID, $0.sourceID) < ($1.titleID, $1.sourceID)
         }
         var seen = Set<String>()
-        return Array(entries.filter { seen.insert($0.titleID).inserted }.prefix(max(0, limit)))
+        return entries.filter { entry in
+            if seen.contains(entry.titleID) { return includeOtherSources }
+            guard seen.count < limit else { return false }
+            seen.insert(entry.titleID)
+            return true
+        }
     }
 
     public func position(titleID: String, sourceID: String, duration: Double) -> Double? {

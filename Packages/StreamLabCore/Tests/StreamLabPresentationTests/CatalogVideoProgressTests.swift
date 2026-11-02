@@ -19,5 +19,10 @@ import StreamLabPresentation
         let replacement = try key("B.mp4?alt=media&token=first")
         #expect(store.position(titleID: "film", sourceID: renewed, duration: 60) == 12)
         #expect(store.position(titleID: "film", sourceID: replacement, duration: 60) == nil)
+        store.save(titleID: "film", sourceID: replacement, position: 25, duration: 60)
+        let candidates = store.recent(limit: 1, includeOtherSources: true)
+        #expect(candidates.first { $0.sourceID == original }?.position == 12)
+        #expect(candidates.first { $0.sourceID == replacement }?.position == 25)
+        #expect(store.recent(limit: 1).count == 1)
     }
 }
