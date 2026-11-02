@@ -10,7 +10,7 @@
 
 | 영역 | 구현 상태 | 확인 근거와 남은 범위 |
 |---|---|---|
-| A1 홈·검색·프로필 | 기존 Mock 및 별도 Firebase 공개 카탈로그 Scheme, 관리자 작품 등록·공개 설정 구현 | [Firebase 연결 범위·검증](FIREBASE_CATALOG.md): 실제 관리자 로그인·저장·공개/비공개 및 REST 조회 확인, CI 성공. 업로드 MP4 실기기 재생 확인 완료. [프로필 UI 5개](Measurements/Profile-Seek-2026-11-01/REPORT.md), [F01 역순 응답](CHAOS_ACCEPTANCE.md) |
+| A1 홈·검색·프로필 | 기존 Mock 및 별도 Firebase 공개 카탈로그 Scheme, 관리자 작품 등록·공개 설정 구현 | [Firebase 연결 범위·검증](FIREBASE_CATALOG.md): 실제 관리자 로그인·저장·공개/비공개 및 REST 조회 확인, CI 성공. 업로드 MP4와 공개 Apple HLS 샘플 모두 실기기 재생·하단 시간·탐색 확인 완료. [프로필 UI 5개](Measurements/Profile-Seek-2026-11-01/REPORT.md), [F01 역순 응답](CHAOS_ACCEPTANCE.md) |
 | A2 재생·복구 | 번들/HLS, 탐색, 자막·음성, 이어보기, 재시도, 오디오/회전/종료 경계 구현 | [iOS 패키지 25개](Measurements/Observer-Lifecycle-2026-11-01/REPORT.md). 실제 OS 리셋·모든 블루투스 조건과 동일하지 않음 |
 | A3 진도 동기화 | revision·idempotency·명시적 restart를 사용하는 서버 Mock 및 가상 A/B 구현 | [F08 충돌/수렴](CHAOS_ACCEPTANCE.md). 실제 여러 기기의 운영 서버 동기화는 아님 |
 | B 로컬 우선·정합성 | 원자적 파일 영속 큐, 찜/검색/진도, 프로필·계정 격리, 충돌/재시도/취소 구현 | [실제 HTTP·인증 경계](Measurements/HTTP-Boundaries-2026-10-31/REPORT.md), [100건 SIGKILL 복구](Measurements/Mutation-Process-2026-11-01/REPORT.md). SwiftData DB를 사용한 구조는 아님 |

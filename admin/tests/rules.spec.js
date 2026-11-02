@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import { test, after, before } from "node:test";
 import { readFile } from "node:fs/promises";
 import {
@@ -10,6 +11,7 @@ import {
   setDoc,
   getDoc,
   getDocs,
+  getDocsFromServer,
   collection,
   query,
   where,
@@ -117,4 +119,23 @@ test("schema, timestamps and publish URL enforced server-side", async () => {
     );
   }
   await assertFails(setDoc(doc(db, "users/owner"), { role: "admin" }));
+});
+
+test("fresh iOS playback lookup follows unpublish and replacement on republish", async () => {
+  const id = "playback-visibility";
+  const admin = env.authenticatedContext("owner", token).firestore();
+  const viewer = env.unauthenticatedContext().firestore();
+  const title = doc(admin, "titles", id);
+  const lookup = query(collection(viewer, "titles"), where("published", "==", true), where("id", "==", id));
+  const playbackURLs = async () =>
+    (await getDocsFromServer(lookup)).docs.map(snapshot => snapshot.get("streamURL"));
+
+  const published = data(id, true);
+  await setDoc(title, published);
+  assert.deepEqual(await playbackURLs(), [published.streamURL]);
+  await updateDoc(title, { published: false, revision: 2, updatedAt: serverTimestamp() });
+  assert.deepEqual(await playbackURLs(), []);
+  const replacement = "https://example.com/replacement.mp4";
+  await updateDoc(title, { published: true, streamURL: replacement, revision: 3, updatedAt: serverTimestamp() });
+  assert.deepEqual(await playbackURLs(), [replacement]);
 });
