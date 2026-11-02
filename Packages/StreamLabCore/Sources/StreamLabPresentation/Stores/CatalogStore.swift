@@ -153,7 +153,12 @@ public final class CatalogStore {
                       self.profile == requestedProfile else { return }
                 self.loading = false
                 if !(error is CancellationError) && !Task.isCancelled {
-                    self.errorMessage = "불러오지 못했습니다. 다시 시도해 주세요."
+                    if case .home = request, error as? CatalogFailure == .emptyCatalog {
+                        self.home = nil
+                        self.errorMessage = "표시할 작품이 없습니다."
+                    } else {
+                        self.errorMessage = "불러오지 못했습니다. 다시 시도해 주세요."
+                    }
                 }
                 self.onChange?()
             }

@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 import StreamLabDesignSystem
+import StreamLabCatalogData
 import StreamLabDomain
 import StreamLabPresentation
 
@@ -28,6 +29,9 @@ import StreamLabPresentation
         }
     }
     private var lastHomePresentation: HomePresentation?
+    private var homeRefreshTask: Task<Void, Never>?
+    deinit { homeRefreshTask?.cancel() }
+
     private var started = false
     private var visible = false
     private var active = false
@@ -65,6 +69,8 @@ import StreamLabPresentation
     }
     func disappear() {
         visible = false
+        homeRefreshTask?.cancel()
+        homeRefreshTask = nil
         homeLoadSpan = nil
         HomeStartupTrace.event("ScreenDisappeared")
         store.suspend()
@@ -72,11 +78,27 @@ import StreamLabPresentation
     func setPhase(_ phase: ScenePhase) {
         active = phase == .active
         guard visible, active, session.isActive else {
+            homeRefreshTask?.cancel()
+            homeRefreshTask = nil
             homeLoadSpan = nil
             store.suspend()
             return
         }
+        let enteringFirebaseHome: Bool
+        if case .home = screen, session.repository is FirestoreCatalogRepository, homeRefreshTask == nil {
+            enteringFirebaseHome = true
+            homeRefreshTask = Task { [weak self] in
+                while !Task.isCancelled {
+                    do { try await Task.sleep(for: .seconds(60)) } catch { return }
+                    guard let self, self.visible, self.active, self.session.isActive else { return }
+                    self.store.retry()
+                }
+            }
+        } else {
+            enteringFirebaseHome = false
+        }
         if store.resume() != nil { return }
+        if started && enteringFirebaseHome { store.retry(); return }
         guard !started else { publishChange(); return }
         started = true
         switch screen {
