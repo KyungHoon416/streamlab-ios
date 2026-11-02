@@ -13,8 +13,35 @@ public struct OfflineDownload: Codable, Identifiable, Equatable, Sendable {
     public func transferURL(sampleURL: URL?) -> URL? {
         guard let catalogTitle else { return sampleURL }
         guard catalogTitle.id == titleID, let url = catalogTitle.streamURL,
-              url.scheme == "https", url.host != nil, url.pathExtension.lowercased() == "m3u8" else { return nil }
+              url.scheme == "https", url.host != nil, ["m3u8", "mp4"].contains(url.pathExtension.lowercased()) else { return nil }
         return url
+    }
+    public var isMP4: Bool { catalogTitle?.streamURL?.pathExtension.lowercased() == "mp4" }
+    public var mp4Path: String { "Library/Application Support/StreamLabVideos/" + id.uuidString + ".mp4" }
+
+    public func mp4Location(home: URL) -> URL? {
+        guard isMP4, let root = OfflineDownloadBudget.resolvedURL(home),
+              let resolved = OfflineDownloadBudget.resolvedURL(root.appendingPathComponent(mp4Path)),
+              resolved.path == root.appendingPathComponent(mp4Path).path else { return nil }
+        return resolved
+    }
+
+    public func installMP4(from temporaryFile: URL, home: URL) throws {
+        guard let destination = mp4Location(home: home) else { throw CocoaError(.fileWriteInvalidFileName) }
+        let size = Int64(try temporaryFile.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0)
+        guard size <= OfflineDownloadBudget.reservation else { throw CocoaError(.fileWriteOutOfSpace) }
+        let handle = try FileHandle(forReadingFrom: temporaryFile)
+        defer { try? handle.close() }
+        let header = try handle.read(upToCount: 12) ?? Data()
+        guard header.count == 12, header[4..<8].elementsEqual("ftyp".utf8) else {
+            throw URLError(.cannotDecodeContentData)
+        }
+        var folder = destination.deletingLastPathComponent()
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        var flags = URLResourceValues()
+        flags.isExcludedFromBackup = true
+        try folder.setResourceValues(flags)
+        try FileManager.default.moveItem(at: temporaryFile, to: destination)
     }
     public var relativePath: String?
     public var bytes: Int64 = 0
@@ -133,7 +160,7 @@ public enum OfflineDownloadBudget {
     /// A new package does not exist yet. Foundation may leave its parent symlink
     /// unresolved, so resolve the nearest existing ancestor (including dangling
     /// links) before reattaching the missing path components.
-    private static func resolvedURL(_ url: URL, remainingLinks: Int = 40) -> URL? {
+    fileprivate static func resolvedURL(_ url: URL, remainingLinks: Int = 40) -> URL? {
         var ancestor = url.absoluteURL
         var missing: [String] = []
         while true {

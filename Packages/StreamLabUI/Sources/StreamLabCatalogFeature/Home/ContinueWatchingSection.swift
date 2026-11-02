@@ -43,13 +43,13 @@ import StreamLabDesignSystem
                             // Resolve only on tap: a cached list must not keep stale file state.
                             let downloads = OfflineDownloadStore.shared
                             var source = item.source
-                            if (source == .hls || source == .catalogHLS),
+                            if (source == .hls || source == .catalogHLS || source == .catalogMP4),
                                downloads.hasPlayableDownload(session: session, titleID: item.id) {
                                 if source == .hls {
                                     source = .downloadedHLS
                                 } else if let saved = downloads.record(session: session, titleID: item.id)?.catalogTitle?.streamURL,
                                           CatalogVideoIdentity.progressID(for: saved) == item.entry.sourceID {
-                                    source = .downloadedCatalogHLS
+                                    source = source == .catalogMP4 ? .downloadedCatalogMP4 : .downloadedCatalogHLS
                                 }
                             }
                             onPlay(HomeRecentModel.Item(title: item.title, entry: item.entry, source: source))

@@ -80,7 +80,7 @@ import StreamLabPresentation
     }
     func validationRefresh(accountID: String) async {
         guard validationEnabled else { return }
-        let native = await downloads.allTasks
+        let native = await allTransfers()
         let disk = journalURL.flatMap { try? Data(contentsOf: $0) }
             .flatMap { try? JSONDecoder().decode(Snapshot.self, from: $0) }
         let owned = records.filter { $0.accountID == accountID }
@@ -91,9 +91,9 @@ import StreamLabPresentation
     }
     #endif
     private let cellularData = CTCellularData()
-    private func logTransfer(_ task: AVAssetDownloadTask, event: String) {
-        let configuration = downloads.configuration
-        NSLog("Offline HLS diagnostic event=%@ task=%ld state=%ld cellularAllowed=%d expensiveAllowed=%d constrainedAllowed=%d discretionary=%d cellularRestriction=%lu progress=%.6f",
+    private func logTransfer(_ task: URLSessionTask, event: String) {
+        let configuration = task is URLSessionDownloadTask ? mp4Downloads.configuration : downloads.configuration
+        NSLog("Offline download diagnostic event=%@ task=%ld state=%ld cellularAllowed=%d expensiveAllowed=%d constrainedAllowed=%d discretionary=%d cellularRestriction=%lu progress=%.6f",
               event, task.taskIdentifier, task.state.rawValue,
               configuration.allowsCellularAccess, configuration.allowsExpensiveNetworkAccess,
               configuration.allowsConstrainedNetworkAccess, configuration.isDiscretionary,
@@ -101,7 +101,7 @@ import StreamLabPresentation
     }
     private var blockedAccounts: Set<String> = []
     private var activeAccount: String?
-    private var tasks: [UUID: AVAssetDownloadTask] = [:]
+    private var tasks: [UUID: URLSessionTask] = [:]
     private var observations: [UUID: NSKeyValueObservation] = [:]
     private var lastDiskCheck: [UUID: Date] = [:]
     private var leases: [UUID: UUID] = [:]
@@ -112,10 +112,24 @@ import StreamLabPresentation
     private let notifier = DownloadCompletionNotifier(backend: DownloadNotifications.shared)
     private var notificationWork = 0
     private var completionNotificationsSuppressed = false
-    private var backgroundEventsFinished = false
-    private var backgroundCompletion: (() -> Void)?
+    private var finishedSessions: Set<String> = []
+    private var backgroundCompletions: [String: () -> Void] = [:]
     private let home = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
     private let journalURL: URL?
+    public static let mp4SessionIdentifier = "com.example.streamlab.offline-mp4.v1"
+    private lazy var mp4Downloads: URLSession = {
+        let config = URLSessionConfiguration.background(withIdentifier: Self.mp4SessionIdentifier)
+        config.isDiscretionary = false
+        config.sessionSendsLaunchEvents = true
+        config.allowsCellularAccess = true
+        config.allowsExpensiveNetworkAccess = true
+        return URLSession(configuration: config, delegate: self, delegateQueue: .main)
+    }()
+
+    private func allTransfers() async -> [URLSessionTask] {
+        let assets = await downloads.allTasks
+        return assets + (await mp4Downloads.allTasks)
+    }
     private lazy var downloads: AVAssetDownloadURLSession = {
         let config = URLSessionConfiguration.background(withIdentifier: Self.sessionIdentifier)
         config.isDiscretionary = false
@@ -160,7 +174,8 @@ import StreamLabPresentation
         errorMessage = "다운로드 기록을 저장하지 못해 작업을 중지했습니다. 앱을 다시 실행해 주세요."
     }
     private func localURL(_ record: OfflineDownload) -> URL? {
-        record.relativePath.flatMap { OfflineDownloadBudget.localURL(path: $0, home: home) }
+        if record.isMP4 { return record.relativePath == record.mp4Path ? record.mp4Location(home: home) : nil }
+        return record.relativePath.flatMap { OfflineDownloadBudget.localURL(path: $0, home: home) }
     }
     private func index(_ id: UUID) -> Int? { records.firstIndex { $0.id == id } }
 
@@ -214,10 +229,9 @@ import StreamLabPresentation
         }
         guard !restored else { return }
         restoring = true
-        let all = await downloads.allTasks
+        let all = await allTransfers()
         for task in all {
-            guard let task = task as? AVAssetDownloadTask,
-                  let text = task.taskDescription, let id = UUID(uuidString: text), let i = index(id),
+            guard let text = task.taskDescription, let id = UUID(uuidString: text), let i = index(id),
                   (records[i].state == .downloading || records[i].state == .paused || records[i].state == .removing), storageHealthy else {
                 task.cancel(); continue
             }
@@ -315,7 +329,7 @@ import StreamLabPresentation
         guard eligible(), let i = index(id) else { return }
         guard var replacement = OfflineDownload(downloadable: title, accountID: session.accountID, profile: session.profile),
               (replacement.catalogTitle == nil) == (original.catalogTitle == nil) else {
-            errorMessage = "현재 이 작품은 HLS 다운로드를 지원하지 않습니다."
+            errorMessage = "현재 이 작품을 다운로드할 수 없습니다."
             return
         }
         let previous = records[i]
@@ -391,9 +405,15 @@ import StreamLabPresentation
                 }
                 guard let i = index(id) else { return }
                 guard let url = records[i].transferURL(sampleURL: PlaybackModel.Source.hls.url) else { throw URLError(.unsupportedURL) }
-                let asset = AVURLAsset(url: url)
-                let config = AVAssetDownloadConfiguration(asset: asset, title: records[i].title)
-                let task = downloads.makeAssetDownloadTask(downloadConfiguration: config)
+                let task: URLSessionTask
+                if records[i].isMP4 {
+                    task = mp4Downloads.downloadTask(with: url)
+                    records[i].relativePath = records[i].mp4Path
+                } else {
+                    let asset = AVURLAsset(url: url)
+                    let config = AVAssetDownloadConfiguration(asset: asset, title: records[i].title)
+                    task = downloads.makeAssetDownloadTask(downloadConfiguration: config)
+                }
                 task.taskDescription = id.uuidString
                 records[i].state = .downloading
                 do { try save() } catch { task.cancel(); reportStorageFailure(); return }
@@ -419,7 +439,7 @@ import StreamLabPresentation
         }
     }
 
-    private func observe(_ task: AVAssetDownloadTask, id: UUID) {
+    private func observe(_ task: URLSessionTask, id: UUID) {
         observations[id] = task.progress.observe(\.fractionCompleted, options: [.initial, .new]) { [weak self] value, _ in
             let fraction = value.fractionCompleted
             let received = task.countOfBytesReceived
@@ -533,7 +553,7 @@ import StreamLabPresentation
         blockedAccounts.insert(accountID)
         if !storageHealthy {
             await notifier.removeAll()
-            for task in await downloads.allTasks { task.cancel() }
+            for task in await allTransfers() { task.cancel() }
             throw CocoaError(.fileReadCorruptFile)
         }
         try save() // Durable revocation precedes cancellation or deletion.
@@ -562,8 +582,13 @@ import StreamLabPresentation
               !blockedAccounts.contains(session.accountID),
               let item = record(session: session, titleID: titleID),
               item.state == .complete, !item.isExpired(at: Date()), let url = localURL(item),
-              AVURLAsset(url: url).assetCache?.isPlayableOffline == true, let i = index(item.id) else { return nil }
+              isPlayable(item, url: url), let i = index(item.id) else { return nil }
         return (url, i)
+    }
+
+    private func isPlayable(_ item: OfflineDownload, url: URL) -> Bool {
+        if item.isMP4 { return FileManager.default.fileExists(atPath: url.path) }
+        return AVURLAsset(url: url).assetCache?.isPlayableOffline == true
     }
 
     func acquire(session: CatalogSession, titleID: String) -> (URL, UUID)? {
@@ -591,18 +616,24 @@ import StreamLabPresentation
         }
     }
     private func finishBackgroundEventsIfReady() {
-        guard restored, !restoring, backgroundEventsFinished, notificationWork == 0, cleaning.isEmpty, let completion = backgroundCompletion else { return }
-        backgroundCompletion = nil
-        backgroundEventsFinished = false
-        completion()
+        guard restored, !restoring, notificationWork == 0, cleaning.isEmpty, !backgroundCompletions.isEmpty else { return }
+        for identifier in Array(finishedSessions) {
+            if let completion = backgroundCompletions.removeValue(forKey: identifier) {
+                finishedSessions.remove(identifier)
+                completion()
+            }
+        }
     }
 
-    public func handleBackgroundEvents(completion: @escaping () -> Void) {
-        backgroundCompletion = completion
+    public func handleBackgroundEvents(identifier: String, completion: @escaping () -> Void) {
+        backgroundCompletions[identifier] = completion
         Task { await restore(); finishBackgroundEventsIfReady() }
     }
 
     private func allocatedBytes(_ url: URL) throws -> Int64 {
+        if url.pathExtension == "mp4" {
+            return Int64(try url.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0)
+        }
         // Inspect sizes only; never move or change the private HLS package contents.
         let keys: Set<URLResourceKey> = [.isRegularFileKey, .totalFileAllocatedSizeKey, .fileAllocatedSizeKey]
         guard let entries = FileManager.default.enumerator(at: url, includingPropertiesForKeys: Array(keys)) else {
@@ -619,7 +650,26 @@ import StreamLabPresentation
     }
 }
 
-extension OfflineDownloadStore: AVAssetDownloadDelegate {
+extension OfflineDownloadStore: AVAssetDownloadDelegate, URLSessionDownloadDelegate {
+    nonisolated public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask,
+                                      didFinishDownloadingTo location: URL) {
+        MainActor.assumeIsolated {
+            guard let id = downloadTask.taskDescription.flatMap(UUID.init(uuidString:)), let i = index(id),
+                  storageHealthy, records[i].isMP4, !blockedAccounts.contains(records[i].accountID),
+                  [.downloading, .paused].contains(records[i].state), records[i].message == nil,
+                  localURL(records[i]) != nil else { return }
+            do {
+                guard let response = downloadTask.response as? HTTPURLResponse, response.statusCode == 200 else {
+                    throw URLError(.badServerResponse)
+                }
+                try records[i].installMP4(from: location, home: home)
+            } catch {
+                records[i].message = OfflineDownloadFailure.message(for: error)
+                do { try save() } catch { reportStorageFailure() }
+            }
+        }
+    }
+
     nonisolated public func urlSession(_ session: URLSession, assetDownloadTask: AVAssetDownloadTask, willDownloadTo location: URL) {
         // AVAssetDownloadURLSession was explicitly configured with OperationQueue.main.
         MainActor.assumeIsolated {
@@ -644,13 +694,13 @@ extension OfflineDownloadStore: AVAssetDownloadDelegate {
     }
 
     nonisolated public func urlSession(_ session: URLSession, taskIsWaitingForConnectivity task: URLSessionTask) {
-        NSLog("Offline HLS diagnostic event=waitingForConnectivity task=%ld", task.taskIdentifier)
+        NSLog("Offline download diagnostic event=waitingForConnectivity task=%ld", task.taskIdentifier)
     }
 
     nonisolated public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
         MainActor.assumeIsolated {
             guard let text = task.taskDescription, let id = UUID(uuidString: text), let i = index(id) else { return }
-            if let error = error as NSError? { NSLog("Offline HLS transfer failed: %@", SafeDiagnosticError.summary(error)) }
+            if let error = error as NSError? { NSLog("Offline transfer failed: %@", SafeDiagnosticError.summary(error)) }
             let completedWhilePaused = records[i].state == .paused
             let stopMessage = records[i].message
             let transferError = error
@@ -669,7 +719,7 @@ extension OfflineDownloadStore: AVAssetDownloadDelegate {
             }
             do {
                 guard !blockedAccounts.contains(records[i].accountID), transferError == nil, stopMessage == nil,
-                      let url = localURL(records[i]), AVURLAsset(url: url).assetCache?.isPlayableOffline == true else {
+                      let url = localURL(records[i]), isPlayable(records[i], url: url) else {
                     throw CocoaError(.fileReadUnknown)
                 }
                 let bytes = try allocatedBytes(url)
@@ -694,7 +744,8 @@ extension OfflineDownloadStore: AVAssetDownloadDelegate {
 
     nonisolated public func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession) {
         MainActor.assumeIsolated {
-            backgroundEventsFinished = true
+            guard let id = session.configuration.identifier else { return }
+            finishedSessions.insert(id)
             finishBackgroundEventsIfReady()
         }
     }

@@ -26,8 +26,8 @@ import StreamLabCatalogFeature
 
     func application(_ application: UIApplication, handleEventsForBackgroundURLSession identifier: String,
                      completionHandler: @escaping () -> Void) {
-        guard identifier == OfflineDownloadStore.sessionIdentifier else { completionHandler(); return }
-        OfflineDownloadStore.shared.handleBackgroundEvents(completion: completionHandler)
+        guard [OfflineDownloadStore.sessionIdentifier, OfflineDownloadStore.mp4SessionIdentifier].contains(identifier) else { completionHandler(); return }
+        OfflineDownloadStore.shared.handleBackgroundEvents(identifier: identifier, completion: completionHandler)
     }
 }
 

@@ -37,7 +37,7 @@ import StreamLabDesignSystem
                         .accessibilityIdentifier("downloads-profile")
                     Text("\(items.count)개 · 저장 공간 \(ByteCountFormatter.string(fromByteCount: savedBytes, countStyle: .file))")
                         .accessibilityIdentifier("downloads-summary")
-                    Text("현재 프로필에서 저장한 HLS 영상입니다.")
+                    Text("현재 프로필에서 저장한 영상입니다.")
                         .font(.callout).foregroundStyle(.secondary)
                     Text("기기 전체 관리 예산 1GB · 동시 다운로드 2개. 진행 중인 파일의 크기는 완료 후 반영됩니다.")
                         .font(.caption).foregroundStyle(.secondary)
@@ -129,7 +129,7 @@ import StreamLabDesignSystem
         }) { presentation in
             PlaybackView(titleID: presentation.record.titleID, title: presentation.record.title,
                          session: session, orientationSession: orientation,
-                         initialSource: presentation.record.catalogTitle == nil ? .downloadedHLS : .downloadedCatalogHLS, externalModel: presentation.model)
+                         initialSource: .savedSource(for: presentation.record), externalModel: presentation.model)
         }
     }
 
@@ -138,7 +138,7 @@ import StreamLabDesignSystem
         let model = PlaybackModel(titleID: item.titleID, session: session)
         retainedPlaybackModel = model
         orientation.begin()
-        model.load(item.catalogTitle == nil ? .downloadedHLS : .downloadedCatalogHLS)
+        model.load(.savedSource(for: item))
         playing = PlaybackPresentation(record: item, model: model)
     }
 
