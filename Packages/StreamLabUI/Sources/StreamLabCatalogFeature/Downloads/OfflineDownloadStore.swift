@@ -304,12 +304,15 @@ import StreamLabPresentation
 
     /// Retry reauthorizes the current profile, then replaces the failed attempt
     /// with a new identity. Late callbacks/notification cancellation keep the old ID.
-    func retry(_ id: UUID, session: CatalogSession) async {
+    func retry(_ id: UUID, session: CatalogSession, replacingWith current: CatalogTitle? = nil) async {
         func eligible() -> Bool {
             guard storageHealthy, session.isActive, activeAccount == session.accountID,
                   !blockedAccounts.contains(session.accountID), let i = index(id) else { return false }
-            return records[i].accountID == session.accountID && records[i].profileID == session.profile.id &&
-                (records[i].state == .failed || records[i].state == .expired) && tasks[id] == nil && !cleaning.contains(id) && !leases.values.contains(id)
+            let item = records[i]
+            guard belongsToLibrary(item, session: session), tasks[id] == nil,
+                  !cleaning.contains(id), !leases.values.contains(id) else { return false }
+            if let current { return item.state == .complete && item.hasNewVideo(current) }
+            return item.state == .failed || item.state == .expired
         }
         guard eligible(), !retrying.contains(id), let original = records.first(where: { $0.id == id }) else { return }
         retrying.insert(id)
@@ -327,6 +330,13 @@ import StreamLabPresentation
             return
         }
         guard eligible(), let i = index(id) else { return }
+        if let current, let expected = current.streamURL {
+            guard let actual = title.streamURL, original.hasNewVideo(title),
+                  CatalogVideoIdentity.progressID(for: actual) == CatalogVideoIdentity.progressID(for: expected) else {
+                errorMessage = "공개 영상이 다시 변경됐습니다. 상세 정보를 새로 불러와 주세요."
+                return
+            }
+        }
         guard var replacement = OfflineDownload(downloadable: title, accountID: session.accountID, profile: session.profile),
               (replacement.catalogTitle == nil) == (original.catalogTitle == nil) else {
             errorMessage = "현재 이 작품을 다운로드할 수 없습니다."

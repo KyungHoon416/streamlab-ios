@@ -27,6 +27,18 @@ struct CatalogDownloadTests {
         #expect(restoredSample.catalogTitle == nil)
         #expect(restoredSample.transferURL(sampleURL: sampleURL) == sampleURL)
     }
+    @Test func onlyAChangedVideoOffersReplacement() throws {
+        let base = "https://firebasestorage.googleapis.com/v0/b/example/o/"
+        let first = try title(base + "first.mp4?alt=media&token=old")
+        let saved = try #require(OfflineDownload(downloadable: first, accountID: "a", profile: ViewerProfile.demo[0]))
+        let rotated = try title(base + "first.mp4?alt=media&token=new")
+        let other = try title(base + "second.m3u8")
+        #expect(!saved.hasNewVideo(rotated))
+        #expect(saved.hasNewVideo(other))
+        let sample = OfflineDownload(accountID: "a", profileID: "b", titleID: first.id, title: "Sample")
+        #expect(!sample.hasNewVideo(other))
+    }
+
     @Test func mp4InstallationRejectsErrorPagesAndPreservesDownloadedBytes() throws {
         let media = try title("https://example.com/video.mp4")
         let item = try #require(OfflineDownload(downloadable: media, accountID: "a", profile: ViewerProfile.demo[0]))

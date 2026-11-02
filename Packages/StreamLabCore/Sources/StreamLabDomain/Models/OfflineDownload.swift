@@ -16,6 +16,12 @@ public struct OfflineDownload: Codable, Identifiable, Equatable, Sendable {
               url.scheme == "https", url.host != nil, ["m3u8", "mp4"].contains(url.pathExtension.lowercased()) else { return nil }
         return url
     }
+    public func hasNewVideo(_ current: CatalogTitle) -> Bool {
+        guard current.id == titleID, let stored = catalogTitle?.streamURL,
+              let latest = current.streamURL else { return false }
+        return CatalogVideoIdentity.progressID(for: stored) != CatalogVideoIdentity.progressID(for: latest)
+    }
+
     public var isMP4: Bool { catalogTitle?.streamURL?.pathExtension.lowercased() == "mp4" }
     public var mp4Path: String { "Library/Application Support/StreamLabVideos/" + id.uuidString + ".mp4" }
 

@@ -7,6 +7,7 @@ import StreamLabDesignSystem
     let session: CatalogSession
     let play: () -> Void
     @ObservedObject private var store = OfflineDownloadStore.shared
+    @State private var confirmingReplacement = false
     private var record: OfflineDownload? {
         store.record(session: session, titleID: title.id)
     }
@@ -16,6 +17,21 @@ import StreamLabDesignSystem
             Text(title.streamURL != nil ? "Wi-Fi 또는 셀룰러 데이터로 이 작품을 저장합니다." : "Wi-Fi 또는 셀룰러 데이터로 Apple HLS 샘플을 저장합니다. 실제 작품 영상이 아닙니다. 총 1GB, 동시 2개까지 관리하며 공간이 부족하면 고정하지 않은 오래된 파일을 정리합니다.")
                 .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             if let item = record {
+                if item.state == .complete && item.hasNewVideo(title) {
+                    Text("저장한 영상과 현재 공개된 영상이 다릅니다.")
+                        .font(.callout)
+                    Button("새 버전 다운로드") { confirmingReplacement = true }
+                        .buttonStyle(.bordered)
+                        .disabled(store.retrying.contains(item.id))
+                        .confirmationDialog("저장한 영상을 새 버전으로 바꿀까요?", isPresented: $confirmingReplacement) {
+                            Button("이전 파일 삭제 후 다운로드", role: .destructive) {
+                                Task { await store.retry(item.id, session: session, replacingWith: title) }
+                            }
+                            Button("취소", role: .cancel) {}
+                        } message: {
+                            Text("다운로드가 끝날 때까지 이 작품은 오프라인에서 재생할 수 없습니다.")
+                        }
+                }
                 OfflineDownloadActions(item: item, session: session, play: play)
             } else {
                 Button { store.enqueue(title: title, session: session) } label: {
