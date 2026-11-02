@@ -16,6 +16,10 @@ import SwiftUI
         let observer = NetworkPathObserver { [weak self] available in self?.receive(available) }
         self.observer = observer
         #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--ui-test-profile-offline") {
+            receive(false)
+            return
+        }
         if ProcessInfo.processInfo.arguments.contains("--ui-test-network-recovery") {
             // Deterministic path events only; never changes OS connectivity or media.
             replay = Task { [weak self] in
@@ -58,7 +62,11 @@ import SwiftUI
     @ObservedObject private var network = NetworkBannerStatus.shared
     @Environment(\.streamLabContrast) private var contrast
     private let showOffline: Bool
-    public init(showOffline: Bool) { self.showOffline = showOffline }
+    private let onAvailability: (Bool?) -> Void
+    public init(showOffline: Bool, onAvailability: @escaping (Bool?) -> Void = { _ in }) {
+        self.showOffline = showOffline
+        self.onAvailability = onAvailability
+    }
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -70,6 +78,7 @@ import SwiftUI
                     .accessibilityIdentifier("profile-network-banner")
             }
         }
+        .onChange(of: network.notice.isAvailable, initial: true) { _, available in onAvailability(available) }
         .onAppear { network.start() }
         .onDisappear { network.stop() }
     }

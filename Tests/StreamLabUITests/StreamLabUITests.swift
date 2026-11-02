@@ -766,6 +766,23 @@ import XCTest
         XCTAssertTrue(restored.contains("native=0;active=0;queued=0;complete=0;records=0;disk=0;"), restored)
     }
 
+    func testOfflineProfileOpensDownloads() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=profile-offline-\(UUID())", "--ui-test-profile-offline"]
+        app.launch()
+        enterDemoIfNeeded(app)
+        tap(app.buttons["profile-adult-a"], in: app)
+        XCTAssertTrue(app.scrollViews["downloads-scroll"].waitForExistence(timeout: 12))
+        XCTAssertTrue(app.tabBars.buttons["다운로드"].isSelected)
+    }
+
+    func testOnlineProfileOpensHome() {
+        let app = launchNetworkScreen()
+        choose("adult-a", in: app)
+        XCTAssertTrue(app.tabBars.buttons["홈"].waitForExistence(timeout: 12))
+        XCTAssertTrue(app.tabBars.buttons["홈"].isSelected)
+    }
+
     func testNetworkReconnectBannerAppearsThenDismisses() {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=network-banner-\(UUID())", "--ui-test-network-recovery"]

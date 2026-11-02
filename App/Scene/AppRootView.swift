@@ -8,6 +8,7 @@ import StreamLabProfileFeature
 import StreamLabDesignSystem
 
 @MainActor struct AppRootView: View {
+    @State private var networkAvailable: Bool?
     @State private var session: CatalogSession?
     #if DEBUG
     @State private var showingKeychainDiagnostic = false
@@ -34,7 +35,7 @@ import StreamLabDesignSystem
 
     var body: some View {
         VStack(spacing: 0) {
-            NetworkConnectionBanner(showOffline: !account.isSignedOut)
+            NetworkConnectionBanner(showOffline: !account.isSignedOut) { networkAvailable = $0 }
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -130,8 +131,13 @@ import StreamLabDesignSystem
                 }
                 .background(StreamLabTheme.background)
             } else if let session {
-                CatalogTabs(session: session, onSwitchProfile: switchProfile, onLogout: logout)
-                    .id(session.id)
+                if let networkAvailable {
+                    CatalogTabs(session: session, initialTab: networkAvailable ? .home : .downloads,
+                                onSwitchProfile: switchProfile, onLogout: logout)
+                        .id(session.id)
+                } else {
+                    ProgressView("네트워크 상태를 확인하고 있어요")
+                }
             } else {
                 ProfileSelectionView { profile in
                     session = HomeStartupTrace.measure("ProfileSelection") {
@@ -196,14 +202,23 @@ private enum StartupTabBuilder: String {
     let onLogout: () -> Void
     @ObservedObject private var notificationNavigation = DownloadNotificationNavigation.shared
     @State private var navigationReady = !StartupNavigationStage.enabled
-    @State private var selectedTab = 0
+    @State private var selectedTab: Int
     // Build each navigation subtree on first selection, then keep its state.
-    @State private var visitedTabs: Set<Int> = [0]
+    @State private var visitedTabs: Set<Int>
     @State private var downloadsPath: [String] = []
     @State private var homePath: [String] = []
     @State private var searchPath: [String] = []
     @State private var confirmingLogout = false
     @Environment(\.scenePhase) private var phase
+
+    init(session: CatalogSession, initialTab: CatalogTabKind, onSwitchProfile: @escaping () -> Void,
+         onLogout: @escaping () -> Void) {
+        self.session = session
+        self.onSwitchProfile = onSwitchProfile
+        self.onLogout = onLogout
+        _selectedTab = State(initialValue: initialTab.rawValue)
+        _visitedTabs = State(initialValue: [initialTab.rawValue])
+    }
 
     var body: some View {
         let span = HomeStartupTrace.begin("CatalogTabsBodyValue")

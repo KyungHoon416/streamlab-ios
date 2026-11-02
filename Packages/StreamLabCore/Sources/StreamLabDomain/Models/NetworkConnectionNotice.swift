@@ -2,11 +2,11 @@
 public struct NetworkConnectionNotice: Sendable {
     public enum Display: Equatable, Sendable { case none, offline, restored }
     public private(set) var display: Display = .none
-    private var previous: Bool?
+    public private(set) var isAvailable: Bool?
     public init() {}
     public mutating func receive(available: Bool) {
-        let old = previous
-        previous = available
+        let old = isAvailable
+        isAvailable = available
         if !available { display = .offline }
         else if old == false { display = .restored }
     }
