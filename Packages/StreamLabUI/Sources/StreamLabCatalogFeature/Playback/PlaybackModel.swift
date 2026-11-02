@@ -129,6 +129,10 @@ import StreamLabPresentation
     private var nowPlayingOwner: UUID?
     private var nowPlayingTitle = "StreamLab"
     private var catalogURL: URL?
+    private var savedProgressID: String {
+        if source.isCatalog, let catalogURL { return CatalogVideoIdentity.progressID(for: catalogURL) }
+        return source.progressID
+    }
     private var nowPlayingArtworkURL: URL?
     private let titleID: String
     private let session: CatalogSession
@@ -345,8 +349,6 @@ import StreamLabPresentation
         let repository = session.repository
         let profile = session.profile
         let id = titleID
-        let entitlementScope = PlaybackEntitlementScope(accountID: session.accountID,
-            profileID: profile.id, titleID: id, mediaID: self.source.progressID)
         let entitlementProvider = self.entitlementProvider
         loadTask = Task { [weak self] in
             do {
@@ -356,13 +358,16 @@ import StreamLabPresentation
                     self.fail("이 프로필에서는 재생할 수 없는 콘텐츠입니다.")
                     return
                 }
+                self.catalogURL = title.streamURL
+                if self.source.isCatalog { self.source = Source.catalogSource(for: title) }
+                let entitlementScope = PlaybackEntitlementScope(accountID: self.session.accountID,
+                    profileID: profile.id, titleID: id, mediaID: self.savedProgressID)
                 var grant = try await entitlementProvider.authorize(entitlementScope, now: self.entitlementNow)
                 guard !Task.isCancelled, self.generation == ticket, self.session.isActive else { return }
                 self.nowPlayingTitle = title.name
-                self.catalogURL = title.streamURL
                 self.nowPlayingArtworkURL = StreamLabTheme.bundledArtworkURL(seed: title.visualSeed)
                 if let deviceID = self.syncDeviceID {
-                    let identity = ProgressIdentity(profileID: profile.id, titleID: id, sourceID: self.source.progressID)
+                    let identity = ProgressIdentity(profileID: profile.id, titleID: id, sourceID: self.savedProgressID)
                     let progress = await PlaybackSyncDemo.coordinator.open(identity: identity, deviceID: deviceID)
                     guard !Task.isCancelled, self.generation == ticket, self.session.isActive else { return }
                     self.syncedProgress = progress
@@ -808,7 +813,7 @@ import StreamLabPresentation
                   saved < duration - min(5, duration * 0.05) else { return nil }
             return saved
         }
-        return session.progress.position(titleID: titleID, sourceID: source.progressID, duration: duration)
+        return session.progress.position(titleID: titleID, sourceID: savedProgressID, duration: duration)
     }
 
     func saveProgress() {
@@ -821,7 +826,7 @@ import StreamLabPresentation
                 if syncedProgress.conflicted { syncMessage = "다른 기기의 진도가 변경되었습니다. 닫았다 다시 열어 주세요." }
             }
         } else {
-            session.progress.save(titleID: titleID, sourceID: source.progressID,
+            session.progress.save(titleID: titleID, sourceID: savedProgressID,
                                   position: seconds, duration: item.duration.seconds)
             syncMessage = session.progress.persistenceError ?? ""
         }
@@ -831,7 +836,7 @@ import StreamLabPresentation
     func restartFromBeginning() {
         guard canSeek, !syncRestartPending else { return }
         guard let syncedProgress else {
-            session.progress.restart(titleID: titleID, sourceID: source.progressID)
+            session.progress.restart(titleID: titleID, sourceID: savedProgressID)
             if let error = session.progress.persistenceError {
                 syncMessage = error
                 return

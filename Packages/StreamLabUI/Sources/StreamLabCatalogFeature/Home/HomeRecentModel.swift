@@ -68,7 +68,7 @@ enum RecentTitleResolver {
         // HLS and downloaded HLS share a progress ID; preserve the previous first-match policy.
         let sources = Dictionary(PlaybackModel.Source.allCases.map { ($0.progressID, $0) },
                                  uniquingKeysWith: { first, _ in first })
-        let eligible = entries.filter { sources[$0.sourceID] != nil }
+        let eligible = entries.filter { sources[$0.sourceID] != nil || $0.sourceID.hasPrefix(CatalogVideoIdentity.prefix) }
         let repository = session.repository
         let profile = session.profile
         let resolved = await RecentTitleResolver.resolve(ids: eligible.map(\.titleID)) {
@@ -77,8 +77,15 @@ enum RecentTitleResolver {
         guard !Task.isCancelled, session.isActive, generation == ticket else { return }
         // Preserve progress-store ordering even when detail responses arrive out of order.
         let items = eligible.compactMap { entry -> Item? in
-            guard let title = resolved.titles[entry.titleID], title.canView(in: profile),
-                  let source = sources[entry.sourceID] else { return nil }
+            guard let title = resolved.titles[entry.titleID], title.canView(in: profile) else { return nil }
+            let source: PlaybackModel.Source
+            if let url = title.streamURL {
+                guard CatalogVideoIdentity.progressID(for: url) == entry.sourceID else { return nil }
+                source = .catalogSource(for: title)
+            } else {
+                guard let known = sources[entry.sourceID], !known.isCatalog else { return nil }
+                source = known
+            }
             return Item(title: title, entry: entry, source: source)
         }
         let updated = Snapshot(items: items, failed: resolved.failed)
