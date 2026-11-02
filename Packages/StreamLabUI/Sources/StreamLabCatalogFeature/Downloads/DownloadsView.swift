@@ -2,10 +2,15 @@ import SwiftUI
 import StreamLabDomain
 import StreamLabDesignSystem
 
+public extension EnvironmentValues {
+    @Entry var catalogIsOffline: Bool = false
+}
+
 @MainActor public struct DownloadsView: View {
     private let session: CatalogSession
     @ObservedObject private var store = OfflineDownloadStore.shared
     @ObservedObject private var notifications = DownloadNotifications.shared
+    @Environment(\.catalogIsOffline) private var isOffline
     @Environment(\.scenePhase) private var phase
     @StateObject private var orientation = PlaybackOrientationSession()
     private struct PlaybackPresentation: Identifiable {
@@ -13,6 +18,7 @@ import StreamLabDesignSystem
         let model: PlaybackModel
         var id: UUID { record.id }
     }
+    @State private var savedDetailID: UUID?
     @State private var playing: PlaybackPresentation?
     // SwiftUI clears the item binding before onDismiss; keep teardown ownership
     // separately, but deliver the model atomically with the record in the item.
@@ -97,11 +103,13 @@ import StreamLabDesignSystem
                                 guard session.isActive, playing == nil else { return }
                                 openPlayback(item)
                             }
-                            NavigationLink(value: item.titleID) {
-                                Label("작품 상세 보기", systemImage: "chevron.right")
-                                    .frame(minHeight: 44)
+                            if isOffline, let title = item.catalogTitle, title.canView(in: session.profile) {
+                                Button { savedDetailID = item.id } label: { detailLabel }
+                                .accessibilityIdentifier("library-\(item.titleID)-detail")
+                            } else {
+                                NavigationLink(value: item.titleID) { detailLabel }
+                                    .accessibilityIdentifier("library-\(item.titleID)-detail")
                             }
-                            .accessibilityIdentifier("library-\(item.titleID)-detail")
                         }
                         .padding(16).frame(maxWidth: .infinity, alignment: .leading)
                         .background(StreamLabTheme.surface, in: RoundedRectangle(cornerRadius: 16))
@@ -120,6 +128,9 @@ import StreamLabDesignSystem
         .onChange(of: phase) { _, value in
             if value == .active { store.refreshExpiration(); Task { await notifications.refresh() } }
         }
+        .navigationDestination(item: $savedDetailID) { id in
+            SavedTitleDetail(id: id, session: session)
+        }
         .navigationTitle("다운로드")
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(item: $playing, onDismiss: {
@@ -131,6 +142,10 @@ import StreamLabDesignSystem
                          session: session, orientationSession: orientation,
                          initialSource: .savedSource(for: presentation.record), externalModel: presentation.model)
         }
+    }
+
+    private var detailLabel: some View {
+        Label("작품 상세 보기", systemImage: "chevron.right").frame(minHeight: 44)
     }
 
     private func openPlayback(_ item: OfflineDownload) {
@@ -194,4 +209,48 @@ import StreamLabDesignSystem
         .font(.callout).fixedSize(horizontal: false, vertical: true)
     }
 
+}
+
+/// Resolve by download ID each time so deletion, expiry and profile changes are respected.
+@MainActor private struct SavedTitleDetail: View {
+    let id: UUID
+    let session: CatalogSession
+    @ObservedObject private var store = OfflineDownloadStore.shared
+    @StateObject private var orientation = PlaybackOrientationSession()
+    @State private var playback: OfflineDownload?
+
+    var body: some View {
+        ScrollView {
+            if let item = store.downloads(in: session).first(where: { $0.id == id }),
+               let title = item.catalogTitle, title.canView(in: session.profile) {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text(title.name).font(.largeTitle.bold()).accessibilityAddTraits(.isHeader)
+                        .accessibilityIdentifier("detail-title")
+                    Text("\(title.rating.rawValue) · \(title.year.formatted(.number.grouping(.never))) · \(title.typeLabel) · \(title.durationMinutes)분")
+                    Text(title.genre).font(.subheadline)
+                    if !title.synopsis.isEmpty { Text(title.synopsis) }
+                    if item.state == .complete && !item.isExpired(at: Date()) {
+                        Button {
+                            orientation.begin()
+                            playback = item
+                        } label: { Label("저장한 작품 재생", systemImage: "play.fill") }
+                        .buttonStyle(StreamLabButtonStyle())
+                    } else if item.state == .expired || item.isExpired(at: Date()) {
+                        Text("이용 기간이 만료되었습니다. 연결 후 다시 다운로드해 주세요.")
+                    } else {
+                        Text("다운로드를 완료하면 오프라인에서 재생할 수 있습니다.")
+                    }
+                }
+                .frame(maxWidth: 760, alignment: .leading).padding(20)
+            } else {
+                Text("이 프로필에서 볼 수 있는 다운로드 정보가 없습니다.").padding()
+            }
+        }
+        .navigationTitle("저장한 작품 정보")
+        .background(PlaybackPresenterScene(session: orientation).frame(width: 0, height: 0))
+        .fullScreenCover(item: $playback, onDismiss: { orientation.finish() }) { item in
+            PlaybackView(titleID: item.titleID, title: item.title, session: session,
+                         orientationSession: orientation, initialSource: .savedSource(for: item))
+        }
+    }
 }

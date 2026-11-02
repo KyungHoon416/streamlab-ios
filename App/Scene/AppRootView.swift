@@ -134,6 +134,7 @@ import StreamLabDesignSystem
                 if let networkAvailable {
                     CatalogTabs(session: session, initialTab: networkAvailable ? .home : .downloads,
                                 onSwitchProfile: switchProfile, onLogout: logout)
+                        .environment(\.catalogIsOffline, !networkAvailable)
                         .id(session.id)
                 } else {
                     ProgressView("네트워크 상태를 확인하고 있어요")
