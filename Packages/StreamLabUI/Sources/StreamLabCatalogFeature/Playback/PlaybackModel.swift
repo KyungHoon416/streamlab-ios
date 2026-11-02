@@ -12,6 +12,7 @@ import StreamLabPresentation
         case bundled = "오프라인 데모", hls = "HLS 스트리밍"
         case catalogHLS = "등록된 HLS 영상"
         case catalogMP4 = "등록된 MP4 영상"
+        case downloadedCatalogHLS = "저장한 작품 영상"
         case downloadedHLS = "다운로드한 HLS 샘플"
         case hlsAudio = "HLS 오디오 비교 · 영어 / 화면 해설"
         case hlsStandardAudio = "HLS 오디오 비교 · 일반 영어만"
@@ -22,17 +23,18 @@ import StreamLabPresentation
         case hlsEpisode2 = "HLS 테스트 시즌 · 2화"
         var id: String { rawValue }
         var usesNativeTracks: Bool { isHLS || isCatalog }
-        var isCatalog: Bool { self == .catalogHLS || self == .catalogMP4 }
+        var isCatalog: Bool { self == .catalogHLS || self == .catalogMP4 || self == .downloadedCatalogHLS }
         static func catalogSource(for title: CatalogTitle) -> Source {
             guard let url = title.streamURL else { return .bundled }
             return url.pathExtension == "mp4" ? .catalogMP4 : .catalogHLS
         }
         var isHLS: Bool {
             switch self {
-            case .catalogHLS, .hls, .hlsAudio, .hlsStandardAudio, .hlsEpisode1, .hlsEpisode2, .downloadedHLS: true
+            case .catalogHLS, .hls, .hlsAudio, .hlsStandardAudio, .hlsEpisode1, .hlsEpisode2, .downloadedHLS, .downloadedCatalogHLS: true
             default: false
             }
         }
+        var isDownload: Bool { self == .downloadedHLS || self == .downloadedCatalogHLS }
         var nextEpisode: Source? {
             switch self {
             case .episode1: .episode2
@@ -44,6 +46,7 @@ import StreamLabPresentation
         var progressID: String {
             switch self {
             case .bundled: "bundled-demo-v1"
+            case .downloadedCatalogHLS: "catalog-offline-hls"
             case .catalogHLS: "catalog-hls-v1"
             case .catalogMP4: "catalog-mp4-v1"
             case .hls, .downloadedHLS: "apple-bipbop-v1"
@@ -58,7 +61,7 @@ import StreamLabPresentation
         }
         var url: URL? {
             switch self {
-            case .catalogHLS, .catalogMP4, .downloadedHLS: nil // Resolved from the repository or download store.
+            case .catalogHLS, .catalogMP4, .downloadedHLS, .downloadedCatalogHLS: nil // Resolved from the repository or download store.
             case .bundled, .episode1, .episode2, .episode3: Bundle.module.url(forResource: "playback-demo", withExtension: "mp4")
             case .hls, .hlsEpisode1: URL(string: "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8")
             case .hlsStandardAudio: URL(string: "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8")
@@ -349,17 +352,24 @@ import StreamLabPresentation
         let repository = session.repository
         let profile = session.profile
         let id = titleID
+        let useStoredCatalogTitle = self.source == .downloadedCatalogHLS
         let entitlementProvider = self.entitlementProvider
         loadTask = Task { [weak self] in
             do {
-                let title = try await repository.detail(id: id, profile: profile)
+                let title: CatalogTitle?
+                if useStoredCatalogTitle {
+                    guard let self, self.session.isActive else { return }
+                    title = OfflineDownloadStore.shared.record(session: self.session, titleID: id)?.catalogTitle
+                } else {
+                    title = try await repository.detail(id: id, profile: profile)
+                }
                 guard !Task.isCancelled, let self, self.generation == ticket, self.session.isActive else { return }
                 guard let title, title.canView(in: profile) else {
                     self.fail("이 프로필에서는 재생할 수 없는 콘텐츠입니다.")
                     return
                 }
                 self.catalogURL = title.streamURL
-                if self.source.isCatalog { self.source = Source.catalogSource(for: title) }
+                if self.source.isCatalog && !useStoredCatalogTitle { self.source = Source.catalogSource(for: title) }
                 let entitlementScope = PlaybackEntitlementScope(accountID: self.session.accountID,
                     profileID: profile.id, titleID: id, mediaID: self.savedProgressID)
                 var grant = try await entitlementProvider.authorize(entitlementScope, now: self.entitlementNow)
@@ -398,7 +408,7 @@ import StreamLabPresentation
 
     private func prepare(ticket: Int) {
         var url = source.isCatalog ? catalogURL : source.url
-        if source == .downloadedHLS {
+        if source.isDownload {
             guard let (savedURL, lease) = OfflineDownloadStore.shared.acquire(session: session, titleID: titleID) else {
                 fail("다운로드 파일이 없거나 이용 기간이 만료되어 재생할 수 없습니다. 다시 다운로드해 주세요.")
                 return
@@ -1025,7 +1035,7 @@ import StreamLabPresentation
                     self.subtitleMessage = "이 영상에 제공되는 자막이 없습니다. 저장된 선호 언어는 유지됩니다."
                     return
                 }
-                let available = self.source == .downloadedHLS
+                let available = self.source.isDownload
                     ? ((item.asset as? AVURLAsset)?.assetCache?.mediaSelectionOptions(in: group) ?? [])
                     : group.options
                 for (index, option) in available.filter({ $0.isPlayable }).enumerated() {
@@ -1144,7 +1154,7 @@ import StreamLabPresentation
                 }
                 self.audioOptions = []
                 self.nativeAudio = [:]
-                let available = self.source == .downloadedHLS
+                let available = self.source.isDownload
                     ? ((item.asset as? AVURLAsset)?.assetCache?.mediaSelectionOptions(in: group) ?? [])
                     : group.options
                 for (index, option) in available.filter({ $0.isPlayable }).enumerated() {

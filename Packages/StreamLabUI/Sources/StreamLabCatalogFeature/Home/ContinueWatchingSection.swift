@@ -41,9 +41,17 @@ import StreamLabDesignSystem
                             guard session.isActive else { return }
                             // The progress ID is shared by streaming and downloaded HLS.
                             // Resolve only on tap: a cached list must not keep stale file state.
-                            let source: PlaybackModel.Source = item.source == .hls &&
-                                OfflineDownloadStore.shared.hasPlayableDownload(session: session, titleID: item.id)
-                                ? .downloadedHLS : item.source
+                            let downloads = OfflineDownloadStore.shared
+                            var source = item.source
+                            if (source == .hls || source == .catalogHLS),
+                               downloads.hasPlayableDownload(session: session, titleID: item.id) {
+                                if source == .hls {
+                                    source = .downloadedHLS
+                                } else if let saved = downloads.record(session: session, titleID: item.id)?.catalogTitle?.streamURL,
+                                          CatalogVideoIdentity.progressID(for: saved) == item.entry.sourceID {
+                                    source = .downloadedCatalogHLS
+                                }
+                            }
                             onPlay(HomeRecentModel.Item(title: item.title, entry: item.entry, source: source))
                         } label: {
                             VStack(alignment: .leading, spacing: 8) {

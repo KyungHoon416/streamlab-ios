@@ -37,7 +37,7 @@ import StreamLabDesignSystem
                         .accessibilityIdentifier("downloads-profile")
                     Text("\(items.count)개 · 저장 공간 \(ByteCountFormatter.string(fromByteCount: savedBytes, countStyle: .file))")
                         .accessibilityIdentifier("downloads-summary")
-                    Text("현재 프로필의 Apple HLS 샘플입니다. 실제 작품 영상이 아닙니다.")
+                    Text("현재 프로필에서 저장한 HLS 영상입니다.")
                         .font(.callout).foregroundStyle(.secondary)
                     Text("기기 전체 관리 예산 1GB · 동시 다운로드 2개. 진행 중인 파일의 크기는 완료 후 반영됩니다.")
                         .font(.caption).foregroundStyle(.secondary)
@@ -81,9 +81,9 @@ import StreamLabDesignSystem
                 }
                 if items.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
-                        Label("아직 다운로드한 샘플이 없습니다", systemImage: "arrow.down.circle")
+                        Label("아직 다운로드한 영상이 없습니다", systemImage: "arrow.down.circle")
                             .font(.headline)
-                        Text("홈이나 검색에서 작품을 열고 ‘HLS 샘플 다운로드’를 눌러 주세요.")
+                        Text("홈이나 검색에서 작품을 열고 다운로드 버튼을 눌러 주세요.")
                     }
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityElement(children: .combine)
@@ -129,7 +129,7 @@ import StreamLabDesignSystem
         }) { presentation in
             PlaybackView(titleID: presentation.record.titleID, title: presentation.record.title,
                          session: session, orientationSession: orientation,
-                         initialSource: .downloadedHLS, externalModel: presentation.model)
+                         initialSource: presentation.record.catalogTitle == nil ? .downloadedHLS : .downloadedCatalogHLS, externalModel: presentation.model)
         }
     }
 
@@ -138,7 +138,7 @@ import StreamLabDesignSystem
         let model = PlaybackModel(titleID: item.titleID, session: session)
         retainedPlaybackModel = model
         orientation.begin()
-        model.load(.downloadedHLS)
+        model.load(item.catalogTitle == nil ? .downloadedHLS : .downloadedCatalogHLS)
         playing = PlaybackPresentation(record: item, model: model)
     }
 

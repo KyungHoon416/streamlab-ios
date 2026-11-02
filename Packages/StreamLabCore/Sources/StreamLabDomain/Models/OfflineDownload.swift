@@ -8,6 +8,14 @@ public struct OfflineDownload: Codable, Identifiable, Equatable, Sendable {
     public let titleID: String
     public let title: String
     public var state: State = .queued
+    // Absent in legacy Apple sample records. Retain the authorized title for offline playback.
+    public private(set) var catalogTitle: CatalogTitle?
+    public func transferURL(sampleURL: URL?) -> URL? {
+        guard let catalogTitle else { return sampleURL }
+        guard catalogTitle.id == titleID, let url = catalogTitle.streamURL,
+              url.scheme == "https", url.host != nil, url.pathExtension.lowercased() == "m3u8" else { return nil }
+        return url
+    }
     public var relativePath: String?
     public var bytes: Int64 = 0
     public var pinned = false
@@ -27,6 +35,15 @@ public struct OfflineDownload: Codable, Identifiable, Equatable, Sendable {
         self.id = id; self.accountID = accountID; self.profileID = profileID
         self.titleID = titleID; self.title = title; self.lastUsed = now
     }
+    public init?(downloadable title: CatalogTitle, accountID: String, profile: ViewerProfile) {
+        guard title.canView(in: profile) else { return nil }
+        self.init(accountID: accountID, profileID: profile.id, titleID: title.id, title: title.name)
+        if title.streamURL != nil {
+            catalogTitle = title
+            guard transferURL(sampleURL: nil) != nil else { return nil }
+        }
+    }
+
 }
 
 /// Decimal GB. Reservations bound concurrent work; native callbacks can arrive

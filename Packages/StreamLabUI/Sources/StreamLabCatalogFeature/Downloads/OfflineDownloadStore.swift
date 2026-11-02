@@ -2,6 +2,7 @@ import AVFoundation
 import Combine
 import CoreTelephony
 import Foundation
+import StreamLabCatalogData
 import StreamLabDomain
 import StreamLabPresentation
 
@@ -265,20 +266,24 @@ import StreamLabPresentation
     func downloads(in session: CatalogSession) -> [OfflineDownload] {
         guard storageHealthy, session.isActive, activeAccount == session.accountID,
               !blockedAccounts.contains(session.accountID) else { return [] }
-        return records.filter { $0.accountID == session.accountID && $0.profileID == session.profile.id }
+        return records.filter { belongsToLibrary($0, session: session) }
             .sorted { $0.lastUsed == $1.lastUsed ? $0.id.uuidString < $1.id.uuidString : $0.lastUsed > $1.lastUsed }
     }
 
-    func record(accountID: String, profileID: String, titleID: String) -> OfflineDownload? {
-        records.first { $0.accountID == accountID && $0.profileID == profileID && $0.titleID == titleID }
+    private func belongsToLibrary(_ item: OfflineDownload, session: CatalogSession) -> Bool {
+        item.accountID == session.accountID && item.profileID == session.profile.id &&
+            (item.catalogTitle != nil) == (session.repository is FirestoreCatalogRepository)
+    }
+
+    func record(session: CatalogSession, titleID: String) -> OfflineDownload? {
+        records.first { $0.titleID == titleID && belongsToLibrary($0, session: session) }
     }
 
     func enqueue(title: CatalogTitle, session: CatalogSession) {
         guard storageHealthy, session.isActive, title.canView(in: session.profile),
               activeAccount == session.accountID, !blockedAccounts.contains(session.accountID) else { return }
-        guard record(accountID: session.accountID, profileID: session.profile.id, titleID: title.id) == nil else { return }
-        let new = OfflineDownload(accountID: session.accountID, profileID: session.profile.id,
-                                  titleID: title.id, title: title.name)
+        guard record(session: session, titleID: title.id) == nil else { return }
+        guard let new = OfflineDownload(downloadable: title, accountID: session.accountID, profile: session.profile) else { return }
         records.append(new)
         do { try save(); pump() } catch { records.removeAll { $0.id == new.id }; reportStorageFailure() }
     }
@@ -308,6 +313,11 @@ import StreamLabPresentation
             return
         }
         guard eligible(), let i = index(id) else { return }
+        guard var replacement = OfflineDownload(downloadable: title, accountID: session.accountID, profile: session.profile),
+              (replacement.catalogTitle == nil) == (original.catalogTitle == nil) else {
+            errorMessage = "현재 이 작품은 HLS 다운로드를 지원하지 않습니다."
+            return
+        }
         let previous = records[i]
         do {
             if let url = localURL(previous), FileManager.default.fileExists(atPath: url.path) {
@@ -319,8 +329,6 @@ import StreamLabPresentation
         }
         notifier.cancel(id: id)
         observations[id] = nil; progress[id] = nil; lastDiskCheck[id] = nil
-        var replacement = OfflineDownload(accountID: session.accountID, profileID: session.profile.id,
-                                          titleID: title.id, title: title.name)
         replacement.pinned = previous.pinned
         records[i] = replacement
         do { try save() }
@@ -354,7 +362,7 @@ import StreamLabPresentation
     private func owns(_ id: UUID, session: CatalogSession) -> Bool {
         guard storageHealthy, restored, session.isActive, activeAccount == session.accountID,
               !blockedAccounts.contains(session.accountID), let i = index(id) else { return false }
-        return records[i].accountID == session.accountID && records[i].profileID == session.profile.id
+        return belongsToLibrary(records[i], session: session)
     }
 
     private func availableDiskCapacity() throws -> Int64 {
@@ -381,9 +389,10 @@ import StreamLabPresentation
                 guard try availableDiskCapacity() >= requiredFree else {
                     throw CocoaError(.fileWriteOutOfSpace)
                 }
-                guard let i = index(id), let url = PlaybackModel.Source.hls.url else { return }
+                guard let i = index(id) else { return }
+                guard let url = records[i].transferURL(sampleURL: PlaybackModel.Source.hls.url) else { throw URLError(.unsupportedURL) }
                 let asset = AVURLAsset(url: url)
-                let config = AVAssetDownloadConfiguration(asset: asset, title: records[i].title + " · HLS 샘플")
+                let config = AVAssetDownloadConfiguration(asset: asset, title: records[i].title)
                 let task = downloads.makeAssetDownloadTask(downloadConfiguration: config)
                 task.taskDescription = id.uuidString
                 records[i].state = .downloading
@@ -551,7 +560,7 @@ import StreamLabPresentation
         refreshExpiration()
         guard storageHealthy, session.isActive, activeAccount == session.accountID,
               !blockedAccounts.contains(session.accountID),
-              let item = record(accountID: session.accountID, profileID: session.profile.id, titleID: titleID),
+              let item = record(session: session, titleID: titleID),
               item.state == .complete, !item.isExpired(at: Date()), let url = localURL(item),
               AVURLAsset(url: url).assetCache?.isPlayableOffline == true, let i = index(item.id) else { return nil }
         return (url, i)

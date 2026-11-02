@@ -69,8 +69,8 @@ import StreamLabDomain
                         .accessibilityIdentifier("playback-open")
                     MyListButton(title: title, store: myList)
                         .accessibilityIdentifier("detail-my-list")
-                    if title.streamURL == nil {
-                        OfflineDownloadSection(title: title, session: session) { openPlayback(.downloadedHLS) }
+                    if title.streamURL == nil || title.streamURL?.pathExtension == "m3u8" {
+                        OfflineDownloadSection(title: title, session: session) { openPlayback(title.streamURL == nil ? .downloadedHLS : .downloadedCatalogHLS) }
                     }
                     VStack(alignment: .leading, spacing: 12) {
                         Text("작품 소개").font(.title2.bold())
@@ -98,7 +98,7 @@ import StreamLabDomain
                     if title.streamURL == nil {
                         DetailEpisodeSection(title: title, positions: episodePositions, onSelect: openPlayback)
                     }
-                    Text(title.streamURL == nil ? "오리지널 Mock 콘텐츠 · 재생 버튼은 테스트 영상을 엽니다." : "관리자가 등록한 영상입니다. 이 작품의 다운로드는 아직 지원하지 않습니다.")
+                    Text(title.streamURL == nil ? "오리지널 Mock 콘텐츠 · 재생 버튼은 테스트 영상을 엽니다." : (title.streamURL?.pathExtension == "mp4" ? "등록된 MP4 영상은 온라인에서 재생할 수 있습니다." : "관리자가 등록한 HLS 영상입니다."))
                         .font(.callout).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
