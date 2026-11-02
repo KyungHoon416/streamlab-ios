@@ -83,8 +83,14 @@ for reference in scheme.findall(".//BuildableReference"):
     assert reference.get("BlueprintIdentifier") in targets, reference.attrib
 # Both shared schemes must run the app, with Firebase opt-in only in the Firebase scheme.
 app_id = next(key for key, target in targets.items() if target is app_target)
+assert info["StreamLabCatalog"] == "$(STREAMLAB_CATALOG)"
 for name, use_firebase in (("StreamLab", False), ("StreamLab-Firebase", True)):
     shared = ET.parse(root / f"StreamLab.xcodeproj/xcshareddata/xcschemes/{name}.xcscheme")
+    for action, base in (("LaunchAction", "Debug"), ("ProfileAction", "Release"), ("ArchiveAction", "Release")):
+        chosen = shared.find(action).get("buildConfiguration")
+        assert chosen == ("Firebase" + base if use_firebase else base), (name, action, chosen)
+        settings = next(objects[key]["buildSettings"] for key in configs if objects[key]["name"] == chosen)
+        assert settings["STREAMLAB_CATALOG"] == ("firebase" if use_firebase else "demo")
     for action in ("LaunchAction", "ProfileAction"):
         ref = shared.find(f"{action}/BuildableProductRunnable/BuildableReference")
         assert ref is not None and ref.get("BlueprintIdentifier") == app_id, (name, action)

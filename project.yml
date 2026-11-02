@@ -1,4 +1,9 @@
 name: StreamLab
+configs:
+  Debug: debug
+  Release: release
+  FirebaseDebug: debug
+  FirebaseRelease: release
 options:
   bundleIdPrefix: com.example.streamlab
   deploymentTarget:
@@ -36,6 +41,12 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: App/Configuration/Info.plist
         CODE_SIGN_STYLE: Automatic
+        STREAMLAB_CATALOG: demo
+      configs:
+        FirebaseDebug:
+          STREAMLAB_CATALOG: firebase
+        FirebaseRelease:
+          STREAMLAB_CATALOG: firebase
     dependencies:
       - package: StreamLabCore
         product: StreamLabPresentation
@@ -254,10 +265,12 @@ schemes:
       targets:
         StreamLab: all
     run:
-      config: Debug
+      config: FirebaseDebug
       commandLineArguments:
         "--firebase-catalog": true
     profile:
-      config: Release
+      config: FirebaseRelease
       commandLineArguments:
         "--firebase-catalog": true
+    archive:
+      config: FirebaseRelease

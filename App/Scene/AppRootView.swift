@@ -14,7 +14,8 @@ import StreamLabDesignSystem
     #endif
     @StateObject private var account = CatalogAccount()
     private let repository: any CatalogRepository
-    private let usesFirebase = ProcessInfo.processInfo.arguments.contains("--firebase-catalog")
+    private let usesFirebase = Bundle.main.object(forInfoDictionaryKey: "StreamLabCatalog") as? String == "firebase"
+        || ProcessInfo.processInfo.arguments.contains("--firebase-catalog")
     private let startupLog = Logger(subsystem: "com.example.streamlab.demo", category: "Startup")
 
     init() {
