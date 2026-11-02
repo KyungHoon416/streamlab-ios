@@ -24,9 +24,9 @@ Storage 에뮬레이터: `firebase emulators:exec --only storage --project demo-
 
 업로드 검증: 관리자·파일·취소/늦은 응답 단위 테스트 9개와 Storage 에뮬레이터 2개 통과. 관리자 생성/조회, 비로그인·다른 계정·미검증·비Google 계정 차단, 파일 형식/메타데이터/빈 파일 거부, 덮어쓰기·삭제 차단을 검사했다. Storage 및 Hosting 배포 완료.
 
-2026-11-02 실제 전송 확인: 사용자가 데모 MP4를 선택·업로드했고 관리자 화면의 업로드 완료 및 URL 입력을 확인했다. `streamlab-mp4-upload`를 공개 저장(revision 2)한 뒤 서버 조회로 확인했다. 영상 HTTP Range 요청은 206 / `video/mp4` / `bytes 0-31/71397`을 반환했다. 전체 71,397바이트의 SHA-256이 저장소 원본 `playback-demo.mp4`와 일치했다. 실제 파일 전송·저장·공개·부분 다운로드 검증 완료이며 실기기 AVPlayer 영상/시간/탐색 확인은 아직 대기다. [업로드 CI](https://github.com/KyungHoon416/streamlab-ios/actions/runs/41321071403) 성공(`c5aa023`).
+2026-11-02 실제 전송 확인: 사용자가 데모 MP4를 선택·업로드했고 관리자 화면의 업로드 완료 및 URL 입력을 확인했다. `streamlab-mp4-upload`를 공개 저장(revision 2)한 뒤 서버 조회로 확인했다. 영상 HTTP Range 요청은 206 / `video/mp4` / `bytes 0-31/71397`을 반환했다. 전체 71,397바이트의 SHA-256이 저장소 원본 `playback-demo.mp4`와 일치했다. 실제 파일 전송·저장·공개·부분 다운로드 검증 완료이며 이어 사용자가 StreamLab-Firebase Scheme으로 iPhone에서 업로드 영상 재생·하단 시간 증가·탐색을 확인했다. [업로드 CI](https://github.com/KyungHoon416/streamlab-ios/actions/runs/41321071403) 성공(`c5aa023`).
 
-MP4 URL 확장 검증: Core 266개, iOS 재생 경계 25개, 관리자 입력 4개·Firestore 규칙 4개 통과. 최종 Firebase Scheme Release 빌드 및 Hosting·Firestore 규칙 배포 완료. 실제 MP4 파일의 실기기 재생은 아직 확인하지 않았다.
+MP4 URL 확장 검증: Core 266개, iOS 재생 경계 25개, 관리자 입력 4개·Firestore 규칙 4개 통과. 최종 Firebase Scheme Release 빌드 및 Hosting·Firestore 규칙 배포 완료. 업로드 MP4의 실기기 확인 결과는 위 기록을 참고한다.
 
 작품 ID는 변경하지 않는다. 수정은 Firestore transaction과 revision으로 다른 창의 덮어쓰기를 막는다. 삭제 대신 비공개로 전환한다. 비공개 전환은 이후 목록·상세·재생 시작 조회에 반영되며, 이미 전달한 URL이나 재생 중인 플레이어 권한을 회수하지는 않는다. 공개 필드에 비밀 키나 비공개 서명 URL을 저장하지 않는다.
 
@@ -65,10 +65,10 @@ swift test --package-path Packages/StreamLabCore --scratch-path /private/tmp/str
 - 관리자 입력/계정 테스트 3개, Firestore 규칙 에뮬레이터 테스트 3개 통과. 공개 조건 조회, 비공개 조회 차단, 다른 계정/미검증/비Google 로그인 쓰기 차단, revision·스키마·timestamp 검증, 삭제 차단 포함.
 - 실제 배포 Firestore 공개 조건 HTTP 조회 성공(당시 문서 0개), 조건 없는 전체 조회 `PERMISSION_DENIED` 확인.
 - Hosting 및 규칙 배포 완료. Google 제공자 활성화 확인.
-- 기존 `scripts/validate-project.py`는 이전부터 있던 AppRootView의 UIKit 시스템 어댑터를 허용 목록에 포함하지 않아 중단됨. 이 구조 검사기의 통과를 주장하지 않으며, 실제 iOS 빌드 및 패키지 테스트 결과와 구분한다.
-- 사용자 Google 로그인 후 실제 관리자 화면 확인 완료. `apple-hls-sample`을 비공개 생성(revision 1) → 공개(2) → 비공개(3) → 재공개(4)했다. 비공개 상태의 익명 직접 조회는 `PERMISSION_DENIED`, 공개 상태의 iOS 동일 홈·상세 REST 쿼리는 정상 반환됨을 확인했다. 실기기 확인을 위해 Apple 테스트 HLS 샘플 하나를 공개 상태로 남겼다. iPhone 원격 영상·시간·탐색 재생 확인은 아직 대기다.
+- 2026-11-02 프로젝트 구조 검사 통과. 현재 UIKit 시스템 어댑터를 파일 단위로 식별하고 일반/Firebase 공유 Scheme의 Run·Profile 실행 대상 및 Firebase 인수 분리를 CI에서 검사한다.
+- 사용자 Google 로그인 후 실제 관리자 화면 확인 완료. `apple-hls-sample`을 비공개 생성(revision 1) → 공개(2) → 비공개(3) → 재공개(4)했다. 비공개 상태의 익명 직접 조회는 `PERMISSION_DENIED`, 공개 상태의 iOS 동일 홈·상세 REST 쿼리는 정상 반환됨을 확인했다. 실기기 확인을 위해 Apple 테스트 HLS 샘플 하나를 공개 상태로 남겼다. 이 HLS 샘플의 Firebase Scheme 실기기 확인은 MP4 결과와 별개다.
 - 원격 CI: [Firebase admin validation](https://github.com/KyungHoon416/streamlab-ios/actions/runs/41313300648), [StreamLab validation](https://github.com/KyungHoon416/streamlab-ios/actions/runs/41313300641) 모두 성공(`ddc116f`).
 
 ### MP4 드래그 앤 드롭 (2026-11-02)
 
-업로드 영역에 MP4 한 개를 놓거나 기존 파일 선택을 이용합니다. 파일명·크기를 확인한 뒤 파일 업로드를 눌러 전송하고, 완료 후 저장합니다. 드롭만으로 전송하지 않습니다. 확장자·MIME·크기·MP4 헤더를 검증하며 여러 파일은 거절합니다. 작품 변경·로그아웃 후 늦게 끝난 파일 검증이 선택을 되살리지 않도록 방어했습니다. 관리자 단위 테스트 11개와 배포 빌드 통과. 실제 Finder 드래그 동작은 사용자 확인이 남아 있습니다.
+업로드 영역에 MP4 한 개를 놓거나 기존 파일 선택을 이용합니다. 파일명·크기를 확인한 뒤 파일 업로드를 눌러 전송하고, 완료 후 저장합니다. 드롭만으로 전송하지 않습니다. 확장자·MIME·크기·MP4 헤더를 검증하며 여러 파일은 거절합니다. 작품 변경·로그아웃 후 늦게 끝난 파일 검증이 선택을 되살리지 않도록 방어했습니다. 관리자 단위 테스트 11개와 배포 빌드 통과. 사용자가 드래그 앤 드롭으로 파일 선택·업로드·작품 저장까지 확인했습니다.

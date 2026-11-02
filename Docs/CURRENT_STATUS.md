@@ -2,7 +2,7 @@
 
 기준일: 2026-11-01. 이 문서를 현재 상태의 시작점으로 사용한다. `ASSIGNMENT_PROGRESS.md`의 날짜별 내용은 작업 이력이며 과거의 ‘미구현’ 표가 현재 상태를 뜻하지 않는다.
 
-2026-11-02 추가: 사용자 Blaze 전환 후 관리자 MP4 직접 업로드·진행률·취소·500MB 제한과 Storage 보안 규칙을 배포했다. 단위 테스트 9개·Storage 규칙 2개 및 업로드 CI 통과. 실제 데모 파일 업로드·공개 저장·HTTP 206 부분 전송·원본 SHA-256 일치 확인 완료. 실기기 MP4 재생 확인은 대기. [사용 순서와 제한](FIREBASE_CATALOG.md).
+2026-11-02 추가: 사용자 Blaze 전환 후 관리자 MP4 직접 업로드·진행률·취소·500MB 제한과 Storage 보안 규칙을 배포했다. 단위 테스트 9개·Storage 규칙 2개 및 업로드 CI 통과. 실제 데모 파일 업로드·공개 저장·HTTP 206 부분 전송·원본 SHA-256 일치 확인 완료. 사용자가 드롭 업로드·저장 및 StreamLab-Firebase 실기기 MP4 재생·하단 시간 증가·탐색을 확인했다. [사용 순서와 제한](FIREBASE_CATALOG.md).
 
 이 표는 저장소의 A/B/C/D 요구사항 매핑과 최신 증빙을 통합했다. 원문 채점표 전체를 새로 대조한 합격 판정이나 완료율은 아니다. 테스트 종류·실기기 보고·측정 한계를 구분한다.
 
@@ -10,7 +10,7 @@
 
 | 영역 | 구현 상태 | 확인 근거와 남은 범위 |
 |---|---|---|
-| A1 홈·검색·프로필 | 기존 Mock 및 별도 Firebase 공개 카탈로그 Scheme, 관리자 작품 등록·공개 설정 구현 | [Firebase 연결 범위·검증](FIREBASE_CATALOG.md): 실제 관리자 로그인·저장·공개/비공개 및 REST 조회 확인, CI 성공. 실기기 원격 재생은 확인 대기. [프로필 UI 5개](Measurements/Profile-Seek-2026-11-01/REPORT.md), [F01 역순 응답](CHAOS_ACCEPTANCE.md) |
+| A1 홈·검색·프로필 | 기존 Mock 및 별도 Firebase 공개 카탈로그 Scheme, 관리자 작품 등록·공개 설정 구현 | [Firebase 연결 범위·검증](FIREBASE_CATALOG.md): 실제 관리자 로그인·저장·공개/비공개 및 REST 조회 확인, CI 성공. 업로드 MP4 실기기 재생 확인 완료. [프로필 UI 5개](Measurements/Profile-Seek-2026-11-01/REPORT.md), [F01 역순 응답](CHAOS_ACCEPTANCE.md) |
 | A2 재생·복구 | 번들/HLS, 탐색, 자막·음성, 이어보기, 재시도, 오디오/회전/종료 경계 구현 | [iOS 패키지 25개](Measurements/Observer-Lifecycle-2026-11-01/REPORT.md). 실제 OS 리셋·모든 블루투스 조건과 동일하지 않음 |
 | A3 진도 동기화 | revision·idempotency·명시적 restart를 사용하는 서버 Mock 및 가상 A/B 구현 | [F08 충돌/수렴](CHAOS_ACCEPTANCE.md). 실제 여러 기기의 운영 서버 동기화는 아님 |
 | B 로컬 우선·정합성 | 원자적 파일 영속 큐, 찜/검색/진도, 프로필·계정 격리, 충돌/재시도/취소 구현 | [실제 HTTP·인증 경계](Measurements/HTTP-Boundaries-2026-10-31/REPORT.md), [100건 SIGKILL 복구](Measurements/Mutation-Process-2026-11-01/REPORT.md). SwiftData DB를 사용한 구조는 아님 |

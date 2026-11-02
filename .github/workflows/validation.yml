@@ -27,6 +27,8 @@ jobs:
         run: |
           mkdir -p Docs/Validation/ci
           { xcodebuild -version; swift --version; sw_vers; } | tee Docs/Validation/ci/environment.txt
+      - name: Validate Xcode project and shared catalog schemes
+        run: python3 scripts/validate-project.py
       - name: Core, loopback HTTP and deterministic chaos
         run: bash scripts/check-assignment-core-mac.sh
       - name: TTFF report parser regression

@@ -16,6 +16,14 @@ assert not list(ui.rglob("*.storyboard")), "Obsolete Storyboard resources remain
 # SwiftUI owns all screens. UIKit is limited to media/scene adapters, including
 # UIImage artwork passed to the system Now Playing card (not an app screen).
 bridges = {
+    # Protected data notifications and a first-frame display link.
+    "App/Scene/AppRootView.swift",
+    "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/State/CatalogAccount.swift",
+    "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/State/KeychainLockDiagnosticView.swift",
+    # Poster layer, layout tracing and poster adapter tests.
+    "Packages/StreamLabUI/Sources/StreamLabDesignSystem/Images/ArtworkImageSurface.swift",
+    "Packages/StreamLabUI/Sources/StreamLabDesignSystem/Theme/HomeStartupTrace.swift",
+    "Packages/StreamLabUI/Tests/StreamLabCatalogFeatureTests/ArtworkSurfaceTests.swift",
     # System memory-warning notification only; all rendering remains SwiftUI.
     "Packages/StreamLabUI/Sources/StreamLabDesignSystem/Images/ArtworkMemoryLifecycle.swift",
     "App/Application/DownloadBackgroundDelegate.swift",
@@ -73,6 +81,16 @@ for config_id in configs:
 scheme = ET.parse(root / "StreamLab.xcodeproj/xcshareddata/xcschemes/StreamLab.xcscheme")
 for reference in scheme.findall(".//BuildableReference"):
     assert reference.get("BlueprintIdentifier") in targets, reference.attrib
+# Both shared schemes must run the app, with Firebase opt-in only in the Firebase scheme.
+app_id = next(key for key, target in targets.items() if target is app_target)
+for name, use_firebase in (("StreamLab", False), ("StreamLab-Firebase", True)):
+    shared = ET.parse(root / f"StreamLab.xcodeproj/xcshareddata/xcschemes/{name}.xcscheme")
+    for action in ("LaunchAction", "ProfileAction"):
+        ref = shared.find(f"{action}/BuildableProductRunnable/BuildableReference")
+        assert ref is not None and ref.get("BlueprintIdentifier") == app_id, (name, action)
+        args = shared.findall(f"{action}/CommandLineArguments/CommandLineArgument")
+        enabled = {arg.get("argument") for arg in args if arg.get("isEnabled") == "YES"}
+        assert ("--firebase-catalog" in enabled) == use_firebase, (name, action, enabled)
 assert "SWIFT_TREAT_WARNINGS_AS_ERRORS: YES" in (root / "project.yml").read_text()
 print("PASS: SwiftUI App + four feature views, lazy containers, profile identity, lifecycle wiring")
 print("PASS: package declarations, compiled source paths, scheme target IDs and Info.plist")
