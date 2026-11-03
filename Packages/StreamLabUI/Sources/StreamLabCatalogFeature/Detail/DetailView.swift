@@ -9,6 +9,7 @@ import StreamLabDomain
     @State private var playbackSource: PlaybackModel.Source?
     @State private var syncDeviceID = ""
     @State private var episodePositions: [String: Double] = [:]
+    @StateObject private var memoryProbe = PlaybackMemoryProbe()
     private let session: CatalogSession
     @Environment(\.scenePhase) private var phase
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -67,6 +68,20 @@ import StreamLabDomain
                     }
                         .buttonStyle(StreamLabButtonStyle())
                         .accessibilityIdentifier("playback-open")
+                    if PlaybackMemoryProbe.enabled, title.streamURL?.pathExtension == "m3u8" {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Button(memoryProbe.run == nil ? "HLS 메모리 측정 시작" : "측정 다시 시작") { memoryProbe.start() }
+                            if let run = memoryProbe.run {
+                                Text("재생 후 닫기 \(run.closed)/20회")
+                                if run.awaitingSample { Text("플레이어 종료 후 메모리 측정 중…") }
+                                let samples = ([run.baseline] + run.checkpoints).enumerated().map { index, bytes in
+                                    "\(index * 5)회: \(String(format: "%.2f", Double(bytes) / 1_048_576)) MiB"
+                                }
+                                Text(samples.joined(separator: "\n")).monospacedDigit().textSelection(.enabled)
+                            }
+                            if let error = memoryProbe.error { Text(error) }
+                        }
+                    }
                     MyListButton(title: title, store: myList)
                         .accessibilityIdentifier("detail-my-list")
                     OfflineDownloadSection(title: title, session: session) {
@@ -127,9 +142,9 @@ import StreamLabDomain
         .background(StreamLabTheme.background)
         .navigationTitle("콘텐츠 상세")
         .navigationBarTitleDisplayMode(.inline)
-        .fullScreenCover(item: $playbackSource, onDismiss: { playbackOrientation.finish(); refreshEpisodeProgress() }) { selectedSource in
+        .fullScreenCover(item: $playbackSource, onDismiss: { playbackOrientation.finish(); refreshEpisodeProgress(); memoryProbe.dismissed() }) { selectedSource in
             if let title = model.store.detail {
-                PlaybackView(titleID: title.id, title: title.name, session: session, orientationSession: playbackOrientation, initialSource: selectedSource, syncDeviceID: syncDeviceID.isEmpty ? nil : syncDeviceID)
+                PlaybackView(titleID: title.id, title: title.name, session: session, orientationSession: playbackOrientation, initialSource: selectedSource, syncDeviceID: syncDeviceID.isEmpty ? nil : syncDeviceID, onCatalogHLSPlaying: memoryProbe.didPlay)
                     .id("\(session.id.uuidString):\(title.id):\(selectedSource.id)")
             }
         }
@@ -143,7 +158,7 @@ import StreamLabDomain
     }
 
     private func openPlayback(_ source: PlaybackModel.Source) {
-        guard session.isActive, playbackSource == nil else { return }
+        guard session.isActive, playbackSource == nil, memoryProbe.run?.awaitingSample != true else { return }
         playbackOrientation.begin()
         playbackSource = source
     }

@@ -20,6 +20,7 @@ import StreamLabDesignSystem
     @State private var interaction = 0
     @State private var started = false
     @State private var showsPlaybackFailure = false
+    private let onCatalogHLSPlaying: (@MainActor () -> Void)?
     private let onCancelFailure: (@MainActor () -> Void)?
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var phase
@@ -27,7 +28,8 @@ import StreamLabDesignSystem
     @Environment(\.dynamicTypeSize) private var textSize
     private let title: String
 
-    init(titleID: String, title: String, session: CatalogSession, orientationSession: PlaybackOrientationSession, initialSource: PlaybackModel.Source = .bundled, syncDeviceID: String? = nil, externalModel: PlaybackModel? = nil, onCancelFailure: (@MainActor () -> Void)? = nil) {
+    init(titleID: String, title: String, session: CatalogSession, orientationSession: PlaybackOrientationSession, initialSource: PlaybackModel.Source = .bundled, syncDeviceID: String? = nil, externalModel: PlaybackModel? = nil, onCatalogHLSPlaying: (@MainActor () -> Void)? = nil, onCancelFailure: (@MainActor () -> Void)? = nil) {
+        self.onCatalogHLSPlaying = onCatalogHLSPlaying
         self.onCancelFailure = onCancelFailure
         ownsModelLifecycle = externalModel == nil
         _source = State(initialValue: externalModel.flatMap { $0.status == .idle ? nil : $0.source } ?? initialSource)
@@ -219,6 +221,7 @@ import StreamLabDesignSystem
             if value != .active { scrubbing = false; revealControls() }
         }
         .onChange(of: model.status) { _, value in
+            if value == .playing, model.source == .catalogHLS { onCatalogHLSPlaying?() }
             if value != .playing { revealControls() }
             // Parent-owned download playback uses the persistent inline recovery UI.
             // Avoid presenting a competing modal during the cover/rotation transition.
