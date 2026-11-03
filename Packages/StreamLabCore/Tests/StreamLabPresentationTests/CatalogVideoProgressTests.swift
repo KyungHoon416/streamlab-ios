@@ -24,5 +24,10 @@ import StreamLabPresentation
         #expect(candidates.first { $0.sourceID == original }?.position == 12)
         #expect(candidates.first { $0.sourceID == replacement }?.position == 25)
         #expect(store.recent(limit: 1).count == 1)
+        #expect(store.resumeEntry(titleID: "film", sourceID: original)?.position == 12)
+        #expect(store.resumeEntry(titleID: "film", sourceID: replacement)?.duration == 60)
+        store.restart(titleID: "film", sourceID: original)
+        #expect(store.resumeEntry(titleID: "film", sourceID: original) == nil)
+        #expect(store.resumeEntry(titleID: "film", sourceID: replacement)?.position == 25)
     }
 }

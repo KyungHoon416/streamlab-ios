@@ -1,5 +1,6 @@
 import SwiftUI
 import StreamLabDomain
+import StreamLabPresentation
 import StreamLabDesignSystem
 
 public extension EnvironmentValues {
@@ -18,6 +19,7 @@ public extension EnvironmentValues {
         let model: PlaybackModel
         var id: UUID { record.id }
     }
+    @State private var resumeEntries: [UUID: PlaybackProgressStore.Entry] = [:]
     @State private var savedDetailID: UUID?
     @State private var playing: PlaybackPresentation?
     // SwiftUI clears the item binding before onDismiss; keep teardown ownership
@@ -99,6 +101,15 @@ public extension EnvironmentValues {
                         VStack(alignment: .leading, spacing: 12) {
                             Text(item.title).font(.headline).accessibilityAddTraits(.isHeader)
                                 .fixedSize(horizontal: false, vertical: true)
+                            if item.state == .complete, let entry = resumeEntries[item.id] {
+                                let watched = Duration.seconds(entry.position).formatted(.time(pattern: .minuteSecond))
+                                let length = Duration.seconds(entry.duration).formatted(.time(pattern: .minuteSecond))
+                                ProgressView(value: entry.position / entry.duration) {
+                                    Text("이어보기 · \(watched) / \(length)")
+                                }
+                                .accessibilityLabel("시청 위치")
+                                .accessibilityValue("\(watched) / \(length)")
+                            }
                             OfflineDownloadActions(item: item, session: session, idPrefix: "library-\(item.titleID)") {
                                 guard session.isActive, playing == nil else { return }
                                 openPlayback(item)
@@ -124,6 +135,8 @@ public extension EnvironmentValues {
         .accessibilityIdentifier("downloads-scroll")
         .background(StreamLabTheme.background)
         .background(PlaybackPresenterScene(session: orientation).frame(width: 0, height: 0))
+        .onAppear { refreshResumeEntries() }
+        .onChange(of: items.filter { $0.state == .complete }.map(\.id)) { _, _ in refreshResumeEntries() }
         .task { store.refreshExpiration(); await notifications.refresh() }
         .onChange(of: phase) { _, value in
             if value == .active { store.refreshExpiration(); Task { await notifications.refresh() } }
@@ -136,12 +149,23 @@ public extension EnvironmentValues {
         .fullScreenCover(item: $playing, onDismiss: {
             retainedPlaybackModel?.stop()
             retainedPlaybackModel = nil
+            refreshResumeEntries()
             orientation.finish()
         }) { presentation in
             PlaybackView(titleID: presentation.record.titleID, title: presentation.record.title,
                          session: session, orientationSession: orientation,
                          initialSource: .savedSource(for: presentation.record), externalModel: presentation.model)
         }
+    }
+
+    private func refreshResumeEntries() {
+        var entries: [UUID: PlaybackProgressStore.Entry] = [:]
+        for item in items where item.state == .complete {
+            let sourceID = item.catalogTitle?.streamURL.map(CatalogVideoIdentity.progressID(for:))
+                ?? PlaybackModel.Source.downloadedHLS.progressID
+            entries[item.id] = session.progress.resumeEntry(titleID: item.titleID, sourceID: sourceID)
+        }
+        resumeEntries = entries
     }
 
     private var detailLabel: some View {

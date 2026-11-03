@@ -163,6 +163,19 @@ import StreamLabDomain
         }
     }
 
+    /// Lookup for a specific saved file, independent of the recent-titles limit.
+    public func resumeEntry(titleID: String, sourceID: String) -> Entry? {
+        guard active, !requiresReload else { return nil }
+        let storageKey = key(titleID: titleID, sourceID: sourceID)
+        let data = durable ? queue?.values[storageKey] : defaults.data(forKey: storageKey)
+        guard let data, let record = try? JSONDecoder().decode(Record.self, from: data),
+              record.matches(profile: profileID, title: titleID, source: sourceID),
+              record.duration.isFinite, record.duration > 0, record.position.isFinite,
+              record.position >= 1, record.position < record.duration - min(5, record.duration * 0.05) else { return nil }
+        return Entry(titleID: titleID, sourceID: sourceID, position: record.position,
+                     duration: record.duration, updatedAt: record.updatedAt ?? .distantPast)
+    }
+
     public func position(titleID: String, sourceID: String, duration: Double) -> Double? {
         guard duration.isFinite, duration > 0,
               let data = records[key(titleID: titleID, sourceID: sourceID)],
