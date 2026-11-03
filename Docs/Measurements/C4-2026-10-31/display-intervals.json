@@ -1,0 +1,92 @@
+[
+  {
+    "trace": "c4-current-home-scroll-1.trace",
+    "thermal": "Nominal",
+    "run": 1,
+    "window_s": [
+      15,
+      35.876725
+    ],
+    "frames": 982,
+    "intervals": 981,
+    "first_s": 15.564712749,
+    "last_s": 30.171903375,
+    "p50_ms": 12.502583,
+    "p95_ms": 25.005166,
+    "max_ms": 466.763292,
+    "toc_sha256": "bc28496c419fd66bf9de2ac77181120734092d0ed8d0487364765dd60bcfcad5",
+    "export_sha256": "c7738a901e585513f7cb97f6c092cd7c75aae4093bdaf55caa5a005b3095760e"
+  },
+  {
+    "trace": "home-scroll-A1.trace",
+    "thermal": "Nominal",
+    "run": 2,
+    "window_s": [
+      15,
+      40
+    ],
+    "frames": 1109,
+    "intervals": 1108,
+    "first_s": 15.005067166,
+    "last_s": 39.997741166,
+    "p50_ms": 12.502583,
+    "p95_ms": 20.837708,
+    "max_ms": 1675.346833,
+    "toc_sha256": "860786b490f30cdd67cf57de95b39431c49e07080afc222d292a3e421593504f",
+    "export_sha256": "9db959be0cdb5bbc916c5e6f4bf77bd32b49f65287ec9e7c02407df8c72963ef"
+  },
+  {
+    "trace": "home-scroll-A2.trace",
+    "thermal": "Fair",
+    "run": 2,
+    "window_s": [
+      15,
+      40
+    ],
+    "frames": 913,
+    "intervals": 912,
+    "first_s": 16.152521,
+    "last_s": 39.457345416,
+    "p50_ms": 12.502584,
+    "p95_ms": 33.340251,
+    "max_ms": 1283.599083,
+    "toc_sha256": "562fbc8e0fa9ce6aa75e9f24b836d44132c3248b9ec121bb5075fe967b9fcc13",
+    "export_sha256": "0b2b4086b1e62fe68faf33e95931d384226d2f59f88efb19df5737db6f596d0d"
+  },
+  {
+    "trace": "home-scroll-B1.trace .trace",
+    "thermal": "Serious",
+    "run": 2,
+    "window_s": [
+      15,
+      40
+    ],
+    "frames": 863,
+    "intervals": 862,
+    "first_s": 16.228842375,
+    "last_s": 39.900409457,
+    "p50_ms": 12.502583,
+    "p95_ms": 33.340208,
+    "max_ms": 2321.313874,
+    "toc_sha256": "589f431ed61adf5449350c7d8aabec2927b1e7f04c7ee3e38400bd32863ca99f",
+    "export_sha256": "80a558ebba94e7de4eee818b9b4a64c765e3daa1499936bc60ab4757230d09f9"
+  },
+  {
+    "trace": "home-scroll-B2.trace",
+    "thermal": "Nominal",
+    "run": 1,
+    "window_s": [
+      15,
+      40
+    ],
+    "frames": 994,
+    "intervals": 993,
+    "first_s": 15.857292666,
+    "last_s": 39.80808425,
+    "p50_ms": 12.502583,
+    "p95_ms": 41.67525,
+    "max_ms": 766.825417,
+    "toc_sha256": "8d2f1d4c827570f54bec5ff8c969d199e72aa938bd397092288e0cf76edc6b88",
+    "export_sha256": "564cba63c01cf10ae3b453f4d5d40ad2b111a484f64a2e1caba4460ca69be237"
+  }
+]
