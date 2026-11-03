@@ -72,8 +72,15 @@ struct CatalogDownloadTests {
         #expect(firstEnd)
         let secondEnd = item.markWatched(at: now.addingTimeInterval(1))
         #expect(!secondEnd)
-        let restored = try JSONDecoder().decode(OfflineDownload.self, from: JSONEncoder().encode(item))
+        var restored = try JSONDecoder().decode(OfflineDownload.self, from: JSONEncoder().encode(item))
         #expect(restored.watchedAt == now)
+        restored.clearWatched()
+        let cleared = try JSONDecoder().decode(OfflineDownload.self, from: JSONEncoder().encode(restored))
+        #expect(cleared.watchedAt == nil)
+        #expect(cleared.id == item.id)
+        #expect(cleared.state == .complete)
+        let finishedAgain = restored.markWatched(at: now.addingTimeInterval(2))
+        #expect(finishedAgain)
         #expect(original.watchedAt == nil)
     }
 

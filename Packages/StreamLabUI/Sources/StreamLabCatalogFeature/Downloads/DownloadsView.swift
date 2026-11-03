@@ -105,6 +105,9 @@ public extension EnvironmentValues {
                                 Label("시청 완료", systemImage: "checkmark.circle")
                                     .font(.subheadline)
                                     .accessibilityIdentifier("library-\(item.titleID)-watched")
+                                Button("시청 완료 표시 해제") { store.clearWatched(item.id, session: session) }
+                                    .buttonStyle(.bordered)
+                                    .accessibilityIdentifier("library-\(item.titleID)-clear-watched")
                             }
                             if item.state == .complete, let entry = resumeEntries[item.id] {
                                 let watched = Duration.seconds(entry.position).formatted(.time(pattern: .minuteSecond))
