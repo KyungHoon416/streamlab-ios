@@ -493,6 +493,9 @@ import StreamLabPresentation
                 guard let self, self.generation == ticket,
                       self.seekGeneration == seekTicket, self.session.isActive,
                       !self.isSeeking else { return }
+                if let lease = self.offlineLease {
+                    OfflineDownloadStore.shared.markWatched(lease: lease, session: self.session)
+                }
                 self.itemReachedEnd = true
                 self.qoeLog.notice("item_end source=\(self.source.progressID, privacy: .public) position=\(self.position) duration=\(self.duration)")
                 _ = self.sample(ticket: ticket)

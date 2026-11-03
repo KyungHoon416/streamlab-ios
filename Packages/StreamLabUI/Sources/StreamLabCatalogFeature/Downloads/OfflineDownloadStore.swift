@@ -609,6 +609,12 @@ import StreamLabPresentation
         let lease = UUID(); leases[lease] = item.id
         return (url, lease)
     }
+    func markWatched(lease: UUID, session: CatalogSession) {
+        guard let id = leases[lease], owns(id, session: session), let i = index(id),
+              records[i].markWatched(at: Date()) else { return }
+        do { try save() } catch { reportStorageFailure() }
+    }
+
     func release(_ lease: UUID) { leases[lease] = nil }
 
     private func notifyCompletion(_ id: UUID) {

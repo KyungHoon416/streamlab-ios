@@ -101,6 +101,11 @@ public extension EnvironmentValues {
                         VStack(alignment: .leading, spacing: 12) {
                             Text(item.title).font(.headline).accessibilityAddTraits(.isHeader)
                                 .fixedSize(horizontal: false, vertical: true)
+                            if item.watchedAt != nil {
+                                Label("시청 완료", systemImage: "checkmark.circle")
+                                    .font(.subheadline)
+                                    .accessibilityIdentifier("library-\(item.titleID)-watched")
+                            }
                             if item.state == .complete, let entry = resumeEntries[item.id] {
                                 let watched = Duration.seconds(entry.position).formatted(.time(pattern: .minuteSecond))
                                 let length = Duration.seconds(entry.duration).formatted(.time(pattern: .minuteSecond))

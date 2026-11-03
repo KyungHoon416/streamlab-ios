@@ -55,6 +55,13 @@ public struct OfflineDownload: Codable, Identifiable, Equatable, Sendable {
     public var lastUsed: Date
     public var message: String?
     public var expiresAt: Date?
+    public private(set) var watchedAt: Date?
+
+    @discardableResult public mutating func markWatched(at now: Date) -> Bool {
+        guard state == .complete, !isExpired(at: now), watchedAt == nil else { return false }
+        watchedAt = now
+        return true
+    }
     public static let mockValidity: TimeInterval = 7 * 24 * 60 * 60
     public func isExpired(at now: Date) -> Bool {
         state == .expired || (state == .complete && expiresAt.map { now >= $0 } == true)

@@ -57,4 +57,24 @@ struct CatalogDownloadTests {
         #expect(!FileManager.default.fileExists(atPath: temp.path))
     }
 
+    @Test func watchedStateBelongsToOneCompletedDownloadAndSurvivesReopening() throws {
+        let now = Date(timeIntervalSince1970: 1000)
+        let original = OfflineDownload(accountID: "a", profileID: "viewer", titleID: "movie", title: "Movie")
+        var item = try JSONDecoder().decode(OfflineDownload.self, from: JSONEncoder().encode(original))
+        #expect(item.watchedAt == nil)
+        let beforeDownload = item.markWatched(at: now)
+        #expect(!beforeDownload)
+        item.state = .complete
+        item.expiresAt = now.addingTimeInterval(100)
+        let afterExpiry = item.markWatched(at: now.addingTimeInterval(101))
+        #expect(!afterExpiry)
+        let firstEnd = item.markWatched(at: now)
+        #expect(firstEnd)
+        let secondEnd = item.markWatched(at: now.addingTimeInterval(1))
+        #expect(!secondEnd)
+        let restored = try JSONDecoder().decode(OfflineDownload.self, from: JSONEncoder().encode(item))
+        #expect(restored.watchedAt == now)
+        #expect(original.watchedAt == nil)
+    }
+
 }
