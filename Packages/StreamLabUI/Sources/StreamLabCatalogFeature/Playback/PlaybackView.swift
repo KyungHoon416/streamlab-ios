@@ -107,7 +107,9 @@ import StreamLabDesignSystem
                     VStack { Spacer(); subtitleCaption.padding(.horizontal, 24).padding(.bottom, 24) }
                         .allowsHitTesting(false)
                 }
-                if controlsVisible {
+                if !ownsModelLifecycle, case .failed(let message) = model.status {
+                    savedPlaybackFailure(message)
+                } else if controlsVisible {
                     LinearGradient(colors: [.black.opacity(0.85), .black.opacity(0.15), .black.opacity(0.85)],
                                    startPoint: .top, endPoint: .bottom)
                         .ignoresSafeArea().allowsHitTesting(false)
@@ -236,6 +238,40 @@ import StreamLabDesignSystem
             do { try await Task.sleep(for: .seconds(4)) } catch { return }
             guard !Task.isCancelled, mayHide else { return }
             controlsVisible = false
+        }
+    }
+
+    // Present inside the cover so a fast entitlement denial can appear during rotation.
+    private func savedPlaybackFailure(_ message: String) -> some View {
+        let card = VStack(spacing: 12) {
+            Text("영상을 불러올 수 없습니다").font(.headline)
+            Text(message).accessibilityIdentifier("playback-status")
+            Text("남은 재시도: \(model.retryBudget.remaining)회")
+                .font(.subheadline)
+                .accessibilityIdentifier("playback-retry-remaining")
+            HStack(spacing: 16) {
+                Button("닫기") {
+                    model.stop()
+                    orientationSession.stopRequests()
+                    dismiss()
+                }
+                .accessibilityIdentifier("playback-close")
+                Button("재시도") { model.retryPlayback() }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(!model.canRetryPlayback)
+                    .accessibilityIdentifier("playback-retry")
+            }
+            .controlSize(.large)
+        }
+        .multilineTextAlignment(.center)
+        .padding(20)
+        .frame(maxWidth: 420)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+        .padding(8)
+
+        return ViewThatFits(in: .vertical) {
+            card.fixedSize(horizontal: false, vertical: true)
+            ScrollView { card }
         }
     }
 

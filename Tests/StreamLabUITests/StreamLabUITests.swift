@@ -381,8 +381,9 @@ import XCTest
             app.frame.width > app.frame.height
         }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [landscape], timeout: 10), .completed)
+        XCTAssertTrue(app.staticTexts["영상을 불러올 수 없습니다"].exists)
         let retry = alert.exists ? alert.buttons["재시도"] : app.buttons["playback-retry"]
-        XCTAssertTrue(retry.isEnabled, app.debugDescription)
+        XCTAssertTrue(retry.isHittable && retry.isEnabled, app.debugDescription)
         tap(retry, in: app)
         let renewal = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in messageContains("권한을 갱신하지 못했습니다") }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [renewal], timeout: 15), .completed)
