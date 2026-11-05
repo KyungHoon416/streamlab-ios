@@ -12,7 +12,7 @@
 | F06 다운로드 2개/실패/공간 부족 | OfflineDownloadDiskPressureTests·BudgetTests·FailureTests, 기존 UI testHLSTransferDiskPressureCleansConcurrentTasksAndRecovers / testHLSDiskPressureProtectsPinnedAndRetryRecovers | Core 재검증 PASS. 기존 native UI/실기기 공간 부족 증빙 있음. 새 `testF06ConcurrentFailureDiskPressurePreservesPinnedAndRecovers`는 2개 실제 전송의 단일 실패+공간 압박 정리 후, 재다운로드·고정·공간 압박 재시도·복구를 한 시나리오로 연결한다. 실제 ENOSPC는 제외; 실행 결과는 복합 검증 보고서 참고 |
 | F07 429/503/timeout | HTTPMutationQueueTests.mixedStatusesRetryWithSameBodyAndBoundedBudget, RetryClockChaosTests 1000 seed | 실제 loopback HTTP 및 가상 시계 자동 PASS. 요청 envelope 유지/상한/취소 확인 |
 | F08 A/B 진도 경쟁 | ProgressConflictTests, PlaybackSyncCoordinatorTests, DomainConflictChaosTests 1000 seed | 서버 Mock revision/explicit restart/재전송 수렴 자동 PASS. 실제 운영 다기기 서버 아님 |
-| F09 만료 entitlement + offline | PlaybackEntitlementTests·BoundaryTests, 기존 expired-once UI/실기기 보고는 로컬 번들 오류→재시도 | 만료 차단/키 상태/수동 재시도는 PASS. 새 `testF09DownloadedHLSExpiredOfflineGrantBlocksRetryAndCloses`는 실제 다운로드 완료 파일과 만료 grant/갱신 불가를 연결한다. 패키지 테스트는 player 미생성 및 재시도 상한도 검증한다. 갱신 불가는 Mock 주입이며 실제 비행기 모드/운영 DRM과 구분 |
+| F09 만료 entitlement + offline | PlaybackEntitlementTests·BoundaryTests, 기존 expired-once UI/실기기 보고는 로컬 번들 오류→재시도 | 만료 차단/키 상태/수동 재시도는 PASS. 새 `testF09DownloadedHLSExpiredOfflineGrantBlocksRetryAndCloses`는 실제 다운로드 완료 파일과 만료 grant/갱신 불가를 연결한다. 패키지 테스트는 player 미생성 및 재시도 상한도 검증한다. 2026-11-05 실기기 확인(23592c0). 오프라인에서 저장한 Apple HLS 재생 시 가운데 만료 안내가 표시됐다. 재시도 1회 후 갱신 실패와 남은 2회를 확인했고, 닫기로 다운로드 목록에 복귀했다. 권한 응답은 Mock 주입이다 |
 | F10 자막 변경·단절·종료 동시 | PlaybackLanguageTests, PlaybackDiagnosticsTests, 기존 자막/종료/복구 UI 개별 테스트 | 6개 처리 순서 자동 PASS. `testSubtitleNetworkFailureAndEndPermutationsCannotResurrectClosedPlayback`는 동일 AVPlayer에서 자막 선택·네트워크 오류를 담은 실패 알림·종료 알림 6개 순서를 주입한다. 종료/실패 후 중지·새 재생·옛 알림 무시와 현재 아이템 단독 실패도 확인한다. 실제 네트워크 차단 타이밍은 주입하지 않음 |
 
 ## 재현
@@ -30,7 +30,7 @@ CI는 위 명령을 실행하고 실패 시 로그를 artifact로 보존한다. 
 
 이전 F01 변경의 사용자 확인은 **홈 진입 → 새로고침 5회 → 레일/이어보기 → 상세 진입**이다. 실제 역순 응답은 자동 테스트가 결정적으로 주입하므로 손으로 정확한 타이밍을 맞추지 않는다. 같은 작품이 서로 다른 추천 레일에 나오는 것은 정상이며 같은 레일 내부 중복 ID를 제거한다.
 
-추가 실기기는 다음만 확인한다.
+F09 만료·재시도·닫기는 실기기에서 확인했다. 아래에 재현 절차와 남은 F10 확인 순서를 남긴다.
 
 1. F09: Wi-Fi에서 HLS 샘플 다운로드 완료 → Xcode Edit Scheme → Run(Debug) → Arguments Passed On Launch에 `--ui-test-entitlement-offline-expired`만 추가 → 새 실행 → 비행기 모드와 Wi-Fi 끄기 → 다운로드 목록에서 재생. 화면 안에 만료 안내가 나오고 ‘재생 다시 시도’ 후에는 갱신 불가와 남은 2회가 표시돼야 한다. 닫기(X)로 목록으로 돌아가도 파일은 유지되어야 한다. 인수를 제거하고 다시 실행한 뒤 기존 오프라인 재생·시간 갱신을 확인한다. 이 인수는 만료/갱신 불가 Mock으로 운영 DRM 시험이 아니다.
 2. F10: 정상 HLS 재생 → 자막 변경 → Wi-Fi/셀룰러 끄기 → 종료/오류 화면에서 닫기 → 연결 복구 후 새 재생. 이전 오류나 종료가 새 재생을 중단시키지 않아야 한다. 버퍼가 남아 있으면 끊자마자 실패하지 않는 것이 정상이다. 동시 순서 6개는 자동 주입으로 확인하며 손으로 맞출 필요 없다.
