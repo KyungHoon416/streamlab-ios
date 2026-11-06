@@ -1,6 +1,6 @@
 # StreamLab 구조와 구현 기록
 
-[전체 Mermaid 다이어그램](Architecture/ARCHITECTURE_DIAGRAMS_2026-11-06.md) · [현재 아키텍처 PDF · 8쪽](Architecture/streamlab-architecture-ko.pdf) · [기존 제출 기록](SUBMISSION_RECORD.md) · [이번 보완](Measurements/Final-Gaps-2026-11-06/REPORT.md)
+[전체 Mermaid 다이어그램](Architecture/ARCHITECTURE_DIAGRAMS_2026-11-06.md) · [현재 아키텍처 PDF · 14쪽](Architecture/streamlab-architecture-ko.pdf) · [기존 제출 기록](SUBMISSION_RECORD.md) · [이번 보완](Measurements/Final-Gaps-2026-11-06/REPORT.md)
 
 이 문서와 현재 PDF는 앱 코드 `9a4d395`의 SQLite·접근성·C4 계측 보완, 플레이어 표시 후 회전 요청 및 관리자 5GB 업로드 정책을 반영한다. PDF는 전체 구성·모듈·저장 트랜잭션·재생 경로·상태도·관리자 흐름을 그림으로 설명한다. 기존 6쪽 PDF는 `submission-2026-11-06` 태그와 기존 제출 ZIP에 보존되며 이번 PDF와 구분한다.
 
@@ -159,7 +159,7 @@ Docs/CHAOS_ACCEPTANCE.md · Docs/DOWNLOADS_QA.md
 저장소: github.com/KyungHoon416/streamlab-ios
 
 ---
-PDF만 `python3 Docs/Architecture/build_pdf.py`로 생성한다. Python reportlab과 macOS AppleGothic 글꼴이 필요하다. 이 Markdown은 생성기가 덮어쓰지 않는다. 전체 상태 전이는 [Player](States/PLAYER.md)와 [Download](States/DOWNLOAD.md)를 참조한다.
+PDF만 `python3 Docs/Architecture/build_integrated_pdf.py`로 생성한다. Python reportlab과 Pretendard Regular/Bold 글꼴이 필요하다. 재생성 방법과 보존 요약본은 [PDF 안내](Architecture/README.md)를 참조한다. 이 Markdown은 생성기가 덮어쓰지 않는다. 전체 상태 전이는 [Player](States/PLAYER.md)와 [Download](States/DOWNLOAD.md)를 참조한다.
 
 ## 2026-11-06 아키텍처 다이어그램 교정 이력
 
@@ -171,4 +171,4 @@ PDF만 `python3 Docs/Architecture/build_pdf.py`로 생성한다. Python reportla
 - Firebase에서 제공하는 업로드 MP4와 외부 HTTPS HLS 링크를 별도 경로로 분리하고, Firebase 관리자 인증과 사용자 인증/권한 Mock을 구분.
 - AuthenticationSession actor(single-flight), Keychain, Native Download 세션 복원, 프로필 전환 취소의 동시성 경계를 추가.
 
-**교정 당시 범위:** `cf71a22`까지의 이 교정은 도표·설명만 변경했다. 이후 현재 8쪽 PDF를 별도로 다시 만들었으며, 기존 제출 태그의 6쪽 PDF는 그대로 보존한다. 앱·CI 보완 결과는 위의 이번 보완 보고서에서 구분한다.
+**교정 당시 범위:** `cf71a22`까지의 이 교정은 도표·설명만 변경했다. 이후 현재 14쪽 PDF를 별도로 다시 만들었으며, 기존 제출 태그의 6쪽 PDF는 그대로 보존한다. 앱·CI 보완 결과는 위의 이번 보완 보고서에서 구분한다.

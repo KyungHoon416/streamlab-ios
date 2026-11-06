@@ -2,17 +2,27 @@
   "date": "2026-11-07",
   "app_commit": "9a4d39539bf7afaad759bacf8966d650b0477970",
   "file": "Docs/Architecture/streamlab-architecture-ko.pdf",
-  "pages": 8,
+  "pages": 14,
   "format": "A4 landscape, embedded Korean font, vector diagrams, bookmarks",
-  "bytes": 143047,
-  "sha256": "b580fae061ab53b2c494e26df0c1aee2a008df8361a3928399cce886960a5114",
-  "generator": "Docs/Architecture/build_pdf.py",
-  "validation": "All 8 pages rendered and visually reviewed; final pages 7 and 8 rechecked after result update. No clipped Korean text or overlapping flow labels observed. Links and embedded font checked.",
+  "bytes": 131775,
+  "sha256": "4ee7a3f61faf482284e2c1461243179129385ea2a59254e1373df9fddc9c983e",
+  "generator": "Docs/Architecture/build_integrated_pdf.py",
+  "validation": "All 14 pages rendered and visually reviewed. Modified pages 1, 9, 11, 14 re-rendered and reviewed. Diagram routes, Korean text, labels, margins and page furniture checked. 14 bookmarks and embedded Pretendard fonts verified. App source and recorded CI unchanged.",
   "ci_run": "https://github.com/KyungHoon416/streamlab-ios/actions/runs/42239749042",
   "assignment_units": {
     "complete": 76,
     "remaining": 3,
     "total": 79
   },
-  "scope": "Current architecture supplement; historical submission-2026-11-06 tag, filmed build and ZIP remain unchanged."
+  "scope": "Current architecture supplement; historical submission-2026-11-06 tag, filmed build and ZIP remain unchanged.",
+  "source_document": {
+    "filename": "StreamLab_Architecture_Integrated_2026-11-06.pdf",
+    "sha256": "171c9486603dec1076f3c0066e800e66153cba2e066c4e264cda01724c70f5f3"
+  },
+  "documentation_baseline": "e9b5a09bad5305356e583347fd241e0beabddda8",
+  "fonts": [
+    "Pretendard-Bold",
+    "Pretendard-Regular"
+  ],
+  "ci_scope": "Core/playback/app UI passed attempt 1; native downloads passed attempt 2. First launch timeout remains recorded. No new app tests run for this document-only revision."
 }

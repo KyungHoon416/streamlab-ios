@@ -76,7 +76,7 @@ Core와 앱 9개는 `de1542f` 위 작업 변경을 검사한 뒤 `6642b7c`로 �
 
 ## 아키텍처 PDF
 
-[현재 PDF](../../Architecture/streamlab-architecture-ko.pdf)는 8쪽으로 다시 구성했다. 시스템 경계·모듈·SQLite 트랜잭션과 이전·재생 경로·재생 상태·다운로드 상태와 예산·관리자 업로드·검증 범위를 담았다. 모든 페이지를 이미지로 렌더링해 글자 잘림과 연결선을 확인했다. PDF 생성기는 Markdown을 덮어쓰지 않는다.
+[8쪽 요약본](../../Architecture/streamlab-architecture-summary-2026-11-07.pdf)을 먼저 구성했다. 이후 2026-11-07 [현재 PDF](../../Architecture/streamlab-architecture-ko.pdf)를 사용자 통합본의 14쪽 순서와 카드형 디자인으로 개정했다. 시스템 경계·모듈·SQLite 트랜잭션과 이전·재생 경로·재생 상태·다운로드 상태와 예산·관리자 업로드·검증 범위를 담았다. 모든 페이지를 이미지로 렌더링해 글자 잘림과 연결선을 확인했다. PDF 생성기는 Markdown을 덮어쓰지 않는다.
 
 기존 제출 태그·영상·ZIP은 그대로다. 원격에서 추가된 [전체 Mermaid 다이어그램](../../Architecture/ARCHITECTURE_DIAGRAMS_2026-11-06.md)도 보존해 연결했다. 현재 PDF를 기존 촬영 빌드의 구조라고 섞어 설명하지 않는다. 사용자가 올릴 장시간 영상은 이번 작업에서 업로드하지 않았다.
 

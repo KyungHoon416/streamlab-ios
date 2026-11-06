@@ -19,7 +19,7 @@
 | C3 접근성 | Dynamic Type·고대비·Reduce Motion, 플레이어 설명 및 설명/터치 영역 자동 감사 | 실제 VoiceOver 전체 경로 확인 대기 |
 | C4 성능 | HLS 22회·메모리·Leaks·프레임·Hitch·HLS 전력·파일 I/O 근거 | [통합 보고서](Measurements/C4-2026-10-31/REPORT.md). 백그라운드 다운로드 전력과 통제된 C/PV 비교 대기 |
 | D 장애/재현 | Core 31+247, chaos 3종 각 1,000 seed, SIGKILL, iOS 25, 앱 UI 9, HLS UI 3 원격 성공 | [F01~F10](CHAOS_ACCEPTANCE.md). F09/F10 기존 실기기 확인은 별도. 모든 실기기 OS 장애 조합 완료를 뜻하지 않음 |
-| 문서/재현 | README 새 runner smoke 424초, Player/Download 상태도, 샘플 URL·사용조건, 8쪽 아키텍처 PDF | Xcode/runtime 사전 설치 조건. 과거 3분 32초 영상·태그·ZIP과 현재 앱을 구분 |
+| 문서/재현 | README 새 runner smoke 424초, Player/Download 상태도, 샘플 URL·사용조건, 14쪽 아키텍처 PDF | Xcode/runtime 사전 설치 조건. 과거 3분 32초 영상·태그·ZIP과 현재 앱을 구분 |
 
 ## 남은 3개 — 실행 순서
 
@@ -35,7 +35,7 @@
 
 Firebase 관리자 Google 인증·Firestore 공개 카탈로그·Storage MP4 업로드를 연결했다. 현재 관리자 한도는 파일당 5GB, 앱 오프라인 전체 예산은 1GB다. 2GB 이상 파일의 압축 계획(원본 40%·1GB 목표·화질 우선·원본 업로드)은 예상 안내이며 실제 압축은 Mac에서 한다. 서버 자동 압축·HLS 변환·운영 사용자 동기화·DRM 서버는 없다. 사용자 장시간 영상은 과제 기본 fixture에서 제외한다. [정책](FIREBASE_CATALOG.md) · [관리자 검증](Measurements/Admin-Compression-2026-11-06/REPORT.md).
 
-[현재 PDF](Architecture/streamlab-architecture-ko.pdf)는 9a4d395의 SQLite와 Firebase·재생·다운로드 구조를 그림으로 설명하는 8쪽 문서다. [기존 제출 기록](SUBMISSION_RECORD.md)의 `submission-2026-11-06` 태그·3분 32초 영상·ZIP 속 6쪽 PDF는 당시 버전으로 보존했다. 현재 앱 변경을 기존 촬영 빌드에 포함됐다고 설명하지 않는다. 촬영 바이너리의 직접 SHA 각인은 미확보이며 그 한계는 기존 기록에 유지한다.
+[현재 PDF](Architecture/streamlab-architecture-ko.pdf)는 9a4d395의 SQLite와 Firebase·재생·다운로드 구조를 그림으로 설명하는 14쪽 문서다. [기존 제출 기록](SUBMISSION_RECORD.md)의 `submission-2026-11-06` 태그·3분 32초 영상·ZIP 속 6쪽 PDF는 당시 버전으로 보존했다. 현재 앱 변경을 기존 촬영 빌드에 포함됐다고 설명하지 않는다. 촬영 바이너리의 직접 SHA 각인은 미확보이며 그 한계는 기존 기록에 유지한다.
 
 ## 근거 읽는 순서
 

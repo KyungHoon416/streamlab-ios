@@ -51,7 +51,7 @@ bash scripts/check-playback-session-lifecycle-mac.sh
 
 다운로드는 계정·프로필별로 격리합니다. 기기 전체 예산 1GB·동시 작업 2개·고정 보호/LRU·과제용 7일 만료가 있으며 실제 DRM은 아닙니다. 관리자 원본 업로드 한도 5GB는 이 오프라인 예산과 별개입니다.
 
-[아키텍처 PDF · 8쪽](Docs/Architecture/streamlab-architecture-ko.pdf) · [전체 Mermaid 다이어그램](Docs/Architecture/ARCHITECTURE_DIAGRAMS_2026-11-06.md) · [Player 상태도](Docs/States/PLAYER.md) · [Download 상태도](Docs/States/DOWNLOAD.md) · [상세 아키텍처](Docs/ARCHITECTURE_CURRENT.md) · [ADR](Docs/ADR) · [F01–F10 대응표](Docs/CHAOS_ACCEPTANCE.md)
+[아키텍처 PDF · 14쪽](Docs/Architecture/streamlab-architecture-ko.pdf) · [전체 Mermaid 다이어그램](Docs/Architecture/ARCHITECTURE_DIAGRAMS_2026-11-06.md) · [Player 상태도](Docs/States/PLAYER.md) · [Download 상태도](Docs/States/DOWNLOAD.md) · [상세 아키텍처](Docs/ARCHITECTURE_CURRENT.md) · [ADR](Docs/ADR) · [F01–F10 대응표](Docs/CHAOS_ACCEPTANCE.md)
 
 ## 샘플 URL·출처·사용 범위
 
@@ -74,4 +74,4 @@ Firebase 관리자가 올린 4K·장시간 영상은 과제 기본 재현 자료
 
 [C4 성능 보고서](Docs/Measurements/C4-2026-10-31/REPORT.md)는 측정값과 전후 개선 입증을 구분합니다. VoiceOver 실제 조작과 백그라운드 다운로드 전력은 자동 UI 테스트로 대신하지 않습니다.
 
-[현재 아키텍처 PDF](Docs/Architecture/streamlab-architecture-ko.pdf)는 SQLite·Firebase·재생·다운로드 구조를 그림으로 설명하는 8쪽 문서입니다. [기존 제출 기록](Docs/SUBMISSION_RECORD.md)의 `submission-2026-11-06` 태그·영상·ZIP 속 PDF는 당시 스냅샷이며 현재 PDF와 다릅니다. 새 앱 구현을 기존 촬영 빌드에 포함됐다고 표시하지 않습니다. 이전 날짜별 README 기록은 [이력 문서](Docs/History/README-before-final-audit-2026-11-06.md)에 보존했습니다.
+[현재 아키텍처 PDF](Docs/Architecture/streamlab-architecture-ko.pdf)는 SQLite·Firebase·재생·다운로드 구조를 그림으로 설명하는 14쪽 문서입니다. [기존 제출 기록](Docs/SUBMISSION_RECORD.md)의 `submission-2026-11-06` 태그·영상·ZIP 속 PDF는 당시 스냅샷이며 현재 PDF와 다릅니다. 새 앱 구현을 기존 촬영 빌드에 포함됐다고 표시하지 않습니다. 이전 날짜별 README 기록은 [이력 문서](Docs/History/README-before-final-audit-2026-11-06.md)에 보존했습니다.

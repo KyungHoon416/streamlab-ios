@@ -56,6 +56,7 @@ flowchart TB
   APP --> PF
   APP --> DS
   APP --> CD
+  APP --> PR
   APP --> DM
   CF --> DS
   CF --> PR

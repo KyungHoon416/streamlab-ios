@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-07",
+  "app_commit": "9a4d39539bf7afaad759bacf8966d650b0477970",
+  "file": "Docs/Architecture/streamlab-architecture-summary-2026-11-07.pdf",
+  "pages": 8,
+  "format": "A4 landscape, embedded Korean font, vector diagrams, bookmarks",
+  "bytes": 143047,
+  "sha256": "b580fae061ab53b2c494e26df0c1aee2a008df8361a3928399cce886960a5114",
+  "generator": "Docs/Architecture/build_pdf.py",
+  "validation": "All 8 pages rendered and visually reviewed; final pages 7 and 8 rechecked after result update. No clipped Korean text or overlapping flow labels observed. Links and embedded font checked.",
+  "ci_run": "https://github.com/KyungHoon416/streamlab-ios/actions/runs/42239749042",
+  "assignment_units": {
+    "complete": 76,
+    "remaining": 3,
+    "total": 79
+  },
+  "scope": "Current architecture supplement; historical submission-2026-11-06 tag, filmed build and ZIP remain unchanged."
+}
