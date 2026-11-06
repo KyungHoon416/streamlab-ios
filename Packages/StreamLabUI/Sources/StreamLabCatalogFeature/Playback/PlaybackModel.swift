@@ -50,7 +50,7 @@ import StreamLabPresentation
         }
         var progressID: String {
             switch self {
-            case .bundled: "bundled-demo-v1"
+            case .bundled: Self.extendedUITestDemo ? "bundled-smoke-600-v1" : "bundled-demo-v1"
             case .downloadedCatalogMP4: "catalog-offline-mp4"
             case .downloadedCatalogHLS: "catalog-offline-hls"
             case .catalogHLS: "catalog-hls-v1"
@@ -68,11 +68,22 @@ import StreamLabPresentation
         var url: URL? {
             switch self {
             case .catalogHLS, .catalogMP4, .downloadedHLS, .downloadedCatalogHLS, .downloadedCatalogMP4: nil // Resolved from the repository or download store.
-            case .bundled, .episode1, .episode2, .episode3: Bundle.module.url(forResource: "playback-demo", withExtension: "mp4")
+            case .bundled: Bundle.module.url(forResource: Self.extendedUITestDemo ? "playback-smoke-600" : "playback-demo", withExtension: "mp4")
+            case .episode1, .episode2, .episode3: Bundle.module.url(forResource: "playback-demo", withExtension: "mp4")
             case .hls, .hlsEpisode1: URL(string: "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8")
             case .hlsStandardAudio: URL(string: "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8")
             case .hlsAudio, .hlsEpisode2: URL(string: "https://devstreaming-cdn.apple.com/videos/streaming/examples/adv_dv_atmos/main.m3u8")
             }
+        }
+        // A 30-second demo can end while a hosted XCTest runner resolves the UI.
+        // Use real, longer media only for explicitly opted-in Debug UI checks.
+        // Playback rate, transport, seeking and end handling remain unchanged.
+        private static var extendedUITestDemo: Bool {
+            #if DEBUG
+            ProcessInfo.processInfo.arguments.contains("--ui-test-extended-demo")
+            #else
+            false
+            #endif
         }
     }
     enum Status: Equatable {

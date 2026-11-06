@@ -1584,7 +1584,7 @@ import XCTest
     }
 
     func testSubtitleSelectionSeekingAndRestoration() {
-        let app = launch(keepPlaybackControls: true)
+        let app = launch(keepPlaybackControls: true, extendedDemo: true)
         choose("adult-a", in: app)
         openHomeDetail(app)
         openPlayback(app)
@@ -1592,8 +1592,12 @@ import XCTest
         disableAutomaticCaptionsForManualPreferenceTest(app)
         tap(app.buttons["playback-toggle"], in: app)
         expectPlayback("일시 정지", in: app)
-        app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0.1667)
-        guard waitForPausedSeek(app, timePattern: "00:00:0[4-6] / 00:00:30") else { return }
+        // Ensure a real drag: when already near zero, XCTest may emit no
+        // editing event. Observe the middle first, then the first caption range.
+        app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0.5)
+        guard waitForPausedSeek(app, timePattern: "00:05:0[0-9] / 00:10:00") else { return }
+        app.sliders["playback-position"].adjust(toNormalizedSliderPosition: 0)
+        guard waitForPausedSeek(app, timePattern: "00:00:0[0-8] / 00:10:00") else { return }
         tap(app.buttons["playback-subtitles"], in: app)
         tap(app.buttons["playback-subtitle-ko"], in: app)
         XCTAssertEqual(app.buttons["playback-subtitle-ko"].value as? String, "선택됨")
@@ -1602,11 +1606,11 @@ import XCTest
         let caption = app.staticTexts["playback-caption"]
         XCTAssertTrue(caption.waitForExistence(timeout: 5))
         tap(app.buttons["playback-forward"], in: app)
-        guard waitForPausedSeek(app, timePattern: "00:00:1[4-6] / 00:00:30") else { return }
+        guard waitForPausedSeek(app, timePattern: "00:00:1[0-8] / 00:10:00") else { return }
         expectation(for: NSPredicate(format: "label == %@", "자막 선택에서 언어를 바꿀 수 있습니다."), evaluatedWith: caption)
         waitForExpectations(timeout: 5)
         tap(app.buttons["playback-backward"], in: app)
-        guard waitForPausedSeek(app, timePattern: "00:00:0[4-6] / 00:00:30") else { return }
+        guard waitForPausedSeek(app, timePattern: "00:00:0[0-8] / 00:10:00") else { return }
         expectation(for: NSPredicate(format: "label == %@", "StreamLab 데모 영상입니다."), evaluatedWith: caption)
         waitForExpectations(timeout: 5)
         tap(app.buttons["playback-subtitles"], in: app)
@@ -1715,7 +1719,8 @@ import XCTest
     func testF04CloseDuringSeekThenSwitchProfileKeepsNewPlaybackIndependent() {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-test-progress-suite=seek-profile-\(UUID())",
-                               "--ui-test-stall-seek-once", "--ui-test-keep-playback-controls"]
+                               "--ui-test-stall-seek-once", "--ui-test-keep-playback-controls",
+                               "--ui-test-extended-demo"]
         app.launch()
         choose("adult-a", in: app)
         openHomeDetail(app)
@@ -1971,13 +1976,14 @@ import XCTest
         XCTAssertFalse(card.exists)
     }
 
-    private func launch(largeText: Bool = false, slow: Bool = false, keepPlaybackControls: Bool = false, disableAutomaticPiP: Bool = false) -> XCUIApplication {
+    private func launch(largeText: Bool = false, slow: Bool = false, keepPlaybackControls: Bool = false, disableAutomaticPiP: Bool = false, extendedDemo: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments.append("--ui-test-progress-suite=streamlab-uitest-\(UUID())")
         if largeText { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
         if slow { app.launchArguments.append("--ui-test-slow-catalog") }
         if keepPlaybackControls { app.launchArguments.append("--ui-test-keep-playback-controls") }
         if disableAutomaticPiP { app.launchArguments.append("--ui-test-disable-automatic-pip") }
+        if extendedDemo { app.launchArguments.append("--ui-test-extended-demo") }
         app.launchArguments.append("--ui-test-disable-resume")
         app.launch()
         return app
@@ -2305,15 +2311,24 @@ import XCTest
         // This smoke verifies navigation and the real paused seek, not the
         // four-second HUD timer. Slow hosted-runner queries must still be able
         // to observe the actual player time after the interaction.
-        let app = launch(keepPlaybackControls: true)
+        let app = launch(keepPlaybackControls: true, extendedDemo: true)
         choose("adult-a", in: app)
         openHomeDetail(app)
         openPlayback(app)
         expectPlayback("재생 중", in: app)
         tap(app.buttons["playback-toggle"], in: app)
         expectPlayback("일시 정지", in: app)
+        guard let before = playbackTimes(app) else {
+            XCTFail("Paused playback must expose a real position and duration")
+            return
+        }
+        XCTAssertEqual(before.duration, 600, accuracy: 0.1)
+        let target = min(Int(before.position) + 10, Int(before.duration))
+        let positions = (max(0, target - 1)...min(600, target + 1)).map { seconds in
+            String(format: "%02d:%02d:%02d", seconds / 3600, (seconds / 60) % 60, seconds % 60)
+        }.joined(separator: "|")
         tap(app.buttons["playback-forward"], in: app)
-        guard waitForPausedSeek(app, timePattern: "00:00:(1[0-9]|2[0-9]|30) / 00:00:30") else { return }
+        guard waitForPausedSeek(app, timePattern: "(\(positions)) / 00:10:00") else { return }
         closePlayback(app)
         back(app)
         tap(app.buttons["switch-profile"], in: app)
@@ -2323,7 +2338,7 @@ import XCTest
     /// Structural audit of the complete control path; physical VoiceOver gestures
     /// and spoken focus order are separately recorded in FINAL_DEVICE_QA.md.
     func testPlaybackAccessibilityControlPath() throws {
-        let app = launch(keepPlaybackControls: true)
+        let app = launch(keepPlaybackControls: true, extendedDemo: true)
         choose("adult-a", in: app)
         XCTAssertFalse(app.buttons["hero-detail"].label.isEmpty)
         openHomeDetail(app)
