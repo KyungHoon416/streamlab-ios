@@ -1,8 +1,8 @@
 # StreamLab 구조와 구현 기록
 
-[제출 시점 PDF](Architecture/streamlab-architecture-ko.pdf) · [제출 기록](SUBMISSION_RECORD.md) · [이번 보완](Measurements/Final-Gaps-2026-11-06/REPORT.md)
+[최신 구조 다이어그램](Architecture/ARCHITECTURE_DIAGRAMS_2026-11-06.md) · [과거 제출 PDF 스냅샷](Architecture/streamlab-architecture-ko.pdf) · [제출 기록](SUBMISSION_RECORD.md) · [이번 보완](Measurements/Final-Gaps-2026-11-06/REPORT.md)
 
-이 문서는 2026-11-06 SQLite 보완을 반영한다. 기존 PDF·제출 태그는 당시 스냅샷이며 이후 DB 변경을 포함하지 않는다.
+이 문서는 2026-11-06 SQLite 보완을 반영한다. 현재 구조의 시각화는 상단 최신 다이어그램을 참조한다. 기존 PDF·제출 태그는 당시 스냅샷이며 이후 DB 변경을 포함하지 않는다.
 
 ## StreamLab 구조와 구현 기록
 
@@ -119,7 +119,7 @@ HLS는 AVAssetDownloadURLSession으로 .movpkg를 저장하고 MP4는 URLSession
 
 취소·로그아웃 후의 늦은 완료는 알림을 만들지 않는다. 유효한 완료 알림을 누르면 현재 프로필의 다운로드 목록으로 이동한다. 백그라운드 전송, 일시정지·재개, 셀룰러 전송과 저장 파일 재생은 실기기 확인 기록을 남겼다.
 
-11월 6일: F09·F10 샘플 다운로드 완료와 비행기 모드 재생·하단 시간·탐색을 사용자 확인했다. 관리자 MP4 업로드 500MB 한도와 앱 다운로드 정책은 별개다.
+11월 6일: F09·F10 샘플 다운로드 완료와 비행기 모드 재생·하단 시간·탐색을 사용자 확인했다. 관리자 MP4 업로드 최신 한도 5GB와 앱 다운로드 관리 예산 1GB는 별개다. 압축 계획은 관리자 UI에서 제공하며 실제 압축은 Mac에서 수행한다.
 
 ## 검증 결과를 읽는 범위
 
