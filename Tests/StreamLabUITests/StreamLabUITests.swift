@@ -362,9 +362,21 @@ import XCTest
                                                                "--ui-test-keep-playback-controls"], cleanStart: true)
         tap(app.buttons["download-validation-one"], in: app)
         let play = app.buttons["library-title-0001-play"]
-        app.scrollViews["downloads-scroll"].swipeUp()
-        XCTAssertTrue(play.waitForExistence(timeout: 180))
-        XCTAssertTrue(downloadSnapshot(app).contains("complete=1;records=1;"))
+        // A LazyVStack row need not exist in the accessibility tree while it is
+        // offscreen. Observe the native completion independently, then reveal
+        // the row; a fixed swipe followed by exists cannot distinguish these.
+        var observed = "not sampled"
+        let downloaded = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            observed = self.downloadSnapshot(app)
+            return observed.contains("complete=1;records=1;") && observed.contains("files=1;")
+        }, object: nil)
+        guard XCTWaiter.wait(for: [downloaded], timeout: 180) == .completed else {
+            print("[F09 download prerequisite] \(observed)\n\(app.debugDescription)")
+            captureFailure(app, name: "F09 download prerequisite")
+            XCTFail("Native HLS must complete with one stored file before entitlement testing: \(observed)")
+            return
+        }
+        revealCombinedDownloadElement(play, in: app)
         playbackReturnFrame = app.frame
         tap(play, in: app)
         let alert = app.alerts["영상을 불러올 수 없습니다"]
