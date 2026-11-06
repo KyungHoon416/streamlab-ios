@@ -51,7 +51,7 @@ bash scripts/check-playback-session-lifecycle-mac.sh
 
 다운로드는 계정·프로필별로 격리합니다. 기기 전체 예산 1GB·동시 작업 2개·고정 보호/LRU·과제용 7일 만료가 있으며 실제 DRM은 아닙니다. 관리자 원본 업로드 한도 5GB는 이 오프라인 예산과 별개입니다.
 
-[Player 상태도](Docs/States/PLAYER.md) · [Download 상태도](Docs/States/DOWNLOAD.md) · [아키텍처](Docs/ARCHITECTURE_CURRENT.md) · [ADR](Docs/ADR) · [F01–F10 대응표](Docs/CHAOS_ACCEPTANCE.md)
+[최신 아키텍처 다이어그램](Docs/Architecture/ARCHITECTURE_DIAGRAMS_2026-11-06.md) · [Player 상태도](Docs/States/PLAYER.md) · [Download 상태도](Docs/States/DOWNLOAD.md) · [상세 아키텍처](Docs/ARCHITECTURE_CURRENT.md) · [ADR](Docs/ADR) · [F01–F10 대응표](Docs/CHAOS_ACCEPTANCE.md)
 
 ## 샘플 URL·출처·사용 범위
 

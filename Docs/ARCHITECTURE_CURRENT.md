@@ -1,8 +1,8 @@
 # StreamLab 구조와 구현 기록
 
-[제출 시점 PDF](Architecture/streamlab-architecture-ko.pdf) · [제출 기록](SUBMISSION_RECORD.md) · [이번 보완](Measurements/Final-Gaps-2026-11-06/REPORT.md)
+[최신 구조 다이어그램](Architecture/ARCHITECTURE_DIAGRAMS_2026-11-06.md) · [과거 제출 PDF 스냅샷](Architecture/streamlab-architecture-ko.pdf) · [제출 기록](SUBMISSION_RECORD.md) · [이번 보완](Measurements/Final-Gaps-2026-11-06/REPORT.md)
 
-이 문서는 2026-11-06 SQLite 보완을 반영한다. 기존 PDF·제출 태그는 당시 스냅샷이며 이후 DB 변경을 포함하지 않는다.
+이 문서는 2026-11-06 SQLite 보완을 반영한다. 현재 구조의 시각화는 상단 최신 다이어그램을 참조한다. 기존 PDF·제출 태그는 당시 스냅샷이며 이후 DB 변경을 포함하지 않는다.
 
 ## StreamLab 구조와 구현 기록
 
@@ -119,7 +119,7 @@ HLS는 AVAssetDownloadURLSession으로 .movpkg를 저장하고 MP4는 URLSession
 
 취소·로그아웃 후의 늦은 완료는 알림을 만들지 않는다. 유효한 완료 알림을 누르면 현재 프로필의 다운로드 목록으로 이동한다. 백그라운드 전송, 일시정지·재개, 셀룰러 전송과 저장 파일 재생은 실기기 확인 기록을 남겼다.
 
-11월 6일: F09·F10 샘플 다운로드 완료와 비행기 모드 재생·하단 시간·탐색을 사용자 확인했다. 관리자 MP4 업로드 500MB 한도와 앱 다운로드 정책은 별개다.
+11월 6일: F09·F10 샘플 다운로드 완료와 비행기 모드 재생·하단 시간·탐색을 사용자 확인했다. 관리자 MP4 업로드 최신 한도 5GB와 앱 다운로드 관리 예산 1GB는 별개다. 압축 계획은 관리자 UI에서 제공하며 실제 압축은 Mac에서 수행한다.
 
 ## 검증 결과를 읽는 범위
 
@@ -149,3 +149,15 @@ Docs/CHAOS_ACCEPTANCE.md · Docs/DOWNLOADS_QA.md
 
 ---
 PDF와 이 문서의 본문은 `python3 Docs/Architecture/build_pdf.py`로 함께 생성한다. Python reportlab과 macOS AppleGothic 글꼴이 필요하다.
+
+## 2026-11-06 아키텍처 다이어그램 교정 이력
+
+[소스 검증 기반 통합 다이어그램](Architecture/ARCHITECTURE_DIAGRAMS_2026-11-06.md)은 앱 코드 `6642b7c` 기준 Package.swift 의존성과 런타임 객체 소유권을 구분한다. 이 개정에서 다음을 보완했다.
+
+- AppRootView / CatalogSession UUID / 프로필별 Store와 PlaybackModel(화면 단위), OfflineDownloadStore.shared(프로세스 단위)의 책임을 별도 런타임 도표로 표시.
+- 로컬 SQLite 변경·ACK의 최종 반영 책임이 @MainActor Store에 있음을 명확히 하고, RetryingMutationTransport가 SQLite를 직접 소유하는 것으로 보이는 흐름을 제거.
+- [Player](States/PLAYER.md)와 [Download](States/DOWNLOAD.md) 상태 머신의 원본 전이를 그대로 임베드. PDF의 상태도는 가독성을 위한 대표 전이 요약이므로 전체 전이는 두 소스 문서를 기준으로 판단.
+- Firebase에서 제공하는 업로드 MP4와 외부 HTTPS HLS 링크를 별도 경로로 분리하고, Firebase 관리자 인증과 사용자 인증/권한 Mock을 구분.
+- AuthenticationSession actor(single-flight), Keychain, Native Download 세션 복원, 프로필 전환 취소의 동시성 경계를 추가.
+
+**검증 상태:** 이번 수정은 도표와 설명 문서만 변경했다. 과거 제출 PDF/태그, Swift 소스와 CI 근거는 변경하지 않았으며 새로운 Xcode 빌드나 실기기 계측을 수행했다고 주장하지 않는다.
