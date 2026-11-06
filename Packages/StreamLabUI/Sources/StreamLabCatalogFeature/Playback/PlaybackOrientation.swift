@@ -121,6 +121,7 @@ import StreamLabPresentation
     final class OrientationController: UIViewController {
         var landscape = true
         var session: PlaybackOrientationSession?
+        private var hasAppeared = false
 
         override func loadView() {
             view = UIView()
@@ -129,11 +130,21 @@ import StreamLabPresentation
 
         override func viewDidAppear(_ animated: Bool) {
             super.viewDidAppear(animated)
+            hasAppeared = true
             requestOrientation()
         }
 
+        override func viewWillDisappear(_ animated: Bool) {
+            hasAppeared = false
+            super.viewWillDisappear(animated)
+        }
+
         func requestOrientation() {
-            guard let scene = view.window?.windowScene else { return }
+            // A representable update can see a window while its full-screen
+            // presentation is still in flight. UIKit may reject that geometry
+            // request (101), and the session deliberately deduplicates requests.
+            // Start only after presentation, and freeze updates during dismissal.
+            guard hasAppeared, let scene = view.window?.windowScene else { return }
             session?.request(in: scene, landscape: landscape)
         }
     }

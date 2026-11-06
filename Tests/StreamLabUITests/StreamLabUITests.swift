@@ -63,6 +63,12 @@ import XCTest
         addTeardownBlock { @MainActor [weak self] in
             guard let self else { return }
             app.activate()
+            // An assertion may stop inside a player. Close the presented surface
+            // before using the account cleanup boundary on the screen underneath.
+            // The original test failure remains a failure; this only isolates the
+            // following native transfer from a retained player/file lease.
+            let playerClose = app.buttons["playback-close"].firstMatch
+            if playerClose.exists && playerClose.isHittable { playerClose.tap() }
             if app.buttons["account-logout"].exists {
                 self.tap(app.buttons["account-logout"], in: app)
                 self.tap(app.sheets.buttons.matching(identifier: "confirm-logout").firstMatch, in: app)
