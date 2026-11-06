@@ -29,7 +29,7 @@ import {
   listAll,
 } from "firebase/storage";
 import { VideoSelection } from "./selection.js";
-import { VideoUpload } from "./upload.js";
+import { VideoUpload, MAX_VIDEO_BYTES, formatVideoSize, uploadProgressText } from "./upload.js";
 const app = initializeApp(config),
   auth = getAuth(app),
   db = getFirestore(app);
@@ -45,10 +45,11 @@ const message = (text) => {
   $("message").textContent = text;
 };
 const storage = getStorage(app);
+$("video-limit").textContent = `파일 1개 · 최대 ${formatVideoSize(MAX_VIDEO_BYTES)}`;
 let uploading = false;
 const selection = new VideoSelection((file, error) => {
   $("video-selection").textContent = file
-    ? `${file.name} · ${(file.size / 1_000_000).toLocaleString("ko-KR", { maximumFractionDigits: 2 })} MB`
+    ? `${file.name} · ${formatVideoSize(file.size)}`
     : "선택된 파일 없음";
   $("upload-status").textContent = error || (file ? "파일이 선택됐습니다. 파일 업로드를 눌러 전송하세요." : "");
 });
@@ -106,11 +107,10 @@ const uploader = new VideoUpload({
   start: (path, file, metadata) =>
     uploadBytesResumable(storageRef(storage, path), file, metadata),
   getURL: getDownloadURL,
-  progress: (fraction) => {
+  progress: (fraction, snapshot) => {
     const percent = Math.floor(fraction * 100);
     $("upload-progress").value = percent;
-    $("upload-status").textContent =
-      percent === 100 ? "영상 URL을 확인하고 있어요…" : `업로드 중 ${percent}%`;
+    $("upload-status").textContent = uploadProgressText(snapshot);
   },
   completed: async (url) => {
     const item = titles.find(title => title.id === selected);

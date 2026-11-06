@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { validateMP4, VideoUpload, MAX_VIDEO_BYTES } from "../src/upload.js";
+import { readFile } from "node:fs/promises";
+import { validateMP4, VideoUpload, MAX_VIDEO_BYTES, formatVideoSize, uploadProgressText } from "../src/upload.js";
 const file = () =>
   new File(
     [new Uint8Array([0, 0, 0, 12, 102, 116, 121, 112, 105, 115, 111, 109])],
@@ -17,6 +18,28 @@ test("MP4 validation rejects empty, oversized, wrong extension and disguised dat
     { name: "huge.mp4", size: MAX_VIDEO_BYTES + 1 },
   ])
     await assert.rejects(validateMP4(f));
+});
+test("multi-GB files read only their header; size limit is inclusive and matches Storage rules", async () => {
+  for (const size of [3_000_000_000, 4_000_000_000, 4 * 1024 ** 3, MAX_VIDEO_BYTES]) {
+    const reads = [];
+    await validateMP4({
+      name: "long-4k.mp4", type: "video/mp4", size,
+      slice: (start, end) => { reads.push([start, end]); return file().slice(start, end); },
+      arrayBuffer: () => { throw Error("must not read the entire video"); },
+    });
+    assert.deepEqual(reads, [[0, 12]]);
+  }
+  for (const size of [MAX_VIDEO_BYTES + 1, Infinity, NaN]) {
+    await assert.rejects(validateMP4({ name: "too-large.mp4", size }), /5 GB/);
+  }
+  const rules = await readFile(new URL("../../storage.rules", import.meta.url), "utf8");
+  assert.equal(Number(rules.match(/request\.resource\.size <= (\d+)/)[1]), MAX_VIDEO_BYTES);
+});
+test("multi-GB progress remains readable without 32-bit truncation", () => {
+  assert.equal(formatVideoSize(4_000_000_000), "4 GB");
+  assert.equal(formatVideoSize(250_000_000), "250 MB");
+  assert.equal(uploadProgressText({ bytesTransferred: 2_500_000_000, totalBytes: 5_000_000_000 }), "업로드 중 50% · 2.5 GB / 5 GB");
+  assert.equal(uploadProgressText({ bytesTransferred: 5_000_000_000, totalBytes: 5_000_000_000 }), "영상 URL을 확인하고 있어요…");
 });
 function setup(getURL = async () => "https://example.com/a.mp4") {
   const seen = [];

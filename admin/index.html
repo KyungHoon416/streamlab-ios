@@ -87,7 +87,7 @@
                     max="10000"
                     value="30"
                     required
-                /></label>
+                /><small>4시간 영상은 240분으로 입력하세요. 실제 재생 길이는 영상 파일을 따릅니다.</small></label>
               </div>
               <label
                 >장르<input
@@ -143,7 +143,7 @@
                 </p>
                 <div id="video-dropzone" class="video-dropzone">
                   <strong>MP4 영상을 여기에 끌어다 놓으세요</strong>
-                  <span>파일 1개 · 최대 500MB</span>
+                  <span id="video-limit">MP4 파일 1개</span>
                   <label>또는 파일 선택<input id="video-file" type="file"
                     accept=".mp4,video/mp4" aria-describedby="video-selection" /></label>
                   <p id="video-selection" role="status" aria-live="polite">선택된 파일 없음</p>
@@ -162,6 +162,7 @@
                   aria-label="영상 업로드 진행률"
                 ></progress>
                 <p id="upload-status" role="status" aria-live="polite"></p>
+                <small>큰 파일은 전송이 끝날 때까지 이 페이지를 열어 두세요. 원본 파일을 업로드하며 자동 압축하지 않습니다.</small>
                 <small
                   >비공개 작품에는 업로드한 URL이 자동 저장됩니다. 공개 상태 변경은 아래 ‘저장’을 눌러 작품에
                   반영하세요. MP4를 HLS로 변환하지 않습니다. 업로드한 파일은

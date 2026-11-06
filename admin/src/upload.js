@@ -1,10 +1,24 @@
-export const MAX_VIDEO_BYTES = 500_000_000;
+// Decimal GB. This is the admin upload policy, not the iOS offline budget.
+export const MAX_VIDEO_BYTES = 5_000_000_000;
+
+export function formatVideoSize(bytes) {
+  const gigabytes = bytes >= 1_000_000_000;
+  const value = bytes / (gigabytes ? 1_000_000_000 : 1_000_000);
+  return `${value.toLocaleString("ko-KR", { maximumFractionDigits: 2 })} ${gigabytes ? "GB" : "MB"}`;
+}
+
+export function uploadProgressText({ bytesTransferred, totalBytes }) {
+  if (totalBytes > 0 && bytesTransferred >= totalBytes)
+    return "영상 URL을 확인하고 있어요…";
+  const percent = totalBytes > 0 ? Math.floor(bytesTransferred / totalBytes * 100) : 0;
+  return `업로드 중 ${percent}% · ${formatVideoSize(bytesTransferred)} / ${formatVideoSize(totalBytes)}`;
+}
 
 export async function validateMP4(file) {
   if (!file || !/\.mp4$/i.test(file.name))
     throw Error("MP4 파일을 선택하세요.");
-  if (file.size < 12 || file.size > MAX_VIDEO_BYTES)
-    throw Error("12바이트 이상, 500MB 이하의 MP4 파일만 업로드할 수 있습니다.");
+  if (!Number.isSafeInteger(file.size) || file.size < 12 || file.size > MAX_VIDEO_BYTES)
+    throw Error(`12바이트 이상, ${formatVideoSize(MAX_VIDEO_BYTES)} 이하의 MP4 파일만 업로드할 수 있습니다.`);
   if (file.type && file.type !== "video/mp4")
     throw Error("MP4 영상 형식이 아닙니다.");
   const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
@@ -52,6 +66,7 @@ export class VideoUpload {
                 snapshot.totalBytes
                   ? snapshot.bytesTransferred / snapshot.totalBytes
                   : 0,
+                snapshot,
               );
           },
           reject,

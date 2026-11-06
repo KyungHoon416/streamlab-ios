@@ -65,6 +65,14 @@ test("admin can publish MP4, but not a web page URL", async () => {
   await assertSucceeds(setDoc(doc(db,'titles/mp4'),{...data('mp4',true),streamURL:'https://example.com/video.mp4?alt=media&token=test'}));
   await assertFails(setDoc(doc(db,'titles/webpage'),{...data('webpage',true),streamURL:'https://example.com/watch?v=123'}));
 });
+test("four-hour MP4 metadata can be published and read by the app", async () => {
+  const admin = env.authenticatedContext("owner", token).firestore();
+  const anon = env.unauthenticatedContext().firestore();
+  const movie = { ...data("four-hours", true), durationMinutes: 240, streamURL: "https://example.com/four-hours.mp4" };
+  await assertSucceeds(setDoc(doc(admin, "titles/four-hours"), movie));
+  const saved = await assertSucceeds(getDoc(doc(anon, "titles/four-hours")));
+  assert.equal(saved.data().durationMinutes, 240);
+});
 test("admin create, revision update, public query, unpublish and denied deletion", async () => {
   const admin = env.authenticatedContext("owner", token).firestore(),
     anon = env.unauthenticatedContext().firestore();
