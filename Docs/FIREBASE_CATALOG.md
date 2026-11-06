@@ -28,6 +28,8 @@ Storage 에뮬레이터: `firebase emulators:exec --only storage --project demo-
 
 2026-11-06 대용량 등록 검증: 관리자 단위 테스트 13개, Firestore 규칙 8개, Storage 규칙 2개와 웹 빌드 통과. 3GB·4GB·4GiB·5GB 파일 메타데이터의 허용, 5GB 초과 거부, 파일 전체 대신 12바이트 헤더만 읽는 동작, GB 전송량 표시와 Storage 한도 일치를 검사했다. Firestore 에뮬레이터에서 240분 작품을 공개 저장하고 앱과 같은 익명 조회로 읽었다. 실제 수 GB 전송·4시간 전체 재생·압축률을 측정한 결과는 아니다. 제출 태그 `submission-2026-11-06`와 ZIP/PDF는 이 확장 이전의 제출 스냅샷으로 보존한다.
 
+구현 커밋 `b4890194b351e1e14d0f20df17053396b49b2726`의 [관리자 CI](https://github.com/KyungHoon416/streamlab-ios/actions/runs/42166051120)와 [앱 회귀 CI](https://github.com/KyungHoon416/streamlab-ios/actions/runs/42166051232)는 성공했다. Storage 규칙과 Hosting 배포를 완료했으며 배포 HTML·JS·CSS가 검증한 로컬 빌드와 바이트 단위로 일치함을 확인했다.
+
 2026-11-02 실제 전송 확인: 사용자가 데모 MP4를 선택·업로드했고 관리자 화면의 업로드 완료 및 URL 입력을 확인했다. `streamlab-mp4-upload`를 공개 저장(revision 2)한 뒤 서버 조회로 확인했다. 영상 HTTP Range 요청은 206 / `video/mp4` / `bytes 0-31/71397`을 반환했다. 전체 71,397바이트의 SHA-256이 저장소 원본 `playback-demo.mp4`와 일치했다. 실제 파일 전송·저장·공개·부분 다운로드 검증 완료이며 이어 사용자가 StreamLab-Firebase Scheme으로 iPhone에서 업로드 영상 재생·하단 시간 증가·탐색을 확인했다. [업로드 CI](https://github.com/KyungHoon416/streamlab-ios/actions/runs/41321071403) 성공(`c5aa023`).
 
 MP4 URL 확장 검증: Core 266개, iOS 재생 경계 25개, 관리자 입력 4개·Firestore 규칙 4개 통과. 최종 Firebase Scheme Release 빌드 및 Hosting·Firestore 규칙 배포 완료. 업로드 MP4의 실기기 확인 결과는 위 기록을 참고한다.
