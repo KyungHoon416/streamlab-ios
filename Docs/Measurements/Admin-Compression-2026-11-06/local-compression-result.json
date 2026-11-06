@@ -1,0 +1,25 @@
+{
+  "source_bytes": 8881545500,
+  "output_bytes": 3503966872,
+  "duration_seconds": 11926.837007,
+  "size_ratio": 0.3945222002184192,
+  "target_ratio": 0.4,
+  "sha256": "4997b34c508e02a809c0e01ca2bef9299d5633a0612738aba3e6688d0a2c2cd4",
+  "elapsed_seconds": 1803.709506034851,
+  "validation": "size, duration, codec, first/middle/last decode passed",
+  "resolution": "1920x1080",
+  "fps": "30000/1001",
+  "video_codec": "hevc (hvc1)",
+  "audio_codec": "aac",
+  "original_unchanged": true,
+  "faststart": true,
+  "reduction_percent": 60.5478,
+  "checked_decode_segments_seconds": [
+    0,
+    5963.4185035,
+    11896.837007
+  ],
+  "checked_decode_duration_each_seconds": 30,
+  "uploaded_to_firebase": false,
+  "iphone_playback_checked": false
+}

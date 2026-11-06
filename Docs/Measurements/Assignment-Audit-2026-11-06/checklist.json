@@ -872,5 +872,7 @@
       ],
       "note": "공개 샘플 연결 정보는 있으나 README의 URL/사용조건 목록이 불충분함. 공개 접근 가능하다는 사실을 자유 이용 허가로 대신하지 않음. 제출에 필요한 샘플만 정리하고 개인 추가 영상은 과제 재현 의존성에서 제외."
     }
-  ]
+  ],
+  "current_ci_commit": "923d3a689e9a7ac2f71e8bf9fc9a54bc68aee762",
+  "current_ci_run": "https://github.com/KyungHoon416/streamlab-ios/actions/runs/42190580118"
 }

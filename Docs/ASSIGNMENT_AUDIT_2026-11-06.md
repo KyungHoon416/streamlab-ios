@@ -48,7 +48,7 @@ Firebase 관리자·MP4 직접 업로드·앱 공개 카탈로그 연결, 이번
 
 ## 79개 확인 단위와 근거
 
-구조화 원본: [checklist.json](Measurements/Assignment-Audit-2026-11-06/checklist.json). 코드/테스트 존재와 연결된 과거 실행 근거를 검토했으며, 이 문서 작성을 위해 iOS 전체 suite를 새로 실행한 것은 아니다.
+구조화 원본: [checklist.json](Measurements/Assignment-Audit-2026-11-06/checklist.json). 코드/테스트와 과거 실행 근거를 대조했다. 이번 관리자 변경 `923d3a6`의 원격 CI에서도 Core 31+243개·3종 1,000 seed·iOS 패키지 25개·Release 빌드가 통과했다. 앱 전체 UI suite를 새로 실행한 것은 아니다. [이번 CI 결과](Measurements/Admin-Compression-2026-11-06/app-ci.json).
 
 
 ### 공통·핵심 테스트

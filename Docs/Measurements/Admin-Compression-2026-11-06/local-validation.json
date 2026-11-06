@@ -1,0 +1,28 @@
+{
+  "unit_passed": 22,
+  "firestore_rules_passed": 8,
+  "storage_rules_passed": 2,
+  "browser_fixture_passed": 9,
+  "browser_console_errors": 0,
+  "vite_build": "passed",
+  "commit": "923d3a689e9a7ac2f71e8bf9fc9a54bc68aee762",
+  "input_hashes": {
+    "unit": {
+      "sha256": "b0cee885c81e9c40cec6f84402bd88e4351439cda96d149e98c013fc14c50d41",
+      "bytes": 4848
+    },
+    "rules": {
+      "sha256": "e1c14cb9aa1a43e15cfa9dce384d3d9fd342f4750518038166b28a21a1d6bd54",
+      "bytes": 7548
+    },
+    "build": {
+      "sha256": "7e1fb681a9d1ce321495f7e8dd8ade30f78d57c53ec70a7a705b65f2081237a5",
+      "bytes": 727
+    },
+    "browser": {
+      "sha256": "460400ae5db03b13e2ff5f6d506b4b4dee07e010f9e4b48abbe2549de5c88987",
+      "bytes": 111553
+    }
+  },
+  "app_ci_log_sha256": "453a297fff785789d54ae51d4d649cb97a1702c2a2794e48e5825ad588e6a09f"
+}

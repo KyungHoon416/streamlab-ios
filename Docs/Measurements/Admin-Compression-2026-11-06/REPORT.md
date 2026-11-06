@@ -33,4 +33,31 @@ npm --prefix admin run dev -- --port 4177
 # http://127.0.0.1:4177/tests/compression-browser.html
 ```
 
-웹 배포와 원격 CI 결과는 실행 완료 후 아래에 기록한다. 제출 태그·ZIP/PDF는 그대로 보존한다.
+## 배포·원격 검증
+
+구현 커밋 `923d3a689e9a7ac2f71e8bf9fc9a54bc68aee762`를 main에 푸시했다.
+
+- [관리자 CI 42190580037](https://github.com/KyungHoon416/streamlab-ios/actions/runs/42190580037): SUCCESS.
+- [앱 회귀 CI 42190580118](https://github.com/KyungHoon416/streamlab-ios/actions/runs/42190580118): core-chaos와 ios-playback 두 job SUCCESS. Core XCTest 31개 + Swift Testing 243개, 카오스 3종 각 1,000 seed, F03 SIGKILL 복구, iOS 패키지 25개와 Release 빌드 통과. 앱 소스 변경은 없지만 기존 회귀 workflow도 실행됐다.
+- Firebase Hosting 배포 완료. 실제 `index.html`, JS, CSS가 검증한 `admin/dist`와 바이트 단위로 일치한다. [배포 해시](deployment.json).
+- [로컬 검사/스크린샷 해시](local-validation.json), [관리자 실행](admin-ci.json), [앱 실행](app-ci.json)을 보존한다.
+
+Storage·Firestore 규칙과 요금제는 이번에 변경하지 않았다. 제출 태그·ZIP/PDF는 보존한다. 실제 수 GB 파일 업로드·iPhone 재생은 이 UI/규칙 회귀와 별개다.
+
+## 로컬 전체 영상 압축 결과
+
+사용자가 지정한 원본을 변경하지 않고 Mac에서 전체 압축을 완료했다. 최종 선택은 1GB 제한이 아니라 **원본의 40% 크기**, 1080p/30fps다.
+
+| 항목 | 원본 | 완성본 |
+|---|---:|---:|
+| 크기(십진 GB) | 8.8815 GB | 3.5040 GB |
+| 바이트 | 8,881,545,500 | 3,503,966,872 |
+| 해상도 | 1920×1080 | 1920×1080 |
+| 프레임 | 약 59.94fps | 29.97fps |
+| 길이 | 3시간 18분 46.84초 | 동일(차이 0.001초 미만) |
+
+완성본은 원본의 **39.45%**, 감소율은 **60.55%**다. HEVC(hvc1)/AAC MP4이며 웹 재생을 위해 moov가 mdat 앞에 있는 faststart 구조를 확인했다. 원본 크기·수정시각 유지, 5GB 미만, 해상도/코덱/프레임/길이, 앞·중간·끝 각 30초 디코딩 검사를 통과했다. 전체 파일 SHA-256과 검사 범위는 [local-compression-result.json](local-compression-result.json)에 기록했다. 전체 압축과 검증에 약 30분이 걸렸다.
+
+60초 동일 설정 비교 샘플의 VMAF는 75.58이었다. 이 수치는 샘플 기준이며 전체 영상 품질이나 60→30fps 움직임 품질을 보증하지 않는다. 원본은 파일명과 달리 실제 1080p/SDR이며 4K로 확대하지 않았다.
+
+파일은 로컬 산출물 폴더에 보관하고 Git에는 측정 결과만 저장한다. 이 3.50GB 파일의 Firebase 업로드와 iPhone 재생은 아직 하지 않았다. 관리자에서 완성본을 고른 뒤 **‘원본 그대로 업로드’**를 선택하면 추가 압축 계획 없이 기존 5GB 업로더를 사용할 수 있다.
