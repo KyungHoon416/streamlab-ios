@@ -1,0 +1,4 @@
+Local extended-boundaries-aO9vAc. F04 middle seek precedes the subtitle test. Subtitle pause has no subsequent scrub_end or seek_started for the small/zero XCTest adjustment.
+2026-11-06 23:59:02.235411+0900 StreamLab[94534:1139651] [PlaybackQoE] hud_action=scrub_end displayed=305.001855 model=2.065484 actual=2.270042 rate=1.000000 scrubbing=true seeking=false
+2026-11-06 23:59:02.235515+0900 StreamLab[94534:1139651] [PlaybackQoE] seek_started generation=2 target=305.001855 actual=2.270153 resume=true
+2026-11-07 00:00:10.153676+0900 StreamLab[94853:1143798] [PlaybackQoE] transport_action=pause origin=screen_button wantsPlayback=true position=10.196541

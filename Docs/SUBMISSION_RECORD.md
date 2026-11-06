@@ -1,6 +1,6 @@
 # 2026-11-06 제출 기록
 
-제출 기준은 `submission-2026-11-06` 태그다. 아래 앱 코드와 검증 기록, 최신 아키텍처 PDF를 묶는다. 최종 SHA는 `git rev-parse 'submission-2026-11-06^{commit}'`으로 확인한다.
+이 기록의 제출 기준은 `submission-2026-11-06` 태그다. 아래 앱 코드·검증·영상·6쪽 PDF는 당시 스냅샷이다. 최종 SHA는 `git rev-parse 'submission-2026-11-06^{commit}'`으로 확인한다. 이후 SQLite·접근성·계측 보완과 [현재 8쪽 아키텍처 PDF](Architecture/streamlab-architecture-ko.pdf)는 [후속 보고서](Measurements/Final-Gaps-2026-11-06/REPORT.md)에 따로 기록했다. 기존 ZIP/영상의 빌드와 섞지 않는다.
 
 ## 버전과 검사 대상
 
@@ -54,7 +54,7 @@ F10 자막·망 단절·닫기·재연결과 F09 Mock 만료·갱신 실패의 �
 
 ## 문서와 남은 한계
 
-[아키텍처 PDF](Architecture/streamlab-architecture-ko.pdf)는 6쪽이다. Firebase 관리자·Google 인증·Firestore·MP4 Storage, 파일 영속성과 Mock 경계, 재생 수명, 다운로드 전체 예산과 초기 예약량을 반영했다. [본문](ARCHITECTURE_CURRENT.md)과 PDF는 같은 생성 자료를 사용한다. 6쪽 모두 렌더링해 한글·표·그림·페이지 경계를 확인했다.
+[당시 아키텍처 PDF](https://github.com/KyungHoon416/streamlab-ios/blob/submission-2026-11-06/Docs/Architecture/streamlab-architecture-ko.pdf)는 6쪽이다. Firebase 관리자·Google 인증·Firestore·MP4 Storage, 파일 영속성과 Mock 경계, 재생 수명, 다운로드 전체 예산과 초기 예약량을 반영했다. 당시 본문과 PDF는 같은 생성 자료를 사용했고 6쪽 모두 렌더링해 확인했다. 현재 main의 PDF는 후속 8쪽 문서이므로 이 기록의 해시는 태그 버전 또는 기존 ZIP 속 PDF와 비교한다.
 
 [C4 보고서](Measurements/C4-2026-10-31/REPORT.md)에 제출 시점 결론을 추가했다. 표시 프레임 간격, HLS 준비 시간, 반복 메모리, 전력·디스크 자료는 확보했으나 **스크롤 성능의 변경 전후 개선은 입증되지 않았다.** 이전 수치를 최신 Firebase 빌드의 측정값으로 바꾸지 않는다.
 

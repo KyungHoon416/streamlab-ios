@@ -1,0 +1,35 @@
+{
+  "run_id": 42239749042,
+  "run_attempt": 1,
+  "head_sha": "9a4d39539bf7afaad759bacf8966d650b0477970",
+  "url": "https://github.com/KyungHoon416/streamlab-ios/actions/runs/42239749042/attempts/1",
+  "failed_job": "ios-native-downloads",
+  "failed_test": "testF06ConcurrentFailureDiskPressurePreservesPinnedAndRecovers",
+  "failure_layer": "app.launch() timed out via Xcode before profile selection or any download actions. IDELaunchReport also reported failure to send signal 19 to process. Exact cause of the launch stall is not established.",
+  "passed_in_same_job": [
+    "Test Case '-[StreamLabUITests.StreamLabUITests testF09DownloadedHLSExpiredOfflineGrantBlocksRetryAndCloses]' passed (120.673 seconds).",
+    "Test Case '-[StreamLabUITests.StreamLabUITests testRealHLSDownloadRelaunchPlaybackAndDelete]' passed (133.278 seconds)."
+  ],
+  "source_log_sha256": "87ee338f0ed40f61a851c37b9e795525bdab247831e535d2149952d01e58fafd",
+  "source_log_bytes": 494154,
+  "planned_followup": "One explicit rerun of only this job on the identical commit after the current workflow finishes. Keep the original launch failure; no assertion removed or app timeout extended.",
+  "excerpts": [
+    "Test Case '-[StreamLabUITests.StreamLabUITests testF06ConcurrentFailureDiskPressurePreservesPinnedAndRecovers]' started.",
+    "/Users/runner/work/streamlab-ios/streamlab-ios/Tests/StreamLabUITests/StreamLabUITests.swift:49: error: -[StreamLabUITests.StreamLabUITests testF06ConcurrentFailureDiskPressurePreservesPinnedAndRecovers] : Failed to launch <XCUIApplicationImpl: 0x108036840 com.example.streamlab.demo at /private/tmp/streamlab-download-combined-PVBmUp/DerivedData/Build/Products/Debug-iphonesimulator/StreamLab.app> via Xcode: Timed out while launching application via Xcode.",
+    "Test Case '-[StreamLabUITests.StreamLabUITests testF06ConcurrentFailureDiskPressurePreservesPinnedAndRecovers]' failed (62.748 seconds).",
+    "Details:  DTServiceHub - Error resuming pid 6788 'Error Domain=DTXMessage Code=1 \"Failed to send signal 19 to process 6788: 3\" UserInfo={NSLocalizedDescription=Failed to send signal 19 to process 6788: 3}'",
+    "2026-11-06 15:12:04.858 xcodebuild[1411:14667]  IDELaunchReport: 6b008979942e4dc0:6b008979942e6ac0:Launch StreamLab Finished with error: Failed to send signal 19 to process 6788: 3"
+  ],
+  "followup": {
+    "run_attempt": 2,
+    "job_id": 127980241717,
+    "conclusion": "success",
+    "artifact": "ios-native-downloads-42239749042-2",
+    "test_seconds": {
+      "F06": 217.392,
+      "F09": 114.853,
+      "normal_download_playback_delete": 143.499
+    },
+    "note": "Original attempt 1 launch failure remains recorded; rerun success does not establish its cause."
+  }
+}

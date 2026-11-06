@@ -10,7 +10,7 @@
 
 ## 1. VoiceOver 전체 경로
 
-Scheme `StreamLab` 또는 `StreamLab-Firebase`, Run의 오류 주입 인수는 모두 끈다. Firebase를 쓰면 공개된 Apple HLS 작품을 사용한다. iPhone의 설정 → 손쉬운 사용 → VoiceOver를 켠다.
+Scheme `StreamLab-Firebase`, Run의 오류 주입 인수는 모두 끈다. 영어 자막 트랙을 확인한 공개 작품 **F10 영어 자막 HLS 샘플**을 사용한다. 일반 Apple HLS 연결 확인용 작품에는 필요한 자막 트랙이 없을 수 있다. iPhone의 설정 → 손쉬운 사용 → VoiceOver를 켠다.
 
 화면을 직접 눌러 우회하지 않고, 한 손가락 좌우 쓸기로 이동하고 두 번 탭으로 선택한다.
 

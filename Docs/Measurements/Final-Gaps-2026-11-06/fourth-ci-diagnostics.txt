@@ -1,0 +1,6 @@
+Run 42234656187 / commit 526c2aa / smoke app stdout
+2026-11-06 14:38:22.708228+0000 StreamLab[7061:26516] [PlaybackQoE] attempt_started attempt=47D0CDF0-A8C4-438F-BD47-CBF4A9A2168D source=bundled-demo-v1
+    Button, identifier: 'BackB2026-11-06 14:39:35.651956+0000 StreamLab[7061:26516] [PlaybackQoE] transition from=playing to=ended accepted=true
+2026-11-06 14:39:47.141690+0000 StreamLab[7061:26516] [PlaybackQoE] transport_action=play origin=screen_button wantsPlayback=true position=30.000000
+2026-11-06 14:39:47.143054+0000 StreamLab[7061:26516] [PlaybackQoE] transition from=ended to=seeking accepted=true
+2026-11-06 14:40:17.280012+0000 StreamLab[7061:26516] [PlaybackQoE] transition from=playing to=ended accepted=true

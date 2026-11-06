@@ -6,7 +6,7 @@
 
 - [x] 실행 안내와 모듈 설명: [README](../README.md)
 - [x] 최신 구현 범위: [CURRENT_STATUS](CURRENT_STATUS.md)
-- [x] Firebase·업로드·다운로드 예산을 반영한 [아키텍처 본문](ARCHITECTURE_CURRENT.md)과 [6쪽 PDF](Architecture/streamlab-architecture-ko.pdf)
+- [x] 제출 태그에 Firebase·업로드·다운로드 예산을 반영한 [6쪽 PDF](https://github.com/KyungHoon416/streamlab-ios/blob/submission-2026-11-06/Docs/Architecture/streamlab-architecture-ko.pdf) 보존. 이후 보완은 [현재 본문](ARCHITECTURE_CURRENT.md)과 [그림 중심 8쪽 PDF](Architecture/streamlab-architecture-ko.pdf)에서 확인
 - [x] 3분 32초 합본의 핵심 재생 및 F09·F10 장애 장면 확인, 만료 인수 전환 문구 추가, 개인 알림 가림, 전체 디코딩 검사
 - [x] F09 실기기 만료·갱신 실패·남은 2회·목록 복귀 확인
 - [x] F10 실기기 영어 자막·오프라인 닫기·재연결 후 10초 정상 재생 확인

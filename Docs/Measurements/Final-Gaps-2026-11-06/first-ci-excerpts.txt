@@ -1,0 +1,40 @@
+# core-chaos
+2026-11-06T10:02:42.1195210Z Xcode 26.6
+2026-11-06T10:02:42.1197830Z Build version 17F113
+2026-11-06T10:02:45.4761210Z Apple Swift version 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101)
+2026-11-06T10:02:45.8560130Z PASS: SwiftUI App + four feature views, lazy containers, profile identity, lifecycle wiring
+2026-11-06T10:02:45.8562460Z PASS: package declarations, compiled source paths, scheme target IDs and Info.plist
+2026-11-06T10:05:11.6962700Z 	 Executed 31 tests, with 0 failures (0 unexpected) in 0.078 (0.084) seconds
+2026-11-06T10:05:11.6963710Z 	 Executed 31 tests, with 0 failures (0 unexpected) in 0.078 (0.090) seconds
+2026-11-06T10:05:13.3051900Z KEYCHAIN PASS dummy-item-lifecycle
+2026-11-06T10:05:13.3086560Z HTTP LOADER PASS redirect
+2026-11-06T10:05:13.3106230Z HTTP AUTH PASS failure
+2026-11-06T10:05:13.3106960Z HTTP AUTH PASS logout-in-flight
+2026-11-06T10:05:13.3107730Z HTTP AUTH PASS success
+2026-11-06T10:05:13.3112530Z HTTP LOADER PASS cancellation
+2026-11-06T10:05:13.3155980Z HTTP QUEUE PASS lost-ack
+2026-11-06T10:05:13.3156160Z HTTP QUEUE PASS conflict
+2026-11-06T10:05:13.3171350Z HTTP QUEUE PASS cancellation
+2026-11-06T10:05:13.3177010Z HTTP QUEUE PASS retry-budget
+2026-11-06T10:07:20.7244200Z HTTP LOADER PASS streaming-limit
+2026-11-06T10:07:20.7247380Z F01 PASS order=5,4,3,2,1 latest=5 duplicates=0
+2026-11-06T10:07:20.7250920Z F03 PASS mutations=100 serverEffects=100 pending=0 lost=0 replay=all-acks-lost
+2026-11-06T10:07:20.7252500Z RETRY CLOCK CHAOS PASS seeds=1000 replay=1...1000
+2026-11-06T10:07:20.7257100Z DOMAIN CHAOS PASS seeds=1000 replay=1...1000
+2026-11-06T10:07:20.7260920Z CHAOS PASS seeds=1000 replay=1...1000 eventsPerSeed=24
+2026-11-06T10:07:20.7262830Z ✔ Test run with 247 tests in 44 suites passed after 129.096 seconds.
+2026-11-06T10:07:20.8349530Z PASS Core, real loopback HTTP and authentication/logout boundaries
+2026-11-06T10:07:40.1155800Z F03 PROCESS PASS kills=2 restarts=3 mutations=100 duplicateEffects=0 lost=0
+2026-11-06T10:07:40.1193820Z PASS macOS SIGKILL durable mutation recovery
+2026-11-06T10:07:40.1243280Z PASS assignment Core evidence (not full F01-F10 acceptance)
+2026-11-06T10:07:40.6661180Z Ran 6 tests in 0.263s
+2026-11-06T10:07:40.6661750Z OK
+
+# ios-playback
+2026-11-06T10:02:44.7165290Z Xcode 26.6
+2026-11-06T10:02:44.7263580Z Build version 17F113
+2026-11-06T10:02:49.2356980Z Apple Swift version 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101)
+2026-11-06T10:07:05.7951410Z PASS twenty-five iOS playback session and Now Playing tests
+2026-11-06T10:07:05.8829690Z 	 Executed 25 tests, with 0 failures (0 unexpected) in 46.390 (63.257) seconds
+2026-11-06T10:07:05.8830400Z 	 Executed 25 tests, with 0 failures (0 unexpected) in 46.390 (63.260) seconds
+2026-11-06T10:08:46.3155200Z ** BUILD SUCCEEDED **

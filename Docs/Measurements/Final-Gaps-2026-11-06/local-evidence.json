@@ -1,0 +1,288 @@
+{
+  "app_code": "6642b7c57fc4d0e125adec63e5adaff6afaa031e",
+  "scope": "macOS and iOS simulator; full logs local, hashes and summary retained",
+  "files": [
+    {
+      "path": "Docs/Validation/http-boundaries-CuyohB/RESULTS.txt",
+      "bytes": 186,
+      "sha256": "8316b4bbd375f0fea2e4f3478490c0774772de6500fb0b93d05aa206977856aa",
+      "text": "PASS Core, real loopback HTTP and authentication/logout boundaries\nNOT TESTED: production endpoints, TLS, iOS locked-device Keychain, app login/logout wiring, full assignment acceptance\n"
+    },
+    {
+      "path": "Docs/Validation/http-boundaries-CuyohB/auth-server.log",
+      "bytes": 2724,
+      "sha256": "70b9331477ff2899c36337484fbda370b3d19fb57ddadc6cc7ee2e366eec2f5a"
+    },
+    {
+      "path": "Docs/Validation/http-boundaries-CuyohB/auth-url.txt",
+      "bytes": 22,
+      "sha256": "68f6297f161f06734347ab2bbc9bd8a573abc5ea1c6fc55c6347b3e27c3ac93b"
+    },
+    {
+      "path": "Docs/Validation/http-boundaries-CuyohB/core.log",
+      "bytes": 53861,
+      "sha256": "3f46dc35ce227e24d919a57ec0f2471c036c9f0df18c13816f45018d07c93877"
+    },
+    {
+      "path": "Docs/Validation/http-boundaries-CuyohB/environment.txt",
+      "bytes": 1699,
+      "sha256": "642dec8427243003329fc5c52b53abc44aeb6dd0acb121941a98916b3e1cf8d4",
+      "text": "de1542f6742cc07fc0e949283c6a99f588f2c23c\n M .github/workflows/validation.yml\n M Packages/StreamLabCore/Package.swift\n M Packages/StreamLabCore/Sources/StreamLabPresentation/Sync/DurableMutationStore.swift\n M Packages/StreamLabCore/Tests/StreamLabPresentationTests/DurableMutationTests.swift\n M Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Downloads/OfflineDownloadStore.swift\n M Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Home/HomeView.swift\n M Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Home/InlineHomeView.swift\n M Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Playback/PlaybackView.swift\n M README.md\n M Tests/StreamLabUITests/StreamLabUITests.swift\n M project.yml\n M scripts/validate-project.py\n?? Docs/ADR/0030-sqlite-local-projection-outbox.md\n?? Docs/FINAL_DEVICE_QA.md\n?? Docs/History/\n?? Docs/States/\n?? Packages/StreamLabCore/Sources/CSQLite/\n?? Packages/StreamLabCore/Sources/StreamLabPresentation/Sync/SQLiteMutationDatabase.swift\n?? Packages/StreamLabCore/Tests/StreamLabPresentationTests/SQLiteMigrationTests.swift\n?? Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Downloads/DownloadEnergyTrace.swift\n?? Packages/StreamLabUI/Sources/StreamLabDesignSystem/Theme/HomeScrollMeasurementProbe.swift\n?? StreamLab.xcodeproj/xcshareddata/xcschemes/StreamLab-C4-Download-Energy.xcscheme\n?? StreamLab.xcodeproj/xcshareddata/xcschemes/StreamLab-C4-Scroll-C.xcscheme\n?? StreamLab.xcodeproj/xcshareddata/xcschemes/StreamLab-C4-Scroll-PV.xcscheme\n?? scripts/check-submission-app-mac.sh\nXcode 27.0\nBuild version 27A266a\nswift-driver version: 1.168.6 Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx26.0\nPython 3.9.6\n"
+    },
+    {
+      "path": "Docs/Validation/http-boundaries-CuyohB/loader-server.log",
+      "bytes": 258,
+      "sha256": "6ac8eb1fcc43a2fc88f823cbbf2039bccdd457bab6b94434483465215c379ed7"
+    },
+    {
+      "path": "Docs/Validation/http-boundaries-CuyohB/loader-url.txt",
+      "bytes": 22,
+      "sha256": "732d713ea2e9d25e73b470da1c7c79e6cbc3528cf1cef49c4db8199335a7c990"
+    },
+    {
+      "path": "Docs/Validation/http-boundaries-CuyohB/mutation-server.log",
+      "bytes": 1629,
+      "sha256": "bd1905f38d83b254921cccd7895fc6422493980ac8dec6db76c62ac1639be0e1"
+    },
+    {
+      "path": "Docs/Validation/http-boundaries-CuyohB/mutation-url.txt",
+      "bytes": 22,
+      "sha256": "250421372f9c2e57469c7dee3f0bcfdda2bc080ca433a24d913ebfb010054eaa"
+    },
+    {
+      "path": "Docs/Validation/mutation-process-UEQ6dM/RESULTS.txt",
+      "bytes": 141,
+      "sha256": "7b3f6cb387c8586bd967b283e787216169613be2c173d0de8050f35a3f81986c",
+      "text": "PASS macOS SIGKILL durable mutation recovery\nNOT TESTED: iOS jetsam/file protection; power loss; kill during atomic write; production server\n"
+    },
+    {
+      "path": "Docs/Validation/mutation-process-UEQ6dM/build.log",
+      "bytes": 497,
+      "sha256": "7940393e658d69f3fa0bbd3d7b317e448f8448f690360be9a5f9d5428232fec6"
+    },
+    {
+      "path": "Docs/Validation/mutation-process-UEQ6dM/environment.txt",
+      "bytes": 167,
+      "sha256": "23ae71ff0da6a7ba499d3724d8f56eab11772a5b3aba0d03efcbbc4add8f9dee",
+      "text": "de1542f6742cc07fc0e949283c6a99f588f2c23c\nswift-driver version: 1.168.6 Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx26.0\n"
+    },
+    {
+      "path": "Docs/Validation/mutation-process-UEQ6dM/process.log",
+      "bytes": 284,
+      "sha256": "2fdd3e0b7202fc08783cbc6029c41e0b2f7ecebf5d0462cb94744f8e34065665"
+    },
+    {
+      "path": "Docs/Validation/submission-app-cTbBNX/RESULTS.txt",
+      "bytes": 249,
+      "sha256": "409673c708630827bef2ad818c03e479bf2159b9c8a84963a3dbf51e7995e84e",
+      "text": "PASS smoke tests=2\nCLEAN_SIMULATOR_BUILD_LAUNCH_SECONDS=154\nPASS boundaries tests=5\nPASS measurement tests=2\nSCOPE: clean simulator build/launch, SQLite-backed UI persistence, F04 and structural accessibility. Physical VoiceOver/power are separate.\n"
+    },
+    {
+      "path": "Docs/Validation/submission-app-cTbBNX/boundaries.log",
+      "bytes": 149329,
+      "sha256": "e978da4d27e7a5de3a8d7a8e9e7f267f12d5cc5c0b6b9a89078f7fe548a103b5"
+    },
+    {
+      "path": "Docs/Validation/submission-app-cTbBNX/environment.txt",
+      "bytes": 1608,
+      "sha256": "251e4d9aa8ee00021025f5a17969befbc08e062b0d140b933ef2d859d0732840",
+      "text": "de1542f6742cc07fc0e949283c6a99f588f2c23c\n M .github/workflows/validation.yml\n M Packages/StreamLabCore/Package.swift\n M Packages/StreamLabCore/Sources/StreamLabPresentation/Sync/DurableMutationStore.swift\n M Packages/StreamLabCore/Tests/StreamLabPresentationTests/DurableMutationTests.swift\n M Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Downloads/OfflineDownloadStore.swift\n M Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Home/HomeView.swift\n M Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Home/InlineHomeView.swift\n M Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Playback/PlaybackView.swift\n M README.md\n M Tests/StreamLabUITests/StreamLabUITests.swift\n M project.yml\n M scripts/validate-project.py\n?? Docs/ADR/0030-sqlite-local-projection-outbox.md\n?? Docs/FINAL_DEVICE_QA.md\n?? Docs/History/\n?? Docs/States/\n?? Packages/StreamLabCore/Sources/CSQLite/\n?? Packages/StreamLabCore/Sources/StreamLabPresentation/Sync/SQLiteMutationDatabase.swift\n?? Packages/StreamLabCore/Tests/StreamLabPresentationTests/SQLiteMigrationTests.swift\n?? Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Downloads/DownloadEnergyTrace.swift\n?? Packages/StreamLabUI/Sources/StreamLabDesignSystem/Theme/HomeScrollMeasurementProbe.swift\n?? StreamLab.xcodeproj/xcshareddata/xcschemes/StreamLab-C4-Download-Energy.xcscheme\n?? StreamLab.xcodeproj/xcshareddata/xcschemes/StreamLab-C4-Scroll-C.xcscheme\n?? StreamLab.xcodeproj/xcshareddata/xcschemes/StreamLab-C4-Scroll-PV.xcscheme\n?? scripts/check-submission-app-mac.sh\nXcode 27.0\nBuild version 27A266a\nSimulator: 98C1D6EE-F314-40B7-8AAB-9C72AC77D3F2\n"
+    },
+    {
+      "path": "Docs/Validation/submission-app-cTbBNX/measurement.log",
+      "bytes": 20019,
+      "sha256": "fcd0203390f50a44b3abb319bb3c1a81b63b490684294d537c275f4b33c8e84e"
+    },
+    {
+      "path": "Docs/Validation/submission-app-cTbBNX/smoke.log",
+      "bytes": 107400,
+      "sha256": "f51384b2e77f0fae4ddeb4bac57539b7d4e7ed8229ec6a4dc972218d0aafd23f"
+    },
+    {
+      "path": "Docs/Validation/download-combined-OmIQzN/RESULTS.txt",
+      "bytes": 270,
+      "sha256": "4a342a5d8bf8e871d912cf881a62bd5466886768ebb65de6fdc5878ee4d3e48e",
+      "text": "PASS F06 native failure/disk/pin recovery, F09 license boundary and normal downloaded playback regression\nINJECTED: capacity=0, one native task cancellation, cached expired entitlement and unavailable renewal. NOT TESTED: physical ENOSPC, airplane mode, production DRM.\n"
+    },
+    {
+      "path": "Docs/Validation/download-combined-OmIQzN/environment.txt",
+      "bytes": 230,
+      "sha256": "e68108cce173c1f9a912a09ca748cf1ada0f086d5c99e50cb3ac832de6683673",
+      "text": "6642b7c57fc4d0e125adec63e5adaff6afaa031e\n M Docs/Measurements/C4-2026-10-31/REPORT.md\nXcode 27.0\nBuild version 27A266a\nSimulator: 1A4E7BD9-EAB3-4FB7-B78C-47069F9795CA\nBuild directory: /private/tmp/streamlab-final-sdk-app-20261106\n"
+    },
+    {
+      "path": "Docs/Validation/download-combined-OmIQzN/ui-tests.log",
+      "bytes": 174539,
+      "sha256": "0c2162e5908e0e68f36212aa6ecef608081d82132684710da170bc4033d8cc44"
+    },
+    {
+      "path": "Docs/Validation/download-combined-IRqmqG/RESULTS.txt",
+      "bytes": 270,
+      "sha256": "4a342a5d8bf8e871d912cf881a62bd5466886768ebb65de6fdc5878ee4d3e48e",
+      "text": "PASS F06 native failure/disk/pin recovery, F09 license boundary and normal downloaded playback regression\nINJECTED: capacity=0, one native task cancellation, cached expired entitlement and unavailable renewal. NOT TESTED: physical ENOSPC, airplane mode, production DRM.\n"
+    },
+    {
+      "path": "Docs/Validation/download-combined-IRqmqG/environment.txt",
+      "bytes": 718,
+      "sha256": "4b47e5f2b0ef720cb4d4a46eb914e8e9abc16740d481b7b0264f008623e9badc",
+      "text": "6642b7c57fc4d0e125adec63e5adaff6afaa031e\n M .github/workflows/validation.yml\n M Docs/ARCHITECTURE_CURRENT.md\n M Docs/Architecture/build_pdf.py\n M Docs/Architecture/streamlab-architecture-ko.pdf\n M Docs/CI_VALIDATION.md\n M Docs/Measurements/C4-2026-10-31/REPORT.md\n M Docs/SUBMISSION_CHECKLIST.md\n M Docs/SUBMISSION_RECORD.md\n M README.md\n M Tests/StreamLabUITests/StreamLabUITests.swift\n?? Docs/Measurements/Final-Gaps-2026-11-06/ci-excerpts.txt\n?? Docs/Measurements/Final-Gaps-2026-11-06/first-ci-failure.json\n?? Docs/Measurements/Final-Gaps-2026-11-06/local-evidence.json\nXcode 27.0\nBuild version 27A266a\nSimulator: 37A4DBC4-6A25-4B96-AA42-1410F0058616\nBuild directory: /private/tmp/streamlab-final-sdk-app-20261106\n"
+    },
+    {
+      "path": "Docs/Validation/download-combined-IRqmqG/ui-tests.log",
+      "bytes": 174899,
+      "sha256": "83454b960e51affce07c2bf9e028537498ac4da0dd1bd746b4f746ce7fe3c6fe"
+    },
+    {
+      "path": "Docs/Validation/observation-OSlONs/RESULTS.txt",
+      "bytes": 57,
+      "sha256": "bc2d9fdd13e1e51c9bd301014a26e670f11059c6fe314523ca3c03ede44406f5",
+      "text": "PASS real HLS regression and paused seek smoke (2 tests)\n"
+    },
+    {
+      "path": "Docs/Validation/observation-OSlONs/environment.txt",
+      "bytes": 804,
+      "sha256": "75ea70430f3c1701ca326c0f3c77138807831f565c7d2fa7fd4afe290b427467",
+      "text": "870f7016678ae5d884b561adb3e987b62034aba3\n M .github/workflows/validation.yml\nM  Docs/ARCHITECTURE_CURRENT.md\n M Docs/Architecture/ARCHITECTURE_DIAGRAMS_2026-11-06.md\n M Docs/Architecture/build_pdf.py\n M Docs/Architecture/streamlab-architecture-ko.pdf\n M Docs/CI_VALIDATION.md\n M Docs/FINAL_DEVICE_QA.md\n M Docs/Measurements/C4-2026-10-31/REPORT.md\n M Docs/SUBMISSION_CHECKLIST.md\n M Docs/SUBMISSION_RECORD.md\nM  README.md\n M Tests/StreamLabUITests/StreamLabUITests.swift\n?? Docs/Measurements/Final-Gaps-2026-11-06/ci-excerpts.txt\n?? Docs/Measurements/Final-Gaps-2026-11-06/first-ci-excerpts.txt\n?? Docs/Measurements/Final-Gaps-2026-11-06/first-ci-failure.json\n?? Docs/Measurements/Final-Gaps-2026-11-06/local-evidence.json\nXcode 27.0\nBuild version 27A266a\nSimulator: 50DA0108-2C50-425C-A9EE-D134E5B01B6A\n"
+    },
+    {
+      "path": "Docs/Validation/observation-OSlONs/ui-tests.log",
+      "bytes": 103221,
+      "sha256": "4f5431cde5e9ee7ee88fee5629f160b2e111fdd257ad812a5aaa0f34d9cc1dbb"
+    },
+    {
+      "path": "Docs/Validation/rotation-m6EEkz/RESULTS.txt",
+      "bytes": 72,
+      "sha256": "8f838955ca0d6f82f838c2af31d2333e22b842e3d35bab033086ca81bd229d0e",
+      "text": "PASS F09 rotation/retry/close, real HLS and paused seek smoke (3 tests)\n"
+    },
+    {
+      "path": "Docs/Validation/rotation-m6EEkz/ui-tests.log",
+      "bytes": 204333,
+      "sha256": "ef38102bc65d3b1f44ef8b0cb0f37934afd93ffc0e61e5dcb1512087c9cd3301"
+    },
+    {
+      "path": "Docs/Validation/rotation-m6EEkz/environment.txt",
+      "bytes": 1009,
+      "sha256": "0cd06c7de2e465fcc822da0f7fe84d27728d1bb5a9c9ff50130e239674787f79",
+      "text": "7a5221f69ddeec744583e42aa6b67e29442db7f5\nM  Docs/ARCHITECTURE_CURRENT.md\n M Docs/Architecture/ARCHITECTURE_DIAGRAMS_2026-11-06.md\n M Docs/Architecture/build_pdf.py\n M Docs/Architecture/streamlab-architecture-ko.pdf\n M Docs/CI_VALIDATION.md\n M Docs/FINAL_DEVICE_QA.md\n M Docs/Measurements/C4-2026-10-31/REPORT.md\n M Docs/SUBMISSION_CHECKLIST.md\n M Docs/SUBMISSION_RECORD.md\n M Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Playback/PlaybackOrientation.swift\nM  README.md\n?? Docs/Measurements/Final-Gaps-2026-11-06/ci-excerpts.txt\n?? Docs/Measurements/Final-Gaps-2026-11-06/first-ci-excerpts.txt\n?? Docs/Measurements/Final-Gaps-2026-11-06/first-ci-failure.json\n?? Docs/Measurements/Final-Gaps-2026-11-06/local-evidence.json\n?? Docs/Measurements/Final-Gaps-2026-11-06/second-ci-failure.json\n?? Docs/Measurements/Final-Gaps-2026-11-06/third-ci-diagnostics.txt\n?? Docs/Measurements/Final-Gaps-2026-11-06/third-ci-failure.json\nXcode 27.0\nBuild version 27A266a\nSimulator: C021EB8B-3838-4D91-9A2E-DD75DAAEC99A\n"
+    },
+    {
+      "path": "Docs/Validation/extended-smoke-D6L2aG/environment.txt",
+      "bytes": 1181,
+      "sha256": "bbdc0e51f95f3ac71aa114e85328c71353b4c65227f13113e69a6c386692a51d",
+      "text": "526c2aafd67a8d783ddfd254e771ee67fc3a98db\nMM Docs/ARCHITECTURE_CURRENT.md\n M Docs/Architecture/ARCHITECTURE_DIAGRAMS_2026-11-06.md\n M Docs/Architecture/build_pdf.py\n M Docs/Architecture/streamlab-architecture-ko.pdf\n M Docs/CI_VALIDATION.md\n M Docs/FINAL_DEVICE_QA.md\n M Docs/Measurements/C4-2026-10-31/REPORT.md\n M Docs/SUBMISSION_CHECKLIST.md\n M Docs/SUBMISSION_RECORD.md\n M Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Playback/PlaybackModel.swift\nM  README.md\n M Tests/StreamLabUITests/StreamLabUITests.swift\n?? Docs/Measurements/Final-Gaps-2026-11-06/ci-excerpts.txt\n?? Docs/Measurements/Final-Gaps-2026-11-06/first-ci-excerpts.txt\n?? Docs/Measurements/Final-Gaps-2026-11-06/first-ci-failure.json\n?? Docs/Measurements/Final-Gaps-2026-11-06/local-evidence.json\n?? Docs/Measurements/Final-Gaps-2026-11-06/second-ci-failure.json\n?? Docs/Measurements/Final-Gaps-2026-11-06/third-ci-diagnostics.txt\n?? Docs/Measurements/Final-Gaps-2026-11-06/third-ci-failure.json\n?? Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Resources/playback-smoke-600.mp4\n?? scripts/generate-ui-smoke-fixture.sh\nXcode 27.0\nBuild version 27A266a\nSimulator: 2E2F026E-B69E-4CA0-BA19-11B2463B5E6B\n"
+    },
+    {
+      "path": "Docs/Validation/extended-smoke-D6L2aG/ui-tests.log",
+      "bytes": 147432,
+      "sha256": "7c8718f444d49337d40c32223699b9708bf1baef8b813e6f17833c08448ad442"
+    },
+    {
+      "path": "Docs/Validation/extended-smoke-D6L2aG/RESULTS.txt",
+      "bytes": 66,
+      "sha256": "f088d32c5574a1855fc797a3ff0e4d738fe45e602b276d458e2df05f7fc69f16",
+      "text": "PASS extended demo smoke and accessibility control path (2 tests)\n"
+    },
+    {
+      "path": "Docs/Validation/extended-subtitles-cW40k4/environment.txt",
+      "bytes": 1316,
+      "sha256": "a4d0916cb32b17b3524d98134c9bb207d90f7b4fd99f59ea9ad0e765bcf081b1",
+      "text": "526c2aafd67a8d783ddfd254e771ee67fc3a98db\nMM Docs/ARCHITECTURE_CURRENT.md\n M Docs/Architecture/ARCHITECTURE_DIAGRAMS_2026-11-06.md\n M Docs/Architecture/build_pdf.py\n M Docs/Architecture/streamlab-architecture-ko.pdf\n M Docs/CI_VALIDATION.md\n M Docs/FINAL_DEVICE_QA.md\n M Docs/Measurements/C4-2026-10-31/REPORT.md\n M Docs/SUBMISSION_CHECKLIST.md\n M Docs/SUBMISSION_RECORD.md\n M Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Playback/PlaybackModel.swift\nMM README.md\n M Tests/StreamLabUITests/StreamLabUITests.swift\n?? Docs/Measurements/Final-Gaps-2026-11-06/ci-excerpts.txt\n?? Docs/Measurements/Final-Gaps-2026-11-06/first-ci-excerpts.txt\n?? Docs/Measurements/Final-Gaps-2026-11-06/first-ci-failure.json\n?? Docs/Measurements/Final-Gaps-2026-11-06/fourth-ci-diagnostics.txt\n?? Docs/Measurements/Final-Gaps-2026-11-06/fourth-ci-failure.json\n?? Docs/Measurements/Final-Gaps-2026-11-06/local-evidence.json\n?? Docs/Measurements/Final-Gaps-2026-11-06/second-ci-failure.json\n?? Docs/Measurements/Final-Gaps-2026-11-06/third-ci-diagnostics.txt\n?? Docs/Measurements/Final-Gaps-2026-11-06/third-ci-failure.json\n?? Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Resources/playback-smoke-600.mp4\n?? scripts/generate-ui-smoke-fixture.sh\nXcode 27.0\nBuild version 27A266a\nSimulator: 327BD441-84E3-49F8-A47C-4854F07E0090\n"
+    },
+    {
+      "path": "Docs/Validation/extended-subtitles-cW40k4/ui-tests.log",
+      "bytes": 91777,
+      "sha256": "8dda6b01dfc746ab98ab131dc121cc7e1927382bdbc1b52acbd280145b1e1d63"
+    },
+    {
+      "path": "Docs/Validation/extended-subtitles-cW40k4/RESULTS.txt",
+      "bytes": 68,
+      "sha256": "8f671d127d9caeb2731f307f18d9cc6ffe5d6bea570151e9bbc4ba4e0f532980",
+      "text": "PASS extended demo subtitle selection seek and restoration (1 test)\n"
+    }
+  ],
+  "commit_note": "Core와 앱 9개는 de1542f 위 미커밋 변경으로 실행한 뒤 6642b7c에 확정했다. 환경 파일의 원본 HEAD/dirty 목록을 그대로 보존한다. 다운로드 복합 3개와 원격 CI는 6642b7c에서 실행했다.",
+  "final_native_rerun": {
+    "directory": "Docs/Validation/download-combined-IRqmqG",
+    "app_code": "6642b7c",
+    "test_change_later_committed_as": "7ae2778",
+    "result": "PASS 3 tests, 0 failures",
+    "seconds": {
+      "F06": 149.698,
+      "F09": 112.326,
+      "normal_download": 103.684
+    },
+    "context": "After runtime network loss in oQvxoW; new owned simulator after connectivity recovered. Both outcomes retained."
+  },
+  "observation_check": {
+    "directory": "Docs/Validation/observation-OSlONs",
+    "test_commit": "7a5221f",
+    "result": "PASS 2 tests, 0 failures",
+    "native_seconds": 120.823,
+    "smoke_seconds": 41.857,
+    "scope": "New owned simulator. Actual HLS completion, relaunch, playback and deletion; actual paused seek completion and displayed time."
+  },
+  "rotation_check": {
+    "app_commit": "526c2aafd67a8d783ddfd254e771ee67fc3a98db",
+    "scope": "Presentation timing change verified before commit; teardown-only test cleanup added after this run compiled. Remote suite validates the committed harness.",
+    "results": [
+      "Test Case '-[StreamLabUITests.StreamLabUITests testF09DownloadedHLSExpiredOfflineGrantBlocksRetryAndCloses]' passed (81.595 seconds).",
+      "Test Case '-[StreamLabUITests.StreamLabUITests testRealHLSDownloadRelaunchPlaybackAndDelete]' passed (100.459 seconds).",
+      "Test Case '-[StreamLabUITests.StreamLabUITests testSwiftUIScreensAndPlayback]' passed (40.925 seconds)."
+    ]
+  },
+  "extended_smoke_check": {
+    "basis_commit": "526c2aafd67a8d783ddfd254e771ee67fc3a98db",
+    "working_changes": "Debug opt-in 600-second own demo; smoke observes paused origin plus ten seconds; accessibility uses same fixture",
+    "result": "2 tests passed; source changes subsequently committed with the extended subtitle/profile cases",
+    "final_commit": "9a4d39539bf7afaad759bacf8966d650b0477970"
+  },
+  "extended_boundary_initial_failure": {
+    "result": "F04 passed (73.500s); subtitle check failed after requesting 5/600 slider position: actual seek was 00:00:10, expected 4–6 seconds.",
+    "fix": "Superseded: a zero-position request also produced no editing event. The final test first observes the middle, then drags to the initial caption range. See the second failure.",
+    "files": [
+      {
+        "path": "Docs/Validation/extended-boundaries-pajhWj/ui-tests.log",
+        "sha256": "0530c30efde106c0c2733cd5cb9ef3a10da55ae5a192acec74b6f5a82b3524d9"
+      },
+      {
+        "path": "Docs/Validation/extended-boundaries-pajhWj/RESULTS.txt",
+        "sha256": "03c662d1a87d4db8c42d92caeae86abdbef4d564a47c0f58e473165dc7d40da1"
+      },
+      {
+        "path": "Docs/Validation/extended-boundaries-pajhWj/environment.txt",
+        "sha256": "52d19ce89a707b4a04fdb51dcd4cab0e6bde60d779b459cf1d455ac6f584feeb"
+      }
+    ]
+  },
+  "extended_boundary_second_failure": {
+    "result": "F04 passed 64.899s; subtitle adjustment to zero retained the paused 10-second position. App diagnostics show no scrub_end/seek_started after pause.",
+    "scope": "XCTest action did not produce a player seek; not a seek completion failure.",
+    "fix": "First move to and observe the middle, then drag back and verify the first caption time range, plus forward/backward caption changes.",
+    "files": [
+      {
+        "path": "Docs/Validation/extended-boundaries-aO9vAc/ui-tests.log",
+        "sha256": "17d79ae53f9b0569aad4b0cd2fd4e31af72fdeb5ba21a139e8bf363746c22ead"
+      },
+      {
+        "path": "Docs/Validation/extended-boundaries-aO9vAc/RESULTS.txt",
+        "sha256": "03c662d1a87d4db8c42d92caeae86abdbef4d564a47c0f58e473165dc7d40da1"
+      },
+      {
+        "path": "Docs/Validation/extended-boundaries-aO9vAc/environment.txt",
+        "sha256": "62b7f6534be4e591435ca3da54d36cf1563d3039879be114f07d6d56a9d9059b"
+      },
+      {
+        "path": "Docs/Measurements/Final-Gaps-2026-11-06/extended-subtitle-diagnostics.txt",
+        "sha256": "7dba7e6cecffb9e3194db72a7208c50d5f85e6709f9b71d4bb6cae23e9133c63"
+      }
+    ]
+  },
+  "extended_fixture_final": {
+    "commit": "9a4d39539bf7afaad759bacf8966d650b0477970",
+    "smoke_and_accessibility": "extended-smoke-D6L2aG: 2 passed",
+    "F04": "extended-boundaries-aO9vAc: F04 passed 64.899s; subtitle failed and is preserved separately",
+    "subtitle_final": "extended-subtitles-cW40k4: passed 102.277s after real middle-to-start drag",
+    "scope": "Incremental local checks before commit; remote workflow runs the complete nine UI checks at this commit."
+  }
+}

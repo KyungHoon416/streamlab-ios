@@ -1,12 +1,12 @@
 {
   "date": "2026-11-06",
-  "basis_commit": "b10bb7e0ce12f55d58e9b8c621b74a3216be0a25",
-  "app_commit": "04bb9854351240b66cb5040ec648de14c02d5111",
+  "basis_commit": "9a4d39539bf7afaad759bacf8966d650b0477970",
+  "app_commit": "9a4d39539bf7afaad759bacf8966d650b0477970",
   "source_name": "Netflix_iOS_과제.docx",
   "source_sha256": "5f2227f658aa52f16a2429c68c4ee3b729fc8e49c17883441cb455622d058250",
   "method": "79 equally weighted verification units; partial or unverified = remaining; not a grade, effort estimate or production-readiness percentage",
-  "complete": 71,
-  "remaining": 8,
+  "complete": 76,
+  "remaining": 3,
   "items": [
     {
       "group": "공통·핵심 테스트",
@@ -220,12 +220,13 @@
       "group": "B 오프라인 정합성",
       "id": "B1-1",
       "requirement": "찜·이어보기·최근 검색을 로컬 DB에 먼저 기록",
-      "status": "remaining",
+      "status": "complete",
       "evidence": [
-        "Packages/StreamLabCore/Sources/StreamLabPresentation/Sync/DurableMutationStore.swift",
-        "Docs/ARCHITECTURE_CURRENT.md"
+        "Docs/ADR/0030-sqlite-local-projection-outbox.md",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/SQLiteMigrationTests.swift",
+        "Docs/Measurements/Final-Gaps-2026-11-06/REPORT.md"
       ],
-      "note": "로컬 우선 저장과 영속 큐는 구현·검증됨. 현재 atomic JSON journal이며 SwiftData/SQLite 같은 DB 엔진은 미도입. 원문의 로컬 DB 요구를 이 대안으로 인정할지 확인하거나 DB 계층으로 이전해야 함."
+      "note": "SQLite projection/outbox/metadata 원자 커밋과 기존 JSON 이전. 값·ID·FIFO 보존, 롤백, 손상/미지원 schema 거부 및 SIGKILL 복구 자동 검증."
     },
     {
       "group": "B 오프라인 정합성",
@@ -520,9 +521,10 @@
       "status": "remaining",
       "evidence": [
         "Docs/PHASE1_MANUAL_QA.md",
-        "Docs/ASSIGNMENT_PROGRESS.md"
+        "Docs/ASSIGNMENT_PROGRESS.md",
+        "Docs/FINAL_DEVICE_QA.md"
       ],
-      "note": "프로필/탐색/상세와 로그인 VoiceOver 확인은 있음. 현재 재생·자막·종료까지 이어지는 전체 경로의 실기기 기록은 미확보."
+      "note": "설명·터치 영역 자동 감사 통과 및 플레이어 컨테이너 설명 수정. 실제 VoiceOver 전체 경로의 초점·음성 확인 대기."
     },
     {
       "group": "C 다운로드·보안·품질",
@@ -586,9 +588,10 @@
       "evidence": [
         "Docs/Measurements/C4-2026-10-31/power/REPORT.md",
         "Docs/Measurements/C4-2026-10-31/fileio/REPORT.md",
-        "Docs/ADR/0028-offline-hls-downloads.md"
+        "Docs/ADR/0028-offline-hls-downloads.md",
+        "Docs/FINAL_DEVICE_QA.md"
       ],
-      "note": "HLS 재생 전력과 다운로드/삭제 앱 I/O는 확보. 백그라운드 다운로드 전력 실험은 분리해 입증하지 못함. 시스템 전송 서비스 전체 I/O도 현재 기록 범위 밖임."
+      "note": "기존 I/O·HLS 재생 전력 근거 유지. 다운로드 전력 Scheme/표식 준비. 백그라운드 전송이 포함된 Power Profiler 기록 대기."
     },
     {
       "group": "C 다운로드·보안·품질",
@@ -596,9 +599,10 @@
       "requirement": "동일 조건의 전후 개선 증거",
       "status": "remaining",
       "evidence": [
-        "Docs/Measurements/C4-2026-10-31/REPORT.md"
+        "Docs/Measurements/C4-2026-10-31/REPORT.md",
+        "Docs/FINAL_DEVICE_QA.md"
       ],
-      "note": "A/B 열 상태·손동작·빌드 조건 차이. 프레임 수치는 확보했지만 스크롤 전후 개선은 미입증. 과제에 없는 고정 FPS 합격선은 만들지 않음."
+      "note": "동일 빌드 C/PV와 자동 30초 5왕복 계측 준비·UI 검증 완료. 실기기 실제 표시 프레임 전후 비교는 미확보. 개선을 주장하지 않음."
     },
     {
       "group": "D 장애 주입·재현",
@@ -716,13 +720,12 @@
       "group": "D 장애 주입·재현",
       "id": "DH-2",
       "requirement": "시나리오별 비동기 race 및 CI 자동 실행 증빙",
-      "status": "remaining",
+      "status": "complete",
       "evidence": [
         "Docs/CI_VALIDATION.md",
-        "Docs/Measurements/Combined-Failures-2026-10-31/REPORT.md",
-        "scripts/check-download-combined-mac.sh"
+        "Docs/Measurements/Final-Gaps-2026-11-06/REPORT.md"
       ],
-      "note": "각 계층의 race·로컬 자동 스크립트는 있음. F06/F09 네이티브 복합 UI를 포함한 F01~F10 전체의 원격 자동 실행 증빙은 없음. CI 실행 가능 스크립트 부재라는 뜻은 아니며, 완료 판정은 보수적으로 유보."
+      "note": "동일 커밋의 Core/HTTP/카오스·iOS 재생·앱 UI 9개·F06/F09 및 정상 HLS 다운로드 3개가 원격 CI에서 성공. 실제 OS 장애 전체를 뜻하지 않음."
     },
     {
       "group": "D 장애 주입·재현",
@@ -751,12 +754,13 @@
       "group": "제출물·사용 데이터",
       "id": "E2",
       "requirement": "README만으로 10분 내 제3자 빌드/실행/Mock/테스트",
-      "status": "remaining",
+      "status": "complete",
       "evidence": [
         "README.md",
-        "Docs/SUBMISSION_CHECKLIST.md"
+        "scripts/check-submission-app-mac.sh",
+        "Docs/Measurements/Final-Gaps-2026-11-06/REPORT.md"
       ],
-      "note": "안내와 CI 새 checkout의 무서명 빌드는 있음. 제3자의 새 Mac에서 서명·실행까지 10분 재현한 근거는 없음. README 날짜별 과거 상태도 정리 필요."
+      "note": "새 hosted runner checkout와 새 시뮬레이터에서 빌드·Mock 로그인·재생 smoke 2개 424초. Xcode/runtime 사전 설치 조건이며 전체 회귀·Xcode 설치·실기기 서명 준비는 600초 범위 밖."
     },
     {
       "group": "제출물·사용 데이터",
@@ -774,13 +778,14 @@
       "group": "제출물·사용 데이터",
       "id": "E4",
       "requirement": "Player/Download 상태도 2개, 오류·취소 경로",
-      "status": "remaining",
+      "status": "complete",
       "evidence": [
-        "Docs/ADR/0017-playback-observation-and-qoe.md",
-        "Docs/ADR/0028-offline-hls-downloads.md",
-        "Docs/ARCHITECTURE_CURRENT.md"
+        "Docs/States/PLAYER.md",
+        "Docs/States/DOWNLOAD.md",
+        "Docs/Architecture/streamlab-architecture-ko.pdf",
+        "Docs/Measurements/Final-Gaps-2026-11-06/REPORT.md"
       ],
-      "note": "상태 모델·전이 테스트·텍스트 정책은 있음. 오류/취소 경로를 포함한 Player와 Download 상태도 두 개를 독립 제출물로 정리하지 않음. 모듈 아키텍처 PDF로 대체하지 않음."
+      "note": "코드와 대조한 Player/Download Mermaid 2개 및 현재 8쪽 PDF에 대표 상태도를 추가. 오류·취소·복구·수명 경계 포함."
     },
     {
       "group": "제출물·사용 데이터",
@@ -865,14 +870,17 @@
       "group": "제출물·사용 데이터",
       "id": "DATA1",
       "requirement": "샘플 URL과 사용권 조건을 README에 명시",
-      "status": "remaining",
+      "status": "complete",
       "evidence": [
         "README.md",
-        "Docs/FIREBASE_CATALOG.md"
+        "Docs/Measurements/Final-Gaps-2026-11-06/REPORT.md"
       ],
-      "note": "공개 샘플 연결 정보는 있으나 README의 URL/사용조건 목록이 불충분함. 공개 접근 가능하다는 사실을 자유 이용 허가로 대신하지 않음. 제출에 필요한 샘플만 정리하고 개인 추가 영상은 과제 재현 의존성에서 제외."
+      "note": "README에 자체 생성 fixture, 외부 Apple HLS URL·공식 출처·이용 범위와 대체 번들 데모를 명시. 공개 URL을 재배포 허가로 표현하지 않음."
     }
   ],
-  "current_ci_commit": "923d3a689e9a7ac2f71e8bf9fc9a54bc68aee762",
-  "current_ci_run": "https://github.com/KyungHoon416/streamlab-ios/actions/runs/42190580118"
+  "current_ci_commit": "9a4d39539bf7afaad759bacf8966d650b0477970",
+  "current_ci_run": "https://github.com/KyungHoon416/streamlab-ios/actions/runs/42239749042",
+  "initial_basis_commit": "b10bb7e0ce12f55d58e9b8c621b74a3216be0a25",
+  "updated_date": "2026-11-07",
+  "baseline_checklist": "checklist-before-final-gaps.json"
 }

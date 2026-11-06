@@ -1,0 +1,51 @@
+{
+  "run_id": 42234656187,
+  "head_sha": "526c2aafd67a8d783ddfd254e771ee67fc3a98db",
+  "url": "https://github.com/KyungHoon416/streamlab-ios/actions/runs/42234656187",
+  "conclusion": "failure",
+  "successful_jobs": [
+    "core-chaos",
+    "ios-playback",
+    "ios-native-downloads"
+  ],
+  "failed_job": "ios-app-acceptance",
+  "failure": {
+    "test": "testSwiftUIScreensAndPlayback",
+    "duration_seconds": 143.849,
+    "observed": "The 30-second bundled movie reached ended while hosted XCTest UI queries stalled. The test then tapped the transport button expecting pause; the app correctly issued play at position=30 and restarted. Pause assertion failed.",
+    "evidence": "fourth-ci-diagnostics.txt",
+    "not_product_pause_failure": true
+  },
+  "passed_in_same_app_job": [
+    "testColdLaunchAndRelaunchShowProfiles 43.609s"
+  ],
+  "native_results": "PASS F06 native failure/disk/pin recovery, F09 license boundary and normal downloaded playback regression\nINJECTED: capacity=0, one native task cancellation, cached expired entitlement and unavailable renewal. NOT TESTED: physical ENOSPC, airplane mode, production DRM.\n",
+  "native_passed_cases": [
+    "Test Case '-[StreamLabUITests.StreamLabUITests testF06ConcurrentFailureDiskPressurePreservesPinnedAndRecovers]' passed (209.001 seconds).",
+    "Test Case '-[StreamLabUITests.StreamLabUITests testF09DownloadedHLSExpiredOfflineGrantBlocksRetryAndCloses]' passed (203.890 seconds).",
+    "Test Case '-[StreamLabUITests.StreamLabUITests testRealHLSDownloadRelaunchPlaybackAndDelete]' passed (153.256 seconds)."
+  ],
+  "original_file_hashes": [
+    {
+      "name": "smoke.log",
+      "bytes": 440645,
+      "sha256": "e0380d70e354d516361bbe32201db22e0c1eb5e24c39265a0799d5e1b46ec73b"
+    },
+    {
+      "name": "ui-tests.log",
+      "bytes": 525871,
+      "sha256": "f9429b716984875e2e5a88b5255cb130bfd211b11f6325c9706025907f4037fc"
+    },
+    {
+      "name": "RESULTS.txt",
+      "bytes": 270,
+      "sha256": "4a342a5d8bf8e871d912cf881a62bd5466886768ebb65de6fdc5878ee4d3e48e"
+    },
+    {
+      "name": "fourth-ci-diagnostics.txt",
+      "bytes": 728,
+      "sha256": "b9214a418ea07b7356ecc16fb7f7ed79b4264ebc5531e1484107e4a354c3949b"
+    }
+  ],
+  "followup": "Use a real 600-second extension of our own demo only for opted-in Debug UI checks. Normal and episode/end scenarios retain the 30-second source. Seek verifies a 10-second move from the observed paused position; no app playback behavior or timeout relaxation."
+}

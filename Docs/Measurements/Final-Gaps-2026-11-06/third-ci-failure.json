@@ -1,0 +1,69 @@
+{
+  "run_id": 42228526327,
+  "attempt": 1,
+  "head_sha": "7a5221f69ddeec744583e42aa6b67e29442db7f5",
+  "url": "https://github.com/KyungHoon416/streamlab-ios/actions/runs/42228526327/attempts/1",
+  "app_source_unchanged_from": "6642b7c57fc4d0e125adec63e5adaff6afaa031e",
+  "failures": [
+    {
+      "test": "testColdLaunchSelectsProfileAndShowsHome",
+      "observed": "Demo sign-in button tap event was emitted; profile did not appear within 15 seconds. Screenshot still shows sign-in, with no authentication error. No cause established.",
+      "duration_seconds": 77.151
+    },
+    {
+      "test": "testF09DownloadedHLSExpiredOfflineGrantBlocksRetryAndCloses",
+      "observed": "Stored HLS completed; expired message appeared. Landscape frame assertion timed out after 10 seconds. App stdout logs rotation declined code 101; screenshot shows accessible portrait error card. Retry and dismissal were not reached. Teardown logout failure is secondary.",
+      "duration_seconds": 132.936,
+      "app_log": "third-ci-diagnostics.txt",
+      "cause_boundary": "UIKit rejected geometry request; reason for supported-orientation mismatch is not established."
+    }
+  ],
+  "passed_in_same_attempt": [
+    "Core XCTest 31 + Swift Testing 247 / 3 x 1000 chaos seeds / SIGKILL",
+    "iOS playback 25 and Release build",
+    "testSwiftUIScreensAndPlayback 70.764s",
+    "F06 190.698s",
+    "normal HLS download/relaunch/play/delete 134.356s"
+  ],
+  "rerun_policy": "One explicit failed-job rerun of the same commit to inspect intermittency. No test auto retry, removed assertion or timeout increase. A later pass does not establish the cause of the first failure.",
+  "original_file_hashes": [
+    {
+      "name": "smoke.log",
+      "bytes": 447778,
+      "sha256": "85fb703e9c7a54ef49eccd6479b9a2956c707bddbfe5c8505f2bccd286ff08f9"
+    },
+    {
+      "name": "ui-tests.log",
+      "bytes": 524020,
+      "sha256": "a77502672deba08dd35b4a91681f973affdc2aebe09838e082a247d3ea1c4b06"
+    },
+    {
+      "name": "FD3E843E-C6EE-4C24-BD6B-5679B66DF0BE.png",
+      "bytes": 220218,
+      "sha256": "310e32f539f56af8c9b2d96c1dfb67e772d3aebd958a469ee28b056096981849"
+    }
+  ],
+  "diagnostic_sha256": "b121b4a71f2a32c23394841d6316e2caef6fd3d05059a1ca578d08f95286bbc1",
+  "attempt2_native": {
+    "F06": "PASS 198.833s",
+    "F09": "FAIL 99.868s at the same landscape assertion; app logs show geometry request denied code 101",
+    "normal_HLS": "FAIL 58.335s; native task CoreMediaErrorDomain -12884 after about 20s at progress 0. No underlying cause or endpoint status was supplied.",
+    "result": "Failed rerun retained; not treated as success.",
+    "log_sha256": "21cd08f77e94cf1a9353a83e449dd8186ea399cac94cb16c3dc8e679ce1825e2"
+  },
+  "attempt2_app": {
+    "results": "PASS smoke tests=2\nCLEAN_SIMULATOR_BUILD_LAUNCH_SECONDS=435\nPASS boundaries tests=5\nPASS measurement tests=2\nSCOPE: clean simulator build/launch, SQLite-backed UI persistence, F04 and structural accessibility. Physical VoiceOver/power are separate.\n",
+    "sha256": "0bc756bdd55afa98f6cee6a97e3c78b816716a502b76c4e2f5c27084d6ad2588",
+    "scope": "Two smoke, five boundary/a11y, two measurement UI tests all passed. 435-second cold reproduction. Native job failed in this same run."
+  },
+  "followup_fix": {
+    "app_commit": "526c2aafd67a8d783ddfd254e771ee67fc3a98db",
+    "changes": [
+      "Wait for viewDidAppear before first geometry request; ignore updates during disappearance.",
+      "Close a retained player in native test teardown before account logout."
+    ],
+    "local_evidence": "local-evidence.json#rotation_check",
+    "new_run": "https://github.com/KyungHoon416/streamlab-ios/actions/runs/42234656187",
+    "not_claimed": "Geometry timing was an identified premature-request path. It does not prove a root cause for every code 101, initial login intermittency, or CoreMedia -12884."
+  }
+}

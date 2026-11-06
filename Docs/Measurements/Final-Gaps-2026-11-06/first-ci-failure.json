@@ -1,0 +1,34 @@
+{
+  "run_id": 42199580219,
+  "app_code": "6642b7c57fc4d0e125adec63e5adaff6afaa031e",
+  "url": "https://github.com/KyungHoon416/streamlab-ios/actions/runs/42199580219",
+  "conclusion": "failure",
+  "core_chaos": "success",
+  "ios_playback": "success",
+  "app_ui_9": "success",
+  "clean_reproduction_seconds": 427,
+  "native_downloads": [
+    "Test Case '-[StreamLabUITests.StreamLabUITests testF06ConcurrentFailureDiskPressurePreservesPinnedAndRecovers]' passed (279.514 seconds).",
+    "/Users/runner/work/streamlab-ios/streamlab-ios/Tests/StreamLabUITests/StreamLabUITests.swift:366: error: -[StreamLabUITests.StreamLabUITests testF09DownloadedHLSExpiredOfflineGrantBlocksRetryAndCloses] : XCTAssertTrue failed",
+    "Test Case '-[StreamLabUITests.StreamLabUITests testF09DownloadedHLSExpiredOfflineGrantBlocksRetryAndCloses]' failed (254.206 seconds).",
+    "Test Case '-[StreamLabUITests.StreamLabUITests testRealHLSDownloadRelaunchPlaybackAndDelete]' passed (134.380 seconds)."
+  ],
+  "failure_phase": "F09 precondition: play button existence after one fixed swipe; no terminal native snapshot collected",
+  "unknown": "Original log cannot distinguish transfer delay/failure from offscreen lazy accessibility row. No product root cause claimed.",
+  "change": "Await one complete record and file, then reveal and tap row; retain 180-second bound; capture native snapshot and hierarchy on failure; split native CI job.",
+  "local_observation_followup": {
+    "run": "download-combined-oQvxoW",
+    "outcome": "failed",
+    "f06": "passed 159.435s",
+    "f09": "UI query timed out; native transfer still active",
+    "normal_download": "profile selection entered offline downloads; expected home missing",
+    "app_log_sha256": "c559f514479d0b2662b206bd764c5602565127e2ce1844b7cf3876bfd988188f",
+    "timestamps_kst": {
+      "f09_started": "2026-11-06 19:48:30.122",
+      "progress_after_10s": 0.239163,
+      "first_offline_banner": "2026-11-06 19:48:56.453",
+      "cancel_on_teardown": "2026-11-06 19:52:08.406"
+    },
+    "interpretation": "Runtime network loss observed in app banner. No production-code defect inferred. This does not identify the cause of the separate first remote failure. Rerun only after HLS endpoint returned HTTP 200."
+  }
+}

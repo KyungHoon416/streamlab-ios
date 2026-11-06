@@ -1,19 +1,30 @@
 # StreamLab 구조와 구현 기록
 
-[최신 구조 다이어그램](Architecture/ARCHITECTURE_DIAGRAMS_2026-11-06.md) · [과거 제출 PDF 스냅샷](Architecture/streamlab-architecture-ko.pdf) · [제출 기록](SUBMISSION_RECORD.md) · [이번 보완](Measurements/Final-Gaps-2026-11-06/REPORT.md)
+[전체 Mermaid 다이어그램](Architecture/ARCHITECTURE_DIAGRAMS_2026-11-06.md) · [현재 아키텍처 PDF · 8쪽](Architecture/streamlab-architecture-ko.pdf) · [기존 제출 기록](SUBMISSION_RECORD.md) · [이번 보완](Measurements/Final-Gaps-2026-11-06/REPORT.md)
 
-이 문서는 2026-11-06 SQLite 보완을 반영한다. 현재 구조의 시각화는 상단 최신 다이어그램을 참조한다. 기존 PDF·제출 태그는 당시 스냅샷이며 이후 DB 변경을 포함하지 않는다.
+이 문서와 현재 PDF는 앱 코드 `9a4d395`의 SQLite·접근성·C4 계측 보완, 플레이어 표시 후 회전 요청 및 관리자 5GB 업로드 정책을 반영한다. PDF는 전체 구성·모듈·저장 트랜잭션·재생 경로·상태도·관리자 흐름을 그림으로 설명한다. 기존 6쪽 PDF는 `submission-2026-11-06` 태그와 기존 제출 ZIP에 보존되며 이번 PDF와 구분한다.
 
-## StreamLab 구조와 구현 기록
+## 구현 기준
 
-현재 코드 설명 · 2026.11.06
-기존 제출 앱 구현 04bb985 / 이후 SQLite·접근성·C4 계측 보완
+현재 코드 설명 · 2026.11.07
+현재 앱 구현 9a4d395 / 기존 제출 앱 구현 04bb985
 
 StreamLab은 공개된 영상을 보고, 기기에 저장하고, 네트워크 없이 이어보는 iOS 앱이다. Firebase 관리자에서 등록한 HLS·MP4를 앱의 홈과 검색에 연결했다. 화면은 SwiftUI로 만들고 재생, 회전, PiP와 백그라운드 전송에는 AVFoundation·UIKit을 사용했다.
 
 ### 관리자에서 저장한 작품이 앱에 도착하는 경로
 
-관리자 웹 → Firebase Auth / Firestore / Storage → iOS 앱 ↔ 기기 내부 저장
+```mermaid
+flowchart LR
+    Admin[관리자 웹] --> Auth[Firebase Auth]
+    Admin --> Firestore[Firestore 작품 정보]
+    Admin --> Storage[Storage MP4]
+    Firestore --> App[iOS 앱]
+    Storage --> Player[AVPlayer]
+    HLS[외부 HLS 제공자] --> Player
+    App --> Player
+    App <--> SQLite[SQLite 진도·찜·검색]
+    App <--> Files[저장 영상과 다운로드 journal]
+```
 
 그림 1. 배포된 서비스와 기기 내부의 책임 경계. 화살표는 데이터 흐름이며 Swift 모듈의 import 관계는 아니다.
 
@@ -123,11 +134,11 @@ HLS는 AVAssetDownloadURLSession으로 .movpkg를 저장하고 MP4는 URLSession
 
 ## 검증 결과를 읽는 범위
 
-제출 앱 코드는 04bb985이고 뒤의 4e3e0f9는 실기기 확인을 적은 문서 커밋이다. 이번 제출 정리는 앱 코드를 바꾸지 않았다. 과거 성능 측정과 최신 Firebase 촬영은 같은 빌드의 실험으로 합치지 않았다.
+기존 제출 앱 코드는 04bb985이고 뒤의 4e3e0f9는 실기기 확인을 적은 문서 커밋이다. 이후 6642b7c에서 SQLite·접근성·C4 계측을 보완했고 526c2aa에서 플레이어 표시 후에 회전을 요청하도록 바꿨다. 9a4d395는 Debug UI 검사용 긴 자체 데모를 추가했으며 일반 재생 경로는 같다. 과거 성능 측정, Firebase 촬영, 이후 앱 검증은 같은 빌드의 실험으로 합치지 않는다.
 
 ### 자동 검증과 실기기 확인
 
-11월 6일 원격 CI에서 Core XCTest 31개, Swift Testing 243개, 카오스 3종 각 1,000시드, TTFF 집계 테스트 6개가 통과했다. iOS 재생 회귀 25개와 서명 없는 Release 빌드도 성공했다. 실제 다운로드 UI와 실기기 장애 주입 결과는 별도 보고서에 둔다.
+9a4d395의 원격 CI에서 Core XCTest 31개, Swift Testing 247개, 카오스 3종 각 1,000시드, TTFF 집계 테스트 6개가 통과했다. iOS 재생 회귀 25개, 서명 없는 Release 빌드, 앱 UI 9개와 실제 HLS 다운로드 복합 3개도 통과했다. Core·재생·앱 UI는 1차, 네이티브 다운로드는 한 번 재실행한 2차 결과다. 새 시뮬레이터의 빌드·로그인·재생 smoke는 424초였다. 이전 실패와 최종 로그 근거는 [이번 보완 보고서](Measurements/Final-Gaps-2026-11-06/REPORT.md)에 기록했다. 실제 VoiceOver·전력·표시 프레임은 별도 실기기 검증이다.
 
 제출 영상은 3분 32초다. HLS 탐색·영어 자막, 네트워크 차단과 저장 영상 재생, 재연결 후 정상 재생, F09 만료·갱신 실패·목록 복귀를 담았다. 3초 전환 문구로 권한 만료 인수를 켠 뒤 재실행했음을 알린다.
 
@@ -148,11 +159,11 @@ Docs/CHAOS_ACCEPTANCE.md · Docs/DOWNLOADS_QA.md
 저장소: github.com/KyungHoon416/streamlab-ios
 
 ---
-PDF와 이 문서의 본문은 `python3 Docs/Architecture/build_pdf.py`로 함께 생성한다. Python reportlab과 macOS AppleGothic 글꼴이 필요하다.
+PDF만 `python3 Docs/Architecture/build_pdf.py`로 생성한다. Python reportlab과 macOS AppleGothic 글꼴이 필요하다. 이 Markdown은 생성기가 덮어쓰지 않는다. 전체 상태 전이는 [Player](States/PLAYER.md)와 [Download](States/DOWNLOAD.md)를 참조한다.
 
 ## 2026-11-06 아키텍처 다이어그램 교정 이력
 
-[소스 검증 기반 통합 다이어그램](Architecture/ARCHITECTURE_DIAGRAMS_2026-11-06.md)은 앱 코드 `6642b7c` 기준 Package.swift 의존성과 런타임 객체 소유권을 구분한다. 이 개정에서 다음을 보완했다.
+[소스 검증 기반 통합 다이어그램](Architecture/ARCHITECTURE_DIAGRAMS_2026-11-06.md)은 앱 코드 `9a4d395` 기준 Package.swift 의존성과 런타임 객체 소유권을 구분한다. 이 개정에서 다음을 보완했다.
 
 - AppRootView / CatalogSession UUID / 프로필별 Store와 PlaybackModel(화면 단위), OfflineDownloadStore.shared(프로세스 단위)의 책임을 별도 런타임 도표로 표시.
 - 로컬 SQLite 변경·ACK의 최종 반영 책임이 @MainActor Store에 있음을 명확히 하고, RetryingMutationTransport가 SQLite를 직접 소유하는 것으로 보이는 흐름을 제거.
@@ -160,4 +171,4 @@ PDF와 이 문서의 본문은 `python3 Docs/Architecture/build_pdf.py`로 함�
 - Firebase에서 제공하는 업로드 MP4와 외부 HTTPS HLS 링크를 별도 경로로 분리하고, Firebase 관리자 인증과 사용자 인증/권한 Mock을 구분.
 - AuthenticationSession actor(single-flight), Keychain, Native Download 세션 복원, 프로필 전환 취소의 동시성 경계를 추가.
 
-**검증 상태:** 이번 수정은 도표와 설명 문서만 변경했다. 과거 제출 PDF/태그, Swift 소스와 CI 근거는 변경하지 않았으며 새로운 Xcode 빌드나 실기기 계측을 수행했다고 주장하지 않는다.
+**교정 당시 범위:** `cf71a22`까지의 이 교정은 도표·설명만 변경했다. 이후 현재 8쪽 PDF를 별도로 다시 만들었으며, 기존 제출 태그의 6쪽 PDF는 그대로 보존한다. 앱·CI 보완 결과는 위의 이번 보완 보고서에서 구분한다.

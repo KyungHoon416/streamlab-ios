@@ -1,55 +1,48 @@
 # 과제 원문 기준 완료·잔여 점검 — 2026-11-06
 
-**확인 기준으로 약 90% 완료, 약 10% 보완이 남았다. 아직 원문 전체 완료로 판정하지 않는다.** 핵심 앱 동작과 제출 영상·PDF는 준비됐으며, 남은 일은 저장 계층의 요구 해석/보완, 제한된 추가 검증, 제출 문서 정리다.
+**76/79 확인 단위 완료(96.2%), 3/79 실기기 검증 대기(3.8%)다.** 최초 점검의 8개 잔여 중 로컬 DB·전체 자동 CI 근거·README 재현·상태도·샘플 사용조건 5개를 보완했다. VoiceOver·백그라운드 다운로드 전력·통제된 프레임 비교는 구현과 측정 준비를 마쳤지만 실제 결과를 받기 전에는 완료로 세지 않는다.
 
-원본 `Netflix_iOS_과제.docx`를 직접 대조했다. SHA-256은 `5f2227f658aa52f16a2429c68c4ee3b729fc8e49c17883441cb455622d058250`이다. 앱 코드는 `04bb985`와 동일한 범위, 검토 시작 저장소는 `b10bb7e`다. 이번 관리자 압축 계획 기능은 별도 확장이므로 과제 완료율에 가산하지 않는다. 제출 태그 `submission-2026-11-06`·영상·ZIP/PDF는 재작성하지 않았다.
+앱 기준은 `9a4d395`다. [원격 CI](https://github.com/KyungHoon416/streamlab-ios/actions/runs/42239749042)의 네 job이 모두 성공했다. Core·재생·앱 UI는 attempt 1, native 다운로드는 실패 후 한 번 재실행한 attempt 2의 결과다. 원본 `Netflix_iOS_과제.docx` SHA-256: `5f2227f658aa52f16a2429c68c4ee3b729fc8e49c17883441cb455622d058250`. 최초 71/79 판정은 [이전 점검표](Measurements/Assignment-Audit-2026-11-06/checklist-before-final-gaps.json)에 보존한다. 관리자 확장 기능은 과제 완료율에 가산하지 않는다.
 
 ## 계산 기준
 
-원문의 기능 항목·검증 표·제출물에서 79개 확인 단위를 만들었다. 묶여 있는 한 요구는 한 단위로 유지했다. 이미 확인된 범위는 1, 구현 일부 또는 검증 미확보는 0으로 두었다. **71 ÷ 79 = 89.9%, 남은 8 ÷ 79 = 10.1%**다. 작업 시간 비율이나 원문의 배점으로 채점한 점수가 아니다. 이 수치로 과제의 90점 이상 등급·합격·운영 준비를 주장하지 않는다. 같은 기능의 구현 요구와 필수 테스트가 각각 원문에 있어 둘 다 집계되는 경우가 있다.
-
-완료는 연결된 근거의 환경과 주입 범위에 한정한다. 실제 운영 서버·FairPlay·실제 iOS jetsam·물리 ENOSPC까지 모두 통과했다는 의미가 아니다. 원문이 허용한 서버/DRM Mock은 미구현으로 세지 않았다. SwiftData 자체는 지정 기술이 아니지만 B1의 **로컬 DB** 표현은 별도로 남겼다.
+원문의 기능·검증·제출물에서 만든 동일한 79개 단위를 유지했다. 완료는 1, 일부 구현 또는 근거 미확보는 0이다. **76 ÷ 79 = 96.2%, 3 ÷ 79 = 3.8%**이며 배점·합격 점수·작업 시간·운영 준비 비율이 아니다. 원문이 허용한 서버/DRM Mock은 미구현으로 세지 않되 실제 운영 서버·FairPlay·jetsam·물리 ENOSPC까지 확인했다고 확대하지 않는다.
 
 | 구분 | 완료 | 남음 | 완료율 | 남은 범위 |
 |---|---:|---:|---:|---|
 | 공통·핵심 테스트 | 6/6 | 0 | 100.0% | — |
 | A 홈·재생·복원 | 16/16 | 0 | 100.0% | — |
-| B 오프라인 정합성 | 16/17 | 1 | 94.1% | 로컬 DB 요구와 JSON journal의 차이 |
-| C 다운로드·보안·품질 | 15/18 | 3 | 83.3% | VoiceOver 전체 경로, 백그라운드 다운로드 에너지, 통제된 전후 비교 |
-| D 장애 주입·재현 | 12/13 | 1 | 92.3% | 전체 시나리오 원격 자동 검증 증빙 |
-| 제출물·사용 데이터 | 6/9 | 3 | 66.7% | 10분 재현 확인, 상태도 2개, 샘플 URL·사용조건 |
-| **전체** | **71/79** | **8** | **89.9%** | **잔여 10.1%** |
+| B 오프라인 정합성 | 17/17 | 0 | 100.0% | — |
+| C 다운로드·보안·품질 | 15/18 | 3 | 83.3% | VoiceOver 전체 경로, 백그라운드 다운로드 전력, 동일 조건 C/PV 비교 |
+| D 장애 주입·재현 | 13/13 | 0 | 100.0% | — |
+| 제출물·사용 데이터 | 9/9 | 0 | 100.0% | — |
+| **전체** | **76/79** | **3** | **96.2%** | **잔여 3.8%** |
 
+## 처음 남았던 8개 처리 결과
 
-## 남은 8개와 완료 조건
-
-| 항목 | 현재 상태 | 완료 조건 |
+| 항목 | 결과 | 근거 / 남은 일 |
 |---|---|---|
-| B1 로컬 DB | 저장·재실행·충돌 복구는 atomic JSON journal로 구현 | DB 엔진 도입 또는 과제 검토자가 대안 인정. 파일 저장 기능을 전부 미구현으로 보지는 않음 |
-| C3 VoiceOver | 탐색/상세·로그인 등 부분 확인 | 현재 앱에서 탐색→상세→재생→자막→중단을 VoiceOver만으로 한 번 이어서 확인하고 기록 |
-| C4 다운로드 에너지 | HLS 재생 전력과 앱 다운로드/삭제 I/O 확보 | 백그라운드 다운로드 구간·조건을 명확히 표시한 전력 실험. 기존 I/O 자료를 폐기할 필요는 없음 |
-| C4 전후 개선 | 실제 표시 간격 p50/p95 확보 | 같은 기기·네트워크·열 상태·빌드 조건·동작에서 변경 전후 비교. 개선이 없으면 그대로 보고 |
-| D 전체 CI 근거 | Core/재생 CI와 별도 네이티브 UI 스크립트 존재 | F06/F09 복합 UI를 포함한 자동 실행 경로/결과를 한곳에 연결. 현재 원격 CI에 해당 UI suite는 없음 |
-| README 재현 | 안내·CI 무서명 빌드 있음 | 과거 이력과 현재 실행법을 분리하고 새 환경에서 빌드·서명·실행/Mock 전환을 시간 기록과 함께 확인 |
-| Player/Download 상태도 | 상태 모델·테스트·텍스트 정책 있음 | 오류·취소·복구 경로를 코드와 대조한 상태도 2개 추가 |
-| 데이터 사용조건 | 공개 샘플 연결 있음 | 제출용 샘플 URL·출처·사용조건·대체 fixture를 README에 명시 |
+| B1 로컬 DB | 완료 | SQLite 트랜잭션, JSON 이전, 중간 실패 롤백·복구 자동 검증 |
+| C3 VoiceOver | 실기기 대기 | 이름 없는 플레이어 컨테이너 수정, 설명·터치 영역 자동 감사 통과. 전체 경로 음성·초점 확인 필요 |
+| C4 다운로드 전력 | 실기기 대기 | FirebaseRelease 전용 Scheme와 전송·백그라운드 표식 준비. Power Profiler 기록 필요 |
+| C4 전후 비교 | 실기기 대기 | 같은 빌드 C/PV 자동 5왕복·시간/거리 표식 준비. 실제 표시 프레임 비교 필요 |
+| D 전체 자동 CI | 완료 | Core/재생/앱 UI 9개/네이티브 HLS 3개를 동일 커밋에서 원격 실행 |
+| README 10분 재현 | 완료 | 사전 설치된 Xcode/runtime 조건에서 새 runner·시뮬레이터 빌드/Mock 로그인/재생 smoke 424초 |
+| Player/Download 상태도 | 완료 | 코드와 대조한 Mermaid 2개 및 PDF 그림 |
+| 데이터 사용조건 | 완료 | URL·출처·사용 범위·번들 대체 fixture를 README에 명시 |
 
-D 항목은 ‘CI에서 실행 가능한 코드가 없다’는 판단이 아니다. 원문이 요구하는 실행 가능성은 로컬 스크립트로 상당 부분 확보했지만, 전체 원격 성공 증빙까지 완료로 합산하지 않는 보수적 분류다. README도 이미 문서가 없다는 뜻이 아니라 제3자 재현 확인이 남았다는 뜻이다.
+[이번 구현·검증 결과](Measurements/Final-Gaps-2026-11-06/REPORT.md) · [남은 실기기 순서와 파일명](FINAL_DEVICE_QA.md).
 
 ## 이미 확보한 대표 근거
 
-- 기능: 홈·검색·프로필, HLS/MP4 재생·탐색·이어보기·자막·복구, 오프라인 다운로드·만료·고정/LRU·로그아웃 격리.
-- 메모리: 20회 재생 후 footprint 28.92→36.75 MiB. 5~20회는 36.64~36.86 MiB로 지속 증가가 보이지 않음. Allocations/retained·Leaks는 별도 근거이며 절대 누수 없음의 증명은 아님.
-- 성능: HLS 22회 p50 0.742초 / p95 1.269초. 실제 홈 표시 간격 p50 12.503ms / p95 25.005ms. 조건이 다른 기록끼리 개선 수치로 합치지 않음.
-- 장애: F01~F10별 자동 검증 범위와 F09·F10 실기기·촬영 확인. Core XCTest 31 + Swift Testing 243, 카오스 3종 각 1,000 seed, iOS 패키지 25개 및 Release 빌드의 제출 코드 CI 근거.
-- 제출: 29개 ADR, 6쪽 아키텍처 PDF, 3분 32초 영상, 제출 태그·파일 해시. 촬영 바이너리 SHA의 직접 각인은 미확보이나 별도 원문 필수 점수 항목으로 추가하지 않음.
-
-Firebase 관리자·MP4 직접 업로드·앱 공개 카탈로그 연결, 이번 Mac 압축/예상 안내는 과제 외 확장이다. 서버 자동 압축·실제 FairPlay·운영 다기기 동기화는 이 확장의 현재 완료 범위에도 포함하지 않는다.
+- 현재 자동 검증: Core XCTest 31 + Swift Testing 247, 카오스 3종 각 1,000시드, 100건 SIGKILL 2회 복구, iOS 재생 25개, 앱 UI 9개, 네이티브 HLS UI 3개 및 Release 빌드.
+- 과거 실기기: HLS 22회 p50 0.742초 / p95 1.269초. 반복 재생 footprint 28.92→36.75MiB, 5~20회 36.64~36.86MiB. 모든 빌드의 누수 부재를 뜻하지 않는다.
+- 실제 홈 표시 간격 p50 12.503ms / p95 25.005ms를 확보했다. 조건이 다른 이전 기록을 성능 개선 증명으로 합치지 않는다.
+- 현재 아키텍처 PDF는 8쪽 그림 중심 문서다. 기존 제출 태그·3분 32초 영상·ZIP은 당시 버전으로 보존하며 현재 앱 코드가 촬영에 포함됐다고 표시하지 않는다.
 
 ## 79개 확인 단위와 근거
 
-구조화 원본: [checklist.json](Measurements/Assignment-Audit-2026-11-06/checklist.json). 코드/테스트와 과거 실행 근거를 대조했다. 이번 관리자 변경 `923d3a6`의 원격 CI에서도 Core 31+243개·3종 1,000 seed·iOS 패키지 25개·Release 빌드가 통과했다. 앱 전체 UI suite를 새로 실행한 것은 아니다. [이번 CI 결과](Measurements/Admin-Compression-2026-11-06/app-ci.json).
-
+구조화 원본: [checklist.json](Measurements/Assignment-Audit-2026-11-06/checklist.json). 각 완료는 연결한 근거의 환경·주입 범위에 한정한다.
 
 ### 공통·핵심 테스트
 
@@ -87,7 +80,7 @@ Firebase 관리자·MP4 직접 업로드·앱 공개 카탈로그 연결, 이번
 
 | ID | 요구사항 | 판정 | 근거 |
 |---|---|---|---|
-| B1-1 | 찜·이어보기·최근 검색을 로컬 DB에 먼저 기록 | 보완/미확인 | [DurableMutationStore.swift](../Packages/StreamLabCore/Sources/StreamLabPresentation/Sync/DurableMutationStore.swift) · [ARCHITECTURE_CURRENT.md](ARCHITECTURE_CURRENT.md) |
+| B1-1 | 찜·이어보기·최근 검색을 로컬 DB에 먼저 기록 | 완료 | [0030-sqlite-local-projection-outbox.md](ADR/0030-sqlite-local-projection-outbox.md) · [SQLiteMigrationTests.swift](../Packages/StreamLabCore/Tests/StreamLabPresentationTests/SQLiteMigrationTests.swift) · [REPORT.md](Measurements/Final-Gaps-2026-11-06/REPORT.md) |
 | B1-2 | 강제 종료 후 영속 큐 재처리 | 완료 | [REPORT.md](Measurements/Mutation-Process-2026-11-01/REPORT.md) · [DurableMutationTests.swift](../Packages/StreamLabCore/Tests/StreamLabPresentationTests/DurableMutationTests.swift) |
 | B1-3 | idempotencyKey·sequence·revision | 완료 | [DurableMutationTests.swift](../Packages/StreamLabCore/Tests/StreamLabPresentationTests/DurableMutationTests.swift) · [MutationConflictTests.swift](../Packages/StreamLabCore/Tests/StreamLabPresentationTests/MutationConflictTests.swift) |
 | B1-4 | 계정/프로필 격리와 로그아웃 삭제 | 완료 | [AccountLocalDataTests.swift](../Packages/StreamLabCore/Tests/StreamLabPresentationTests/AccountLocalDataTests.swift) · [DurableAuthenticationLogoutTests.swift](../Packages/StreamLabCore/Tests/StreamLabPresentationTests/DurableAuthenticationLogoutTests.swift) |
@@ -119,14 +112,14 @@ Firebase 관리자·MP4 직접 업로드·앱 공개 카탈로그 연결, 이번
 | C2-2 | 프로필/로그아웃에서 재생·prefetch·다운로드 무효화 | 완료 | [DurableAuthenticationLogoutTests.swift](../Packages/StreamLabCore/Tests/StreamLabPresentationTests/DurableAuthenticationLogoutTests.swift) · [REPORT.md](Measurements/Profile-Seek-2026-11-01/REPORT.md) |
 | C2-3 | 진단 URL·계정·시청 이력 최소화/마스킹 | 완료 | [REPORT.md](Measurements/Diagnostic-Privacy-2026-10-31/REPORT.md) · [SafeDiagnosticErrorTests.swift](../Packages/StreamLabCore/Tests/StreamLabPresentationTests/SafeDiagnosticErrorTests.swift) |
 | C2-4 | DRM 키·권한·갱신 Mock, 우회 없음 | 완료 | [PlaybackEntitlementTests.swift](../Packages/StreamLabCore/Tests/StreamLabPresentationTests/PlaybackEntitlementTests.swift) · [REPORT.md](Measurements/Runtime-Entitlement-2026-11-01/REPORT.md) |
-| C3-1 | VoiceOver 탐색→상세→재생→자막→중단 전체 독립 조작 | 보완/미확인 | [PHASE1_MANUAL_QA.md](PHASE1_MANUAL_QA.md) · [ASSIGNMENT_PROGRESS.md](ASSIGNMENT_PROGRESS.md) |
+| C3-1 | VoiceOver 탐색→상세→재생→자막→중단 전체 독립 조작 | 실기기 검증 대기 | [PHASE1_MANUAL_QA.md](PHASE1_MANUAL_QA.md) · [ASSIGNMENT_PROGRESS.md](ASSIGNMENT_PROGRESS.md) · [FINAL_DEVICE_QA.md](FINAL_DEVICE_QA.md) |
 | C3-2 | Dynamic Type·고대비/다크·Reduce Motion | 완료 | [ASSIGNMENT_PROGRESS.md](ASSIGNMENT_PROGRESS.md) · [PHASE1_MANUAL_QA.md](PHASE1_MANUAL_QA.md) |
 | C3-3 | 44pt 터치·focus order·접근성 label | 완료 | [ASSIGNMENT_PROGRESS.md](ASSIGNMENT_PROGRESS.md) · [PHASE2_REPORT.md](PHASE2_REPORT.md) |
 | C4-1 | 2,000 fixture 실제 표시 프레임 p50/p95 | 완료 | [REPORT.md](Measurements/C4-2026-10-31/REPORT.md) · [display-intervals.json](Measurements/C4-2026-10-31/display-intervals.json) |
 | C4-2 | 20회 allocation·retained·메모리 추세 | 완료 | [MEMORY_EVIDENCE.md](Measurements/C4-2026-10-31/MEMORY_EVIDENCE.md) · [REPORT.md](Measurements/C4-2026-10-31/REPORT.md) |
 | C4-3 | HLS 20회 이상 TTFF p50/p95·네트워크 조건 | 완료 | [REPORT.md](Measurements/HLS-2026-10-25/REPORT.md) |
-| C4-4 | 백그라운드 다운로드 에너지/디스크와 캐시 근거 | 보완/미확인 | [REPORT.md](Measurements/C4-2026-10-31/power/REPORT.md) · [REPORT.md](Measurements/C4-2026-10-31/fileio/REPORT.md) · [0028-offline-hls-downloads.md](ADR/0028-offline-hls-downloads.md) |
-| C4-5 | 동일 조건의 전후 개선 증거 | 보완/미확인 | [REPORT.md](Measurements/C4-2026-10-31/REPORT.md) |
+| C4-4 | 백그라운드 다운로드 에너지/디스크와 캐시 근거 | 실기기 검증 대기 | [REPORT.md](Measurements/C4-2026-10-31/power/REPORT.md) · [REPORT.md](Measurements/C4-2026-10-31/fileio/REPORT.md) · [0028-offline-hls-downloads.md](ADR/0028-offline-hls-downloads.md) · [FINAL_DEVICE_QA.md](FINAL_DEVICE_QA.md) |
+| C4-5 | 동일 조건의 전후 개선 증거 | 실기기 검증 대기 | [REPORT.md](Measurements/C4-2026-10-31/REPORT.md) · [FINAL_DEVICE_QA.md](FINAL_DEVICE_QA.md) |
 
 ### D 장애 주입·재현
 
@@ -143,7 +136,7 @@ Firebase 관리자·MP4 직접 업로드·앱 공개 카탈로그 연결, 이번
 | F09 | 만료 권한/오프라인 | 완료 | [CHAOS_ACCEPTANCE.md](CHAOS_ACCEPTANCE.md) |
 | F10 | 자막·단절·종료 순열 | 완료 | [CHAOS_ACCEPTANCE.md](CHAOS_ACCEPTANCE.md) |
 | DH-1 | 고정 seed·이벤트 순서 재현·fake clock·mock transport | 완료 | [MutationChaosTests.swift](../Packages/StreamLabCore/Tests/StreamLabPresentationTests/MutationChaosTests.swift) · [RetryClockChaosTests.swift](../Packages/StreamLabCore/Tests/StreamLabPresentationTests/RetryClockChaosTests.swift) · [AssignmentChaosTests.swift](../Packages/StreamLabCore/Tests/StreamLabPresentationTests/AssignmentChaosTests.swift) |
-| DH-2 | 시나리오별 비동기 race 및 CI 자동 실행 증빙 | 보완/미확인 | [CI_VALIDATION.md](CI_VALIDATION.md) · [REPORT.md](Measurements/Combined-Failures-2026-10-31/REPORT.md) · [check-download-combined-mac.sh](../scripts/check-download-combined-mac.sh) |
+| DH-2 | 시나리오별 비동기 race 및 CI 자동 실행 증빙 | 완료 | [CI_VALIDATION.md](CI_VALIDATION.md) · [REPORT.md](Measurements/Final-Gaps-2026-11-06/REPORT.md) |
 | DH-3 | 시나리오 조건·관측 로그·최종 불변식 근거 | 완료 | [CHAOS_ACCEPTANCE.md](CHAOS_ACCEPTANCE.md) · [REPORT.md](Measurements/Combined-Failures-2026-10-31/REPORT.md) · [CI_VALIDATION.md](CI_VALIDATION.md) |
 
 ### 제출물·사용 데이터
@@ -151,12 +144,11 @@ Firebase 관리자·MP4 직접 업로드·앱 공개 카탈로그 연결, 이번
 | ID | 요구사항 | 판정 | 근거 |
 |---|---|---|---|
 | E1 | 구동 가능한 앱·비공개 API 없이 Mock 실행 | 완료 | [README.md](../README.md) · [SUBMISSION_RECORD.md](SUBMISSION_RECORD.md) |
-| E2 | README만으로 10분 내 제3자 빌드/실행/Mock/테스트 | 보완/미확인 | [README.md](../README.md) · [SUBMISSION_CHECKLIST.md](SUBMISSION_CHECKLIST.md) |
+| E2 | README만으로 10분 내 제3자 빌드/실행/Mock/테스트 | 완료 | [README.md](../README.md) · [check-submission-app-mac.sh](../scripts/check-submission-app-mac.sh) · [REPORT.md](Measurements/Final-Gaps-2026-11-06/REPORT.md) |
 | E3 | 충돌·플레이어 수명·다운로드 정책 ADR 3개 이상 | 완료 | [0021-multi-device-progress-revisions.md](ADR/0021-multi-device-progress-revisions.md) · [0007-playback-lifecycle.md](ADR/0007-playback-lifecycle.md) · [0028-offline-hls-downloads.md](ADR/0028-offline-hls-downloads.md) |
-| E4 | Player/Download 상태도 2개, 오류·취소 경로 | 보완/미확인 | [0017-playback-observation-and-qoe.md](ADR/0017-playback-observation-and-qoe.md) · [0028-offline-hls-downloads.md](ADR/0028-offline-hls-downloads.md) · [ARCHITECTURE_CURRENT.md](ARCHITECTURE_CURRENT.md) |
+| E4 | Player/Download 상태도 2개, 오류·취소 경로 | 완료 | [PLAYER.md](States/PLAYER.md) · [DOWNLOAD.md](States/DOWNLOAD.md) · [streamlab-architecture-ko.pdf](Architecture/streamlab-architecture-ko.pdf) · [REPORT.md](Measurements/Final-Gaps-2026-11-06/REPORT.md) |
 | E5 | 2,000 catalog·3profile·URL Mock·fault fixtures | 완료 | [MockCatalogRepositoryTests.swift](../Packages/StreamLabCore/Tests/StreamLabCatalogDataTests/MockCatalogRepositoryTests.swift) · [CHAOS_ACCEPTANCE.md](CHAOS_ACCEPTANCE.md) |
 | E6 | unit/integration/UI/concurrency/chaos 테스트 구분 | 완료 | [CI_VALIDATION.md](CI_VALIDATION.md) · [CHAOS_ACCEPTANCE.md](CHAOS_ACCEPTANCE.md) · [README.md](../README.md) |
 | E7 | TTFF·stall·메모리·frame time 계측 보고서 | 완료 | [REPORT.md](Measurements/C4-2026-10-31/REPORT.md) · [REPORT.md](Measurements/HLS-2026-10-25/REPORT.md) |
 | E8 | 5분 이내 영상·장애 2개 주입 | 완료 | [SUBMISSION_RECORD.md](SUBMISSION_RECORD.md) · [SUBMISSION_CHECKLIST.md](SUBMISSION_CHECKLIST.md) |
-| DATA1 | 샘플 URL과 사용권 조건을 README에 명시 | 보완/미확인 | [README.md](../README.md) · [FIREBASE_CATALOG.md](FIREBASE_CATALOG.md) |
-
+| DATA1 | 샘플 URL과 사용권 조건을 README에 명시 | 완료 | [README.md](../README.md) · [REPORT.md](Measurements/Final-Gaps-2026-11-06/REPORT.md) |

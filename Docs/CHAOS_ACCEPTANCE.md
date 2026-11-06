@@ -1,5 +1,7 @@
 # F01–F10 요구사항별 증빙과 미확인 범위
 
+2026-11-06 후속: SQLite 보완 앱 `9a4d395`에서 Core·재생·앱 UI 9개·F06/F09 및 정상 HLS UI 3개를 [원격 CI](https://github.com/KyungHoon416/streamlab-ios/actions/runs/42239749042)로 확인했다. Core·재생·앱 UI는 attempt 1, native 다운로드는 attempt 2의 결과다. [실행 결과와 해시](Measurements/Final-Gaps-2026-11-06/REPORT.md). 아래 표의 OS/네트워크/Mock 주입 한계는 그대로 유지한다.
+
 2026-10-31. PASS는 아래에 명시한 계층/주입 범위에 한정한다. 개별 테스트 통과를 모든 실기기 장애 조합 또는 과제 D 전체 완료로 합산하지 않는다.
 
 | ID | 실제 확인한 근거 | 판정 및 남은 범위 |
@@ -24,7 +26,7 @@ bash scripts/check-playback-session-lifecycle-mac.sh
 
 Core wrapper는 loopback HTTP fixture와 고유 더미 Keychain 테스트를 시작/정리하고, Core 전체 결과 및 F01/F03 완료·3종 1000 seed 표식을 요구한다. 서버 fixture는 임시 로컬 서버다. 임의 서비스나 실제 계정 토큰에 연결하지 않는다. `STREAMLAB_CHAOS_SEED=42`로 기존 세 카오스 suite의 특정 seed를 재생할 수 있으며 F01 완료 순서는 항상 5→4→3→2→1이다.
 
-CI는 위 명령을 실행하고 실패 시 로그를 artifact로 보존한다. 네이티브 다운로드 복합 검증은 `bash scripts/check-download-combined-mac.sh`로 별도 실행한다(외부 Apple HLS 접속 필요). [이번 결과](Measurements/Chaos-Mapping-2026-10-31/REPORT.md).
+CI는 위 명령을 실행하고 실패 시 로그를 artifact로 보존한다. 네이티브 다운로드 복합 검증은 `bash scripts/check-download-combined-mac.sh`로 로컬 및 `ios-native-downloads` job에서 실행한다(외부 Apple HLS 접속 필요). [이번 결과](Measurements/Chaos-Mapping-2026-10-31/REPORT.md).
 
 ## 실기기 순서 — 필요한 확인만
 

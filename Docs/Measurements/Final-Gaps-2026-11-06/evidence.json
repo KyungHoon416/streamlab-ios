@@ -1,0 +1,828 @@
+{
+  "app_code": "9a4d39539bf7afaad759bacf8966d650b0477970",
+  "sqlite_implementation_commit": "6642b7c57fc4d0e125adec63e5adaff6afaa031e",
+  "scope": "Four jobs on the same commit; simulator and macOS automatic checks. VoiceOver gestures, physical power and controlled display-frame comparison remain separate.",
+  "ci": {
+    "run_id": 42239749042,
+    "head_sha": "9a4d39539bf7afaad759bacf8966d650b0477970",
+    "url": "https://github.com/KyungHoon416/streamlab-ios/actions/runs/42239749042",
+    "conclusion": "success",
+    "run_attempt": 2,
+    "job_attempts": {
+      "core-chaos": 1,
+      "ios-playback": 1,
+      "ios-app-acceptance": 1,
+      "ios-native-downloads": 2
+    },
+    "rerun_scope": "Only ios-native-downloads reexecuted on attempt 2 after app.launch() timed out on attempt 1; other three jobs retain successful attempt 1 evidence. The original failure is preserved in fifth-ci-failure.json.",
+    "clean_reproduction_seconds": 424,
+    "jobs": [
+      {
+        "id": 127980241717,
+        "name": "ios-native-downloads",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 42239749042,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "F06 and F09 native downloads and normal offline playback",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Preserve native download evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Preserve failed download screenshots and diagnostics",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 5
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          }
+        ]
+      },
+      {
+        "id": 127980244248,
+        "name": "ios-playback",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 42239749042,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Record toolchain",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Playback, entitlement and callback regression",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Release compile without signing credentials",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Preserve validation logs",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      {
+        "id": 127980245392,
+        "name": "ios-app-acceptance",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 42239749042,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Clean simulator reproduction and UI boundaries",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Preserve app UI evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Preserve failed app screenshots and diagnostics",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 5
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          }
+        ]
+      },
+      {
+        "id": 127980246534,
+        "name": "core-chaos",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 42239749042,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Record toolchain",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Validate Xcode project and shared catalog schemes",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Core, loopback HTTP and deterministic chaos",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "TTFF report parser regression",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Preserve validation logs",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 15
+          }
+        ]
+      }
+    ],
+    "artifacts": [
+      {
+        "id": 13519065817,
+        "name": "ios-native-downloads-42239749042-2",
+        "size_in_bytes": 38795,
+        "url": "https://api.github.com/repos/KyungHoon416/streamlab-ios/actions/artifacts/13519065817",
+        "archive_download_url": "https://api.github.com/repos/KyungHoon416/streamlab-ios/actions/artifacts/13519065817/zip",
+        "expired": false,
+        "created_at": "2026-11-06T15:47:43Z",
+        "expires_at": "2026-11-20T15:47:39Z",
+        "updated_at": "2026-11-06T15:47:43Z",
+        "digest": "sha256:43dde9559beb268f25cad9549c7005a68732934f92b462755478c2bb1b676504",
+        "workflow_run": {
+          "id": 42239749042,
+          "repository_id": 1412910149,
+          "head_repository_id": 1412910149,
+          "head_branch": "main",
+          "head_sha": "9a4d39539bf7afaad759bacf8966d650b0477970"
+        }
+      },
+      {
+        "id": 13517527395,
+        "name": "ios-app-acceptance-42239749042-1",
+        "size_in_bytes": 48923,
+        "url": "https://api.github.com/repos/KyungHoon416/streamlab-ios/actions/artifacts/13517527395",
+        "archive_download_url": "https://api.github.com/repos/KyungHoon416/streamlab-ios/actions/artifacts/13517527395/zip",
+        "expired": false,
+        "created_at": "2026-11-06T15:28:42Z",
+        "expires_at": "2026-11-20T15:28:41Z",
+        "updated_at": "2026-11-06T15:28:42Z",
+        "digest": "sha256:fe3124f0a7c351b2ed9ac3df05d594d4bf8350e7cfd9cea929a7448135667c77",
+        "workflow_run": {
+          "id": 42239749042,
+          "repository_id": 1412910149,
+          "head_repository_id": 1412910149,
+          "head_branch": "main",
+          "head_sha": "9a4d39539bf7afaad759bacf8966d650b0477970"
+        }
+      },
+      {
+        "id": 13516215745,
+        "name": "ios-native-failure-xcresult-42239749042-1",
+        "size_in_bytes": 78121170,
+        "url": "https://api.github.com/repos/KyungHoon416/streamlab-ios/actions/artifacts/13516215745",
+        "archive_download_url": "https://api.github.com/repos/KyungHoon416/streamlab-ios/actions/artifacts/13516215745/zip",
+        "expired": false,
+        "created_at": "2026-11-06T15:16:56Z",
+        "expires_at": "2026-11-20T15:16:52Z",
+        "updated_at": "2026-11-06T15:16:56Z",
+        "digest": "sha256:0b1ad28418bb4cc7db24ee49daf1a5cc51a6ffe69629a5559a41c271964b1ac1",
+        "workflow_run": {
+          "id": 42239749042,
+          "repository_id": 1412910149,
+          "head_repository_id": 1412910149,
+          "head_branch": "main",
+          "head_sha": "9a4d39539bf7afaad759bacf8966d650b0477970"
+        }
+      },
+      {
+        "id": 13516035714,
+        "name": "ios-native-downloads-42239749042-1",
+        "size_in_bytes": 36046,
+        "url": "https://api.github.com/repos/KyungHoon416/streamlab-ios/actions/artifacts/13516035714",
+        "archive_download_url": "https://api.github.com/repos/KyungHoon416/streamlab-ios/actions/artifacts/13516035714/zip",
+        "expired": false,
+        "created_at": "2026-11-06T15:16:51Z",
+        "expires_at": "2026-11-20T15:16:50Z",
+        "updated_at": "2026-11-06T15:16:51Z",
+        "digest": "sha256:4bef8e665a539c497aad300da6ebc565c684b6a60540363c452d19211861e201",
+        "workflow_run": {
+          "id": 42239749042,
+          "repository_id": 1412910149,
+          "head_repository_id": 1412910149,
+          "head_branch": "main",
+          "head_sha": "9a4d39539bf7afaad759bacf8966d650b0477970"
+        }
+      },
+      {
+        "id": 13514867006,
+        "name": "ios-playback-42239749042-1",
+        "size_in_bytes": 60514,
+        "url": "https://api.github.com/repos/KyungHoon416/streamlab-ios/actions/artifacts/13514867006",
+        "archive_download_url": "https://api.github.com/repos/KyungHoon416/streamlab-ios/actions/artifacts/13514867006/zip",
+        "expired": false,
+        "created_at": "2026-11-06T15:10:13Z",
+        "expires_at": "2026-11-20T15:10:12Z",
+        "updated_at": "2026-11-06T15:10:13Z",
+        "digest": "sha256:1f34c450ffda97385af2e63198a52ddf54bdb13cd13a1448a684ad102d9773c0",
+        "workflow_run": {
+          "id": 42239749042,
+          "repository_id": 1412910149,
+          "head_repository_id": 1412910149,
+          "head_branch": "main",
+          "head_sha": "9a4d39539bf7afaad759bacf8966d650b0477970"
+        }
+      },
+      {
+        "id": 13514632141,
+        "name": "core-chaos-42239749042-1",
+        "size_in_bytes": 28553,
+        "url": "https://api.github.com/repos/KyungHoon416/streamlab-ios/actions/artifacts/13514632141",
+        "archive_download_url": "https://api.github.com/repos/KyungHoon416/streamlab-ios/actions/artifacts/13514632141/zip",
+        "expired": false,
+        "created_at": "2026-11-06T15:10:03Z",
+        "expires_at": "2026-11-20T15:10:01Z",
+        "updated_at": "2026-11-06T15:10:03Z",
+        "digest": "sha256:971b37a46c6312038e20ce4b87ea849be71a43fbc767c4a3d48dc94dce70f4fc",
+        "workflow_run": {
+          "id": 42239749042,
+          "repository_id": 1412910149,
+          "head_repository_id": 1412910149,
+          "head_branch": "main",
+          "head_sha": "9a4d39539bf7afaad759bacf8966d650b0477970"
+        }
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": "core-chaos-42239749042-1/assignment-core-0lPiMT/RESULTS.txt",
+      "bytes": 60,
+      "sha256": "d2dbcfaf86b4ecfe55c414beef9714391f8acefc9aac9756ff1d2e0c2e23962e",
+      "text": "PASS assignment Core evidence (not full F01-F10 acceptance)\n"
+    },
+    {
+      "path": "core-chaos-42239749042-1/assignment-core-0lPiMT/core.log",
+      "bytes": 58906,
+      "sha256": "7e55616ba0ed9b98a1b2ad035d6cd3146e2a08be369e26f09c6ab7f3f5212b29"
+    },
+    {
+      "path": "core-chaos-42239749042-1/assignment-core-0lPiMT/environment.txt",
+      "bytes": 73,
+      "sha256": "e3bdc6e0bd4bf5791a34af008088c8dffaac6744799b15f59d2335df26e62fb9",
+      "text": "9a4d39539bf7afaad759bacf8966d650b0477970\nXcode 26.6\nBuild version 17F113\n"
+    },
+    {
+      "path": "core-chaos-42239749042-1/assignment-core-0lPiMT/process.log",
+      "bytes": 437,
+      "sha256": "df41885aa4edaa1674fc0c4e872b18a5f30a1adf911c21e39960e15b74bbeabb"
+    },
+    {
+      "path": "core-chaos-42239749042-1/ci/environment.txt",
+      "bytes": 195,
+      "sha256": "a35e892bea60248597ebaa7bc54dc10014ef4b3f3756bc7a5b79c05e71eefb93",
+      "text": "Xcode 26.6\nBuild version 17F113\nApple Swift version 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101)\nTarget: arm64-apple-macosx26.0\nProductName:\t\tmacOS\nProductVersion:\t\t26.6.2\nBuildVersion:\t\t25G83\n"
+    },
+    {
+      "path": "core-chaos-42239749042-1/ci/ttff.log",
+      "bytes": 104,
+      "sha256": "f1da7f5d074ffe296f43dbca64f634c839c3d2a8d87de48e1f902222155e4308"
+    },
+    {
+      "path": "core-chaos-42239749042-1/http-boundaries-DQ9P2s/RESULTS.txt",
+      "bytes": 186,
+      "sha256": "8316b4bbd375f0fea2e4f3478490c0774772de6500fb0b93d05aa206977856aa",
+      "text": "PASS Core, real loopback HTTP and authentication/logout boundaries\nNOT TESTED: production endpoints, TLS, iOS locked-device Keychain, app login/logout wiring, full assignment acceptance\n"
+    },
+    {
+      "path": "core-chaos-42239749042-1/http-boundaries-DQ9P2s/auth-server.log",
+      "bytes": 2795,
+      "sha256": "70a34524b2a9fcf6e0486d57f5b313a13cf99dea8797b49737cdab4741797bc6"
+    },
+    {
+      "path": "core-chaos-42239749042-1/http-boundaries-DQ9P2s/core.log",
+      "bytes": 58587,
+      "sha256": "d31ed0d88f19f92d2696bf905046de1ef917754994e85a7546b574437f306ce3"
+    },
+    {
+      "path": "core-chaos-42239749042-1/http-boundaries-DQ9P2s/environment.txt",
+      "bytes": 239,
+      "sha256": "5108a23f02ef304177e110928d7c66e75bc6e203729c4bc9eb9392fbb088c426",
+      "text": "9a4d39539bf7afaad759bacf8966d650b0477970\n?? scripts/__pycache__/\nXcode 26.6\nBuild version 17F113\nswift-driver version: 1.148.6 Apple Swift version 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101)\nTarget: arm64-apple-macosx26.0\nPython 3.15.1\n"
+    },
+    {
+      "path": "core-chaos-42239749042-1/http-boundaries-DQ9P2s/loader-server.log",
+      "bytes": 258,
+      "sha256": "03ef4f9a1429b9c4aa2af19d57c74f97ccc4e15219804b4e13aa81fb8c876e02"
+    },
+    {
+      "path": "core-chaos-42239749042-1/http-boundaries-DQ9P2s/mutation-server.log",
+      "bytes": 1629,
+      "sha256": "07401bdb3c5d4eba51b18e88a25701049ebc017b52d95c383792e18607e55105"
+    },
+    {
+      "path": "core-chaos-42239749042-1/mutation-process-kHKTr7/RESULTS.txt",
+      "bytes": 141,
+      "sha256": "7b3f6cb387c8586bd967b283e787216169613be2c173d0de8050f35a3f81986c",
+      "text": "PASS macOS SIGKILL durable mutation recovery\nNOT TESTED: iOS jetsam/file protection; power loss; kill during atomic write; production server\n"
+    },
+    {
+      "path": "core-chaos-42239749042-1/mutation-process-kHKTr7/build.log",
+      "bytes": 2755,
+      "sha256": "14ab56e2c689edb45ea7f8705b060b20781b0c868d1282ffb0f4bf922e843465"
+    },
+    {
+      "path": "core-chaos-42239749042-1/mutation-process-kHKTr7/environment.txt",
+      "bytes": 169,
+      "sha256": "1eb3ed97f1500d9ce2f32379dd190cc7c0739ee8f160265b2d230b639baecbd1",
+      "text": "9a4d39539bf7afaad759bacf8966d650b0477970\nswift-driver version: 1.148.6 Apple Swift version 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101)\nTarget: arm64-apple-macosx26.0\n"
+    },
+    {
+      "path": "core-chaos-42239749042-1/mutation-process-kHKTr7/process.log",
+      "bytes": 284,
+      "sha256": "2fdd3e0b7202fc08783cbc6029c41e0b2f7ecebf5d0462cb94744f8e34065665"
+    },
+    {
+      "path": "ios-app-acceptance-42239749042-1/submission-app-8rW78o/RESULTS.txt",
+      "bytes": 249,
+      "sha256": "d85a1c9d45f8154c563cc859c48c866f0b24e9cd80a8a31107ebe59d38a45d90",
+      "text": "PASS smoke tests=2\nCLEAN_SIMULATOR_BUILD_LAUNCH_SECONDS=424\nPASS boundaries tests=5\nPASS measurement tests=2\nSCOPE: clean simulator build/launch, SQLite-backed UI persistence, F04 and structural accessibility. Physical VoiceOver/power are separate.\n"
+    },
+    {
+      "path": "ios-app-acceptance-42239749042-1/submission-app-8rW78o/boundaries.log",
+      "bytes": 142097,
+      "sha256": "af93a2c5c02c45e0e89a1b6ec4632d7bf4b8937ceefc382a4721354075fce6b0"
+    },
+    {
+      "path": "ios-app-acceptance-42239749042-1/submission-app-8rW78o/environment.txt",
+      "bytes": 121,
+      "sha256": "9557a076a9eea8d1eab5b33b0baa88748229dda39d78ec3460dd430a1310f7e9",
+      "text": "9a4d39539bf7afaad759bacf8966d650b0477970\nXcode 26.6\nBuild version 17F113\nSimulator: 23369491-4778-42A8-B61D-531DDE792C47\n"
+    },
+    {
+      "path": "ios-app-acceptance-42239749042-1/submission-app-8rW78o/measurement.log",
+      "bytes": 19335,
+      "sha256": "e34358cdd2dde165f67a1f09e8d94c3e65404dac24140396779b39d63a1729ff"
+    },
+    {
+      "path": "ios-app-acceptance-42239749042-1/submission-app-8rW78o/smoke.log",
+      "bytes": 446271,
+      "sha256": "1271044a29864f5dca4c8da681814b08f8be2f100a0d0b67da4a4db2e9ad7968"
+    },
+    {
+      "path": "ios-native-downloads-42239749042-2/download-combined-NuEl2X/RESULTS.txt",
+      "bytes": 270,
+      "sha256": "4a342a5d8bf8e871d912cf881a62bd5466886768ebb65de6fdc5878ee4d3e48e",
+      "text": "PASS F06 native failure/disk/pin recovery, F09 license boundary and normal downloaded playback regression\nINJECTED: capacity=0, one native task cancellation, cached expired entitlement and unavailable renewal. NOT TESTED: physical ENOSPC, airplane mode, production DRM.\n"
+    },
+    {
+      "path": "ios-native-downloads-42239749042-2/download-combined-NuEl2X/environment.txt",
+      "bytes": 186,
+      "sha256": "e05af9ce9ac7e3e9951f3b3dbbeae88f3c5745b7d275872b03d9301ad1b39a01",
+      "text": "9a4d39539bf7afaad759bacf8966d650b0477970\nXcode 26.6\nBuild version 17F113\nSimulator: 2B1AD595-5B53-451F-A471-17CA38BA5E5D\nBuild directory: /private/tmp/streamlab-download-combined-mSDk41\n"
+    },
+    {
+      "path": "ios-native-downloads-42239749042-2/download-combined-NuEl2X/ui-tests.log",
+      "bytes": 525968,
+      "sha256": "3840ecbc389b31b3ab2c10e7bf668263bd7b72587ad7146a0272a4dc14f7e84b"
+    },
+    {
+      "path": "ios-playback-42239749042-1/ci/environment.txt",
+      "bytes": 4952,
+      "sha256": "0f46bbc57b259cf1e232b4522d69f711ad774e9850541d59abb99488d824320b",
+      "text": "Xcode 26.6\nBuild version 17F113\nApple Swift version 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101)\nTarget: arm64-apple-macosx26.0\nProductName:\t\tmacOS\nProductVersion:\t\t26.6.2\nBuildVersion:\t\t25G83\n== Devices ==\n-- iOS 26.2 --\n    iPhone 17 Pro (F5C4661C-7B05-4238-BF71-BF2845D2630A) (Shutdown) \n    iPhone 17 Pro Max (DCA2A4ED-7625-458E-B4A3-EA3CF230C9AB) (Shutdown) \n    iPhone Air (0B44C686-A087-4854-A304-CE4506F7DE37) (Shutdown) \n    iPhone 17 (7575462E-E469-49BC-9003-BB78E48CCF46) (Shutdown) \n    iPhone 16e (F6F146B6-18AA-4FE2-9F0B-AA6D02028DDA) (Shutdown) \n    iPad Pro 13-inch (M5) (C71BAB90-949C-4EAB-9916-0C31AF11B17F) (Shutdown) \n    iPad Pro 11-inch (M5) (8F6DC875-6828-4C3A-9AD8-2FE226E75159) (Shutdown) \n    iPad mini (A17 Pro) (6871C188-89E1-4B32-8785-1D808CEBED64) (Shutdown) \n    iPad (A16) (DF8E4AC6-573D-4149-8C5A-5B77B8F64476) (Shutdown) \n    iPad Air 13-inch (M3) (D0008160-9463-4687-ADF5-C11C78A03E51) (Shutdown) \n    iPad Air 11-inch (M3) (18866364-84AA-48A2-8689-54B7193027F7) (Shutdown) \n-- iOS 26.4 --\n    iPhone 17 Pro (7EFC6246-6BDB-4FD4-AE32-9345E3B28BD8) (Shutdown) \n    iPhone 17 Pro Max (71126E5B-B92E-4504-8F35-E6FB05950616) (Shutdown) \n    iPhone 17e (A8AB901F-6672-49C0-818C-72ACF53131A5) (Shutdown) \n    iPhone Air (D529479B-2FD8-4F0C-8B24-CBAD8C819B55) (Shutdown) \n    iPhone 17 (EC7C4F25-3F36-44A2-8CC3-9CE1CD34AFD3) (Shutdown) \n    iPad Pro 13-inch (M5) (306F9837-3E76-4BB4-B887-65CAB5862076) (Shutdown) \n    iPad Pro 11-inch (M5) (A5AE3A46-EF94-42C1-B782-C4456CC83B28) (Shutdown) \n    iPad mini (A17 Pro) (5B15BF82-629F-44A5-8030-EEA2ECD78947) (Shutdown) \n    iPad Air 13-inch (M4) (62263D5E-3902-41D6-9DE8-728A03F8A745) (Shutdown) \n    iPad Air 11-inch (M4) (29776D2E-C01F-4E39-9119-2ECBECD38424) (Shutdown) \n    iPad (A16) (096038CB-2973-4E2D-B146-C2498D064137) (Shutdown) \n-- iOS 26.5 --\n    iPhone 17 Pro (F0C70C77-E423-4478-B648-3D25045B311B) (Shutdown) \n    iPhone 17 Pro Max (9E8558CA-F3AF-4CCC-92CD-B7E993A49F8A) (Shutdown) \n    iPhone 17e (8A537B0A-2793-48DC-AA9E-DEC8874B183B) (Shutdown) \n    iPhone Air (1F0A9C4B-2DFC-444E-B162-696E5078A72B) (Shutdown) \n    iPhone 17 (062CFAA4-9ACF-40ED-A1E2-3625F5ED4DA9) (Shutdown) \n    iPad Pro 13-inch (M5) (3593632A-CE78-4177-B6DD-E03EA2DEDFB7) (Shutdown) \n    iPad Pro 11-inch (M5) (C537AD9E-8EAF-4CEA-93EB-BE5126F42823) (Shutdown) \n    iPad mini (A17 Pro) (A1BBB2ED-CC79-4E5C-82CF-1489A77F232D) (Shutdown) \n    iPad Air 13-inch (M4) (6E9B9307-9F97-4A96-9D8B-EC4700403089) (Shutdown) \n    iPad Air 11-inch (M4) (94FC0298-D3C7-45DD-8FA7-B3FD9568B5AA) (Shutdown) \n    iPad (A16) (D9DB98A1-6C9C-4B6A-B040-BE7C4207F458) (Shutdown) \n-- tvOS 26.2 --\n    Apple TV 4K (3rd generation) (B1BC605B-16E7-4090-8C53-8182941EF589) (Shutdown) \n    Apple TV 4K (3rd generation) (at 1080p) (960A9092-4808-44C9-B0DA-4EF9D0B4826E) (Shutdown) \n    Apple TV (00C89249-63D1-4339-B661-CDBC6DF3545B) (Shutdown) \n-- tvOS 26.4 --\n    Apple TV 4K (3rd generation) (5DCD4550-48D2-4DBF-AEE0-280A637A6421) (Shutdown) \n    Apple TV 4K (3rd generation) (at 1080p) (D6EE4A3F-CB85-483A-8C20-91C78A139B66) (Shutdown) \n    Apple TV (DE525DAF-6F97-4CF7-8899-E161F385D6E1) (Shutdown) \n-- tvOS 26.5 --\n    Apple TV 4K (3rd generation) (C3A9AF2F-9F52-463C-A864-DC323D34FCFA) (Shutdown) \n    Apple TV 4K (3rd generation) (at 1080p) (7DB27564-ABF3-4075-91C2-AB9E536D3F93) (Shutdown) \n    Apple TV (F447BE35-3B8F-4E9F-A3BC-55D15F443077) (Shutdown) \n-- watchOS 26.2 --\n    Apple Watch Series 11 (46mm) (144C6FA1-C50F-40A9-B8C0-4F5DBD0019DA) (Shutdown) \n    Apple Watch Series 11 (42mm) (9EB77C93-C1A7-4369-9C32-E4F328AE4E5B) (Shutdown) \n    Apple Watch Ultra 3 (49mm) (B3AB738C-5FA3-4C33-B5BD-967637A7454F) (Shutdown) \n    Apple Watch SE 3 (44mm) (4D06A9F6-F729-4302-845D-757915EE0B97) (Shutdown) \n    Apple Watch SE 3 (40mm) (ADE10799-76A6-4DC9-8D77-3FD563747A75) (Shutdown) \n-- watchOS 26.4 --\n    Apple Watch Series 11 (46mm) (976A520B-832C-4CAA-B990-13872CE16E85) (Shutdown) \n    Apple Watch Series 11 (42mm) (3DDC9DFB-F6AA-4623-975C-B36C52446094) (Shutdown) \n    Apple Watch Ultra 3 (49mm) (17F75F47-59E9-476A-9184-7D2B532C8C02) (Shutdown) \n    Apple Watch SE 3 (44mm) (24ABFB09-607A-4B78-A95D-D4316649DF70) (Shutdown) \n    Apple Watch SE 3 (40mm) (5C74267E-48D5-4C4D-8F82-19B044E2AE54) (Shutdown) \n-- watchOS 26.5 --\n    Apple Watch Series 11 (46mm) (9CE6A499-9B6D-4D31-99B3-ABA663D6B09C) (Shutdown) \n    Apple Watch Series 11 (42mm) (B79E2FE6-9DC5-4579-86E5-30053B8C61FF) (Shutdown) \n    Apple Watch Ultra 3 (49mm) (EBBE66C7-6E29-4093-AD27-305383C8067E) (Shutdown) \n    Apple Watch SE 3 (44mm) (C458CB8A-02A1-4DEB-8786-A5E21C2DC5E7) (Shutdown) \n    Apple Watch SE 3 (40mm) (B5DCFA1D-83E1-4676-8D79-A3EDF605F34E) (Shutdown) \n-- visionOS 26.2 --\n    Apple Vision Pro (A271C4C1-B959-49E7-9FC2-9DDE3C30705C) (Shutdown) \n-- visionOS 26.4 --\n    Apple Vision Pro (F2226894-B182-4B98-95E0-78331EA57D3F) (Shutdown) \n-- visionOS 26.5 --\n    Apple Vision Pro (847A0652-202A-452A-A9EF-93C3320AAA91) (Shutdown) \n"
+    },
+    {
+      "path": "ios-playback-42239749042-1/ci/release.log",
+      "bytes": 378580,
+      "sha256": "6f7b8fa8f8ba4c41e76f4216fc4ba5dce5641c8d8892dff6af71e2730158e487"
+    },
+    {
+      "path": "ios-playback-42239749042-1/playback-session-lifecycle-WcPQ05/RESULTS.txt",
+      "bytes": 181,
+      "sha256": "6c3f14c82ed1ec1bdb2bd82dff29e9e98703abb6ba0296867a62ea9c2c23e83b",
+      "text": "PASS twenty-five iOS playback session and Now Playing tests\nNOT TESTED: physical lock-screen card, SwiftUI profile-switch navigation, Bluetooth disconnection, full regression suite\n"
+    },
+    {
+      "path": "ios-playback-42239749042-1/playback-session-lifecycle-WcPQ05/environment.txt",
+      "bytes": 204,
+      "sha256": "c700a512b79129c55a6bb032d355639de8f6e1afe2debe85e9def295ac52a33e",
+      "text": "9a4d39539bf7afaad759bacf8966d650b0477970\nXcode 26.6\nBuild version 17F113\nSimulator: 7EFC6246-6BDB-4FD4-AE32-9345E3B28BD8\nScheme: StreamLabUI-Package\nDerivedData: /private/tmp/streamlab-now-playing-1KqHAl\n"
+    },
+    {
+      "path": "ios-playback-42239749042-1/playback-session-lifecycle-WcPQ05/ios-tests.log",
+      "bytes": 399545,
+      "sha256": "d3e048a758304d8b247bef061e803d233b0a8616074b4d6bd3d8a8e981019507"
+    },
+    {
+      "path": "ios-playback-42239749042-1/playback-session-lifecycle-WcPQ05/schemes.log",
+      "bytes": 141,
+      "sha256": "254fb3203552217580a37fdd767d75db2a896cde59eee14cba6418044b77ed58"
+    }
+  ],
+  "prior_failures": [
+    "first-ci-failure.json",
+    "second-ci-failure.json",
+    "third-ci-failure.json",
+    "fourth-ci-failure.json",
+    "fifth-ci-failure.json"
+  ],
+  "local_evidence": "local-evidence.json",
+  "historical_submission_tag": "submission-2026-11-06",
+  "historical_submission_commit": "5af08fa007c8e1fefd1f4ebbe49cb94e73f41ec5",
+  "excluded_historical_artifact_files": [
+    "core-chaos-42239749042-1/current/bootstrap.log",
+    "core-chaos-42239749042-1/current/fixtures.log",
+    "core-chaos-42239749042-1/current/shell-syntax.log",
+    "core-chaos-42239749042-1/current/structure.log",
+    "core-chaos-42239749042-1/current/swift-tests.log",
+    "core-chaos-42239749042-1/current/xcodebuild.log",
+    "core-chaos-42239749042-1/hls-episodes-20261016/RESULTS.txt",
+    "core-chaos-42239749042-1/hls-tracks-20261016/RESULTS.txt",
+    "ios-app-acceptance-42239749042-1/current/bootstrap.log",
+    "ios-app-acceptance-42239749042-1/current/fixtures.log",
+    "ios-app-acceptance-42239749042-1/current/shell-syntax.log",
+    "ios-app-acceptance-42239749042-1/current/structure.log",
+    "ios-app-acceptance-42239749042-1/current/swift-tests.log",
+    "ios-app-acceptance-42239749042-1/current/xcodebuild.log",
+    "ios-app-acceptance-42239749042-1/hls-episodes-20261016/RESULTS.txt",
+    "ios-app-acceptance-42239749042-1/hls-tracks-20261016/RESULTS.txt",
+    "ios-native-downloads-42239749042-1/current/bootstrap.log",
+    "ios-native-downloads-42239749042-1/current/fixtures.log",
+    "ios-native-downloads-42239749042-1/current/shell-syntax.log",
+    "ios-native-downloads-42239749042-1/current/structure.log",
+    "ios-native-downloads-42239749042-1/current/swift-tests.log",
+    "ios-native-downloads-42239749042-1/current/xcodebuild.log",
+    "ios-native-downloads-42239749042-1/download-combined-UKuFnq/RESULTS.txt",
+    "ios-native-downloads-42239749042-1/download-combined-UKuFnq/environment.txt",
+    "ios-native-downloads-42239749042-1/download-combined-UKuFnq/ui-tests.log",
+    "ios-native-downloads-42239749042-1/hls-episodes-20261016/RESULTS.txt",
+    "ios-native-downloads-42239749042-1/hls-tracks-20261016/RESULTS.txt",
+    "ios-native-downloads-42239749042-2/current/bootstrap.log",
+    "ios-native-downloads-42239749042-2/current/fixtures.log",
+    "ios-native-downloads-42239749042-2/current/shell-syntax.log",
+    "ios-native-downloads-42239749042-2/current/structure.log",
+    "ios-native-downloads-42239749042-2/current/swift-tests.log",
+    "ios-native-downloads-42239749042-2/current/xcodebuild.log",
+    "ios-native-downloads-42239749042-2/hls-episodes-20261016/RESULTS.txt",
+    "ios-native-downloads-42239749042-2/hls-tracks-20261016/RESULTS.txt",
+    "ios-playback-42239749042-1/current/bootstrap.log",
+    "ios-playback-42239749042-1/current/fixtures.log",
+    "ios-playback-42239749042-1/current/shell-syntax.log",
+    "ios-playback-42239749042-1/current/structure.log",
+    "ios-playback-42239749042-1/current/swift-tests.log",
+    "ios-playback-42239749042-1/current/xcodebuild.log",
+    "ios-playback-42239749042-1/hls-episodes-20261016/RESULTS.txt",
+    "ios-playback-42239749042-1/hls-tracks-20261016/RESULTS.txt"
+  ],
+  "selected_artifact_names": [
+    "core-chaos-42239749042-1",
+    "ios-app-acceptance-42239749042-1",
+    "ios-native-downloads-42239749042-2",
+    "ios-playback-42239749042-1"
+  ],
+  "workflow": {
+    "conclusion": "success",
+    "created_at": "2026-11-06T15:05:18Z",
+    "head_sha": "9a4d39539bf7afaad759bacf8966d650b0477970",
+    "id": 42239749042,
+    "run_attempt": 2,
+    "status": "completed",
+    "updated_at": "2026-11-06T15:47:54Z"
+  },
+  "attempt1_jobs": [
+    {
+      "id": 127966587186,
+      "name": "core-chaos",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 42239749042,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Record toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Validate Xcode project and shared catalog schemes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Core, loopback HTTP and deterministic chaos",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "TTFF report parser regression",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Preserve validation logs",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15
+        }
+      ]
+    },
+    {
+      "id": 127966587459,
+      "name": "ios-app-acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 42239749042,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Clean simulator reproduction and UI boundaries",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Preserve app UI evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Preserve failed app screenshots and diagnostics",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 5
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        }
+      ]
+    },
+    {
+      "id": 127966587548,
+      "name": "ios-playback",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 42239749042,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Record toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Playback, entitlement and callback regression",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Release compile without signing credentials",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Preserve validation logs",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        }
+      ]
+    },
+    {
+      "id": 127966587844,
+      "name": "ios-native-downloads",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_id": 42239749042,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "F06 and F09 native downloads and normal offline playback",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 3
+        },
+        {
+          "name": "Preserve native download evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Preserve failed download screenshots and diagnostics",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        }
+      ]
+    }
+  ]
+}

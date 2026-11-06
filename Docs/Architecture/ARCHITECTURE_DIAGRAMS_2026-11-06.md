@@ -1,6 +1,6 @@
 # StreamLab | 소스 검증 기반 통합 아키텍처 다이어그램 (개정판)
 
-> 기준: **2026-11-06**. 앱·관리자 소스 기준 커밋 `6642b7c`; 이후 문서 업데이트는 별도 커밋이다. **실제 구현 / Mock 테스트 / 추가 검증**을 구분한다.
+> 기준: **2026-11-07**. 앱·관리자 소스 기준 커밋 `9a4d395`; 이후 문서 업데이트는 별도 커밋이다. **실제 구현 / Mock 테스트 / 추가 검증**을 구분한다.
 >
 > 원문 과제는 교육·포트폴리오용 비공식 시뮬레이션이며 실제 Netflix 내부 과제나 채용 판정이 아니다.
 > [현재 구조 설명](../ARCHITECTURE_CURRENT.md) · [원문별 감사](../ASSIGNMENT_AUDIT_2026-11-06.md) · [잔여 증빙](../Measurements/Final-Gaps-2026-11-06/REPORT.md)
@@ -101,8 +101,8 @@ flowchart TB
 ~~~
 
 - **프로필 경계**: CatalogSession의 UUID 및 account/profile scope와 actor/task 유효성을 검사한다. 지난 세션의 비동기 응답과 재생 콜백을 새 화면에 반영하지 않는다.
-- **플레이어/다운로드 소유권은 다르다**: \`PlaybackModel\`은 플레이어 1회 presentation의 수명을 관리한다. \`OfflineDownloadStore.shared\`는 OS 백그라운드 세션에 재연결하기 위한 프로세스 단위 소유자이며 각 항목을 계정·프로필로 격리한다.
-- **데이터 저장 범위**: SQLite는 찜·최근 검색·재생 진도와 outbox용. 다운로드 메타데이터는 \`offline-downloads.json\`을 유지하며 실제 미디어는 파일로 저장한다.
+- **플레이어/다운로드 소유권은 다르다**: `PlaybackModel`은 플레이어 1회 presentation의 수명을 관리한다. `OfflineDownloadStore.shared`는 OS 백그라운드 세션에 재연결하기 위한 프로세스 단위 소유자이며 각 항목을 계정·프로필로 격리한다.
+- **데이터 저장 범위**: SQLite는 찜·최근 검색·재생 진도와 outbox용. 다운로드 메타데이터는 `offline-downloads.json`을 유지하며 실제 미디어는 파일로 저장한다.
 
 ## 4. Local-first 저장 / 정합성 경로
 
@@ -247,7 +247,7 @@ flowchart LR
   SESSION --> DOWNLOAD["OfflineDownloadStore.shared @MainActor<br/>OS background transfer owner"]
 ~~~
 
-- **인증과 미디어 권한을 구분**: 앱 인증에는 Keychain 및 \`AuthenticationSession\` actor의 single-flight refresh 테스트가 있고, 콘텐츠 이용권 grant/DRM은 Mock이다. Firebase Auth는 관리자에 적용하며 사용자 오프라인 동기화 서버가 아니다.
+- **인증과 미디어 권한을 구분**: 앱 인증에는 Keychain 및 `AuthenticationSession` actor의 single-flight refresh 테스트가 있고, 콘텐츠 이용권 grant/DRM은 Mock이다. Firebase Auth는 관리자에 적용하며 사용자 오프라인 동기화 서버가 아니다.
 - **SQLite ACK 경로**: transport가 DB를 직접 소유하지 않는다. store가 idempotency/revision/owner를 검증한 후 SQLite projection·outbox·metadata에 원자적으로 반영한다.
 - **다운로드 상한**: 기기 전체 관리 예산 **1,000,000,000 bytes**, 동시 작업 **2개**. 초기 500MB 예약은 개별 미디어의 고정 상한이 아니다. 관리자 MP4 업로드 **5GB**와는 무관하다.
 - **진단/성능**: 실제 TTFF 화면 표시와 HLS 준비 시간의 메트릭을 혼동하지 않는다. SQLite의 MainActor 동기 I/O를 개선 완료로 보고하지 않는다.
@@ -256,14 +256,14 @@ flowchart LR
 
 | 도표/정책 | 근거 코드·문서 |
 | --- | --- |
-| 앱 시작/선택 | \`App/Scene/AppRootView.swift\`, \`CatalogSession.swift\` |
-| 실제 SPM edge | \`Packages/StreamLabCore/Package.swift\`, \`Packages/StreamLabUI/Package.swift\` |
-| SQLite projection/outbox | \`StreamLabPresentation/Sync/DurableMutationStore.swift\`, \`SQLiteMutationDatabase.swift\`, \`Docs/ADR/0030-*\` |
-| Player 수명/관측 | \`StreamLabCatalogFeature/Playback/PlaybackModel.swift\`, \`StreamLabDomain/Models/PlaybackDiagnostics.swift\`, \`Docs/States/PLAYER.md\` |
-| Native 다운로드 | \`StreamLabCatalogFeature/Downloads/OfflineDownloadStore.swift\`, \`App/Application/DownloadBackgroundDelegate.swift\`, \`Docs/States/DOWNLOAD.md\` |
-| 테스트/남은 근거 | \`Docs/CI_VALIDATION.md\`, \`Docs/CHAOS_ACCEPTANCE.md\`, \`Docs/Measurements/Final-Gaps-2026-11-06/REPORT.md\` |
+| 앱 시작/선택 | `App/Scene/AppRootView.swift`, `CatalogSession.swift` |
+| 실제 SPM edge | `Packages/StreamLabCore/Package.swift`, `Packages/StreamLabUI/Package.swift` |
+| SQLite projection/outbox | `StreamLabPresentation/Sync/DurableMutationStore.swift`, `SQLiteMutationDatabase.swift`, `Docs/ADR/0030-*` |
+| Player 수명/관측 | `StreamLabCatalogFeature/Playback/PlaybackModel.swift`, `StreamLabDomain/Models/PlaybackDiagnostics.swift`, `Docs/States/PLAYER.md` |
+| Native 다운로드 | `StreamLabCatalogFeature/Downloads/OfflineDownloadStore.swift`, `App/Application/DownloadBackgroundDelegate.swift`, `Docs/States/DOWNLOAD.md` |
+| 테스트/남은 근거 | `Docs/CI_VALIDATION.md`, `Docs/CHAOS_ACCEPTANCE.md`, `Docs/Measurements/Final-Gaps-2026-11-06/REPORT.md` |
 
-> 이번 다이어그램 업데이트는 **문서 개정**이며 새 Xcode 빌드, 실기기 VoiceOver 전체 경로, 에너지 계측, 운영 DRM 구현을 뜻하지 않는다. 이전 6페이지 PDF와 \`submission-2026-11-06\` 태그는 기록용 스냅샷으로 남긴다.
+> 이번 다이어그램 업데이트는 **문서 개정**이며 새 Xcode 빌드, 실기기 VoiceOver 전체 경로, 에너지 계측, 운영 DRM 구현을 뜻하지 않는다. 이전 6페이지 PDF와 `submission-2026-11-06` 태그는 기록용 스냅샷으로 남긴다.
 
 ### 코드·증거 위치
 - Package 의존성: Packages/StreamLabCore/Package.swift, Packages/StreamLabUI/Package.swift
@@ -273,6 +273,6 @@ flowchart LR
 - 테스트/재현: Docs/CI_VALIDATION.md, Docs/CHAOS_ACCEPTANCE.md, Docs/Measurements/Final-Gaps-2026-11-06/REPORT.md
 
 ### 문서 버전
-- Docs/Architecture/streamlab-architecture-ko.pdf (기존 6쪽)은 **이전 제출 시점 스냅샷**이다.
-- 본 문서가 SQLite/5GB 정책, 실제 런타임 소유권, 소스의 정확한 Player/Download 전이까지 반영한 **현재 구현의 시각화**다.
+- [현재 PDF](streamlab-architecture-ko.pdf)는 앱 코드 `9a4d395` 기준 8쪽 그림 문서다. 기존 6쪽 PDF는 [제출 태그](https://github.com/KyungHoon416/streamlab-ios/blob/submission-2026-11-06/Docs/Architecture/streamlab-architecture-ko.pdf)와 기존 ZIP에 보존했다.
+- 본 문서는 PDF보다 상세한 Package 의존성·객체 소유권·전체 상태 전이를 제공한다. 두 문서 모두 SQLite/5GB 정책과 실제 구현을 기준으로 한다.
 - 새로운 PDF를 제출할 때는 생성 시점의 앱 코드 SHA, 검증 범위, 미완료 항목을 함께 기록한다.

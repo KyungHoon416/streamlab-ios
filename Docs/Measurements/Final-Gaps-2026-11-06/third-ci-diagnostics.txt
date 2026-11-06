@@ -1,0 +1,11 @@
+Run 42228526327 attempt 1 / native simulator app stdout excerpts
+2026-11-06 14:00:26.283309+0000 StreamLab[12881:42630] [PlaybackOrientation] begin: captured presenter orientation mask=2
+2026-11-06 14:00:26.284958+0000 StreamLab[12881:42630] [PlaybackQoE] attempt_started attempt=07A323FD-385C-4910-A9F3-095236A4151D source=apple-bipbop-v1
+2026-11-06 14:00:27.238607+0000 StreamLab[12881:42630] [PlaybackQoE] transition from=preparing to=failed accepted=true
+2026-11-06 14:00:27.292393+0000 StreamLab[12881:42630] [PlaybackOrientation] request: landscape=true
+2026-11-06 14:00:27.295087+0000 StreamLab[12881:42630] [PlaybackOrientation] rotation declined: domain=other code=101
+2026-11-06 14:02:30.270721+0000 StreamLab[17814:55685] [PlaybackOrientation] begin: captured presenter orientation mask=2
+2026-11-06 14:02:30.273939+0000 StreamLab[17814:55685] [PlaybackQoE] attempt_started attempt=C2B6D3B4-F8C4-496C-A395-E07834059974 source=apple-bipbop-v1
+2026-11-06 14:02:30.983352+0000 StreamLab[17814:55685] [PlaybackOrientation] request: landscape=true
+2026-11-06 14:02:30.984094+0000 StreamLab[17814:55685] [PlaybackOrientation] rotation declined: domain=other code=101
+2026-11-06 14:02:41.020133+0000 StreamLab[17814:55685] [PlaybackOrientation] finish: restoring mask=2

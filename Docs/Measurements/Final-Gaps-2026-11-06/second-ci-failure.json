@@ -1,0 +1,54 @@
+{
+  "run_id": 42225453235,
+  "head_sha": "870f7016678ae5d884b561adb3e987b62034aba3",
+  "app_code": "6642b7c57fc4d0e125adec63e5adaff6afaa031e",
+  "url": "https://github.com/KyungHoon416/streamlab-ios/actions/runs/42225453235",
+  "conclusion": "failure",
+  "core_chaos": "success",
+  "ios_playback": "success",
+  "failures": [
+    {
+      "test": "testSwiftUIScreensAndPlayback",
+      "phase": "Label expectation after paused +10s seek timed out",
+      "observed": "playing then paused assertions passed; time regex did not match within 10s. Actual failure-time label was not retained in the text artifact.",
+      "root_cause": "unconfirmed; no app change based on this failure",
+      "change": "Keep playback HUD visible in smoke, require actual confirmed seek before checking time; retain state and failure xcresult."
+    },
+    {
+      "test": "testRealHLSDownloadRelaunchPlaybackAndDelete",
+      "phase": "download-failed appeared ~55s into the test; failure was not the 180s download deadline",
+      "observed": "F06 passed 196.506s; F09 passed 152.139s; normal test failed59.088s. Failure label and app console were absent from the archived text.",
+      "root_cause": "unconfirmed; no automatic retry or product workaround",
+      "change": "Print exact download-failed label on failure and preserve full failed xcresult for screenshots, hierarchy and diagnostics."
+    }
+  ],
+  "logs": [
+    {
+      "artifact_relative_file": "submission-app-TD4pvA/smoke.log",
+      "sha256": "73a8a49d8dce27f1394073cb95e72050d1d6fe11cc2a08e9fe6d116ca5629a8c",
+      "bytes": 440285,
+      "excerpts": [
+        "Test Case '-[StreamLabUITests.StreamLabUITests testColdLaunchAndRelaunchShowProfiles]' passed (67.181 seconds).",
+        "/Users/runner/work/streamlab-ios/streamlab-ios/Tests/StreamLabUITests/StreamLabUITests.swift:2300: error: -[StreamLabUITests.StreamLabUITests testSwiftUIScreensAndPlayback] : Asynchronous wait failed: Exceeded timeout of 10 seconds, with unfulfilled expectations: \"Expect predicate `label MATCHES \"00:00:(1[0-9]|2[0-9]|30) / 00:00:30\"` for object \"playback-time\" StaticText\".",
+        "Test Case '-[StreamLabUITests.StreamLabUITests testSwiftUIScreensAndPlayback]' failed (130.948 seconds).",
+        "\t Executed 2 tests, with 1 failure (0 unexpected) in 198.129 (198.197) seconds",
+        "\t Executed 2 tests, with 1 failure (0 unexpected) in 198.129 (198.198) seconds",
+        "\t Executed 2 tests, with 1 failure (0 unexpected) in 198.129 (198.200) seconds"
+      ]
+    },
+    {
+      "artifact_relative_file": "download-combined-dtk6vZ/ui-tests.log",
+      "sha256": "e04efd3526eaec1bf4bbd683bdb86b73191088acbb7f63ac5dc3cbb285f5aabb",
+      "bytes": 502446,
+      "excerpts": [
+        "Test Case '-[StreamLabUITests.StreamLabUITests testF06ConcurrentFailureDiskPressurePreservesPinnedAndRecovers]' passed (196.506 seconds).",
+        "Test Case '-[StreamLabUITests.StreamLabUITests testF09DownloadedHLSExpiredOfflineGrantBlocksRetryAndCloses]' passed (152.139 seconds).",
+        "/Users/runner/work/streamlab-ios/streamlab-ios/Tests/StreamLabUITests/StreamLabUITests.swift:964: error: -[StreamLabUITests.StreamLabUITests testRealHLSDownloadRelaunchPlaybackAndDelete] : failed - Native HLS download must complete; an error or queued state is not success",
+        "Test Case '-[StreamLabUITests.StreamLabUITests testRealHLSDownloadRelaunchPlaybackAndDelete]' failed (59.088 seconds).",
+        "\t Executed 3 tests, with 1 failure (0 unexpected) in 407.733 (407.741) seconds",
+        "\t Executed 3 tests, with 1 failure (0 unexpected) in 407.733 (407.743) seconds",
+        "\t Executed 3 tests, with 1 failure (0 unexpected) in 407.733 (407.745) seconds"
+      ]
+    }
+  ]
+}

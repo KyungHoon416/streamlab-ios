@@ -1,0 +1,188 @@
+Run 42239749042 / commit 9a4d39539bf7afaad759bacf8966d650b0477970
+
+FILE core-chaos-42239749042-1/assignment-core-0lPiMT/RESULTS.txt
+PASS assignment Core evidence (not full F01-F10 acceptance)
+
+FILE core-chaos-42239749042-1/assignment-core-0lPiMT/core.log
+Test Case '-[StreamLabPresentationTests.AutoAdvanceCountdownTests testCancellationCannotRestartForSameItem]' passed (0.003 seconds).
+Test Case '-[StreamLabPresentationTests.AutoAdvanceCountdownTests testDeadlineFiresExactlyOnce]' passed (0.000 seconds).
+Test Case '-[StreamLabPresentationTests.AutoAdvanceCountdownTests testInvalidElapsedDoesNotAdvance]' passed (0.000 seconds).
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.004 (0.004) seconds
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testDisabledAndAlreadySelectedRemainUntouched]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testEnglishSurvivesOffAndReloadWithoutCrossingProfiles]' passed (0.007 seconds).
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testFullCaptionFallbackAndForcedOnlyAssets]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testFullEnglishWinsOverFirstForcedEnglish]' passed (0.000 seconds).
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testLateTrackArrivalAndDisableRestore]' passed (0.000 seconds).
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testLegacyEnglishIsRetainedWhenTurnedOff]' passed (0.005 seconds).
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testLegacyPreferencesDecodeWithOptionEnabled]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testManualChoiceWinsUntilNextMute]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testMuteEnablesAndUnmuteRestores]' passed (0.000 seconds).
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testOptionPersistsAndIsolatesProfiles]' passed (0.004 seconds).
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.020 (0.022) seconds
+Test Case '-[StreamLabPresentationTests.PlaybackDiagnosticsTests testCancelDuringBufferingAndRepeatedFinish]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackDiagnosticsTests testFailureAndCancellationCloseOpenIntervalAndRejectStaleCallbacks]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackDiagnosticsTests testInitialWaitSeekPauseAndDuplicateEventsAreNotRebuffers]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackDiagnosticsTests testInvalidTransitionAndInvalidClockDoNotMutateState]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackDiagnosticsTests testTransitionMatrix]' passed (0.001 seconds).
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Case '-[StreamLabPresentationTests.PlaybackInterruptionPolicyTests testManualPauseOrDisconnectedOutputCancelsResume]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackInterruptionPolicyTests testPlayingResumesOnlyWithSystemPermission]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackInterruptionPolicyTests testPreviouslyPausedPlaybackStaysPaused]' passed (0.000 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackInterruptionPolicyTests testRepeatedBeginCannotUndoManualPause]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackInterruptionPolicyTests testRepeatedBeginDoesNotLoseOriginalIntent]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackInterruptionPolicyTests testSuspensionAndUnmatchedEndNeverResume]' passed (0.001 seconds).
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.004 (0.006) seconds
+Test Case '-[StreamLabPresentationTests.PlaybackRetryBudgetTests testExplicitNewPresentationCanResetBudget]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackRetryBudgetTests testInvalidLimitCannotProduceRetries]' passed (0.000 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackRetryBudgetTests testRetriesAreBoundedAndDoNotReopenAfterExhaustion]' passed (0.000 seconds).
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Case '-[StreamLabPresentationTests.TrackFallbackTests testEmptyPlayableListNeverReturnsAnInvalidIndex]' passed (0.000 seconds).
+Test Case '-[StreamLabPresentationTests.TrackFallbackTests testMissingAudioRoleFallsBackWithinLanguageBeforeOtherLanguage]' passed (0.000 seconds).
+Test Case '-[StreamLabPresentationTests.TrackFallbackTests testMissingSubtitleUsesDefaultOrOffAndRequiredTrackCannotBeOff]' passed (0.000 seconds).
+Test Case '-[StreamLabPresentationTests.TrackFallbackTests testPreferredTrackReturnsWhenNextItemProvidesItInDifferentOrder]' passed (0.000 seconds).
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+	 Executed 31 tests, with 0 failures (0 unexpected) in 0.033 (0.041) seconds
+	 Executed 31 tests, with 0 failures (0 unexpected) in 0.033 (0.048) seconds
+✔ Test run with 247 tests in 44 suites passed after 121.010 seconds.
+PASS Core, real loopback HTTP and authentication/logout boundaries
+
+FILE core-chaos-42239749042-1/assignment-core-0lPiMT/process.log
+PASS macOS SIGKILL durable mutation recovery
+
+FILE core-chaos-42239749042-1/ci/ttff.log
+Ran 6 tests in 0.304s
+OK
+
+FILE core-chaos-42239749042-1/http-boundaries-DQ9P2s/RESULTS.txt
+PASS Core, real loopback HTTP and authentication/logout boundaries
+NOT TESTED: production endpoints, TLS, iOS locked-device Keychain, app login/logout wiring, full assignment acceptance
+
+FILE core-chaos-42239749042-1/http-boundaries-DQ9P2s/core.log
+Test Case '-[StreamLabPresentationTests.AutoAdvanceCountdownTests testCancellationCannotRestartForSameItem]' passed (0.003 seconds).
+Test Case '-[StreamLabPresentationTests.AutoAdvanceCountdownTests testDeadlineFiresExactlyOnce]' passed (0.000 seconds).
+Test Case '-[StreamLabPresentationTests.AutoAdvanceCountdownTests testInvalidElapsedDoesNotAdvance]' passed (0.000 seconds).
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.004 (0.004) seconds
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testDisabledAndAlreadySelectedRemainUntouched]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testEnglishSurvivesOffAndReloadWithoutCrossingProfiles]' passed (0.007 seconds).
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testFullCaptionFallbackAndForcedOnlyAssets]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testFullEnglishWinsOverFirstForcedEnglish]' passed (0.000 seconds).
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testLateTrackArrivalAndDisableRestore]' passed (0.000 seconds).
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testLegacyEnglishIsRetainedWhenTurnedOff]' passed (0.005 seconds).
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testLegacyPreferencesDecodeWithOptionEnabled]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testManualChoiceWinsUntilNextMute]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testMuteEnablesAndUnmuteRestores]' passed (0.000 seconds).
+Test Case '-[StreamLabPresentationTests.MuteCaptionPolicyTests testOptionPersistsAndIsolatesProfiles]' passed (0.004 seconds).
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.020 (0.022) seconds
+Test Case '-[StreamLabPresentationTests.PlaybackDiagnosticsTests testCancelDuringBufferingAndRepeatedFinish]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackDiagnosticsTests testFailureAndCancellationCloseOpenIntervalAndRejectStaleCallbacks]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackDiagnosticsTests testInitialWaitSeekPauseAndDuplicateEventsAreNotRebuffers]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackDiagnosticsTests testInvalidTransitionAndInvalidClockDoNotMutateState]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackDiagnosticsTests testTransitionMatrix]' passed (0.001 seconds).
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Case '-[StreamLabPresentationTests.PlaybackInterruptionPolicyTests testManualPauseOrDisconnectedOutputCancelsResume]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackInterruptionPolicyTests testPlayingResumesOnlyWithSystemPermission]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackInterruptionPolicyTests testPreviouslyPausedPlaybackStaysPaused]' passed (0.000 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackInterruptionPolicyTests testRepeatedBeginCannotUndoManualPause]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackInterruptionPolicyTests testRepeatedBeginDoesNotLoseOriginalIntent]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackInterruptionPolicyTests testSuspensionAndUnmatchedEndNeverResume]' passed (0.001 seconds).
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.004 (0.006) seconds
+Test Case '-[StreamLabPresentationTests.PlaybackRetryBudgetTests testExplicitNewPresentationCanResetBudget]' passed (0.001 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackRetryBudgetTests testInvalidLimitCannotProduceRetries]' passed (0.000 seconds).
+Test Case '-[StreamLabPresentationTests.PlaybackRetryBudgetTests testRetriesAreBoundedAndDoNotReopenAfterExhaustion]' passed (0.000 seconds).
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Case '-[StreamLabPresentationTests.TrackFallbackTests testEmptyPlayableListNeverReturnsAnInvalidIndex]' passed (0.000 seconds).
+Test Case '-[StreamLabPresentationTests.TrackFallbackTests testMissingAudioRoleFallsBackWithinLanguageBeforeOtherLanguage]' passed (0.000 seconds).
+Test Case '-[StreamLabPresentationTests.TrackFallbackTests testMissingSubtitleUsesDefaultOrOffAndRequiredTrackCannotBeOff]' passed (0.000 seconds).
+Test Case '-[StreamLabPresentationTests.TrackFallbackTests testPreferredTrackReturnsWhenNextItemProvidesItInDifferentOrder]' passed (0.000 seconds).
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+	 Executed 31 tests, with 0 failures (0 unexpected) in 0.033 (0.041) seconds
+	 Executed 31 tests, with 0 failures (0 unexpected) in 0.033 (0.048) seconds
+✔ Test run with 247 tests in 44 suites passed after 121.010 seconds.
+
+FILE core-chaos-42239749042-1/mutation-process-kHKTr7/RESULTS.txt
+PASS macOS SIGKILL durable mutation recovery
+NOT TESTED: iOS jetsam/file protection; power loss; kill during atomic write; production server
+
+FILE ios-app-acceptance-42239749042-1/submission-app-8rW78o/RESULTS.txt
+PASS smoke tests=2
+CLEAN_SIMULATOR_BUILD_LAUNCH_SECONDS=424
+PASS boundaries tests=5
+PASS measurement tests=2
+SCOPE: clean simulator build/launch, SQLite-backed UI persistence, F04 and structural accessibility. Physical VoiceOver/power are separate.
+
+FILE ios-app-acceptance-42239749042-1/submission-app-8rW78o/boundaries.log
+Test Case '-[StreamLabUITests.StreamLabUITests testF04CloseDuringSeekThenSwitchProfileKeepsNewPlaybackIndependent]' passed (95.598 seconds).
+Test Case '-[StreamLabUITests.StreamLabUITests testMyListPersistsAndIsolatesProfiles]' passed (114.642 seconds).
+Test Case '-[StreamLabUITests.StreamLabUITests testPlaybackAccessibilityControlPath]' passed (50.929 seconds).
+Test Case '-[StreamLabUITests.StreamLabUITests testRecentSearchesPersistAndIsolateProfiles]' passed (108.986 seconds).
+Test Case '-[StreamLabUITests.StreamLabUITests testSubtitleSelectionSeekingAndRestoration]' passed (138.263 seconds).
+	 Executed 5 tests, with 0 failures (0 unexpected) in 508.417 (508.459) seconds
+	 Executed 5 tests, with 0 failures (0 unexpected) in 508.417 (508.460) seconds
+	 Executed 5 tests, with 0 failures (0 unexpected) in 508.417 (508.463) seconds
+
+FILE ios-app-acceptance-42239749042-1/submission-app-8rW78o/measurement.log
+Test Case '-[StreamLabUITests.StreamLabUITests testControlledHomeScrollC]' passed (63.432 seconds).
+Test Case '-[StreamLabUITests.StreamLabUITests testControlledHomeScrollPV]' passed (56.413 seconds).
+	 Executed 2 tests, with 0 failures (0 unexpected) in 119.844 (119.847) seconds
+	 Executed 2 tests, with 0 failures (0 unexpected) in 119.844 (119.848) seconds
+	 Executed 2 tests, with 0 failures (0 unexpected) in 119.844 (119.849) seconds
+
+FILE ios-app-acceptance-42239749042-1/submission-app-8rW78o/smoke.log
+Test Case '-[StreamLabUITests.StreamLabUITests testColdLaunchAndRelaunchShowProfiles]' passed (53.541 seconds).
+Test Case '-[StreamLabUITests.StreamLabUITests testSwiftUIScreensAndPlayback]' passed (80.226 seconds).
+	 Executed 2 tests, with 0 failures (0 unexpected) in 133.767 (133.778) seconds
+	 Executed 2 tests, with 0 failures (0 unexpected) in 133.767 (133.780) seconds
+	 Executed 2 tests, with 0 failures (0 unexpected) in 133.767 (133.781) seconds
+
+FILE ios-native-downloads-42239749042-2/download-combined-NuEl2X/RESULTS.txt
+PASS F06 native failure/disk/pin recovery, F09 license boundary and normal downloaded playback regression
+INJECTED: capacity=0, one native task cancellation, cached expired entitlement and unavailable renewal. NOT TESTED: physical ENOSPC, airplane mode, production DRM.
+
+FILE ios-native-downloads-42239749042-2/download-combined-NuEl2X/ui-tests.log
+Test Case '-[StreamLabUITests.StreamLabUITests testF06ConcurrentFailureDiskPressurePreservesPinnedAndRecovers]' passed (217.392 seconds).
+Test Case '-[StreamLabUITests.StreamLabUITests testF09DownloadedHLSExpiredOfflineGrantBlocksRetryAndCloses]' passed (114.853 seconds).
+Test Case '-[StreamLabUITests.StreamLabUITests testRealHLSDownloadRelaunchPlaybackAndDelete]' passed (143.499 seconds).
+	 Executed 3 tests, with 0 failures (0 unexpected) in 475.744 (475.751) seconds
+	 Executed 3 tests, with 0 failures (0 unexpected) in 475.744 (475.753) seconds
+	 Executed 3 tests, with 0 failures (0 unexpected) in 475.744 (475.755) seconds
+
+FILE ios-playback-42239749042-1/ci/release.log
+** BUILD SUCCEEDED **
+
+FILE ios-playback-42239749042-1/playback-session-lifecycle-WcPQ05/RESULTS.txt
+PASS twenty-five iOS playback session and Now Playing tests
+NOT TESTED: physical lock-screen card, SwiftUI profile-switch navigation, Bluetooth disconnection, full regression suite
+
+FILE ios-playback-42239749042-1/playback-session-lifecycle-WcPQ05/ios-tests.log
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackEntitlementBoundaryTests testCloseRejectsLateEntitlementSuccess]' passed (0.800 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackEntitlementBoundaryTests testDownloadedSourceExpiredGrantAndOfflineRenewalNeverCreatePlayer]' passed (0.302 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackEntitlementBoundaryTests testForegroundReturnRejectsExpiredGrantBeforeResuming]' passed (2.685 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackEntitlementBoundaryTests testInvalidatedSessionRejectsLateEntitlementSuccess]' passed (0.587 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackEntitlementBoundaryTests testOldProfileReplyCannotReplaceNewPlayer]' passed (1.159 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackEntitlementBoundaryTests testPausedGrantExpiresWithoutResumingPlayback]' passed (2.281 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackEntitlementBoundaryTests testPersistentRenewalFailureExhaustsRetryBudget]' passed (0.131 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackEntitlementBoundaryTests testPlayingGrantExpiresAndManualRetryObtainsNewGrant]' passed (2.296 seconds).
+	 Executed 8 tests, with 0 failures (0 unexpected) in 10.240 (10.249) seconds
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackNowPlayingTests testEndClearsMetadataAndDisablesOwnedCommands]' passed (0.018 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackNowPlayingTests testLateOldCleanupCannotClearNewPresentation]' passed (0.006 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackNowPlayingTests testLateOldSampleCannotOverwriteNewProgress]' passed (0.023 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackNowPlayingTests testNewPresentationPublishesEvenWithIdenticalPlaybackSnapshot]' passed (0.010 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackNowPlayingTests testQueuedCommandIsRejectedAfterCloseOrOwnerReplacement]' passed (0.058 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackNowPlayingTests testSessionOwnsExactPlayerAndReplacementCleansOldCenter]' passed (0.004 seconds).
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.119 (0.125) seconds
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackObserverLifecycleTests testAudioObserversUnregisterAndReleaseCapturedHandlerAcrossTenCycles]' passed (0.020 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackObserverLifecycleTests testItemAndResetObserversFilterAndUnregisterAcrossTenCycles]' passed (0.012 seconds).
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.032 (0.033) seconds
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackOrientationCallbackTests testRestoreRejectionCanArriveOffMainActor]' passed (0.004 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackOrientationCallbackTests testRotationRejectionCanArriveOffMainActor]' passed (0.002 seconds).
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.006 (0.007) seconds
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackSessionLifecycleTests testInvalidationBeforeLoadTaskRunsCannotCreatePlayer]' passed (0.040 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackSessionLifecycleTests testProfileReplacementDuringSeekStopsOldPlayerAndKeepsNewMetadata]' passed (1.223 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackSessionLifecycleTests testRejectedEntitlementsCannotCreatePlayerAndRenewalRecovers]' passed (3.590 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackSessionLifecycleTests testStopDetachesRealPlayerAndClearsSystemMetadata]' passed (0.959 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackSessionLifecycleTests testSubtitleNetworkFailureAndEndPermutationsCannotResurrectClosedPlayback]' passed (17.738 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackSessionLifecycleTests testTenBackgroundCyclesWithCachePressureReleaseModelAndStopPlayer]' passed (3.089 seconds).
+Test Case '-[StreamLabCatalogFeatureTests.PlaybackSessionLifecycleTests testTenPlaybackClosuresIgnoreOldSystemNotifications]' passed (19.811 seconds).
+	 Executed 7 tests, with 0 failures (0 unexpected) in 46.450 (46.456) seconds
+	 Executed 25 tests, with 0 failures (0 unexpected) in 56.848 (56.874) seconds
+	 Executed 25 tests, with 0 failures (0 unexpected) in 56.848 (56.875) seconds
