@@ -9,6 +9,24 @@ import Testing
         value.bytes = bytes; value.state = .complete; value.pinned = pinned
         return value
     }
+    @Test func loneTransferCanUseFullBudget() throws {
+        var task = item(700_000_000, age: 0); task.state = .downloading
+        #expect(try OfflineDownloadBudget.transferAllowance(for: task.id, in: [task]) == 1_000_000_000)
+        #expect(throws: OfflineDownloadBudget.Failure.self) {
+            try OfflineDownloadBudget.evictions(in: [task])
+        }
+    }
+    @Test func growingTransferHonorsOtherReservationsAndStoredFiles() throws {
+        var first = item(0, age: 0); first.state = .downloading
+        var second = item(0, age: 1); second.state = .paused
+        #expect(try OfflineDownloadBudget.transferAllowance(for: first.id, in: [first, second]) == 500_000_000)
+        second.bytes = 700_000_000
+        #expect(try OfflineDownloadBudget.transferAllowance(for: first.id, in: [first, second]) == 300_000_000)
+        second.state = .complete
+        let stored = item(100_000_000, age: 2, pinned: true)
+        #expect(try OfflineDownloadBudget.transferAllowance(for: first.id, in: [first, second, stored]) == 200_000_000)
+        #expect(try OfflineDownloadBudget.transferAllowance(for: first.id, in: [first, stored]) == 900_000_000)
+    }
     @Test func exactBudgetNeedsNoEviction() throws {
         #expect(try OfflineDownloadBudget.evictions(in: [item(500_000_000, age: 1)]).isEmpty)
     }

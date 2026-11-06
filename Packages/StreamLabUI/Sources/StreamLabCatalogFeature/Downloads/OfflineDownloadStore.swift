@@ -454,12 +454,19 @@ import StreamLabPresentation
             let fraction = value.fractionCompleted
             let received = task.countOfBytesReceived
             Task { @MainActor [weak self] in
-                guard let self, let i = self.index(id), self.records[i].state == .downloading else { return }
+                guard let self, let i = self.index(id), self.records[i].state == .downloading, self.tasks[id] === task else { return }
                 self.progress[id] = fraction.isFinite ? min(1, max(0, fraction)) : 0
                 #if DEBUG
                 self.validationApplyTransferPressureIfReady()
                 #endif
-                if received > OfflineDownloadBudget.reservation {
+                // Until completion, received bytes conservatively reserve transfer growth.
+                // They are not the final allocated package size.
+                self.records[i].bytes = max(self.records[i].bytes, max(0, received))
+                if let allowance = try? OfflineDownloadBudget.transferAllowance(for: id, in: self.records),
+                   self.records[i].bytes > allowance {
+                    let allocated = self.localURL(self.records[i]).flatMap { try? self.allocatedBytes($0) } ?? -1
+                    NSLog("Offline download budget exceeded received=%lld allocated=%lld allowance=%lld totalLimit=%lld",
+                          received, allocated, allowance, OfflineDownloadBudget.capacity)
                     self.stopTransfer(id, message: OfflineDownloadFailure.reservationExceeded)
                 }
                 if Date().timeIntervalSince(self.lastDiskCheck[id] ?? .distantPast) >= 2 {
@@ -748,14 +755,21 @@ extension OfflineDownloadStore: AVAssetDownloadDelegate, URLSessionDownloadDeleg
                 }
                 let bytes = try allocatedBytes(url)
                 records[i].bytes = bytes
-                guard bytes > 0, bytes <= OfflineDownloadBudget.reservation else { throw CocoaError(.fileWriteOutOfSpace) }
+                let allowance = try OfflineDownloadBudget.transferAllowance(for: id, in: records)
+                guard bytes > 0 else { throw CocoaError(.fileReadUnknown) }
+                guard bytes <= allowance else {
+                    records[i].message = OfflineDownloadFailure.reservationExceeded
+                    NSLog("Offline download completed over budget allocated=%lld allowance=%lld totalLimit=%lld",
+                          bytes, allowance, OfflineDownloadBudget.capacity)
+                    throw OfflineDownloadBudget.Failure.insufficientSpace
+                }
                 records[i].bytes = bytes; records[i].state = .complete; records[i].message = nil
                 records[i].expiresAt = Date().addingTimeInterval(OfflineDownload.mockValidity)
                 try save()
                 if !completedWhilePaused { notifyCompletion(id) }
             } catch {
                 records[i].state = .failed
-                records[i].message = stopMessage ?? OfflineDownloadFailure.message(for: transferError ?? error)
+                records[i].message = records[i].message ?? stopMessage ?? OfflineDownloadFailure.message(for: transferError ?? error)
                 // Keep the path and reservation while the OS finishes writing its
                 // package. A late-created file must remain tracked across relaunch.
                 records[i].bytes = records[i].relativePath == nil ? 0 : max(records[i].bytes, OfflineDownloadBudget.reservation)

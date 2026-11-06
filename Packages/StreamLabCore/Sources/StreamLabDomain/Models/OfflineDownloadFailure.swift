@@ -2,7 +2,7 @@ import Foundation
 
 public enum OfflineDownloadFailure {
     public static let insufficientSpace = "기기 저장 공간이 부족해 다운로드가 중단되었습니다. 공간을 확보한 뒤 다시 다운로드해 주세요."
-    public static let reservationExceeded = "다운로드가 허용된 파일 크기를 초과해 중단되었습니다."
+    public static let reservationExceeded = "전체 다운로드 예산 1GB에서 다른 파일과 진행 중인 작업의 예약 공간을 제외한 한도를 초과해 중단되었습니다."
     public static let generic = "다운로드를 완료하지 못했습니다. Wi-Fi와 저장 공간을 확인한 뒤 다시 다운로드해 주세요."
 
     /// OS errors may wrap ENOSPC in a URL loading error. Bound traversal for malformed chains.

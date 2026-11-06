@@ -127,6 +127,12 @@ public enum OfflineDownloadBudget {
             ? max(record.bytes, reservation) : record.bytes
     }
 
+    /// A task may grow beyond its initial reservation while other tasks retain theirs.
+    public static func transferAllowance(for id: UUID, in records: [OfflineDownload]) throws -> Int64 {
+        let others = try usage(in: records.filter { $0.id != id })
+        return max(0, capacity - others.chargedBytes)
+    }
+
     public static func evictions(in records: [OfflineDownload], required: Int64 = reservation,
                                  protected: Set<UUID> = [], minimumReclaim: Int64 = 0) throws -> [UUID] {
         guard required > 0, required <= capacity, minimumReclaim >= 0 else { throw Failure.invalidSize }
