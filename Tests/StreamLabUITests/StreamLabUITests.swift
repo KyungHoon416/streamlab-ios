@@ -9,6 +9,15 @@ import XCTest
     }
 
     private func captureFailure(_ app: XCUIApplication, name: String) {
+        // Keep the decisive state in the text artifact too. Screenshots and the
+        // full hierarchy are attached to xcresult, not xcodebuild's console log.
+        print("UI failure: \(name)")
+        for id in ["playback-status", "playback-time", "playback-seek-message", "download-failed", "download-complete"] {
+            let element = app.staticTexts[id]
+            if element.exists {
+                print("UI state \(id): label=\(element.label) value=\(String(describing: element.value))")
+            }
+        }
         let hierarchy = XCTAttachment(string: app.debugDescription)
         hierarchy.name = name + " hierarchy"
         hierarchy.lifetime = .keepAlways
@@ -2287,7 +2296,10 @@ import XCTest
     }
 
     func testSwiftUIScreensAndPlayback() {
-        let app = launch()
+        // This smoke verifies navigation and the real paused seek, not the
+        // four-second HUD timer. Slow hosted-runner queries must still be able
+        // to observe the actual player time after the interaction.
+        let app = launch(keepPlaybackControls: true)
         choose("adult-a", in: app)
         openHomeDetail(app)
         openPlayback(app)
@@ -2295,9 +2307,7 @@ import XCTest
         tap(app.buttons["playback-toggle"], in: app)
         expectPlayback("일시 정지", in: app)
         tap(app.buttons["playback-forward"], in: app)
-        let time = app.staticTexts["playback-time"]
-        expectation(for: NSPredicate(format: "label MATCHES %@", "00:00:(1[0-9]|2[0-9]|30) / 00:00:30"), evaluatedWith: time)
-        waitForExpectations(timeout: 10)
+        guard waitForPausedSeek(app, timePattern: "00:00:(1[0-9]|2[0-9]|30) / 00:00:30") else { return }
         closePlayback(app)
         back(app)
         tap(app.buttons["switch-profile"], in: app)

@@ -39,6 +39,15 @@ jobs:
           retention-days: 14
           if-no-files-found: error
 
+      - name: Preserve failed app screenshots and diagnostics
+        if: failure()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: ios-app-failure-xcresult-${{ github.run_id }}-${{ github.run_attempt }}
+          path: Docs/Validation/**/*.xcresult
+          retention-days: 14
+          if-no-files-found: warn
+
   ios-native-downloads:
     runs-on: macos-26
     timeout-minutes: 30
@@ -59,6 +68,15 @@ jobs:
             Docs/Validation/**/environment.txt
           retention-days: 14
           if-no-files-found: error
+
+      - name: Preserve failed download screenshots and diagnostics
+        if: failure()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: ios-native-failure-xcresult-${{ github.run_id }}-${{ github.run_attempt }}
+          path: Docs/Validation/**/*.xcresult
+          retention-days: 14
+          if-no-files-found: warn
 
   core-chaos:
     runs-on: macos-26
