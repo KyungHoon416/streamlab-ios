@@ -14,10 +14,10 @@ export function uploadProgressText({ bytesTransferred, totalBytes }) {
   return `업로드 중 ${percent}% · ${formatVideoSize(bytesTransferred)} / ${formatVideoSize(totalBytes)}`;
 }
 
-export async function validateMP4(file) {
+export async function validateMP4(file, { forUpload = true } = {}) {
   if (!file || !/\.mp4$/i.test(file.name))
     throw Error("MP4 파일을 선택하세요.");
-  if (!Number.isSafeInteger(file.size) || file.size < 12 || file.size > MAX_VIDEO_BYTES)
+  if (!Number.isSafeInteger(file.size) || file.size < 12 || (forUpload && file.size > MAX_VIDEO_BYTES))
     throw Error(`12바이트 이상, ${formatVideoSize(MAX_VIDEO_BYTES)} 이하의 MP4 파일만 업로드할 수 있습니다.`);
   if (file.type && file.type !== "video/mp4")
     throw Error("MP4 영상 형식이 아닙니다.");

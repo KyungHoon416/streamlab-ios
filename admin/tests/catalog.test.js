@@ -36,6 +36,13 @@ test("draft may omit stream, published content cannot", () => {
   assert.throws(() => validateTitle({ ...title, streamURL: "" }));
   assert.equal(validateTitle({ ...title, year: "2026" }).year, 2026);
 });
+test("compression form controls cannot leak into draft or published documents", () => {
+  for (const published of [false, true]) {
+    const result = validateTitle({ ...title, published, "compression-mode": "original", sourceBytes: 4_000_000_000 });
+    assert.deepEqual(Object.keys(result).sort(), Object.keys(title).sort());
+    assert.equal(result.published, published);
+  }
+});
 test("reject dangerous URLs and malformed metadata", () => {
   for (const streamURL of [
     "http://example.com/a.m3u8",

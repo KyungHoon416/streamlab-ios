@@ -2,8 +2,9 @@ import { validateMP4 } from "./upload.js";
 
 // Picker and drop share validation. Old reads cannot restore a file after reset.
 export class VideoSelection {
-  constructor(changed) {
+  constructor(changed, validate = validateMP4) {
     this.changed = changed;
+    this.validate = validate;
     this.generation = 0;
     this.file = null;
   }
@@ -17,7 +18,7 @@ export class VideoSelection {
     const generation = this.generation;
     try {
       if (files.length !== 1) throw Error("MP4 파일을 한 개씩 선택해 주세요.");
-      await validateMP4(files[0]);
+      await this.validate(files[0]);
       if (generation !== this.generation) return;
       this.file = files[0];
       this.changed(this.file, "");

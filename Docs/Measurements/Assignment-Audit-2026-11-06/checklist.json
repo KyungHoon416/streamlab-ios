@@ -1,0 +1,876 @@
+{
+  "date": "2026-11-06",
+  "basis_commit": "b10bb7e0ce12f55d58e9b8c621b74a3216be0a25",
+  "app_commit": "04bb9854351240b66cb5040ec648de14c02d5111",
+  "source_name": "Netflix_iOS_과제.docx",
+  "source_sha256": "5f2227f658aa52f16a2429c68c4ee3b729fc8e49c17883441cb455622d058250",
+  "method": "79 equally weighted verification units; partial or unverified = remaining; not a grade, effort estimate or production-readiness percentage",
+  "complete": 71,
+  "remaining": 8,
+  "items": [
+    {
+      "group": "공통·핵심 테스트",
+      "id": "G1",
+      "requirement": "대체 가능한 프로토콜과 재현 Mock",
+      "status": "complete",
+      "evidence": [
+        "Docs/ARCHITECTURE_CURRENT.md",
+        "Docs/ADR/0001-feature-modules.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "공통·핵심 테스트",
+      "id": "G2",
+      "requirement": "취소·화면 이탈·백그라운드·프로필 수명 정의",
+      "status": "complete",
+      "evidence": [
+        "Docs/ADR/0007-playback-lifecycle.md",
+        "Docs/Measurements/Observer-Lifecycle-2026-11-01/REPORT.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "공통·핵심 테스트",
+      "id": "G3",
+      "requirement": "기술 제약과 미확인 범위를 성공으로 포장하지 않고 문서화",
+      "status": "complete",
+      "evidence": [
+        "Docs/CURRENT_STATUS.md",
+        "Docs/CHAOS_ACCEPTANCE.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "A 홈·재생·복원",
+      "id": "A1-1",
+      "requirement": "성인 2·키즈 1 프로필 및 콘텐츠·진도·다운로드 분리",
+      "status": "complete",
+      "evidence": [
+        "Docs/Measurements/Profile-Seek-2026-11-01/REPORT.md",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/AccountLocalDataTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "A 홈·재생·복원",
+      "id": "A1-2",
+      "requirement": "히어로·추천 레일 5개·이어보기·검색·상세",
+      "status": "complete",
+      "evidence": [
+        "Docs/PHASE1_MANUAL_QA.md",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/CatalogStoreTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "A 홈·재생·복원",
+      "id": "A1-3",
+      "requirement": "2,000개 fixture·커서·중복 제거·이미지 lazy loading",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabCatalogDataTests/MockCatalogRepositoryTests.swift",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/ArtworkDataCacheTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "A 홈·재생·복원",
+      "id": "A1-4",
+      "requirement": "빠른 검색·스크롤·화면 왕복의 오래된 응답 배제",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/CatalogStoreTests.swift",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/AssignmentChaosTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "A 홈·재생·복원",
+      "id": "A2-1",
+      "requirement": "HLS·일시정지·탐색·10초 이동·다음 회차·연속 재생·복원",
+      "status": "complete",
+      "evidence": [
+        "Docs/HLS_EPISODES_QA.md",
+        "Docs/PHASE2_REPORT.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "A 홈·재생·복원",
+      "id": "A2-2",
+      "requirement": "HLS 음성·자막 조회/선택·복원·대체",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/TrackFallbackTests.swift",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/PlaybackLanguageTests.swift",
+        "Docs/PHASE2_REPORT.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "A 홈·재생·복원",
+      "id": "A2-3",
+      "requirement": "오류·stall·timeout·media reset의 유한 재시도와 안내",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/PlaybackRetryBudgetTests.swift",
+        "Docs/ADR/0019-media-reset-and-bounded-retry.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "A 홈·재생·복원",
+      "id": "A2-4",
+      "requirement": "플레이어 상태 전이와 불변식",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/PlaybackDiagnosticsTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "A 홈·재생·복원",
+      "id": "A2-5",
+      "requirement": "TTFF·rebuffer·failure·bitrate 지표",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/PlaybackDiagnosticsTests.swift",
+        "Docs/Measurements/HLS-2026-10-25/REPORT.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "A 홈·재생·복원",
+      "id": "A3-1",
+      "requirement": "Mock A→B 25:40 재개",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/PlaybackSyncCoordinatorTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "A 홈·재생·복원",
+      "id": "A3-2",
+      "requirement": "revision으로 과거 진도 거부",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/ProgressConflictTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "A 홈·재생·복원",
+      "id": "A3-3",
+      "requirement": "명시적 처음부터 보기 의미 보존",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/PlaybackSyncCoordinatorTests.swift",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/ProgressConflictTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "A 홈·재생·복원",
+      "id": "AM-1",
+      "requirement": "준비 중 연속 3회 이탈·Task/observer 정리",
+      "status": "complete",
+      "evidence": [
+        "Docs/PHASE2_REPORT.md",
+        "Docs/Measurements/Observer-Lifecycle-2026-11-01/REPORT.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "A 홈·재생·복원",
+      "id": "AM-2",
+      "requirement": "seek 중 단절 후 복구·유효 상태/오류 UI",
+      "status": "complete",
+      "evidence": [
+        "Docs/HLS_RECOVERY_QA.md",
+        "Packages/StreamLabUI/Tests/StreamLabCatalogFeatureTests/PlaybackSessionLifecycleTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "A 홈·재생·복원",
+      "id": "AM-3",
+      "requirement": "즉시 프로필 전환 시 이전 진도/최근 시청 차단",
+      "status": "complete",
+      "evidence": [
+        "Docs/Measurements/Profile-Seek-2026-11-01/REPORT.md",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/CatalogStoreTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "A 홈·재생·복원",
+      "id": "AM-4",
+      "requirement": "20회 재생/종료 메모리·observer 추세 근거",
+      "status": "complete",
+      "evidence": [
+        "Docs/Measurements/C4-2026-10-31/MEMORY_EVIDENCE.md",
+        "Docs/Measurements/C4-2026-10-31/REPORT.md",
+        "Docs/Measurements/Observer-Lifecycle-2026-11-01/REPORT.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "B 오프라인 정합성",
+      "id": "B1-1",
+      "requirement": "찜·이어보기·최근 검색을 로컬 DB에 먼저 기록",
+      "status": "remaining",
+      "evidence": [
+        "Packages/StreamLabCore/Sources/StreamLabPresentation/Sync/DurableMutationStore.swift",
+        "Docs/ARCHITECTURE_CURRENT.md"
+      ],
+      "note": "로컬 우선 저장과 영속 큐는 구현·검증됨. 현재 atomic JSON journal이며 SwiftData/SQLite 같은 DB 엔진은 미도입. 원문의 로컬 DB 요구를 이 대안으로 인정할지 확인하거나 DB 계층으로 이전해야 함."
+    },
+    {
+      "group": "B 오프라인 정합성",
+      "id": "B1-2",
+      "requirement": "강제 종료 후 영속 큐 재처리",
+      "status": "complete",
+      "evidence": [
+        "Docs/Measurements/Mutation-Process-2026-11-01/REPORT.md",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/DurableMutationTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "B 오프라인 정합성",
+      "id": "B1-3",
+      "requirement": "idempotencyKey·sequence·revision",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/DurableMutationTests.swift",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/MutationConflictTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "B 오프라인 정합성",
+      "id": "B1-4",
+      "requirement": "계정/프로필 격리와 로그아웃 삭제",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/AccountLocalDataTests.swift",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/DurableAuthenticationLogoutTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "B 오프라인 정합성",
+      "id": "B2-1",
+      "requirement": "A/B 찜 동시 설정/해제 수렴",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/MyListMergeTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "B 오프라인 정합성",
+      "id": "B2-2",
+      "requirement": "30초→1,400초 역순 진도 보호",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/ProgressConflictTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "B 오프라인 정합성",
+      "id": "B2-3",
+      "requirement": "오프라인 restart 의미 보존",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/ProgressConflictTests.swift",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/DurablePlaybackProgressTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "B 오프라인 정합성",
+      "id": "B2-4",
+      "requirement": "409 UI 조정·재동기화",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/MutationConflictTests.swift",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/HTTPMutationQueueTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "B 오프라인 정합성",
+      "id": "B2-5",
+      "requirement": "429 Retry-After·jitter·상한·취소",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/MutationRetryTests.swift",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/RetryClockChaosTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "B 오프라인 정합성",
+      "id": "B3-1",
+      "requirement": "Swift 6 strict 경고 오류 처리·공유 상태 격리",
+      "status": "complete",
+      "evidence": [
+        ".github/workflows/validation.yml",
+        "Docs/CI_VALIDATION.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "B 오프라인 정합성",
+      "id": "B3-2",
+      "requirement": "프로필 전환 후 in-flight 응답 차단",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/CatalogStoreTests.swift",
+        "Docs/Measurements/Profile-Seek-2026-11-01/REPORT.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "B 오프라인 정합성",
+      "id": "B3-3",
+      "requirement": "401 8건 single-flight",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/HTTPAuthenticationTests.swift",
+        "Docs/Measurements/HTTP-Boundaries-2026-10-31/REPORT.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "B 오프라인 정합성",
+      "id": "B3-4",
+      "requirement": "Task 취소·AsyncSequence·MainActor 경계 테스트",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabUI/Tests/StreamLabCatalogFeatureTests/HomeRecentTests.swift",
+        "Packages/StreamLabUI/Tests/StreamLabCatalogFeatureTests/PlaybackEntitlementBoundaryTests.swift",
+        "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Home/HomeRecentModel.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "B 오프라인 정합성",
+      "id": "BI-1",
+      "requirement": "범위별 mutation 효과 최대 1회",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/MutationChaosTests.swift",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/AssignmentChaosTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "B 오프라인 정합성",
+      "id": "BI-2",
+      "requirement": "UI/응답 프로필 불일치 렌더링 금지",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/CatalogStoreTests.swift",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/AssignmentChaosTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "B 오프라인 정합성",
+      "id": "BI-3",
+      "requirement": "재실행 후 큐 유실/중복 없이 수렴",
+      "status": "complete",
+      "evidence": [
+        "Docs/Measurements/Mutation-Process-2026-11-01/REPORT.md",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/MutationChaosTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "B 오프라인 정합성",
+      "id": "BI-4",
+      "requirement": "불가 오류 무한 루프 금지·수동 복구",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/RetryClockChaosTests.swift",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/PlaybackRetryBudgetTests.swift",
+        "Docs/CI_VALIDATION.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "C 다운로드·보안·품질",
+      "id": "C1-1",
+      "requirement": "AVAssetDownloadURLSession 및 지원 한계",
+      "status": "complete",
+      "evidence": [
+        "Docs/ADR/0028-offline-hls-downloads.md",
+        "Docs/DOWNLOADS_QA.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "C 다운로드·보안·품질",
+      "id": "C1-2",
+      "requirement": "대기/전송/일시정지/재개/완료/실패/만료/삭제",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/OfflineDownloadExpiryTests.swift",
+        "Docs/DOWNLOADS_QA.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "C 다운로드·보안·품질",
+      "id": "C1-3",
+      "requirement": "동시 2개·전체 1GB 예산",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/OfflineDownloadBudgetTests.swift",
+        "Docs/DOWNLOADS_QA.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "C 다운로드·보안·품질",
+      "id": "C1-4",
+      "requirement": "공간 부족·고정 보호·비고정 LRU",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/OfflineDownloadDiskPressureTests.swift",
+        "Docs/Measurements/Combined-Failures-2026-10-31/REPORT.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "C 다운로드·보안·품질",
+      "id": "C1-5",
+      "requirement": "백그라운드/재실행/취소의 orphan·중복 태스크 방지",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/OfflineDownloadFailureTests.swift",
+        "Docs/DOWNLOADS_QA.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "C 다운로드·보안·품질",
+      "id": "C1-6",
+      "requirement": "오프라인 프로필 권한 교차 차단",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/CatalogDownloadTests.swift",
+        "Docs/DOWNLOADS_QA.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "C 다운로드·보안·품질",
+      "id": "C2-1",
+      "requirement": "Keychain 토큰·비밀 평문 로그 방지",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/KeychainTokenStoreTests.swift",
+        "Docs/Measurements/Diagnostic-Privacy-2026-10-31/REPORT.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "C 다운로드·보안·품질",
+      "id": "C2-2",
+      "requirement": "프로필/로그아웃에서 재생·prefetch·다운로드 무효화",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/DurableAuthenticationLogoutTests.swift",
+        "Docs/Measurements/Profile-Seek-2026-11-01/REPORT.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "C 다운로드·보안·품질",
+      "id": "C2-3",
+      "requirement": "진단 URL·계정·시청 이력 최소화/마스킹",
+      "status": "complete",
+      "evidence": [
+        "Docs/Measurements/Diagnostic-Privacy-2026-10-31/REPORT.md",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/SafeDiagnosticErrorTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "C 다운로드·보안·품질",
+      "id": "C2-4",
+      "requirement": "DRM 키·권한·갱신 Mock, 우회 없음",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/PlaybackEntitlementTests.swift",
+        "Docs/Measurements/Runtime-Entitlement-2026-11-01/REPORT.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "C 다운로드·보안·품질",
+      "id": "C3-1",
+      "requirement": "VoiceOver 탐색→상세→재생→자막→중단 전체 독립 조작",
+      "status": "remaining",
+      "evidence": [
+        "Docs/PHASE1_MANUAL_QA.md",
+        "Docs/ASSIGNMENT_PROGRESS.md"
+      ],
+      "note": "프로필/탐색/상세와 로그인 VoiceOver 확인은 있음. 현재 재생·자막·종료까지 이어지는 전체 경로의 실기기 기록은 미확보."
+    },
+    {
+      "group": "C 다운로드·보안·품질",
+      "id": "C3-2",
+      "requirement": "Dynamic Type·고대비/다크·Reduce Motion",
+      "status": "complete",
+      "evidence": [
+        "Docs/ASSIGNMENT_PROGRESS.md",
+        "Docs/PHASE1_MANUAL_QA.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "C 다운로드·보안·품질",
+      "id": "C3-3",
+      "requirement": "44pt 터치·focus order·접근성 label",
+      "status": "complete",
+      "evidence": [
+        "Docs/ASSIGNMENT_PROGRESS.md",
+        "Docs/PHASE2_REPORT.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "C 다운로드·보안·품질",
+      "id": "C4-1",
+      "requirement": "2,000 fixture 실제 표시 프레임 p50/p95",
+      "status": "complete",
+      "evidence": [
+        "Docs/Measurements/C4-2026-10-31/REPORT.md",
+        "Docs/Measurements/C4-2026-10-31/display-intervals.json"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "C 다운로드·보안·품질",
+      "id": "C4-2",
+      "requirement": "20회 allocation·retained·메모리 추세",
+      "status": "complete",
+      "evidence": [
+        "Docs/Measurements/C4-2026-10-31/MEMORY_EVIDENCE.md",
+        "Docs/Measurements/C4-2026-10-31/REPORT.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "C 다운로드·보안·품질",
+      "id": "C4-3",
+      "requirement": "HLS 20회 이상 TTFF p50/p95·네트워크 조건",
+      "status": "complete",
+      "evidence": [
+        "Docs/Measurements/HLS-2026-10-25/REPORT.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "C 다운로드·보안·품질",
+      "id": "C4-4",
+      "requirement": "백그라운드 다운로드 에너지/디스크와 캐시 근거",
+      "status": "remaining",
+      "evidence": [
+        "Docs/Measurements/C4-2026-10-31/power/REPORT.md",
+        "Docs/Measurements/C4-2026-10-31/fileio/REPORT.md",
+        "Docs/ADR/0028-offline-hls-downloads.md"
+      ],
+      "note": "HLS 재생 전력과 다운로드/삭제 앱 I/O는 확보. 백그라운드 다운로드 전력 실험은 분리해 입증하지 못함. 시스템 전송 서비스 전체 I/O도 현재 기록 범위 밖임."
+    },
+    {
+      "group": "C 다운로드·보안·품질",
+      "id": "C4-5",
+      "requirement": "동일 조건의 전후 개선 증거",
+      "status": "remaining",
+      "evidence": [
+        "Docs/Measurements/C4-2026-10-31/REPORT.md"
+      ],
+      "note": "A/B 열 상태·손동작·빌드 조건 차이. 프레임 수치는 확보했지만 스크롤 전후 개선은 미입증. 과제에 없는 고정 FPS 합격선은 만들지 않음."
+    },
+    {
+      "group": "D 장애 주입·재현",
+      "id": "F01",
+      "requirement": "홈 5회 역순",
+      "status": "complete",
+      "evidence": [
+        "Docs/CHAOS_ACCEPTANCE.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "D 장애 주입·재현",
+      "id": "F02",
+      "requirement": "401×8와 refresh 500",
+      "status": "complete",
+      "evidence": [
+        "Docs/CHAOS_ACCEPTANCE.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "D 장애 주입·재현",
+      "id": "F03",
+      "requirement": "오프라인 100건 강제 종료",
+      "status": "complete",
+      "evidence": [
+        "Docs/CHAOS_ACCEPTANCE.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "D 장애 주입·재현",
+      "id": "F04",
+      "requirement": "seek 중 A→B",
+      "status": "complete",
+      "evidence": [
+        "Docs/CHAOS_ACCEPTANCE.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "D 장애 주입·재현",
+      "id": "F05",
+      "requirement": "백그라운드 10회/메모리 압박",
+      "status": "complete",
+      "evidence": [
+        "Docs/CHAOS_ACCEPTANCE.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "D 장애 주입·재현",
+      "id": "F06",
+      "requirement": "전송 2개 중 1실패/공간 부족",
+      "status": "complete",
+      "evidence": [
+        "Docs/CHAOS_ACCEPTANCE.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "D 장애 주입·재현",
+      "id": "F07",
+      "requirement": "429/503/timeout 혼합",
+      "status": "complete",
+      "evidence": [
+        "Docs/CHAOS_ACCEPTANCE.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "D 장애 주입·재현",
+      "id": "F08",
+      "requirement": "A/B 진도 경쟁",
+      "status": "complete",
+      "evidence": [
+        "Docs/CHAOS_ACCEPTANCE.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "D 장애 주입·재현",
+      "id": "F09",
+      "requirement": "만료 권한/오프라인",
+      "status": "complete",
+      "evidence": [
+        "Docs/CHAOS_ACCEPTANCE.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "D 장애 주입·재현",
+      "id": "F10",
+      "requirement": "자막·단절·종료 순열",
+      "status": "complete",
+      "evidence": [
+        "Docs/CHAOS_ACCEPTANCE.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "D 장애 주입·재현",
+      "id": "DH-1",
+      "requirement": "고정 seed·이벤트 순서 재현·fake clock·mock transport",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/MutationChaosTests.swift",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/RetryClockChaosTests.swift",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/AssignmentChaosTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "D 장애 주입·재현",
+      "id": "DH-2",
+      "requirement": "시나리오별 비동기 race 및 CI 자동 실행 증빙",
+      "status": "remaining",
+      "evidence": [
+        "Docs/CI_VALIDATION.md",
+        "Docs/Measurements/Combined-Failures-2026-10-31/REPORT.md",
+        "scripts/check-download-combined-mac.sh"
+      ],
+      "note": "각 계층의 race·로컬 자동 스크립트는 있음. F06/F09 네이티브 복합 UI를 포함한 F01~F10 전체의 원격 자동 실행 증빙은 없음. CI 실행 가능 스크립트 부재라는 뜻은 아니며, 완료 판정은 보수적으로 유보."
+    },
+    {
+      "group": "D 장애 주입·재현",
+      "id": "DH-3",
+      "requirement": "시나리오 조건·관측 로그·최종 불변식 근거",
+      "status": "complete",
+      "evidence": [
+        "Docs/CHAOS_ACCEPTANCE.md",
+        "Docs/Measurements/Combined-Failures-2026-10-31/REPORT.md",
+        "Docs/CI_VALIDATION.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "제출물·사용 데이터",
+      "id": "E1",
+      "requirement": "구동 가능한 앱·비공개 API 없이 Mock 실행",
+      "status": "complete",
+      "evidence": [
+        "README.md",
+        "Docs/SUBMISSION_RECORD.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "제출물·사용 데이터",
+      "id": "E2",
+      "requirement": "README만으로 10분 내 제3자 빌드/실행/Mock/테스트",
+      "status": "remaining",
+      "evidence": [
+        "README.md",
+        "Docs/SUBMISSION_CHECKLIST.md"
+      ],
+      "note": "안내와 CI 새 checkout의 무서명 빌드는 있음. 제3자의 새 Mac에서 서명·실행까지 10분 재현한 근거는 없음. README 날짜별 과거 상태도 정리 필요."
+    },
+    {
+      "group": "제출물·사용 데이터",
+      "id": "E3",
+      "requirement": "충돌·플레이어 수명·다운로드 정책 ADR 3개 이상",
+      "status": "complete",
+      "evidence": [
+        "Docs/ADR/0021-multi-device-progress-revisions.md",
+        "Docs/ADR/0007-playback-lifecycle.md",
+        "Docs/ADR/0028-offline-hls-downloads.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "제출물·사용 데이터",
+      "id": "E4",
+      "requirement": "Player/Download 상태도 2개, 오류·취소 경로",
+      "status": "remaining",
+      "evidence": [
+        "Docs/ADR/0017-playback-observation-and-qoe.md",
+        "Docs/ADR/0028-offline-hls-downloads.md",
+        "Docs/ARCHITECTURE_CURRENT.md"
+      ],
+      "note": "상태 모델·전이 테스트·텍스트 정책은 있음. 오류/취소 경로를 포함한 Player와 Download 상태도 두 개를 독립 제출물로 정리하지 않음. 모듈 아키텍처 PDF로 대체하지 않음."
+    },
+    {
+      "group": "제출물·사용 데이터",
+      "id": "E5",
+      "requirement": "2,000 catalog·3profile·URL Mock·fault fixtures",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabCatalogDataTests/MockCatalogRepositoryTests.swift",
+        "Docs/CHAOS_ACCEPTANCE.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "제출물·사용 데이터",
+      "id": "E6",
+      "requirement": "unit/integration/UI/concurrency/chaos 테스트 구분",
+      "status": "complete",
+      "evidence": [
+        "Docs/CI_VALIDATION.md",
+        "Docs/CHAOS_ACCEPTANCE.md",
+        "README.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "제출물·사용 데이터",
+      "id": "E7",
+      "requirement": "TTFF·stall·메모리·frame time 계측 보고서",
+      "status": "complete",
+      "evidence": [
+        "Docs/Measurements/C4-2026-10-31/REPORT.md",
+        "Docs/Measurements/HLS-2026-10-25/REPORT.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "제출물·사용 데이터",
+      "id": "E8",
+      "requirement": "5분 이내 영상·장애 2개 주입",
+      "status": "complete",
+      "evidence": [
+        "Docs/SUBMISSION_RECORD.md",
+        "Docs/SUBMISSION_CHECKLIST.md"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "공통·핵심 테스트",
+      "id": "T1",
+      "requirement": "상태 유효/무효 전이·중복·cancellation assertion",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/PlaybackDiagnosticsTests.swift",
+        "Packages/StreamLabUI/Tests/StreamLabCatalogFeatureTests/PlaybackSessionLifecycleTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "공통·핵심 테스트",
+      "id": "T2",
+      "requirement": "격리·409·401·429·100건 복구 assertion",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/HTTPMutationQueueTests.swift",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/AssignmentChaosTests.swift",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/HTTPAuthenticationTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "공통·핵심 테스트",
+      "id": "T3",
+      "requirement": "fake clock로 시간 기반 flaky test 최소화",
+      "status": "complete",
+      "evidence": [
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/RetryClockChaosTests.swift",
+        "Packages/StreamLabCore/Tests/StreamLabPresentationTests/MutationRetryTests.swift"
+      ],
+      "note": "명시한 테스트·실기기 확인 범위에서 충족. 모든 OS·서버 조건의 보증은 아님."
+    },
+    {
+      "group": "제출물·사용 데이터",
+      "id": "DATA1",
+      "requirement": "샘플 URL과 사용권 조건을 README에 명시",
+      "status": "remaining",
+      "evidence": [
+        "README.md",
+        "Docs/FIREBASE_CATALOG.md"
+      ],
+      "note": "공개 샘플 연결 정보는 있으나 README의 URL/사용조건 목록이 불충분함. 공개 접근 가능하다는 사실을 자유 이용 허가로 대신하지 않음. 제출에 필요한 샘플만 정리하고 개인 추가 영상은 과제 재현 의존성에서 제외."
+    }
+  ]
+}

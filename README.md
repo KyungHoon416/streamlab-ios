@@ -1,5 +1,7 @@
 [현재 구현·남은 작업](Docs/CURRENT_STATUS.md) · [제출 점검표](Docs/SUBMISSION_CHECKLIST.md) · [5분 시연 대본](Docs/DEMO_SCRIPT.md)
 
+[과제 원문 기준 완료·잔여 점검](Docs/ASSIGNMENT_AUDIT_2026-11-06.md): 79개 확인 단위 중 71개 완료, 8개 보완/미확인. 약 90%/10%는 검증 체크 비율이며 과제 점수나 전체 완료 선언이 아닙니다.
+
 [최신 한글 아키텍처](Docs/ARCHITECTURE_CURRENT.md) · [아키텍처 PDF](Docs/Architecture/streamlab-architecture-ko.pdf)
 
 [2026-11-06 제출 기록](Docs/SUBMISSION_RECORD.md): 3분 32초 영상, 최신 PDF, 제출 태그와 실제 CI 커밋을 정리했습니다. Firebase 관리자·MP4 업로드·앱 카탈로그 및 HLS/MP4 오프라인 재생을 포함합니다. C4 측정값은 확보했지만 스크롤 성능의 전후 개선은 미입증입니다. 아래 날짜별 내용은 당시 작업 이력이며 현재 상태는 위 문서를 기준으로 봅니다.

@@ -1,0 +1,44 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>압축 안내 브라우저 회귀</title><main style="max-width:850px">
+<h1>압축 안내 검증</h1><p>가상 파일 크기와 메타데이터를 사용합니다. 서버 업로드는 실행하지 않습니다.</p>
+<button id="run" type="button">경계 검증 실행</button><pre id="results" role="status"></pre>
+<div id="fixture"></div><button id="upload" type="button">원본 파일 업로드</button>
+</main><script type="module">
+import "../src/style.css";
+import { CompressionPanel } from "../src/compression-panel.js";
+const html = await (await fetch("/index.html")).text();
+const parsed = new DOMParser().parseFromString(html, "text/html");
+document.querySelector("#fixture").append(parsed.querySelector("#compression-panel"));
+const root = document.querySelector("#compression-panel");
+let lateResolve;
+const panel = new CompressionPanel(root, () => {
+  document.querySelector("#upload").disabled = !panel.allowsUpload();
+}, file => file.name === "late.mp4" ? new Promise(resolve => lateResolve = resolve)
+  : Promise.resolve({durationSeconds:14400,width:3840,height:2160}));
+const results = document.querySelector("#results");
+const check = (value, message) => { if (!value) throw Error(message); results.textContent += `PASS ${message}\n`; };
+function mode(value) {
+  const radio = root.querySelector(`input[value="${value}"]`);
+  radio.checked = true; radio.dispatchEvent(new Event("change"));
+}
+async function run() {
+  results.textContent = "";
+  await panel.select({name:"four-hours.mp4",size:4_000_000_000});
+  check(!root.hidden && !panel.allowsUpload(), "2GB 이상은 압축 계획 표시 · 원본 전송 차단");
+  check(panel.plan.targetBytes === 1_600_000_000, "기본 40% 목표는 4GB 원본에서 1.6GB");
+  mode("size");
+  check(root.textContent.includes("420kbps"), "4시간 길이로 1GB 비트레이트 계산");
+  mode("original"); check(panel.allowsUpload(), "명시적으로 원본 선택 시 4GB 업로드 허용");
+  mode("quality"); check(!panel.allowsUpload() && root.textContent.includes("샘플 확인 후"), "미측정 화질 용량을 추정값으로 꾸미지 않음");
+  await panel.select({name:"too-large.mp4",size:8_881_545_500});
+  mode("original"); check(!panel.allowsUpload(), "5GB 초과 원본 업로드 차단");
+  const pending = panel.select({name:"late.mp4",size:4_000_000_000});
+  await panel.select(null); lateResolve({durationSeconds:10,width:100,height:100}); await pending;
+  check(root.hidden && panel.metadata === null, "파일 교체·로그아웃 후 늦은 정보 무시");
+  await panel.select({name:"four-hours.mp4",size:4_000_000_000});
+  panel.setBusy(true); check(root.querySelector("#compression-fps").disabled, "업로드 중 압축 설정 잠금");
+  panel.setBusy(false); check(!root.querySelector("#compression-fps").disabled, "완료·취소 후 설정 복구");
+}
+document.querySelector("#run").onclick = () => run().catch(error => results.textContent += `FAIL ${error.message}`);
+await run().catch(error => results.textContent += `FAIL ${error.message}`);
+</script></html>

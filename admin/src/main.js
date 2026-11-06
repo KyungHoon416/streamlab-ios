@@ -29,7 +29,8 @@ import {
   listAll,
 } from "firebase/storage";
 import { VideoSelection } from "./selection.js";
-import { VideoUpload, MAX_VIDEO_BYTES, formatVideoSize, uploadProgressText } from "./upload.js";
+import { VideoUpload, MAX_VIDEO_BYTES, formatVideoSize, uploadProgressText, validateMP4 } from "./upload.js";
+import { CompressionPanel } from "./compression-panel.js";
 const app = initializeApp(config),
   auth = getAuth(app),
   db = getFirestore(app);
@@ -45,14 +46,20 @@ const message = (text) => {
   $("message").textContent = text;
 };
 const storage = getStorage(app);
-$("video-limit").textContent = `파일 1개 · 최대 ${formatVideoSize(MAX_VIDEO_BYTES)}`;
+$("video-limit").textContent = `업로드 최대 ${formatVideoSize(MAX_VIDEO_BYTES)} · 2GB 이상은 압축 계획 안내`;
 let uploading = false;
+const compression = new CompressionPanel($("compression-panel"), () => {
+  $("upload-start").disabled = busy || !compression.allowsUpload();
+  $("upload-start").textContent = compression.file && compression.file.size >= 2_000_000_000
+    ? "원본 파일 업로드" : "파일 업로드";
+});
 const selection = new VideoSelection((file, error) => {
+  compression.select(file);
   $("video-selection").textContent = file
     ? `${file.name} · ${formatVideoSize(file.size)}`
     : "선택된 파일 없음";
-  $("upload-status").textContent = error || (file ? "파일이 선택됐습니다. 파일 업로드를 눌러 전송하세요." : "");
-});
+  $("upload-status").textContent = error || (file ? (file.size >= 2_000_000_000 ? "파일이 선택됐습니다. 압축 계획을 확인하거나 원본 업로드를 선택하세요." : "파일이 선택됐습니다. 파일 업로드를 눌러 전송하세요.") : "");
+}, file => validateMP4(file, { forUpload: false }));
 const dropzone = $("video-dropzone");
 let dragDepth = 0;
 function clearDrag() {
@@ -102,6 +109,7 @@ function uploadBusy(value) {
   $("upload-cancel").disabled = false;
   $("upload-cancel").hidden = !value;
   $("upload-progress").hidden = !value;
+  compression.setBusy(value);
 }
 const uploader = new VideoUpload({
   start: (path, file, metadata) =>
@@ -174,6 +182,7 @@ $("upload-start").onclick = async () => {
     $("upload-status").textContent = "유효한 MP4 파일을 먼저 선택하세요.";
     return;
   }
+  if (!compression.allowsUpload()) return;
   let draft;
   if (!selected) {
     if (!form.reportValidity()) return;
@@ -402,8 +411,11 @@ form.onsubmit = async (e) => {
   e.preventDefault();
   if (!allowed || busy) return;
   if (selection.file) {
-    $("upload-status").textContent = "선택한 MP4의 파일 업로드를 먼저 눌러 주세요.";
-    $("upload-start").focus();
+    $("upload-status").textContent = compression.allowsUpload()
+      ? "선택한 MP4의 파일 업로드를 먼저 눌러 주세요."
+      : "Mac에서 압축한 파일을 다시 선택하거나, 압축 계획에서 원본 업로드를 선택하세요.";
+    if (compression.allowsUpload()) $("upload-start").focus();
+    else $("compression-panel").querySelector("input:checked")?.focus();
     return;
   }
   let data;

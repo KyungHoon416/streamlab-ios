@@ -244,3 +244,12 @@ footer {
 .video-dropzone.drag-over { border-color: #225b37; background: #e3f0e5; }
 .video-dropzone:focus-within { outline: 2px solid #225b37; outline-offset: 3px; }
 #video-selection { overflow-wrap: anywhere; margin-bottom: 0; }
+.compression-panel { border: 1px solid #b8cabe; border-radius: 10px; padding: 20px; margin: 20px 0; background: #fff; }
+.compression-panel h4 { margin: 0; font-size: 20px; }
+.compression-modes { border: 0; padding: 0; margin: 18px 0; }
+.compression-modes legend { font-weight: 700; margin-bottom: 12px; }
+.compression-modes .check { min-height: 44px; margin: 0; padding: 8px 0; }
+.compression-modes input { flex-shrink: 0; }
+.compression-estimate { background: #f0f5ef; border-radius: 8px; padding: 4px 16px; margin: 16px 0; }
+.estimate-value { font-size: 19px; font-weight: 700; }
+#compression-sample-status { overflow-wrap: anywhere; }

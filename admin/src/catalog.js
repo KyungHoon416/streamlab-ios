@@ -7,7 +7,11 @@ export function canManage(user, token) {
   );
 }
 export function validateTitle(input) {
-  const d = { ...input };
+  // Local upload/planning controls are not part of the Firestore document.
+  const d = Object.fromEntries([
+    "id", "name", "synopsis", "genre", "artworkURL", "streamURL", "year",
+    "durationMinutes", "visualSeed", "popularity", "kind", "rating", "published",
+  ].map(key => [key, input[key]]));
   for (const key of [
     "id",
     "name",

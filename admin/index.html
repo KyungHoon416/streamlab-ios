@@ -148,6 +148,41 @@
                     accept=".mp4,video/mp4" aria-describedby="video-selection" /></label>
                   <p id="video-selection" role="status" aria-live="polite">선택된 파일 없음</p>
                 </div>
+                <section id="compression-panel" class="compression-panel" aria-labelledby="compression-title" hidden>
+                  <h4 id="compression-title">큰 영상의 압축 계획</h4>
+                  <p>2GB 이상 파일입니다. 용량과 화질 중 우선할 기준을 선택하세요. 실제 압축은 Mac에서 진행합니다.</p>
+                  <p id="compression-source" role="status" aria-live="polite"></p>
+                  <fieldset class="compression-modes">
+                    <legend>압축 방식</legend>
+                    <label class="check"><input type="radio" name="compression-mode" value="ratio40" checked /> 원본의 40% 크기 · 약 60% 감소</label>
+                    <label class="check"><input type="radio" name="compression-mode" value="size" /> 1GB 이하 목표</label>
+                    <label class="check"><input type="radio" name="compression-mode" value="quality" /> 화질 우선 · 샘플로 예상</label>
+                    <label class="check"><input type="radio" name="compression-mode" value="original" /> 원본 그대로 업로드</label>
+                  </fieldset>
+                  <div id="compression-settings">
+                    <p>최대 1080p · HEVC MP4. 원본 비율을 유지하고 작은 영상은 확대하지 않습니다.</p>
+                    <label id="compression-manual-duration">실제 영상 길이(분)
+                      <input id="compression-minutes" type="number" min="0.01" step="any" placeholder="예: 240" />
+                    </label>
+                    <label>프레임 설정
+                      <select id="compression-fps">
+                        <option value="30">최대 30fps · 용량 대비 디테일 우선</option>
+                        <option value="source">원본 유지 · 최대 60fps</option>
+                      </select>
+                      <small>60fps는 움직임을 부드럽게 합니다. 같은 용량에서 선명도가 더 좋아지는 것은 아닙니다. 원본 프레임은 Mac에서 확인하세요.</small>
+                    </label>
+                    <div id="compression-quality-sample" hidden>
+                      <p>Mac에서 같은 원본의 앞·중간·뒤 장면을 합쳐 60초 정도의 샘플을 만드세요. 최대 1080p, 위 프레임 설정, HEVC CRF 28, AAC 96kbps를 사용합니다.</p>
+                      <label>압축한 샘플 MP4 선택 (서버 전송 없음)
+                        <input id="compression-sample" type="file" accept=".mp4,video/mp4" />
+                      </label>
+                      <p id="compression-sample-status" role="status" aria-live="polite"></p>
+                    </div>
+                  </div>
+                  <div id="compression-estimate" class="compression-estimate" role="status" aria-live="polite"></div>
+                  <button id="compression-recipe" type="button">Mac 압축 설정 저장</button>
+                  <p id="compression-upload-note"></p>
+                </section>
                 <button type="button" id="recover-video" hidden>기존 업로드 찾기</button>
                 <div id="recover-options"></div>
                 <button type="button" id="upload-start">파일 업로드</button>
