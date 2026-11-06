@@ -1,0 +1,81 @@
+{
+  "date": "2026-11-06",
+  "submission_tag": "submission-2026-11-06",
+  "app_code_commit": "04bb9854351240b66cb5040ec648de14c02d5111",
+  "source_before_recording": "4e3e0f9f010918126b554907f23d8db0c590f023",
+  "recording_binary_commit_verified": false,
+  "artifact_files": [
+    {
+      "name": "streamlab-architecture-ko.pdf",
+      "bytes": 141596,
+      "sha256": "1f44e46f3570a2aa289271cfe2687ed9f9464a02925592fb80f8c1a734d8bc8d"
+    },
+    {
+      "name": "streamlab-demo-final.mp4",
+      "bytes": 43724015,
+      "sha256": "ed256c265970e8f90cb7560efeaaea7344832cde3eeb63002fcf335bf429c149",
+      "duration_seconds": 211.950998
+    }
+  ],
+  "original_videos": [
+    {
+      "name": "streamlab-demo-A.MP4",
+      "bytes": 218745077,
+      "sha256": "bf3ee7a921bb1cd113766f815a6e7af8977f3a04164677894269dcaa0b68326a"
+    },
+    {
+      "name": "streamlab-demo-B.MP4",
+      "bytes": 26410881,
+      "sha256": "561fd99a163f5dffa0f6c46cad1da36bc7c8d577832ac2e59fa42d65beaf6309"
+    }
+  ],
+  "video_edits": {
+    "transition_start_s": 160.954603,
+    "transition_duration_s": 3,
+    "privacy_overlay_and_mute_s": [
+      108,
+      112
+    ],
+    "orientation": "source portrait canvas preserved"
+  },
+  "checks": {
+    "pdf_pages": 6,
+    "all_pdf_pages_visually_checked": true,
+    "video_full_decode_exit": 0,
+    "video_review": "frame sampling, detailed fault and transition review; not audio content review"
+  },
+  "ci": [
+    {
+      "url": "https://github.com/KyungHoon416/streamlab-ios/actions/runs/42156350319",
+      "commit": "04bb9854351240b66cb5040ec648de14c02d5111",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "name": "core-chaos",
+          "conclusion": "success"
+        },
+        {
+          "name": "ios-playback",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "url": "https://github.com/KyungHoon416/streamlab-ios/actions/runs/41415755215",
+      "commit": "33f45dc60c5d55c42d25f7df584339363ddb8fce",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "name": "admin-rules",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "C4 scroll before/after improvement not demonstrated",
+    "Filming binary exact SHA unavailable",
+    "Search, my-list addition, transfer progress/deletion and cross-profile operations absent from video",
+    "Fresh checkout on another Mac not verified"
+  ]
+}

@@ -1,0 +1,193 @@
+"""Rebuild the Korean architecture PDF and companion Markdown.
+
+Requires Python 3 + reportlab and AppleGothic on macOS.
+Run: python3 Docs/Architecture/build_pdf.py
+"""
+from pathlib import Path
+import html
+from reportlab.platypus import SimpleDocTemplate, Paragraph, PageBreak, Table, TableStyle, Flowable
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.colors import HexColor
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+
+ROOT = Path(__file__).resolve().parents[2]
+INK, GREEN, MUTED, RULE = '#24292E', '#315C50', '#64706B', '#D2D8D4'
+pdfmetrics.registerFont(TTFont('Ko', '/System/Library/Fonts/Supplemental/AppleGothic.ttf'))
+STYLES = {
+    'body': ParagraphStyle('body', fontName='Ko', fontSize=10.7, leading=18, textColor=HexColor(INK), wordWrap='CJK', spaceAfter=12),
+    'h': ParagraphStyle('h', fontName='Ko', fontSize=13.5, leading=20, textColor=HexColor(INK), spaceBefore=12, spaceAfter=8),
+    'title': ParagraphStyle('title', fontName='Ko', fontSize=24, leading=33, textColor=HexColor(INK), spaceAfter=17),
+    'small': ParagraphStyle('small', fontName='Ko', fontSize=8.8, leading=14, textColor=HexColor(MUTED), wordWrap='CJK', spaceAfter=10),
+    'cell': ParagraphStyle('cell', fontName='Ko', fontSize=10, leading=16, textColor=HexColor(INK), wordWrap='CJK'),
+}
+
+PAGES = [
+    ('StreamLab\n구조와 구현 기록', [
+        ('small', '제출본 · 2026.11.06\n앱 구현 04bb985 / 실기기 확인 기록 4e3e0f9'),
+        ('body', 'StreamLab은 공개된 영상을 보고, 기기에 저장하고, 네트워크 없이 이어보는 iOS 앱이다. Firebase 관리자에서 등록한 HLS·MP4를 앱의 홈과 검색에 연결했다. 화면은 SwiftUI로 만들고 재생, 회전, PiP와 백그라운드 전송에는 AVFoundation·UIKit을 사용했다.'),
+        ('h', '관리자에서 저장한 작품이 앱에 도착하는 경로'),
+        ('diagram', None),
+        ('small', '그림 1. 배포된 서비스와 기기 내부의 책임 경계. 화살표는 데이터 흐름이며 Swift 모듈의 import 관계는 아니다.'),
+        ('body', '관리자는 Google 계정으로 로그인해 작품을 수정한다. Firestore에는 작품 정보와 영상 주소를, Storage에는 업로드한 MP4를 둔다. 앱은 공개 작품만 REST로 읽으며 영상은 해당 HTTPS 주소에서 재생한다.'),
+        ('h', '서버가 맡는 일은 여기까지다'),
+        ('body', 'Firebase 연결 범위는 카탈로그와 관리자 인증·파일 저장이다. 앱 사용자의 로그인, 프로필별 변경 동기화, 재생 이용 권한은 데모 구현이다. 따라서 실제 여러 기기 간 계정 동기화나 FairPlay DRM을 구현했다고 설명하지 않는다.'),
+    ]),
+    ('화면과 저장소를 나눈 기준', [
+        ('body', 'App에서 계정·프로필 세션과 저장소를 조립한다. 화면은 UI 패키지에, 데이터 모델과 저장·동기화 정책은 Core 패키지에 둔다. Domain은 화면이나 AVPlayer에 의존하지 않는다.'),
+        ('table', [
+            ['App', '로그인 복원, 프로필 선택, 탭과 알림 이동, Firebase/Mock 구성 선택'],
+            ['StreamLabUI', 'DesignSystem · ProfileFeature · CatalogFeature. 화면과 PlaybackModel, OfflineDownloadStore를 연결'],
+            ['StreamLabCore', 'Domain: 모델과 정책\nPresentation: 화면 상태·영속 큐\nCatalogData: Firebase/Mock 저장소와 전송 구현'],
+        ]),
+        ('h', '로컬 데이터는 영상 파일과 따로 보관한다'),
+        ('table', [
+            ['찜·검색·진도', '계정/프로필별 JSON 저널. 화면에 반영할 값과 미전송 변경을 원자적 파일 교체로 함께 저장'],
+            ['다운로드', 'offline-downloads.json에 소유자·상태·영상 식별자·만료·작품 스냅샷 저장. HLS .movpkg와 MP4 본체는 별도 파일'],
+            ['설정·자격 정보', '언어 등 설정은 UserDefaults, 로그인 자격은 Keychain. 로그아웃 중단에 대비한 표식 유지'],
+        ]),
+        ('small', '현재 SwiftData 또는 SQLite DB를 사용하지 않는다. 로컬 영속성은 파일 저널과 시스템 저장 기능으로 구현했다.'),
+        ('h', '프로필이 바뀌면 이전 응답을 적용하지 않는다'),
+        ('body', 'CatalogSession의 새 ID로 세션 경계를 구분한다. 늦은 검색·재생·다운로드 응답은 소유자와 세션이 유효한지 확인한 뒤 반영한다. 로그아웃에서는 전송과 알림을 정리해 삭제한 기록이 다시 나타나지 않게 한다.'),
+        ('body', '찜·검색·진도는 먼저 로컬에 남긴다. 재전송에는 같은 요청 ID와 revision을 사용해 응답 유실과 충돌을 처리한다. 이 동기화 규칙은 Mock 서버와 별도 loopback HTTP 시험으로 검증했다.'),
+    ]),
+    ('관리자 업로드와 공개 전환', [
+        ('body', '관리자 웹은 Firebase Hosting에 배포했다. Google 인증을 통과한 허용 계정만 Firestore·Storage 보안 규칙을 통해 작품을 쓸 수 있다. Firestore와 Storage 지역은 서울이며, MP4 저장을 위해 Blaze 요금제를 사용한다.'),
+        ('h', 'URL이 없는 새 작품도 먼저 저장할 수 있다'),
+        ('body', '작품 정보를 비공개 초안으로 저장하고 MP4를 드롭하거나 파일 선택으로 지정한다. 업로드는 videos/{작품 ID}/{고유 ID}.mp4 경로로 진행한다. 완료한 주소를 작품에 연결한 뒤 공개로 저장하면 앱에서 볼 수 있다. 기존 업로드 찾기로 파일을 다시 올리지 않고 연결할 수도 있다.'),
+        ('body', '공개 작품의 영상을 교체할 때는 저장 시점에 새 주소를 반영한다. 앱은 영상 식별자를 함께 사용하므로 다른 영상의 이어보기 시각을 그대로 적용하지 않는다. A 영상을 B로 바꿨다가 A로 돌렸을 때의 진도 복원도 실기기에서 확인했다.'),
+        ('h', '500MB는 관리자 파일 업로드의 한도다'),
+        ('body', '관리자에서 직접 올리는 MP4는 파일 하나당 500,000,000 bytes까지 허용한다. 크기·확장자·MIME·MP4 헤더를 확인하고 Storage 규칙에서도 크기와 메타데이터를 검사한다. 4K라는 해상도로 차단하지 않으며 실제 재생 가능 여부는 코덱과 기기 지원에 달려 있다.'),
+        ('body', 'HTTPS HLS 주소도 등록할 수 있다. MP4를 HLS로 변환하는 서버 작업은 없다. 앱은 탭 복귀·포그라운드 전환과 활성 상태의 주기적 조회로 카탈로그를 갱신한다. 현재 공개 조회는 최대 200개이며 대규모 서버 페이지네이션은 남아 있다.'),
+        ('h', '공개 취소와 파일 삭제는 다른 동작이다'),
+        ('body', '비공개 전환은 카탈로그 노출을 막지만 이미 발급된 다운로드 토큰 URL을 폐기하지 않는다. 주소를 아는 사용자는 파일에 접근할 수 있다. 교체 후 남은 파일은 자동 삭제하지 않으며 Storage 콘솔에서 정리한다. 이 배포는 유료 영상 보호용 저장소가 아니다.'),
+        ('small', '관리자: streamlab-ios-eba4f.web.app\n설정·운영 범위: Docs/FIREBASE_CATALOG.md'),
+    ]),
+    ('재생은 하나의 세션으로 관리한다', [
+        ('body', 'PlaybackModel은 권한 확인, 소스 준비, 재생, 탐색, 실패와 종료를 관리한다. 홈·상세·다운로드에서 들어와도 같은 재생 경로를 사용한다. 준비가 끝나면 AVPlayer의 실제 시간을 하단 표시와 진도 저장에 전달한다.'),
+        ('h', '같은 작품이라도 영상이 바뀌면 진도를 구분한다'),
+        ('body', '계정·프로필·작품과 영상 소스 식별자를 함께 사용한다. 홈 이어보기에서는 같은 소스의 유효한 다운로드를 우선 선택한다. 조회가 파일을 계속 점유하지 않도록 실제 재생 준비 때 사용권을 얻고, 종료 때 돌려준다.'),
+        ('h', '탐색 바의 값과 실제 시간을 섞지 않는다'),
+        ('body', '손가락으로 옮기는 미리보기 시간은 AVPlayer의 현재 시각과 분리했다. 탐색 완료에는 세대를 붙여 오래된 완료 응답이 새 탐색을 덮지 않게 했다. 처음이나 중간으로 옮긴 뒤 영상만 움직이고 하단 시간이 멎던 문제를 이 경계에서 수정했다.'),
+        ('h', '만료와 재시도는 플레이어 밖에서도 유지된다'),
+        ('body', '시작뿐 아니라 재개·탐색·화면 복귀와 주기적 샘플링에서 grant를 확인한다. 만료되면 플레이어와 파일 사용권을 정리하고 가운데 오류 안내를 표시한다. 사용자가 다시 시도할 때 권한을 요청하며 수동 재시도는 3회로 제한한다.'),
+        ('body', 'F09는 저장 영상의 Mock 권한을 만료시키고 네트워크를 끈 상태에서 갱신 실패와 남은 2회, 닫기 후 목록 복귀를 확인했다. F10은 영어 자막 선택 후 네트워크를 끊고 닫았다가 재연결해, 새 재생에 이전 오류가 남지 않는지 확인했다.'),
+        ('h', '닫은 화면의 작업을 새 재생에 넘기지 않는다'),
+        ('body', '관찰자·시간 콜백·Task·Now Playing 연결은 세션 종료 때 정리한다. 이벤트는 현재 아이템과 세대가 맞는 경우에만 수용한다. UIKit 회전 오류 콜백도 메인 액터로 옮겨 처리해 백그라운드 큐에서 UI를 호출하던 크래시를 막았다.'),
+        ('small', '현재 권한과 키 오류는 Mock이다. 실제 FairPlay 키 교환·라이선스 갱신이나 신뢰 시계 검증을 포함하지 않는다.'),
+    ]),
+    ('다운로드는 전체 예산으로 관리한다', [
+        ('body', 'HLS는 AVAssetDownloadURLSession으로 .movpkg를 저장하고 MP4는 URLSession으로 파일을 받는다. 작품 정보 스냅샷을 같이 보관하므로 비행기 모드에서도 저장 작품의 상세를 열 수 있다. 프로필 선택 시 오프라인이면 다운로드 탭, 온라인이면 홈으로 진입한다.'),
+        ('table', [
+            ['기기 전체 예산', '1,000,000,000 bytes (십진 1GB). 모든 프로필의 관리 기록과 예약량을 합산'],
+            ['초기 예약', '전송 작업당 최소 500,000,000 bytes. 파일 한 편의 고정 상한이 아님'],
+            ['동시 작업', '최대 2개. 일시정지한 작업도 예약과 작업 자리를 유지'],
+            ['현재 작업 허용량', '전체 1GB에서 다른 기록의 파일 크기와 예약량을 뺀 값'],
+        ]),
+        ('h', '500MB를 넘었다는 이유만으로 중단하지 않는다'),
+        ('body', '이전에는 시작 시 예약한 500MB를 파일 상한처럼 사용해 F10 샘플이 중단됐다. 04bb985에서는 다른 작업의 예약을 보존하면서 남는 예산까지 받을 수 있도록 수정했다. 하나만 전송하고 다른 저장 파일이 없다면 최대 1GB 범위까지 허용한다.'),
+        ('body', '전송 중에는 받은 바이트를 보수적으로 반영하고 완료 시 실제 할당된 파일 크기를 계산한다. 시스템이 파일을 쓴 뒤 콜백을 주므로 1GB는 앱 관리 정책이며 매 순간의 물리 디스크 사용량을 보장하는 OS 할당량은 아니다.'),
+        ('h', '회수와 만료도 소유권을 확인한다'),
+        ('body', '공간이 필요하면 고정되지 않은 오래된 완료·만료 파일부터 회수한다. 재생 중인 파일은 제외한다. 저장 완료 후 7일 만료는 과제용 정책이며 만료 후에는 새 재생을 막고 다시 다운로드하도록 안내한다.'),
+        ('body', '취소·로그아웃 후의 늦은 완료는 알림을 만들지 않는다. 유효한 완료 알림을 누르면 현재 프로필의 다운로드 목록으로 이동한다. 백그라운드 전송, 일시정지·재개, 셀룰러 전송과 저장 파일 재생은 실기기 확인 기록을 남겼다.'),
+        ('small', '11월 6일: F09·F10 샘플 다운로드 완료와 비행기 모드 재생·하단 시간·탐색을 사용자 확인했다. 관리자 MP4 업로드 500MB 한도와 앱 다운로드 정책은 별개다.'),
+    ]),
+    ('검증 결과를 읽는 범위', [
+        ('body', '제출 앱 코드는 04bb985이고 뒤의 4e3e0f9는 실기기 확인을 적은 문서 커밋이다. 이번 제출 정리는 앱 코드를 바꾸지 않았다. 과거 성능 측정과 최신 Firebase 촬영은 같은 빌드의 실험으로 합치지 않았다.'),
+        ('h', '자동 검증과 실기기 확인'),
+        ('body', '11월 6일 원격 CI에서 Core XCTest 31개, Swift Testing 243개, 카오스 3종 각 1,000시드, TTFF 집계 테스트 6개가 통과했다. iOS 재생 회귀 25개와 서명 없는 Release 빌드도 성공했다. 실제 다운로드 UI와 실기기 장애 주입 결과는 별도 보고서에 둔다.'),
+        ('body', '제출 영상은 3분 32초다. HLS 탐색·영어 자막, 네트워크 차단과 저장 영상 재생, 재연결 후 정상 재생, F09 만료·갱신 실패·목록 복귀를 담았다. 3초 전환 문구로 권한 만료 인수를 켠 뒤 재실행했음을 알린다.'),
+        ('h', 'C4는 수치를 확보했지만 개선 입증은 남아 있다'),
+        ('table', [
+            ['HLS 준비 시간', '과거 로그 고유 22회: p50 0.742초 / p95 1.269초. 실제 디스플레이 첫 표시 시각과 구분'],
+            ['반복 재생 메모리', '0회 28.92MiB, 20회 36.75MiB. 5~20회 측정점은 36.64~36.86MiB로 지속 증가가 관찰되지 않음'],
+            ['홈 표시 간격', '10월 31일 기록: p50 12.503ms / p95 25.005ms. App Update 실행 시간과 다른 지표'],
+        ]),
+        ('body', 'A/B 스크롤 기록은 열 상태와 손동작이 달라 변경 효과를 분리할 수 없다. 실제 표시 간격을 집계한 것과 전후 개선을 입증한 것은 다르며 C4 전체 PASS로 표시하지 않는다. 메모리 footprint도 개별 객체의 누수 부재를 증명하지 않는다.'),
+        ('small', '상세 근거\nDocs/SUBMISSION_RECORD.md · Docs/CI_VALIDATION.md\nDocs/Measurements/C4-2026-10-31/REPORT.md\nDocs/CHAOS_ACCEPTANCE.md · Docs/DOWNLOADS_QA.md\n저장소: github.com/KyungHoon416/streamlab-ios'),
+    ]),
+]
+
+def paragraph(text, kind='body'):
+    return Paragraph(html.escape(text).replace('\n', '<br/>'), STYLES[kind])
+
+class SystemDiagram(Flowable):
+    def __init__(self):
+        Flowable.__init__(self)
+        self.width, self.height = 479, 199
+
+    def draw(self):
+        c = self.canv
+        def box(x, y, w, h, title, detail):
+            c.setFillColor(HexColor('#F3F6F3'))
+            c.setStrokeColor(HexColor(RULE))
+            c.roundRect(x, y, w, h, 5, fill=1, stroke=1)
+            c.setFillColor(HexColor(GREEN)); c.setFont('Ko', 10.5)
+            c.drawString(x + 12, y + h - 22, title)
+            c.setFillColor(HexColor(INK)); c.setFont('Ko', 9)
+            for i, line in enumerate(detail.split('\n')):
+                c.drawString(x + 12, y + h - 40 - 14 * i, line)
+        def arrow(x1, y1, x2, y2):
+            c.setStrokeColor(HexColor(GREEN)); c.setLineWidth(.8)
+            c.line(x1, y1, x2, y2)
+            if y1 == y2:
+                c.line(x2-5, y2+3, x2, y2); c.line(x2-5, y2-3, x2, y2)
+            else:
+                c.line(x2-3, y2+5, x2, y2); c.line(x2+3, y2+5, x2, y2)
+        box(0, 122, 206, 68, '관리자 웹 / Hosting', 'Google 로그인 · 작품 편집\nMP4 드롭 업로드')
+        box(245, 122, 234, 68, 'Firebase', 'Auth · Firestore 공개 카탈로그\nStorage MP4 파일')
+        box(245, 15, 234, 68, 'iOS 앱 / SwiftUI', '공개 작품 조회 · AVPlayer\n프로필 · 재생 · 다운로드 화면')
+        box(0, 15, 206, 68, '기기 내부 저장', 'JSON 저널 · Keychain\n저장 HLS / MP4')
+        arrow(206, 156, 245, 156)
+        arrow(362, 122, 362, 83)
+        arrow(206, 48, 245, 48)
+        c.line(206, 48, 211, 51); c.line(206, 48, 211, 45)
+        c.setFont('Ko', 8.5); c.setFillColor(HexColor(MUTED))
+        c.drawString(374, 99, 'REST / HTTPS')
+
+def make_table(rows):
+    result = Table([[paragraph(cell, 'cell') for cell in row] for row in rows], colWidths=[112, 367], hAlign='LEFT')
+    result.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('LINEABOVE', (0,0), (-1,0), 1, HexColor(GREEN)),
+        ('LINEBELOW', (0,0), (-1,-1), .4, HexColor(RULE)),
+        ('TOPPADDING', (0,0), (-1,-1), 8), ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+        ('LEFTPADDING', (0,0), (-1,-1), 0), ('RIGHTPADDING', (0,0), (-1,-1), 12),
+    ]))
+    result.spaceAfter = 12
+    return result
+
+def footer(c, doc):
+    c.setFont('Ko', 8); c.setFillColor(HexColor(MUTED))
+    c.drawString(58, 812, 'StreamLab  /  Architecture notes')
+    c.drawString(58, 29, '2026.11.06 · 앱 코드 04bb985')
+    c.drawRightString(537, 29, str(doc.page))
+
+def main():
+    story, md = [], ['# StreamLab 구조와 구현 기록\n', '[PDF](Architecture/streamlab-architecture-ko.pdf) · [제출 기록](SUBMISSION_RECORD.md)\n']
+    for number, (title, blocks) in enumerate(PAGES):
+        story.append(paragraph(title, 'title'))
+        md.append('## ' + title.replace('\n', ' ') + '\n')
+        for kind, data in blocks:
+            if kind == 'diagram':
+                story.append(SystemDiagram())
+                md.append('관리자 웹 → Firebase Auth / Firestore / Storage → iOS 앱 ↔ 기기 내부 저장\n')
+            elif kind == 'table':
+                story.append(make_table(data))
+                md.extend(['| 구분 | 내용 |', '|---|---|'])
+                md.extend('| ' + ' | '.join(cell.replace('\n', '<br>') for cell in row) + ' |' for row in data)
+                md.append('')
+            else:
+                story.append(paragraph(data, kind))
+                md.append(('### ' if kind == 'h' else '') + data + '\n')
+        if number < len(PAGES)-1:
+            story.append(PageBreak())
+    output = ROOT / 'Docs/Architecture/streamlab-architecture-ko.pdf'
+    SimpleDocTemplate(str(output), pagesize=(595.28, 841.89), leftMargin=58, rightMargin=58, topMargin=65, bottomMargin=57,
+        title='StreamLab - 구조와 구현 기록', author='StreamLab').build(story, onFirstPage=footer, onLaterPages=footer)
+    md.append('---\nPDF와 이 문서의 본문은 `python3 Docs/Architecture/build_pdf.py`로 함께 생성한다. Python reportlab과 macOS AppleGothic 글꼴이 필요하다.\n')
+    (ROOT / 'Docs/ARCHITECTURE_CURRENT.md').write_text('\n'.join(md), encoding='utf-8')
+    print(output)
+
+if __name__ == '__main__':
+    main()

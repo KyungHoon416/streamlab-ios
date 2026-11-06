@@ -2,11 +2,13 @@
 
 [최신 한글 아키텍처](Docs/ARCHITECTURE_CURRENT.md) · [아키텍처 PDF](Docs/Architecture/streamlab-architecture-ko.pdf)
 
+[2026-11-06 제출 기록](Docs/SUBMISSION_RECORD.md): 3분 32초 영상, 최신 PDF, 제출 태그와 실제 CI 커밋을 정리했습니다. Firebase 관리자·MP4 업로드·앱 카탈로그 및 HLS/MP4 오프라인 재생을 포함합니다. C4 측정값은 확보했지만 스크롤 성능의 전후 개선은 미입증입니다. 아래 날짜별 내용은 당시 작업 이력이며 현재 상태는 위 문서를 기준으로 봅니다.
+
 [F01–F10 검증 범위와 실기기 순서](Docs/CHAOS_ACCEPTANCE.md)
 
 ## 자동 검증 — 2026-10-31
 
-main push/PR에서 Core·고정 시드 카오스 3종, iOS 재생 경계 25개와 Release 빌드를 실행합니다. 문서만 바뀌면 제외합니다. [CI 사용법과 범위](Docs/CI_VALIDATION.md) · [최신 실행 결과](Docs/Measurements/Observer-Lifecycle-2026-11-01/REPORT.md). 전체 F01~F10 완료와는 별개입니다.
+main push/PR에서 Core·고정 시드 카오스 3종, iOS 재생 경계 25개와 Release 빌드를 실행합니다. 문서만 바뀌면 제외합니다. [CI 사용법과 범위](Docs/CI_VALIDATION.md) · [최신 실행 결과](Docs/CI_VALIDATION.md). 전체 F01~F10 완료와는 별개입니다.
 
 ## Mock 재생 권한 — 2026-10-31
 

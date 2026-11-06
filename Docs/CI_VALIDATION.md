@@ -1,5 +1,11 @@
 # GitHub Actions 검증
 
+## 제출 버전에서 확인한 실행 - 2026-11-06
+
+- 앱: [실행 42156350319](https://github.com/KyungHoon416/streamlab-ios/actions/runs/42156350319), `04bb9854351240b66cb5040ec648de14c02d5111`, 두 job 성공. Core XCTest 31개와 Swift Testing 243개, 카오스 3종 각 1,000시드, F03 SIGKILL 복구, TTFF 집계 6개, iOS 패키지 25개, 서명 없는 Release 빌드 통과.
+- 관리자: [실행 41415755215](https://github.com/KyungHoon416/streamlab-ios/actions/runs/41415755215), `33f45dc60c5d55c42d25f7df584339363ddb8fce`, 단위 테스트·웹 빌드·Firestore/Storage 규칙 성공. 이후 관리자 코드·규칙·관련 workflow는 동일함을 diff로 확인했다.
+- 제출 태그 `submission-2026-11-06`은 앱 코드가 같은 문서 후속 버전이다. 문서 전용 변경에는 새 CI가 실행되지 않으므로 태그 커밋 자체에 새 실행이 성공했다고 주장하지 않는다. [제출 기록](SUBMISSION_RECORD.md).
+
 `.github/workflows/validation.yml`은 main push, pull request, 수동 workflow_dispatch에서 실행한다. 문서만 바뀐 push/PR은 제외한다. 문서 전용 PR의 필수 체크로 이 workflow를 지정하면 대기 상태가 될 수 있으므로 별도의 항상 실행되는 gate 없이 필수 체크로 지정하지 않는다. 브랜치 보호 설정은 변경하지 않는다.
 
 ## 자동 실행 범위
