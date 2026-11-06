@@ -5,6 +5,7 @@ import Foundation
 import StreamLabCatalogData
 import StreamLabDomain
 import StreamLabPresentation
+import UIKit
 
 /// One process-wide owner reconnects to the OS background transfer session.
 /// All metadata and delegate mutations are serialized on the main actor.
@@ -142,6 +143,12 @@ import StreamLabPresentation
     private override init() {
         journalURL = try? DurableMutationStore.defaultDirectory().appendingPathComponent("offline-downloads.json")
         super.init()
+        if DownloadEnergyTrace.enabled {
+            NotificationCenter.default.addObserver(self, selector: #selector(traceBackground),
+                name: UIApplication.didEnterBackgroundNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(traceForeground),
+                name: UIApplication.willEnterForegroundNotification, object: nil)
+        }
         // No account, asset URL, token or device identifier is logged.
         cellularData.cellularDataRestrictionDidUpdateNotifier = { state in
             NSLog("Offline HLS diagnostic cellularRestriction=%lu (0=unknown,1=restricted,2=notRestricted)", state.rawValue)
@@ -429,6 +436,7 @@ import StreamLabPresentation
                 do { try save() } catch { task.cancel(); reportStorageFailure(); return }
                 tasks[id] = task; observe(task, id: id); task.resume()
                 logTransfer(task, event: "start")
+                DownloadEnergyTrace.event("DownloadTransferStarted")
                 Task { [weak self, weak task] in
                     try? await Task.sleep(for: .seconds(10))
                     guard let self, let task, self.tasks[id] === task else { return }
@@ -554,8 +562,12 @@ import StreamLabPresentation
         }
         records.remove(at: i)
         do { try save() } catch { reportStorageFailure(); throw error }
+        DownloadEnergyTrace.event("DownloadDeleted")
         if schedule { pump() }
     }
+
+    @objc private func traceBackground() { DownloadEnergyTrace.event("DownloadAppBackground") }
+    @objc private func traceForeground() { DownloadEnergyTrace.event("DownloadAppForeground") }
 
     public func suppressCompletionNotifications() {
         completionNotificationsSuppressed = true
@@ -766,8 +778,10 @@ extension OfflineDownloadStore: AVAssetDownloadDelegate, URLSessionDownloadDeleg
                 records[i].bytes = bytes; records[i].state = .complete; records[i].message = nil
                 records[i].expiresAt = Date().addingTimeInterval(OfflineDownload.mockValidity)
                 try save()
+                DownloadEnergyTrace.event("DownloadTransferCompleted")
                 if !completedWhilePaused { notifyCompletion(id) }
             } catch {
+                DownloadEnergyTrace.event("DownloadTransferFailed")
                 records[i].state = .failed
                 records[i].message = records[i].message ?? stopMessage ?? OfflineDownloadFailure.message(for: transferError ?? error)
                 // Keep the path and reservation while the OS finishes writing its

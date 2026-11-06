@@ -202,7 +202,7 @@ import StreamLabCatalogData
         _ = try DurableMutationStore(directory: dir, scope: scope)
         let enumerator = try #require(FileManager.default.enumerator(at: dir,
             includingPropertiesForKeys: nil))
-        let file = try #require(enumerator.allObjects.compactMap { $0 as? URL }.first { $0.pathExtension == "json" })
+        let file = try #require(enumerator.allObjects.compactMap { $0 as? URL }.first { $0.pathExtension == "sqlite" })
         let corrupt = Data("not JSON".utf8)
         try corrupt.write(to: file)
         #expect(throws: (any Error).self) { _ = try DurableMutationStore(directory: dir, scope: scope) }

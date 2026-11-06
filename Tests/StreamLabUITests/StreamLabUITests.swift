@@ -450,6 +450,30 @@ import XCTest
     func testHomeExperimentSplit() { checkPosterNavigation(mode: "V", poster: "swiftui", home: "split") }
     func testHomeExperimentCombined() { checkPosterNavigation(mode: "PV", poster: "layer", home: "split") }
 
+    func testControlledHomeScrollC() { checkControlledScroll(mode: "C") }
+    func testControlledHomeScrollPV() { checkControlledScroll(mode: "PV") }
+
+    private func checkControlledScroll(mode: String) {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-test-progress-suite=c4-scroll-\(UUID())",
+                               "--home-render-experiment=\(mode)", "--trace-home-startup", "--measure-home-scroll"]
+        app.launch()
+        choose("adult-a", in: app)
+        let hero = app.buttons["hero-detail"]
+        XCTAssertTrue(hero.waitForExistence(timeout: 10))
+        let origin = hero.frame.minY
+        let moved = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            hero.frame.minY < origin - 100
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [moved], timeout: 20), .completed)
+        let earliestEnd = Date().addingTimeInterval(30)
+        let returned = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            Date() >= earliestEnd && abs(hero.frame.minY - origin) < 3
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [returned], timeout: 40), .completed)
+        XCTAssertTrue(hero.isHittable)
+    }
+
     func testPosterImageAndSearchThumbnailOpenDetail() { checkPosterNavigation() }
 
     func testDefaultPVStartupDetailedTrace() {
@@ -2266,6 +2290,34 @@ import XCTest
         back(app)
         tap(app.buttons["switch-profile"], in: app)
         choose("adult-b", in: app)
+    }
+
+    /// Structural audit of the complete control path; physical VoiceOver gestures
+    /// and spoken focus order are separately recorded in FINAL_DEVICE_QA.md.
+    func testPlaybackAccessibilityControlPath() throws {
+        let app = launch(keepPlaybackControls: true)
+        choose("adult-a", in: app)
+        XCTAssertFalse(app.buttons["hero-detail"].label.isEmpty)
+        openHomeDetail(app)
+        openPlayback(app)
+        expectPlayback("재생 중", in: app)
+        tap(app.buttons["playback-toggle"], in: app)
+        expectPlayback("일시 정지", in: app)
+        for id in ["playback-close", "playback-toggle", "playback-subtitles", "playback-forward", "playback-backward"] {
+            let button = app.buttons[id]
+            XCTAssertTrue(button.exists && button.isHittable, id)
+            XCTAssertFalse(button.label.isEmpty, id)
+            XCTAssertGreaterThanOrEqual(button.frame.height, 44, id)
+            XCTAssertGreaterThanOrEqual(button.frame.width, 44, id)
+        }
+        try app.performAccessibilityAudit(for: [.sufficientElementDescription, .hitRegion])
+        tap(app.buttons["playback-subtitles"], in: app)
+        try app.performAccessibilityAudit(for: [.sufficientElementDescription, .hitRegion])
+        tap(app.buttons["playback-subtitle-en"], in: app)
+        XCTAssertEqual(app.buttons["playback-subtitle-en"].value as? String, "선택됨")
+        tap(app.buttons["playback-subtitle-done"], in: app)
+        closePlayback(app)
+        XCTAssertTrue(app.buttons["playback-open"].waitForExistence(timeout: 10))
     }
 
     private func expectPlayback(_ status: String, in app: XCUIApplication) {

@@ -16,6 +16,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  ios-app-acceptance:
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Clean simulator reproduction and UI boundaries
+        env:
+          STREAMLAB_COMBINED_BUILD_DIR: ${{ runner.temp }}/streamlab-acceptance
+        run: bash scripts/check-submission-app-mac.sh
+      - name: F06 and F09 native downloads and normal offline playback
+        env:
+          STREAMLAB_COMBINED_BUILD_DIR: ${{ runner.temp }}/streamlab-acceptance
+        run: bash scripts/check-download-combined-mac.sh
+      - name: Preserve native UI evidence
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: ios-app-acceptance-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            Docs/Validation/**/*.log
+            Docs/Validation/**/RESULTS.txt
+            Docs/Validation/**/environment.txt
+          retention-days: 14
+          if-no-files-found: error
+
   core-chaos:
     runs-on: macos-26
     timeout-minutes: 20

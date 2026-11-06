@@ -1,8 +1,8 @@
 import Foundation
 import StreamLabDomain
 
-/// One atomic file contains BOTH the local projection and unacknowledged requests.
-/// MainActor serializes file transactions in this process. Not a multi-process database.
+/// SQLite commits the local projection, metadata and outbox in one transaction.
+/// MainActor serializes application writes. Legacy JSON is migrated exactly once.
 @MainActor public final class DurableMutationStore {
     private struct Journal: Codable {
         var version = 1
@@ -20,7 +20,8 @@ import StreamLabDomain
     }
     private static var instances: [WeakStore] = []
     private let directory: URL
-    private let url: URL
+    private let database: SQLiteMutationDatabase
+    private let legacyURL: URL
     private let scope: MutationScope
     private var journal: Journal
     private var active = true
@@ -42,17 +43,26 @@ import StreamLabDomain
                 seed: @autoclosure () throws -> [String: Data] = [:]) throws {
         self.scope = scope
         self.directory = directory.standardizedFileURL
-        url = Self.accountDirectory(directory: directory, accountID: scope.accountID)
-            .appendingPathComponent(Self.component(scope.profileID) + ".json")
+        let account = Self.accountDirectory(directory: directory, accountID: scope.accountID)
+        database = SQLiteMutationDatabase(url: account.appendingPathComponent(Self.component(scope.profileID) + ".sqlite"))
+        legacyURL = account.appendingPathComponent(Self.component(scope.profileID) + ".json")
         journal = Journal(scope: scope, deviceID: UUID())
-        if FileManager.default.fileExists(atPath: url.path) {
-            journal = try read()
+        if let snapshot = try database.read() {
+            journal = try decode(snapshot)
+        } else if FileManager.default.fileExists(atPath: legacyURL.path) {
+            let legacy = try validated(JSONDecoder().decode(Journal.self, from: Data(contentsOf: legacyURL)))
+            try persist(legacy)
+            journal = try read() // Read back before retiring the migration source.
         } else {
             let initial = try seed()
             for key in initial.keys.sorted() {
                 Self.append(key: key, value: initial[key], to: &journal)
             }
             try persist(journal)
+        }
+        // A crash after COMMIT and before this removal resumes from SQLite, never old JSON.
+        if FileManager.default.fileExists(atPath: legacyURL.path) {
+            try FileManager.default.removeItem(at: legacyURL)
         }
         Self.instances.removeAll { $0.value == nil }
         Self.instances.append(WeakStore(self))
@@ -103,7 +113,7 @@ import StreamLabDomain
         }
         Self.append(key: key, value: value, intent: intent, searchDeletion: searchDeletion, myListChange: myListChange, to: &next)
         try persist(next)
-        journal = next // Publish only after the atomic replacement succeeds.
+        journal = next // Publish only after SQLite COMMIT succeeds.
     }
 
     /// FIFO, single-flight. Failures/cancellation retain the exact request for retry.
@@ -238,9 +248,10 @@ import StreamLabDomain
     /// Call on explicit logout for this scope; invalidate before deleting on disk.
     public func deleteLocalData() throws {
         active = false
-        if FileManager.default.fileExists(atPath: url.path) {
-            try FileManager.default.removeItem(at: url)
+        if FileManager.default.fileExists(atPath: legacyURL.path) {
+            try FileManager.default.removeItem(at: legacyURL)
         }
+        try database.delete()
         journal = Journal(scope: scope, deviceID: UUID())
     }
 
@@ -259,7 +270,19 @@ import StreamLabDomain
     }
 
     private func read() throws -> Journal {
-        let decoded = try JSONDecoder().decode(Journal.self, from: Data(contentsOf: url))
+        guard let snapshot = try database.read() else { throw MutationQueueError.invalidJournal }
+        return try decode(snapshot)
+    }
+
+    private func decode(_ snapshot: SQLiteMutationDatabase.Snapshot) throws -> Journal {
+        var decoded = try JSONDecoder().decode(Journal.self, from: snapshot.metadata)
+        guard decoded.values.isEmpty, decoded.pending.isEmpty else { throw MutationQueueError.invalidJournal }
+        decoded.values = snapshot.values
+        decoded.pending = try snapshot.outbox.map { try JSONDecoder().decode(DurableMutation.self, from: $0) }
+        return try validated(decoded)
+    }
+
+    private func validated(_ decoded: Journal) throws -> Journal {
         guard decoded.version == 1, decoded.scope == scope, decoded.nextSequence > 0,
               decoded.revision <= UInt64.max - UInt64(decoded.pending.count) else {
             throw MutationQueueError.invalidJournal
@@ -277,8 +300,10 @@ import StreamLabDomain
     }
 
     private func persist(_ next: Journal) throws {
-        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(),
-                                               withIntermediateDirectories: true)
-        try JSONEncoder().encode(next).write(to: url, options: .atomic)
+        var metadata = next
+        metadata.values = [:]
+        metadata.pending = []
+        try database.write(.init(metadata: JSONEncoder().encode(metadata), values: next.values,
+                                 outbox: next.pending.map { try JSONEncoder().encode($0) }))
     }
 }

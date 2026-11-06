@@ -84,6 +84,7 @@ import StreamLabDesignSystem
                 }
             }
             .padding(.bottom, 24)
+            .background { if model.store.home != nil { HomeScrollMeasurementProbe() } }
         }
         // Each category owns its scroll/layout identity. Keep the model and
         // presentation state outside this boundary so switching does not reload data.

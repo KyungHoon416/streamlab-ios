@@ -156,6 +156,9 @@ import StreamLabDesignSystem
                 }
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("\(title), 영상 플레이어")
+        .accessibilityIdentifier("playback-container")
         .allowsHitTesting(!subtitleSheet)
         .accessibilityHidden(subtitleSheet)
         .overlay {

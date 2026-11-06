@@ -10,9 +10,12 @@ let package = Package(
         .library(name: "StreamLabCatalogData", targets: ["StreamLabCatalogData"])
     ],
     targets: [
+        // Use the target SDK's SQLite. Host pkg-config paths would link macOS
+        // Homebrew libraries into an iOS/simulator build.
+        .systemLibrary(name: "CSQLite"),
         .target(name: "StreamLabDomain"),
-        .target(name: "StreamLabPresentation", dependencies: ["StreamLabDomain"]),
-        .testTarget(name: "StreamLabPresentationTests", dependencies: ["StreamLabDomain", "StreamLabPresentation", "StreamLabCatalogData"]),
+        .target(name: "StreamLabPresentation", dependencies: ["StreamLabDomain", "CSQLite"]),
+        .testTarget(name: "StreamLabPresentationTests", dependencies: ["StreamLabDomain", "StreamLabPresentation", "StreamLabCatalogData", "CSQLite"]),
         .target(name: "StreamLabCatalogData", dependencies: ["StreamLabDomain"], resources: [.process("Resources")]),
         .testTarget(name: "StreamLabCatalogDataTests", dependencies: ["StreamLabDomain", "StreamLabCatalogData"])
     ]

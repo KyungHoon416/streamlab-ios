@@ -274,3 +274,53 @@ schemes:
         "--firebase-catalog": true
     archive:
       config: FirebaseRelease
+
+  # Repeatable C4 device measurements; ordinary launches remain unchanged.
+  StreamLab-C4-Scroll-C:
+    build:
+      targets:
+        StreamLab: all
+    run:
+      config: Release
+      commandLineArguments:
+        "--trace-home-startup": true
+        "--measure-home-scroll": true
+        "--home-render-experiment=C": true
+    profile:
+      config: Release
+      commandLineArguments:
+        "--trace-home-startup": true
+        "--measure-home-scroll": true
+        "--home-render-experiment=C": true
+
+  StreamLab-C4-Scroll-PV:
+    build:
+      targets:
+        StreamLab: all
+    run:
+      config: Release
+      commandLineArguments:
+        "--trace-home-startup": true
+        "--measure-home-scroll": true
+        "--home-render-experiment=PV": true
+    profile:
+      config: Release
+      commandLineArguments:
+        "--trace-home-startup": true
+        "--measure-home-scroll": true
+        "--home-render-experiment=PV": true
+
+  StreamLab-C4-Download-Energy:
+    build:
+      targets:
+        StreamLab: all
+    run:
+      config: FirebaseRelease
+      commandLineArguments:
+        "--firebase-catalog": true
+        "--trace-download-energy": true
+    profile:
+      config: FirebaseRelease
+      commandLineArguments:
+        "--firebase-catalog": true
+        "--trace-download-energy": true

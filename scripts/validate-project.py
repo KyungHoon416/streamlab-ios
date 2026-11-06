@@ -23,12 +23,15 @@ bridges = {
     # Poster layer, layout tracing and poster adapter tests.
     "Packages/StreamLabUI/Sources/StreamLabDesignSystem/Images/ArtworkImageSurface.swift",
     "Packages/StreamLabUI/Sources/StreamLabDesignSystem/Theme/HomeStartupTrace.swift",
+    # Opt-in deterministic scrolling for measured C/PV comparisons only.
+    "Packages/StreamLabUI/Sources/StreamLabDesignSystem/Theme/HomeScrollMeasurementProbe.swift",
     "Packages/StreamLabUI/Tests/StreamLabCatalogFeatureTests/ArtworkSurfaceTests.swift",
     # System memory-warning notification only; all rendering remains SwiftUI.
     "Packages/StreamLabUI/Sources/StreamLabDesignSystem/Images/ArtworkMemoryLifecycle.swift",
     "App/Application/DownloadBackgroundDelegate.swift",
     # System notification settings and foreground/background state only.
     "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Downloads/DownloadNotifications.swift",
+    "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Downloads/OfflineDownloadStore.swift",
     "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Playback/PlayerSurface.swift",
     "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Playback/PlaybackOrientation.swift",
     "Packages/StreamLabUI/Sources/StreamLabCatalogFeature/Playback/PlaybackNowPlaying.swift",
@@ -97,6 +100,23 @@ for name, use_firebase in (("StreamLab", False), ("StreamLab-Firebase", True)):
         args = shared.findall(f"{action}/CommandLineArguments/CommandLineArgument")
         enabled = {arg.get("argument") for arg in args if arg.get("isEnabled") == "YES"}
         assert ("--firebase-catalog" in enabled) == use_firebase, (name, action, enabled)
+# C4 aliases must pass identical diagnostic arguments to Run and Profile.
+measurement_schemes = {
+    "StreamLab-C4-Scroll-C": ("Release", {"--trace-home-startup", "--measure-home-scroll", "--home-render-experiment=C"}),
+    "StreamLab-C4-Scroll-PV": ("Release", {"--trace-home-startup", "--measure-home-scroll", "--home-render-experiment=PV"}),
+    "StreamLab-C4-Download-Energy": ("FirebaseRelease", {"--firebase-catalog", "--trace-download-energy"}),
+}
+for name, (config, expected) in measurement_schemes.items():
+    shared = ET.parse(root / f"StreamLab.xcodeproj/xcshareddata/xcschemes/{name}.xcscheme")
+    assert shared.find("ProfileAction").get("shouldUseLaunchSchemeArgsEnv") == "NO"
+    for action in ("LaunchAction", "ProfileAction"):
+        assert shared.find(action).get("buildConfiguration") == config
+        ref = shared.find(f"{action}/BuildableProductRunnable/BuildableReference")
+        assert ref.get("BlueprintIdentifier") == app_id
+        args = shared.findall(f"{action}/CommandLineArguments/CommandLineArgument")
+        assert {a.get("argument") for a in args if a.get("isEnabled") == "YES"} == expected
+    assert name + ":" in (root / "project.yml").read_text()
+
 assert "SWIFT_TREAT_WARNINGS_AS_ERRORS: YES" in (root / "project.yml").read_text()
 print("PASS: SwiftUI App + four feature views, lazy containers, profile identity, lifecycle wiring")
 print("PASS: package declarations, compiled source paths, scheme target IDs and Info.plist")
