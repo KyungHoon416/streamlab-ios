@@ -603,7 +603,7 @@
         "Docs/Measurements/C4-2026-10-31/REPORT.md",
         "Docs/FINAL_DEVICE_QA.md"
       ],
-      "note": "C1·PV1·C2의 30초 실제 표시 프레임 비교 확보. PV2 시작 표식 및 프레임 구간 누락으로 PV2 재측정 대기."
+      "note": "4개 완주 구간 모두 실제 프레임 비교. PV2 retry2는 Serious, 나머지 3회는 Nominal. 동일 열 상태의 PV 반복 증거는 미확보."
     },
     {
       "group": "D 장애 주입·재현",

@@ -250,5 +250,72 @@
       "PV2-retry1-data.xml": "c4ec7394f7b1ffd01bd7a8dfff21186d28aa430499bea22e05a5a952c918a593",
       "crosscheck.xml": "9de6d32f0d7be058bee9bf6421be80a61ba83cf50f864653e14cf1c50ad6e2f9"
     }
+  },
+  {
+    "label": "PV2-retry2",
+    "run": 1,
+    "arguments": "--trace-home-startup --measure-home-scroll --home-render-experiment=PV",
+    "device": "iPhone 15 Pro",
+    "os": "26.6.1 (23G83)",
+    "recorded": "2026-11-07T16:18:10.048+09:00",
+    "markers": [
+      [
+        5.690065041,
+        "C4ScrollWarmup"
+      ],
+      [
+        16.26220175,
+        "C4ControlledScroll"
+      ],
+      [
+        16.262202833,
+        "C4ScrollStart"
+      ],
+      [
+        46.27841525,
+        "C4ScrollEnd"
+      ],
+      [
+        46.278434208,
+        "C4ControlledScroll"
+      ]
+    ],
+    "thermal": [
+      [
+        0.0,
+        59.306275844,
+        "Serious thermal state"
+      ]
+    ],
+    "logs": [],
+    "total_hitch_rows": 5,
+    "frames": {
+      "run": 1,
+      "window_s": [
+        16.262202833,
+        46.27841525
+      ],
+      "frames": 1796,
+      "intervals": 1795,
+      "first_s": 16.334623499,
+      "last_s": 46.278322332,
+      "p50_ms": 16.670125,
+      "p95_ms": 16.670167,
+      "max_ms": 33.34025,
+      "toc_sha256": "1c3ba2f90f9cf6dd8af9dcbf0437fd520b34554ba601caf218531e3561e8c81e",
+      "export_sha256": "2975de5ddd106c539fefbe4ead8732f0c7e49677845701b67d321d3c5d420b0b"
+    },
+    "hitches": {
+      "count": 2,
+      "p50_ms": 16.670166,
+      "p95_ms": 16.670166,
+      "max_ms": 16.670166,
+      "total_ms": 33.340332
+    },
+    "intervals_gt_25ms": 3,
+    "intervals_gt_50ms": 0,
+    "file": "c4-controlled-PV2-retry2.trace",
+    "scroll_window_valid": true,
+    "thermal_matches_nominal_cohort": false
   }
 ]

@@ -25,7 +25,7 @@
 | B1 로컬 DB | 완료 | SQLite 트랜잭션, JSON 이전, 중간 실패 롤백·복구 자동 검증 |
 | C3 VoiceOver | 완료 | iPhone 15 Pro에서 F10 샘플 전체 경로 PASS. 음성 안내·위치 조절·상세 복귀 확인 |
 | C4 다운로드 전력 | 완료 | power-3에서 백그라운드 전송 16.932초 구간의 앱 전력 영향 확인 |
-| C4 전후 비교 | 실기기 대기 | C1·PV1·C2의 30초 표시 간격 및 hitch 비교 확보. PV2만 재측정 필요 |
+| C4 전후 비교 | 실기기 대기 | 4개 완주 구간 비교. PV2 retry2가 Serious로 기록되어 Nominal 조건 반복 검증 대기 |
 | D 전체 자동 CI | 완료 | Core/재생/앱 UI 9개/네이티브 HLS 3개를 동일 커밋에서 원격 실행 |
 | README 10분 재현 | 완료 | 사전 설치된 Xcode/runtime 조건에서 새 runner·시뮬레이터 빌드/Mock 로그인/재생 smoke 424초 |
 | Player/Download 상태도 | 완료 | 코드와 대조한 Mermaid 2개 및 PDF 그림 |

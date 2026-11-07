@@ -17,7 +17,7 @@
 | C1 다운로드 | HLS/MP4, 유효 저장 영상 우선, 백그라운드, 동시 2개, 전체 1GB, 고정/LRU·일시정지·재개·만료·정리 | [상태도](States/DOWNLOAD.md), [기존 실기기 이력](DOWNLOADS_QA.md). F06/F09·정상 HLS UI 3개 원격 성공. 실제 ENOSPC는 주입과 구분 |
 | C2 인증·권한 | Keychain·잠금/해제·로그아웃, grant 만료·키 오류 Mock, 진단 최소화 | [로그인/잠금](Measurements/Auth-Unlock-Restore-2026-10-31/REPORT.md), [실행 중 만료](Measurements/Runtime-Entitlement-2026-11-01/REPORT.md). FairPlay·신뢰 시계 아님 |
 | C3 접근성 | Dynamic Type·고대비·Reduce Motion, 플레이어 설명 및 설명/터치 영역 자동 감사 | iPhone 15 Pro · iOS 26.6.1 전체 경로 PASS |
-| C4 성능 | HLS 22회·메모리·Leaks·프레임·Hitch·HLS 전력·파일 I/O 근거 | [통합 보고서](Measurements/C4-2026-10-31/REPORT.md). 백그라운드 다운로드 전력 확인. C1·PV1·C2 비교 확보. PV2 재측정 대기 |
+| C4 성능 | HLS 22회·메모리·Leaks·프레임·Hitch·HLS 전력·파일 I/O 근거 | [통합 보고서](Measurements/C4-2026-10-31/REPORT.md). 백그라운드 다운로드 전력 확인. 4회 비교 확보. PV2 retry2는 Serious로, 동일 열 상태 비교 대기 |
 | D 장애/재현 | Core 31+247, chaos 3종 각 1,000 seed, SIGKILL, iOS 25, 앱 UI 9, HLS UI 3 원격 성공 | [F01~F10](CHAOS_ACCEPTANCE.md). F09/F10 기존 실기기 확인은 별도. 모든 실기기 OS 장애 조합 완료를 뜻하지 않음 |
 | 문서/재현 | README 새 runner smoke 424초, Player/Download 상태도, 샘플 URL·사용조건, 14쪽 아키텍처 PDF | Xcode/runtime 사전 설치 조건. 과거 3분 32초 영상·태그·ZIP과 현재 앱을 구분 |
 
