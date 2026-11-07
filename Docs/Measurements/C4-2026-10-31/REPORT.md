@@ -163,3 +163,16 @@ python3 scripts/summarize-displayed-frames.py toc.xml frames.xml --run 1 --start
 ```
 
 A/B는 표의 Run 번호를 XPath와 집계 명령 양쪽에 적용하고 종료 시각은 40초로 둔다. 10월 31일 원본 재분석에서는 직접 swap 대조를 위해 같은 XML에 display-surface-swap과 display-events-interval 테이블도 함께 내보냈다.
+
+### 2026-11-07 백그라운드 다운로드 예비 측정
+
+`c4-background-download-power-1.trace` Run 1은 iPhone 15 Pro, iOS 26.6.1에서 94.031초간 기록했다. 실행 인수는 `--firebase-catalog --trace-download-energy`였고 사용자가 충전 연결을 확인했다. 사용자가 적은 시작 45초·홈 이동 46초·완료 알림 56초와 아래 앱 내부 표식은 서로 다른 관측이므로 구간 계산에는 trace 시계를 사용했다.
+
+| 앱 표식 | 녹화 경과(초) |
+|---|---:|
+| DownloadTransferStarted | 37.977 |
+| DownloadAppBackground | 39.673 |
+| DownloadTransferCompleted | 54.916 |
+| DownloadAppForeground | 57.482 |
+
+시작부터 완료까지 16.939초, 백그라운드 진입부터 완료까지 15.243초다. 완료는 앱 복귀 전이었다. Run 1에는 Points of Interest가 있지만 전력 분석에 필요한 SystemPowerLevel·ProcessSubsystemPowerImpact 테이블이 없다. C4-4는 전력 근거 대기 상태로 유지한다. 다음 Power Profiler 기록은 `c4-background-download-power-2.trace`로 저장한다.
