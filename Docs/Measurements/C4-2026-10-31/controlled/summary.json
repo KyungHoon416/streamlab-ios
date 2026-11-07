@@ -217,5 +217,38 @@
     },
     "intervals_gt_25ms": 4,
     "intervals_gt_50ms": 0
+  },
+  {
+    "label": "PV2-retry1",
+    "run": 1,
+    "arguments": "--trace-home-startup --measure-home-scroll --home-render-experiment=PV",
+    "device": "iPhone 15 Pro",
+    "os": "26.6.1 (23G83)",
+    "recorded": "2026-11-07T15:58:00.143+09:00",
+    "markers": [],
+    "thermal": [
+      [
+        0.0,
+        51.897076129,
+        "Nominal thermal state"
+      ]
+    ],
+    "logs": [],
+    "total_hitch_rows": 0,
+    "file": "c4-controlled-PV2-retry1.trace",
+    "valid": false,
+    "run_seconds": 51.897076,
+    "reason": "Neither scroll marker nor displayed-frame samples available; performance metrics undefined.",
+    "row_counts": {
+      "os-signpost.PointsOfInterest": 0,
+      "OSSignpostIntervals": 0,
+      "hitches-updates": 0,
+      "hitches-frame-lifetimes": 0
+    },
+    "export_sha256": {
+      "PV2-retry1-toc.xml": "6d82a4885cf581b0a68d8488b39e09b6ed6a1453687f128cc74fed3ec1da5135",
+      "PV2-retry1-data.xml": "c4ec7394f7b1ffd01bd7a8dfff21186d28aa430499bea22e05a5a952c918a593",
+      "crosscheck.xml": "9de6d32f0d7be058bee9bf6421be80a61ba83cf50f864653e14cf1c50ad6e2f9"
+    }
   }
 ]

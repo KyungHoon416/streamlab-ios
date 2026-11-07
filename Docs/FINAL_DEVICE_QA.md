@@ -67,3 +67,5 @@ Instruments의 **Animation Hitches + Points of Interest**를 사용한다. 프�
 분석은 **Instruments의 실제 화면 표시 시각**을 사용한다. CADisplayLink 콜백 횟수를 FPS로 대신 세지 않는다. p50/p95, hitch 수/시간, 초기 표시까지의 구간을 분리한다. 개선되지 않았으면 그대로 기록한다. 이 네 파일을 받기 전에는 전후 개선 완료로 표시하지 않는다.
 
 11월 7일 C1 retry2·PV1·C2는 유효하다. PV2만 같은 조건으로 새 프로세스에서 실행해 5왕복 종료 후 5초 뒤 녹화를 끝내고 `c4-controlled-PV2-retry1.trace`로 저장한다. [회차별 결과](Measurements/C4-2026-10-31/REPORT.md).
+
+PV2 retry1도 두 표식과 프레임 데이터가 비어 비교에서 제외했다. 다음 PV2는 `c4-controlled-PV2-retry2.trace`로 저장한다. 먼저 짧게 별도 녹화해 Points of Interest에 홈 진입 표식, Animation Hitches에 StreamLab App Updates가 보이는지 확인한 뒤 같은 설정에서 새 프로세스로 30초 측정을 진행한다.
