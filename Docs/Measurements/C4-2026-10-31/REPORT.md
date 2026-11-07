@@ -176,3 +176,9 @@ A/B는 표의 Run 번호를 XPath와 집계 명령 양쪽에 적용하고 종료
 | DownloadAppForeground | 57.482 |
 
 시작부터 완료까지 16.939초, 백그라운드 진입부터 완료까지 15.243초다. 완료는 앱 복귀 전이었다. Run 1에는 Points of Interest가 있지만 전력 분석에 필요한 SystemPowerLevel·ProcessSubsystemPowerImpact 테이블이 없다. C4-4는 전력 근거 대기 상태로 유지한다. 다음 Power Profiler 기록은 `c4-background-download-power-2.trace`로 저장한다.
+
+### 2026-11-07 두 번째 백그라운드 다운로드 기록
+
+`c4-background-download-power-2.trace` Run 1 (98.954초)에서 StreamLab은 `--firebase-catalog --trace-download-energy`로 실행됐다. 사용자가 기록한 시점은 시작 37초, 홈 이동 38초, 완료 알림 66초다. Points of Interest에는 완료(63.820초)와 앱 복귀(68.489초)만 남았다. 시작·백그라운드 진입 표식은 이 기록에서 확인되지 않아 전송 구간을 정밀 계산할 수 없다.
+
+저장된 템플릿은 Animation Hitches이고, 계측 구성에 Points of Interest는 있지만 Power Profiler 식별자(`com.apple.dt.instruments.power-metrics`)가 없다. Run 1 테이블 목록에도 SystemPowerLevel 및 ProcessSubsystemPowerImpact가 없다. 과거 HLS 전력 측정 성공 파일에는 같은 식별자와 두 테이블이 있었다. C4-4는 대기다. 새 문서에서 Power Profiler를 선택하고 Points of Interest를 추가한 뒤 `c4-background-download-power-3.trace`로 저장한다.
