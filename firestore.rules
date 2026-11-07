@@ -1,17 +1,11 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function admin() {
-      return request.auth != null
-        && request.auth.token.email.lower() == 'kkh9172@gmail.com'
-        && request.auth.token.email_verified == true
-        && request.auth.token.firebase.sign_in_provider == 'google.com';
-    }
     function httpsURL(value) { return value is string && value.size() <= 2048 && value.matches('https://[^\\s]+'); }
     function valid(id) {
       let d = request.resource.data;
       return id.matches('[a-z0-9][a-z0-9-]{0,63}')
-        && d.keys().hasOnly(['id','name','synopsis','genre','year','durationMinutes','kind','rating','artworkURL','streamURL','visualSeed','popularity','published','revision','updatedAt'])
+        && d.keys().hasOnly(['id','name','synopsis','genre','year','durationMinutes','kind','rating','artworkURL','streamURL','visualSeed','popularity','published','revision','updatedAt','trashed'])
         && d.keys().hasAll(['id','name','synopsis','genre','year','durationMinutes','kind','rating','artworkURL','streamURL','visualSeed','popularity','published','revision','updatedAt'])
         && d.id == id && d.name is string && d.name.size() > 0 && d.name.size() <= 120
         && d.synopsis is string && d.synopsis.size() <= 5000
@@ -24,14 +18,15 @@ service cloud.firestore {
         && d.visualSeed is int && d.visualSeed >= 0 && d.visualSeed <= 1000000
         && d.popularity is int && d.popularity >= 0 && d.popularity <= 1000000
         && d.published is bool && (!d.published || d.streamURL != '')
+        && d.get('trashed', false) is bool && (!d.get('trashed', false) || !d.published)
         && d.revision is int && d.updatedAt == request.time;
     }
     match /titles/{id} {
       // The web catalog includes drafts. published controls iOS catalog inclusion.
       allow read: if true;
-      allow create: if admin() && valid(id) && request.resource.data.revision == 1;
-      allow update: if admin() && valid(id) && request.resource.data.revision == resource.data.revision + 1;
-      // Preserve records and stable progress IDs; unpublish instead of deleting.
+      allow create: if valid(id) && request.resource.data.revision == 1;
+      allow update: if valid(id) && request.resource.data.revision == resource.data.revision + 1;
+      // Deletion moves a title to trash; the original ID and media remain recoverable.
       allow delete: if false;
     }
     match /{document=**} { allow read, write: if false; }

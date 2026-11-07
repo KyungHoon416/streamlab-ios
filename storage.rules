@@ -1,24 +1,17 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    function admin() {
-      return request.auth != null
-        && request.auth.token.email.lower() == 'kkh9172@gmail.com'
-        && request.auth.token.email_verified == true
-        && request.auth.token.firebase.sign_in_provider == 'google.com';
-    }
     match /videos/{titleId} {
-      allow list: if admin();
+      allow list: if true;
     }
     match /videos/{titleId}/{fileName} {
-      allow read: if admin();
-      allow create: if admin() && resource == null
+      allow read: if true;
+      allow create: if resource == null
         && titleId.matches('[a-z0-9][a-z0-9-]{0,63}')
         && fileName.matches('[a-f0-9-]{36}\\.mp4')
         && request.resource.size >= 12 && request.resource.size <= 5000000000
         && request.resource.contentType == 'video/mp4'
-        && request.resource.metadata.titleId == titleId
-        && request.resource.metadata.uploadedBy == request.auth.uid;
+        && request.resource.metadata.titleId == titleId;
       // A new unique object is used for each replacement. Existing videos are
       // never overwritten or deleted as a side effect of editing a title.
       allow update, delete: if false;

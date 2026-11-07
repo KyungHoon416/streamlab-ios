@@ -2,25 +2,15 @@ import "./style.css";
 import { createViewer } from "./viewer.js";
 import { initializeApp } from "firebase/app";
 import {
-  getAuth,
-  GoogleAuthProvider,
-  signInWithPopup,
-  onAuthStateChanged,
-  signOut,
-  browserSessionPersistence,
-  setPersistence,
-} from "firebase/auth";
-import {
   getFirestore,
   collection,
   getDocs,
   query,
   orderBy,
-  limit,
 } from "firebase/firestore";
-import { attachDraftVideo, persistTitle } from "./persist-title.js";
+import { attachDraftVideo, persistTitle, moveTitleToTrash } from "./persist-title.js";
 import config from "./firebase-config.json";
-import { canManage, validateTitle } from "./catalog.js";
+import { validateTitle } from "./catalog.js";
 import {
   getStorage,
   ref as storageRef,
@@ -33,7 +23,6 @@ import { VideoSelection } from "./selection.js";
 import { VideoUpload, MAX_VIDEO_BYTES, formatVideoSize, uploadProgressText, validateMP4 } from "./upload.js";
 import { CompressionPanel } from "./compression-panel.js";
 const app = initializeApp(config),
-  auth = getAuth(app),
   db = getFirestore(app);
 const $ = (id) => document.getElementById(id),
   form = $("editor");
@@ -41,7 +30,7 @@ let titles = [],
   selected = null,
   revision = 0,
   epoch = 0,
-  allowed = false,
+  editingMode = false,
   busy = false;
 const message = (text) => {
   $("message").textContent = text;
@@ -68,7 +57,7 @@ function clearDrag() {
   dropzone.classList.remove("drag-over");
 }
 function chooseFiles(files) {
-  if (!allowed || busy) return;
+  if (!editingMode || busy) return;
   ++recoveryGeneration;
   $("recover-options").replaceChildren();
   const candidates = Array.from(files);
@@ -80,7 +69,7 @@ const isFileDrag = (event) => Array.from(event.dataTransfer?.types ?? []).includ
 dropzone.addEventListener("dragenter", (event) => {
   if (!isFileDrag(event)) return;
   event.preventDefault();
-  if (allowed && !busy && ++dragDepth === 1) dropzone.classList.add("drag-over");
+  if (editingMode && !busy && ++dragDepth === 1) dropzone.classList.add("drag-over");
 });
 dropzone.addEventListener("dragleave", () => {
   if (--dragDepth <= 0) clearDrag();
@@ -88,7 +77,7 @@ dropzone.addEventListener("dragleave", () => {
 dropzone.addEventListener("dragover", (event) => {
   if (!isFileDrag(event)) return;
   event.preventDefault();
-  event.dataTransfer.dropEffect = allowed && !busy ? "copy" : "none";
+  event.dataTransfer.dropEffect = editingMode && !busy ? "copy" : "none";
 });
 dropzone.addEventListener("drop", (event) => {
   if (!isFileDrag(event)) return;
@@ -151,7 +140,7 @@ const uploader = new VideoUpload({
   failed: (e) => {
     const messages = {
       "storage/unauthorized":
-        "업로드 권한이 없습니다. 관리자 계정과 Storage 보안 규칙을 확인하세요.",
+        "업로드 권한이 없습니다. 파일 형식과 업로드 경로를 확인하세요.",
       "storage/bucket-not-found":
         "Storage가 아직 준비되지 않았습니다. 결제 연결과 버킷 생성을 확인하세요.",
       "storage/retry-limit-exceeded":
@@ -167,17 +156,13 @@ const uploader = new VideoUpload({
   },
   settled: () => uploadBusy(false),
 });
-function cancelUpload() {
+$("upload-cancel").onclick = () => {
   uploader.cancel();
-  if (uploading) {
-    uploadBusy(false);
-    $("upload-status").textContent =
-      "업로드를 취소했습니다. 기존 영상 URL은 유지됩니다. 전송 완료 직후 취소한 파일은 Storage에 남을 수 있습니다.";
-  }
-}
-$("upload-cancel").onclick = cancelUpload;
+  uploadBusy(false);
+  $("upload-status").textContent = "업로드를 취소했습니다.";
+};
 $("upload-start").onclick = async () => {
-  if (!allowed || busy) return;
+  if (!editingMode || busy) return;
   const file = selection.file;
   if (!file) {
     $("upload-status").textContent = "유효한 MP4 파일을 먼저 선택하세요.";
@@ -214,8 +199,9 @@ $("upload-start").onclick = async () => {
       }
       return;
     }
-    if (epoch !== ticket || !allowed) return;
+    if (epoch !== ticket || !editingMode) return;
     selected = draft.id;
+    $("trash-title").hidden = false;
     revision = 1;
     $("form-title").textContent = "작품 수정";
     $("upload-cancel").disabled = false;
@@ -226,7 +212,7 @@ $("upload-start").onclick = async () => {
   $("upload-status").textContent = "MP4 파일을 확인하고 있어요…";
   uploader.run(file, `videos/${selected}/${crypto.randomUUID()}.mp4`, {
     contentType: "video/mp4",
-    customMetadata: { titleId: selected, uploadedBy: auth.currentUser.uid },
+    customMetadata: { titleId: selected },
   });
 };
 window.addEventListener("beforeunload", (event) => {
@@ -252,15 +238,16 @@ function reset(item = null) {
     }
   }
   form.elements.id.disabled = !!selected;
+  $("trash-title").hidden = !selected;
   $("form-title").textContent = selected ? "작품 수정" : "새 작품";
   $("saved").textContent = "";
   $("upload-status").textContent = "";
 }
 let recoveryGeneration = 0;
 $("recover-video").onclick = async () => {
-  if (!allowed || busy || !selected) return;
+  if (!editingMode || busy || !selected) return;
   const generation = ++recoveryGeneration;
-  const current = () => allowed && !busy && generation === recoveryGeneration;
+  const current = () => editingMode && !busy && generation === recoveryGeneration;
   const options = $("recover-options");
   options.replaceChildren();
   $("upload-status").textContent = "이 작품에 업로드한 파일을 찾고 있습니다…";
@@ -291,7 +278,7 @@ $("recover-video").onclick = async () => {
         options.replaceChildren();
         try {
           const url = await getDownloadURL(ref);
-          if (choice !== recoveryGeneration || !allowed || busy) return;
+          if (choice !== recoveryGeneration || !editingMode || busy) return;
           selection.clear();
           form.elements.streamURL.value = url;
           $("upload-status").textContent = "기존 파일을 연결했습니다. 공개 여부를 확인하고 저장하세요.";
@@ -304,11 +291,12 @@ $("recover-video").onclick = async () => {
 function render() {
   const term = $("search").value.trim().toLocaleLowerCase();
   $("titles").replaceChildren();
-  const filtered = titles.filter((x) =>
+  const visible = titles.filter(item => Boolean(item.trashed) === $("show-trash").checked);
+  const filtered = visible.filter((x) =>
     `${x.name} ${x.id}`.toLocaleLowerCase().includes(term),
   );
   $("count").textContent =
-    `전체 ${titles.length}개 · 검색 ${filtered.length}개${titles.length === 200 ? " (최대 200개 표시)" : ""}`;
+    `전체 ${visible.length}개 · 검색 ${filtered.length}개`;
   for (const item of filtered) {
     const b = document.createElement("button");
     b.className = "title-row";
@@ -320,32 +308,31 @@ function render() {
     const sub = document.createElement("small");
     sub.textContent = `${item.id} · ${item.year} · ${item.rating}`;
     b.append(title, badge, sub);
+    if (item.trashed) b.append(" · 복구");
     b.onclick = () => {
-      if (!busy) reset(item);
+      if (busy) return;
+      if (item.trashed) changeTrash(item, false);
+      else reset(item);
     };
     $("titles").append(b);
   }
   if (!filtered.length) {
     const p = document.createElement("p");
-    p.textContent = "등록된 작품이 없습니다. 새 작품을 등록해 주세요.";
+    p.textContent = "표시할 작품이 없습니다.";
     $("titles").append(p);
   }
 }
 async function refresh() {
   const ticket = epoch;
   const snap = await getDocs(
-    query(collection(db, "titles"), orderBy("name"), limit(200)),
+    query(collection(db, "titles"), orderBy("name")),
   );
-  if (ticket !== epoch || !allowed) return;
+  if (ticket !== epoch || !editingMode) return;
   titles = snap.docs.map((x) => ({ ...x.data(), id: x.id }));
   render();
 }
 function error(e) {
   const known = {
-    "auth/popup-closed-by-user": "로그인 창이 닫혔습니다.",
-    "auth/operation-not-allowed":
-      "Firebase의 Google 로그인이 아직 활성화되지 않았습니다.",
-    "auth/unauthorized-domain": "Firebase 인증 허용 도메인 설정을 확인하세요.",
     "permission-denied": "접근 권한이 없거나 저장 형식이 올바르지 않습니다.",
     unavailable: "네트워크에 연결한 뒤 다시 시도하세요.",
   };
@@ -358,53 +345,38 @@ function error(e) {
           : "요청을 완료하지 못했습니다. 연결과 입력값을 확인한 뒤 다시 시도하세요."),
   );
 }
-$("login").onclick = async () => {
-  try {
-    await setPersistence(auth, browserSessionPersistence);
-    await signInWithPopup(auth, new GoogleAuthProvider());
-  } catch (e) {
-    error(e);
-  }
-};
-$("logout").onclick = () => {
-  ++epoch;
-  cancelUpload();
-  signOut(auth).catch(error);
-};
 const viewer = createViewer(db);
-onAuthStateChanged(auth, async (user) => {
-  cancelUpload();
-  const ticket = ++epoch;
-  allowed = false;
-  titles = [];
-  reset();
-  render();
-  $("workspace").hidden = true;
-  $("signin").hidden = false;
-  $("logout").hidden = !user;
-  $("identity").textContent = user?.email ?? "";
+async function switchMode(edit) {
+  if (busy) return;
+  ++epoch;
+  editingMode = edit;
   message("");
   viewer.close();
-  if (!user) {
-    await viewer.open();
-    return;
-  }
+  reset();
+  $("show-trash").checked = false;
+  $("workspace").hidden = !edit;
+  $("edit-mode").hidden = edit;
+  $("browse-mode").hidden = !edit;
+  if (edit) await refresh().catch(error);
+  else await viewer.open();
+}
+async function changeTrash(item, trashed) {
+  if (!item || busy) return;
+  if (trashed && !window.confirm(item.name + " 작품을 휴지통으로 옮길까요?")) return;
+  busy = true;
   try {
-    const token = await user.getIdTokenResult();
-    if (ticket !== epoch) return;
-    if (!canManage(user, token.claims)) {
-      $("signin").hidden = true;
-      await viewer.open();
-      return;
-    }
-    allowed = true;
-    $("signin").hidden = true;
-    $("workspace").hidden = false;
+    await moveTitleToTrash(db, item.id, item.revision, trashed);
+    reset();
     await refresh();
-  } catch (e) {
-    error(e);
-  }
-});
+    message(trashed ? "휴지통으로 옮겼습니다." : "앱 비공개로 복구했습니다.");
+  } catch (e) { error(e); }
+  finally { busy = false; }
+}
+$("trash-title").onclick = () => changeTrash({ id: selected, revision, name: form.elements.name.value }, true);
+$("show-trash").onchange = () => { if (!busy) { reset(); render(); } };
+$("edit-mode").onclick = () => switchMode(true);
+$("browse-mode").onclick = () => switchMode(false);
+switchMode(false);
 $("new").onclick = () => {
   if (!busy) reset();
 };
@@ -414,7 +386,7 @@ $("refresh").onclick = () => {
 $("search").oninput = render;
 form.onsubmit = async (e) => {
   e.preventDefault();
-  if (!allowed || busy) return;
+  if (!editingMode || busy) return;
   if (selection.file) {
     $("upload-status").textContent = compression.allowsUpload()
       ? "선택한 MP4의 파일 업로드를 먼저 눌러 주세요."
@@ -444,7 +416,7 @@ form.onsubmit = async (e) => {
     await persistTitle(db, data, editing, previous);
     if (ticket !== epoch) return;
     await refresh();
-    if (ticket !== epoch || !allowed) return;
+    if (ticket !== epoch || !editingMode) return;
     reset(titles.find((x) => x.id === data.id));
     $("saved").textContent = "저장했습니다";
     message(

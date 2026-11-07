@@ -1,4 +1,4 @@
-import { persistTitle, attachDraftVideo } from "../src/persist-title.js";
+import { persistTitle, attachDraftVideo, moveTitleToTrash } from "../src/persist-title.js";
 import assert from "node:assert/strict";
 import { test, after, before } from "node:test";
 import { readFile } from "node:fs/promises";
@@ -89,7 +89,7 @@ test("admin create, revision update, public query, unpublish and denied deletion
   await assertFails(updateDoc(doc(anon, "titles/draft"), { published: true }));
   await assertFails(deleteDoc(doc(anon, "titles/draft")));
   await assertFails(getDoc(doc(anon, "users/owner")));
-  await assertFails(setDoc(doc(anon, "titles/attack"), data("attack", true)));
+  await assertSucceeds(setDoc(doc(anon, "titles/guest"), data("guest", true)));
   await assertFails(
     updateDoc(doc(admin, "titles/public"), {
       name: "bad revision",
@@ -106,15 +106,24 @@ test("admin create, revision update, public query, unpublish and denied deletion
   assert.equal((await getDoc(doc(anon, "titles/public"))).get("published"), false);
   await assertFails(deleteDoc(doc(admin, "titles/public")));
 });
-test("wrong email, unverified email and password provider cannot write", async () => {
-  for (const claims of [
-    { ...token, email: "other@example.com" },
-    { ...token, email_verified: false },
-    { ...token, firebase: { sign_in_provider: "password" } },
-  ]) {
-    const db = env.authenticatedContext("outsider", claims).firestore();
-    await assertFails(setDoc(doc(db, "titles/noaccess"), data("noaccess")));
-  }
+test("guest can edit, trash and restore without losing the video or overwriting a newer edit", async () => {
+  const db = env.unauthenticatedContext().firestore();
+  const id = "guest-lifecycle";
+  const title = data(id, true);
+  await persistTitle(db, title, null, 0);
+  await persistTitle(db, { ...title, name: "Changed" }, id, 1);
+  await assert.rejects(moveTitleToTrash(db, id, 1, true), /CONFLICT/);
+  await moveTitleToTrash(db, id, 2, true);
+  const ref = doc(db, "titles", id);
+  assert.equal((await getDoc(ref)).get("published"), false);
+  assert.equal((await getDoc(ref)).get("trashed"), true);
+  await assertFails(updateDoc(ref, { published: true, revision: 4, updatedAt: serverTimestamp() }));
+  await assertFails(deleteDoc(ref));
+  await moveTitleToTrash(db, id, 3, false);
+  const restored = await getDoc(ref);
+  assert.equal(restored.get("trashed"), false);
+  assert.equal(restored.get("streamURL"), title.streamURL);
+  assert.equal(restored.get("published"), false);
 });
 test("schema, timestamps and publish URL enforced server-side", async () => {
   const db = env.authenticatedContext("owner", token).firestore();

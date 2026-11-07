@@ -17,7 +17,7 @@ const path = "videos/sample/12345678-1234-1234-1234-123456789abc.mp4";
 const bytes = new Uint8Array(12);
 const metadata = {
   contentType: "video/mp4",
-  customMetadata: { titleId: "sample", uploadedBy: "owner" },
+  customMetadata: { titleId: "sample" },
 };
 before(async () => {
   env = await initializeTestEnvironment({
@@ -35,38 +35,16 @@ before(async () => {
 after(async () => {
   await env?.cleanup();
 });
-test("admin creates and reads immutable MP4; anonymous cannot read through SDK or write", async () => {
-  const owner = env.authenticatedContext("owner", token).storage(),
-    anon = env.unauthenticatedContext().storage();
-  await assertSucceeds(uploadBytes(ref(owner, path), bytes, metadata));
-  await assertSucceeds(getMetadata(ref(owner, path)));
-  assert.equal((await listAll(ref(owner, "videos/sample"))).items[0].fullPath, path);
-  await assertFails(listAll(ref(anon, "videos/sample")));
-  await assertFails(getMetadata(ref(anon, path)));
-  await assertFails(
-    uploadBytes(
-      ref(anon, "videos/sample/22345678-1234-1234-1234-123456789abc.mp4"),
-      bytes,
-      metadata,
-    ),
-  );
-  await assertFails(uploadBytes(ref(owner, path), bytes, metadata));
-  await assertFails(deleteObject(ref(owner, path)));
+test("a visitor uploads a new MP4, lists and reads it, but cannot destroy existing media", async () => {
+  const db = env.unauthenticatedContext().storage();
+  const file = ref(db, path);
+  await assertSucceeds(uploadBytes(file, bytes, metadata));
+  assert.equal((await getMetadata(file)).contentType, "video/mp4");
+  assert.equal((await listAll(ref(db, "videos/sample"))).items[0].fullPath, path);
+  await assertFails(uploadBytes(file, bytes, metadata));
+  await assertFails(deleteObject(file));
 });
-test("unauthorized accounts, invalid metadata, format, empty files and other paths denied", async () => {
-  for (const claims of [
-    { ...token, email: "other@example.com" },
-    { ...token, email_verified: false },
-    { ...token, firebase: { sign_in_provider: "password" } },
-  ]) {
-    await assertFails(
-      uploadBytes(
-        ref(env.authenticatedContext("owner", claims).storage(), path),
-        bytes,
-        metadata,
-      ),
-    );
-  }
+test("invalid metadata, format, empty files and other paths denied", async () => {
   const owner = env.authenticatedContext("owner", token).storage();
   const fresh = "videos/sample/32345678-1234-1234-1234-123456789abc.mp4";
   for (const m of [

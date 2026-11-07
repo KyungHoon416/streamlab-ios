@@ -84,7 +84,7 @@ export function createViewer(db) {
     try {
       const snapshot = await getDocs(query(collection(db, "titles"), orderBy("name")));
       if (ticket !== request) return;
-      items = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+      items = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })).filter(item => !item.trashed);
       render();
     } catch {
       if (ticket === request) el("browse-status").textContent = "작품을 불러오지 못했습니다. 새로고침해 주세요.";

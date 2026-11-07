@@ -1,11 +1,3 @@
-export const adminEmail = "kkh9172@gmail.com";
-export function canManage(user, token) {
-  return (
-    user?.email?.toLowerCase() === adminEmail &&
-    user.emailVerified === true &&
-    token?.firebase?.sign_in_provider === "google.com"
-  );
-}
 export function validateTitle(input) {
   // Local upload/planning controls are not part of the Firestore document.
   const d = Object.fromEntries([

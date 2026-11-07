@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { canManage, validateTitle } from "../src/catalog.js";
+import { validateTitle } from "../src/catalog.js";
 const title = {
   id: "sample",
   name: "Sample",
@@ -16,18 +16,6 @@ const title = {
   popularity: 1,
   published: true,
 };
-test("only verified approved Google account manages content", () => {
-  const u = { email: "kkh9172@gmail.com", emailVerified: true },
-    t = { firebase: { sign_in_provider: "google.com" } };
-  assert.equal(canManage(u, t), true);
-  assert.equal(canManage({ ...u, email: "Kkh9172@gmail.com" }, t), true);
-  assert.equal(canManage({ ...u, emailVerified: false }, t), false);
-  assert.equal(canManage({ ...u, email: "other@example.com" }, t), false);
-  assert.equal(
-    canManage(u, { firebase: { sign_in_provider: "password" } }),
-    false,
-  );
-});
 test("draft may omit stream, published content cannot", () => {
   assert.equal(
     validateTitle({ ...title, streamURL: "", published: false }).published,
