@@ -182,3 +182,17 @@ A/B는 표의 Run 번호를 XPath와 집계 명령 양쪽에 적용하고 종료
 `c4-background-download-power-2.trace` Run 1 (98.954초)에서 StreamLab은 `--firebase-catalog --trace-download-energy`로 실행됐다. 사용자가 기록한 시점은 시작 37초, 홈 이동 38초, 완료 알림 66초다. Points of Interest에는 완료(63.820초)와 앱 복귀(68.489초)만 남았다. 시작·백그라운드 진입 표식은 이 기록에서 확인되지 않아 전송 구간을 정밀 계산할 수 없다.
 
 저장된 템플릿은 Animation Hitches이고, 계측 구성에 Points of Interest는 있지만 Power Profiler 식별자(`com.apple.dt.instruments.power-metrics`)가 없다. Run 1 테이블 목록에도 SystemPowerLevel 및 ProcessSubsystemPowerImpact가 없다. 과거 HLS 전력 측정 성공 파일에는 같은 식별자와 두 테이블이 있었다. C4-4는 대기다. 새 문서에서 Power Profiler를 선택하고 Points of Interest를 추가한 뒤 `c4-background-download-power-3.trace`로 저장한다.
+
+### 2026-11-07 백그라운드 다운로드 전력 측정 완료
+
+`c4-background-download-power-3.trace` Run 1 (91.073초), iPhone 15 Pro · iOS 26.6.1. Power Profiler와 Points of Interest를 함께 수집했다. 앱 표식은 시작 38.635초 → 백그라운드 40.068초 → 완료 57.000초 → 복귀 59.940초였다. 사용자 관측은 시작 약 37초, 홈 이동 38초, 완료 알림 60초다. 앱 내부 완료를 기준으로 전체 전송은 18.365초, 백그라운드 전송은 16.932초다.
+
+| 구간 (녹화 경과 초) | CPU | 화면 | GPU | 네트워크 |
+|---|---:|---:|---:|---:|
+| 홈 대기 10–30 | 0.0650 | 1.6041 | 0.0000 | 0.0000 |
+| 백그라운드 전송 40.068–57.000 | 0.4983 | 0.0000 | 0.0025 | 0.1000 |
+| 복귀 후 62.940–82.940 | 0.0050 | 1.1056 | 0.0000 | 0.0000 |
+
+각 값은 StreamLab의 ProcessSubsystemPowerImpact 상대 점수다. 해당 지표의 유효 표본과 구간이 겹치는 시간으로 가중 평균했고, 각 열에서 구간 전체를 관측했다. 앱 귀속 표본 191행, 시스템 전력 표본 88행. 앱 귀속 Wi-Fi 수신은 전체 기록에서 361,054,078바이트, 셀룰러 송수신은 0바이트였다. 전송 중 CPU·네트워크 영향이 대기 때보다 높았고 복귀 후 20초 구간에는 네트워크 영향이 0이었다.
+
+전력 표본 구간은 충전 중이었고 SystemPowerLevel은 0%/h로 표시됐다. 열 상태는 Nominal, 화면 밝기는 64~83%였다. 기기 배터리 소모량과 시스템 전송 데몬의 개별 비용은 산출할 수 없다. C4-4는 이 다운로드의 전력 영향 관측과 기존 File Activity 디스크 근거를 합쳐 완료로 판정했다.

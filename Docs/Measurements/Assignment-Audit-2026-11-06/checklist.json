@@ -5,8 +5,8 @@
   "source_name": "Netflix_iOS_과제.docx",
   "source_sha256": "5f2227f658aa52f16a2429c68c4ee3b729fc8e49c17883441cb455622d058250",
   "method": "79 equally weighted verification units; partial or unverified = remaining; not a grade, effort estimate or production-readiness percentage",
-  "complete": 77,
-  "remaining": 2,
+  "complete": 78,
+  "remaining": 1,
   "items": [
     {
       "group": "공통·핵심 테스트",
@@ -584,14 +584,15 @@
       "group": "C 다운로드·보안·품질",
       "id": "C4-4",
       "requirement": "백그라운드 다운로드 에너지/디스크와 캐시 근거",
-      "status": "remaining",
+      "status": "complete",
       "evidence": [
+        "Docs/Measurements/C4-2026-10-31/REPORT.md",
         "Docs/Measurements/C4-2026-10-31/power/REPORT.md",
         "Docs/Measurements/C4-2026-10-31/fileio/REPORT.md",
         "Docs/ADR/0028-offline-hls-downloads.md",
         "Docs/FINAL_DEVICE_QA.md"
       ],
-      "note": "기존 I/O·HLS 재생 전력 근거 유지. 다운로드 전력 Scheme/표식 준비. 백그라운드 전송이 포함된 Power Profiler 기록 대기."
+      "note": "실기기 power-3의 백그라운드 전송 16.932초 전력 영향과 기존 File Activity 근거 확인. 충전 중 측정."
     },
     {
       "group": "C 다운로드·보안·품질",
