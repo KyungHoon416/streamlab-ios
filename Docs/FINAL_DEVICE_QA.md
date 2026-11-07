@@ -71,3 +71,5 @@ Instruments의 **Animation Hitches + Points of Interest**를 사용한다. 프�
 PV2 retry1도 두 표식과 프레임 데이터가 비어 비교에서 제외했다. 다음 PV2는 `c4-controlled-PV2-retry2.trace`로 저장한다. 먼저 짧게 별도 녹화해 Points of Interest에 홈 진입 표식, Animation Hitches에 StreamLab App Updates가 보이는지 확인한 뒤 같은 설정에서 새 프로세스로 30초 측정을 진행한다.
 
 PV2 retry2는 30.016초를 완주했고 실제 표시 프레임 1,796개가 들어왔다. 열 상태는 Serious였다. 동일 조건 반복을 마치려면 기기를 식힌 뒤 PV만 다시 측정해 `c4-controlled-PV2-nominal.trace`로 저장하고, 스크롤 구간의 Device Thermal State가 Nominal인지 확인한다.
+
+**최종 검증 완료.** PV2 nominal의 스크롤 30.015초 전체가 Nominal이고, 실제 표시 프레임은 1,793개였다. C1·C2·PV1과의 [최종 비교](Measurements/C4-2026-10-31/REPORT.md)를 기록했다. 이 항목에 추가 실기기 녹화는 필요하지 않다.

@@ -5,8 +5,8 @@
   "source_name": "Netflix_iOS_과제.docx",
   "source_sha256": "5f2227f658aa52f16a2429c68c4ee3b729fc8e49c17883441cb455622d058250",
   "method": "79 equally weighted verification units; partial or unverified = remaining; not a grade, effort estimate or production-readiness percentage",
-  "complete": 78,
-  "remaining": 1,
+  "complete": 79,
+  "remaining": 0,
   "items": [
     {
       "group": "공통·핵심 테스트",
@@ -598,12 +598,12 @@
       "group": "C 다운로드·보안·품질",
       "id": "C4-5",
       "requirement": "동일 조건의 전후 개선 증거",
-      "status": "remaining",
+      "status": "complete",
       "evidence": [
         "Docs/Measurements/C4-2026-10-31/REPORT.md",
         "Docs/FINAL_DEVICE_QA.md"
       ],
-      "note": "4개 완주 구간 모두 실제 프레임 비교. PV2 retry2는 Serious, 나머지 3회는 Nominal. 동일 열 상태의 PV 반복 증거는 미확보."
+      "note": "Nominal C·PV 각 2회 전후 비교 근거 확보. 비교 검증 완료, PV 스크롤 개선 미입증."
     },
     {
       "group": "D 장애 주입·재현",

@@ -317,5 +317,72 @@
     "file": "c4-controlled-PV2-retry2.trace",
     "scroll_window_valid": true,
     "thermal_matches_nominal_cohort": false
+  },
+  {
+    "label": "PV2-nominal",
+    "run": 1,
+    "arguments": "--trace-home-startup --measure-home-scroll --home-render-experiment=PV",
+    "device": "iPhone 15 Pro",
+    "os": "26.6.1 (23G83)",
+    "recorded": "2026-11-07T16:36:05.742+09:00",
+    "markers": [
+      [
+        4.260143291,
+        "C4ScrollWarmup"
+      ],
+      [
+        14.882690666,
+        "C4ControlledScroll"
+      ],
+      [
+        14.882692541,
+        "C4ScrollStart"
+      ],
+      [
+        44.897499916,
+        "C4ScrollEnd"
+      ],
+      [
+        44.8975155,
+        "C4ControlledScroll"
+      ]
+    ],
+    "thermal": [
+      [
+        0.0,
+        55.787612915,
+        "Nominal thermal state"
+      ]
+    ],
+    "logs": [],
+    "total_hitch_rows": 5,
+    "frames": {
+      "run": 1,
+      "window_s": [
+        14.882692541,
+        44.897499916
+      ],
+      "frames": 1793,
+      "intervals": 1792,
+      "first_s": 14.958191499,
+      "last_s": 44.881052749,
+      "p50_ms": 16.670125,
+      "p95_ms": 16.670167,
+      "max_ms": 33.340292,
+      "toc_sha256": "613dc3eaf8344055fa868608614da2a49ac1c8317013a427b101b0e1cc70d9af",
+      "export_sha256": "15cd10e3700d5d8caae3da837fb3e9e02f559a53d7e0456ef2d0c80ece48718d"
+    },
+    "hitches": {
+      "count": 3,
+      "p50_ms": 16.670166,
+      "p95_ms": 16.670166,
+      "max_ms": 16.670166,
+      "total_ms": 50.010498
+    },
+    "intervals_gt_25ms": 3,
+    "intervals_gt_50ms": 0,
+    "file": "c4-controlled-PV2-nominal.trace",
+    "scroll_window_valid": true,
+    "thermal_matches_nominal_cohort": true
   }
 ]
