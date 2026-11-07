@@ -15,8 +15,9 @@ ROOT=Path(__file__).resolve().parents[2]
 OUT=ROOT/'Docs/Architecture/streamlab-architecture-ko.pdf'
 APP='9a4d39539bf7afaad759bacf8966d650b0477970'
 PROOF=json.loads((ROOT/'Docs/Measurements/Final-Gaps-2026-11-06/evidence.json').read_text())
-AUDIT=json.loads((ROOT/'Docs/Measurements/Assignment-Audit-2026-11-06/checklist.json').read_text())
+AUDIT=json.loads((ROOT/'Docs/Architecture/artifacts-2026-11-07.json').read_text())
 assert PROOF['app_code']==APP and AUDIT['app_commit']==APP
+AUDIT=AUDIT['assignment_units']
 FONT=Path(os.environ.get('STREAMLAB_FONT_DIR',str(Path.home()/'Library/Fonts')))
 for name,filename in [('KR','Pretendard-Regular.ttf'),('KB','Pretendard-Bold.ttf')]:
     pdfmetrics.registerFont(TTFont(name,str(FONT/filename)))

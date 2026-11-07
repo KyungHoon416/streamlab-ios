@@ -22,6 +22,8 @@ Scheme `StreamLab-Firebase`, Run의 오류 주입 인수는 모두 끈다. 영�
 
 보낼 내용: `VoiceOver 전체 경로 PASS/FAIL`, 기기/iOS, 막힌 단계와 잘못 읽힌 문구. 자동 접근성 검사 통과는 실제 음성·초점 순서 확인을 대신하지 않는다.
 
+**실기기 결과 PASS (사용자 확인).** iPhone 15 Pro · iOS 26.6.1 · Wi-Fi · 충전 연결. 빌드 성공으로 보고했으며 설치 빌드의 커밋 SHA는 제공되지 않았다. F10 영어 자막 HLS 샘플로 프로필·작품 탐색, 재생·일시 정지, 영어 자막 선택됨 안내, 위치 조절·시간 읽기, 닫기 후 상세 복귀까지 확인했다.
+
 ## 2. 백그라운드 다운로드 전력
 
 Scheme **`StreamLab-C4-Download-Energy`** → Product → Profile. Instruments에 **Power Profiler + Points of Interest**를 넣는다. Profile은 FirebaseRelease이며 `--trace-download-energy`가 켜져 있다.

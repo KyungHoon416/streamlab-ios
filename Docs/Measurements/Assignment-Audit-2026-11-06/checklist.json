@@ -5,8 +5,8 @@
   "source_name": "Netflix_iOS_과제.docx",
   "source_sha256": "5f2227f658aa52f16a2429c68c4ee3b729fc8e49c17883441cb455622d058250",
   "method": "79 equally weighted verification units; partial or unverified = remaining; not a grade, effort estimate or production-readiness percentage",
-  "complete": 76,
-  "remaining": 3,
+  "complete": 77,
+  "remaining": 2,
   "items": [
     {
       "group": "공통·핵심 테스트",
@@ -518,13 +518,13 @@
       "group": "C 다운로드·보안·품질",
       "id": "C3-1",
       "requirement": "VoiceOver 탐색→상세→재생→자막→중단 전체 독립 조작",
-      "status": "remaining",
+      "status": "complete",
       "evidence": [
         "Docs/PHASE1_MANUAL_QA.md",
         "Docs/ASSIGNMENT_PROGRESS.md",
         "Docs/FINAL_DEVICE_QA.md"
       ],
-      "note": "설명·터치 영역 자동 감사 통과 및 플레이어 컨테이너 설명 수정. 실제 VoiceOver 전체 경로의 초점·음성 확인 대기."
+      "note": "사용자 실기기 확인 PASS. iPhone 15 Pro, iOS 26.6.1, Wi-Fi, 충전 연결. 전체 음성 탐색 경로는 FINAL_DEVICE_QA.md에 기록."
     },
     {
       "group": "C 다운로드·보안·품질",

@@ -249,8 +249,8 @@ box(570,452,230,70,'공개 취소 ≠ 파일 접근권 폐기','비공개여도 
 source('그림 7. 운영 중인 관리자 흐름. 장시간 영상 업로드는 사용자가 진행하며 과제 기본 fixture에는 포함하지 않는다.')
 
 # 8. Evidence and remaining device boundaries, loaded from the audit rather than guessed.
-audit=json.loads((ROOT/'Docs/Measurements/Assignment-Audit-2026-11-06/checklist.json').read_text())
-complete,remaining=audit['complete'],audit['remaining']
+audit=json.loads((ROOT/'Docs/Architecture/artifacts-summary-2026-11-07.json').read_text())
+complete,remaining=audit['assignment_units']['complete'],audit['assignment_units']['remaining']
 proof_path=ROOT/'Docs/Measurements/Final-Gaps-2026-11-06/evidence.json'
 proof=json.loads(proof_path.read_text()) if proof_path.exists() else {}
 ci=proof.get('ci',{})

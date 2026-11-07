@@ -2,7 +2,7 @@
 
 기준일: 2026-11-06 과제 점검의 후속 검증 · 앱 코드 `9a4d395`. 이 문서를 현재 상태의 시작점으로 사용한다. 날짜별 `ASSIGNMENT_PROGRESS.md`와 기존 제출 태그는 이력이며 과거의 ‘미구현’ 표가 현재 상태를 뜻하지 않는다.
 
-**과제 확인 단위 76/79 완료(96.2%), 3/79 실기기 결과 대기(3.8%)다.** 최초 잔여 8개 중 SQLite DB·전체 자동 CI·README 재현·상태도·샘플 사용조건 5개를 마쳤다. 세 나머지는 검증 도구를 준비했지만 실제 결과를 확보하기 전에는 완료로 세지 않는다. 배점·작업 시간·운영 준비 비율이 아니다. [79항목 근거와 계산](ASSIGNMENT_AUDIT_2026-11-06.md).
+**과제 확인 단위 77/79 완료(97.5%), 2/79 실기기 결과 대기(2.5%)다.** 최초 잔여 8개 중 SQLite DB·전체 자동 CI·README 재현·상태도·샘플 사용조건 5개를 마쳤다. VoiceOver 전체 경로도 실기기에서 통과했다. 배점·작업 시간·운영 준비 비율이 아니다. [79항목 근거와 계산](ASSIGNMENT_AUDIT_2026-11-06.md).
 
 [원격 실행 42239749042](https://github.com/KyungHoon416/streamlab-ios/actions/runs/42239749042)에서 Core·재생·앱 인수·네이티브 다운로드 네 job 모두 성공했다. Core·재생·앱 UI는 attempt 1, native 다운로드는 한 번 재실행한 attempt 2의 근거다. [이번 보완 보고서](Measurements/Final-Gaps-2026-11-06/REPORT.md)와 [CI 범위](CI_VALIDATION.md)에 실제 환경·수량·시간·한계를 기록했다.
 
@@ -16,16 +16,15 @@
 | B 로컬 우선·정합성 | 프로필별 SQLite에 찜·최근 검색·이어보기 projection과 outbox 원자 커밋. 기존 JSON 이전 | [ADR 0030](ADR/0030-sqlite-local-projection-outbox.md), HTTP·SIGKILL 100건 복구. SwiftData가 아닌 SDK SQLite |
 | C1 다운로드 | HLS/MP4, 유효 저장 영상 우선, 백그라운드, 동시 2개, 전체 1GB, 고정/LRU·일시정지·재개·만료·정리 | [상태도](States/DOWNLOAD.md), [기존 실기기 이력](DOWNLOADS_QA.md). F06/F09·정상 HLS UI 3개 원격 성공. 실제 ENOSPC는 주입과 구분 |
 | C2 인증·권한 | Keychain·잠금/해제·로그아웃, grant 만료·키 오류 Mock, 진단 최소화 | [로그인/잠금](Measurements/Auth-Unlock-Restore-2026-10-31/REPORT.md), [실행 중 만료](Measurements/Runtime-Entitlement-2026-11-01/REPORT.md). FairPlay·신뢰 시계 아님 |
-| C3 접근성 | Dynamic Type·고대비·Reduce Motion, 플레이어 설명 및 설명/터치 영역 자동 감사 | 실제 VoiceOver 전체 경로 확인 대기 |
+| C3 접근성 | Dynamic Type·고대비·Reduce Motion, 플레이어 설명 및 설명/터치 영역 자동 감사 | iPhone 15 Pro · iOS 26.6.1 전체 경로 PASS |
 | C4 성능 | HLS 22회·메모리·Leaks·프레임·Hitch·HLS 전력·파일 I/O 근거 | [통합 보고서](Measurements/C4-2026-10-31/REPORT.md). 백그라운드 다운로드 전력과 통제된 C/PV 비교 대기 |
 | D 장애/재현 | Core 31+247, chaos 3종 각 1,000 seed, SIGKILL, iOS 25, 앱 UI 9, HLS UI 3 원격 성공 | [F01~F10](CHAOS_ACCEPTANCE.md). F09/F10 기존 실기기 확인은 별도. 모든 실기기 OS 장애 조합 완료를 뜻하지 않음 |
 | 문서/재현 | README 새 runner smoke 424초, Player/Download 상태도, 샘플 URL·사용조건, 14쪽 아키텍처 PDF | Xcode/runtime 사전 설치 조건. 과거 3분 32초 영상·태그·ZIP과 현재 앱을 구분 |
 
-## 남은 3개 — 실행 순서
+## 남은 2개 — 실행 순서
 
-1. **VoiceOver**: 프로필→홈→상세→재생→영어 자막→탐색→일시 정지→닫기를 음성과 초점 이동으로 확인한다.
-2. **백그라운드 다운로드 전력**: `StreamLab-C4-Download-Energy`, Power Profiler + Points of Interest. `c4-background-download-power-1.trace`.
-3. **동일 조건 C/PV 비교**: `StreamLab-C4-Scroll-C` / `StreamLab-C4-Scroll-PV`, 10초 준비·자동 30초 5왕복. `c4-controlled-C1.trace`, `c4-controlled-PV1.trace`, `c4-controlled-PV2.trace`, `c4-controlled-C2.trace`.
+1. **백그라운드 다운로드 전력**: `StreamLab-C4-Download-Energy`, Power Profiler + Points of Interest. `c4-background-download-power-1.trace`.
+2. **동일 조건 C/PV 비교**: `StreamLab-C4-Scroll-C` / `StreamLab-C4-Scroll-PV`, 10초 준비·자동 30초 5왕복. `c4-controlled-C1.trace`, `c4-controlled-PV1.trace`, `c4-controlled-PV2.trace`, `c4-controlled-C2.trace`.
 
 [Xcode 설정·조건·표식·판정 기준](FINAL_DEVICE_QA.md)을 따른다. 실제 표시 프레임을 집계하며 CADisplayLink 횟수를 FPS로 바꾸지 않는다. 결과가 개선되지 않았으면 그대로 보고한다. 새 데이터 없이 전후 개선이나 배터리 절감을 주장하지 않는다.
 

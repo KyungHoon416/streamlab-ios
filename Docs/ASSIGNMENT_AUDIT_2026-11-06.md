@@ -1,29 +1,29 @@
 # 과제 원문 기준 완료·잔여 점검 — 2026-11-06
 
-**76/79 확인 단위 완료(96.2%), 3/79 실기기 검증 대기(3.8%)다.** 최초 점검의 8개 잔여 중 로컬 DB·전체 자동 CI 근거·README 재현·상태도·샘플 사용조건 5개를 보완했다. VoiceOver·백그라운드 다운로드 전력·통제된 프레임 비교는 구현과 측정 준비를 마쳤지만 실제 결과를 받기 전에는 완료로 세지 않는다.
+**77/79 확인 단위 완료(97.5%), 2/79 실기기 검증 대기(2.5%)다.** 최초 점검의 8개 잔여 중 로컬 DB·전체 자동 CI 근거·README 재현·상태도·샘플 사용조건 5개를 보완했다. VoiceOver 전체 경로는 사용자 실기기 확인으로 완료했다. 백그라운드 다운로드 전력·통제된 프레임 비교는 구현과 측정 준비를 마쳤지만 실제 결과를 받기 전에는 완료로 세지 않는다.
 
 앱 기준은 `9a4d395`다. [원격 CI](https://github.com/KyungHoon416/streamlab-ios/actions/runs/42239749042)의 네 job이 모두 성공했다. Core·재생·앱 UI는 attempt 1, native 다운로드는 실패 후 한 번 재실행한 attempt 2의 결과다. 원본 `Netflix_iOS_과제.docx` SHA-256: `5f2227f658aa52f16a2429c68c4ee3b729fc8e49c17883441cb455622d058250`. 최초 71/79 판정은 [이전 점검표](Measurements/Assignment-Audit-2026-11-06/checklist-before-final-gaps.json)에 보존한다. 관리자 확장 기능은 과제 완료율에 가산하지 않는다.
 
 ## 계산 기준
 
-원문의 기능·검증·제출물에서 만든 동일한 79개 단위를 유지했다. 완료는 1, 일부 구현 또는 근거 미확보는 0이다. **76 ÷ 79 = 96.2%, 3 ÷ 79 = 3.8%**이며 배점·합격 점수·작업 시간·운영 준비 비율이 아니다. 원문이 허용한 서버/DRM Mock은 미구현으로 세지 않되 실제 운영 서버·FairPlay·jetsam·물리 ENOSPC까지 확인했다고 확대하지 않는다.
+원문의 기능·검증·제출물에서 만든 동일한 79개 단위를 유지했다. 완료는 1, 일부 구현 또는 근거 미확보는 0이다. **77 ÷ 79 = 97.5%, 2 ÷ 79 = 2.5%**이며 배점·합격 점수·작업 시간·운영 준비 비율이 아니다. 원문이 허용한 서버/DRM Mock은 미구현으로 세지 않되 실제 운영 서버·FairPlay·jetsam·물리 ENOSPC까지 확인했다고 확대하지 않는다.
 
 | 구분 | 완료 | 남음 | 완료율 | 남은 범위 |
 |---|---:|---:|---:|---|
 | 공통·핵심 테스트 | 6/6 | 0 | 100.0% | — |
 | A 홈·재생·복원 | 16/16 | 0 | 100.0% | — |
 | B 오프라인 정합성 | 17/17 | 0 | 100.0% | — |
-| C 다운로드·보안·품질 | 15/18 | 3 | 83.3% | VoiceOver 전체 경로, 백그라운드 다운로드 전력, 동일 조건 C/PV 비교 |
+| C 다운로드·보안·품질 | 16/18 | 2 | 88.9% | 백그라운드 다운로드 전력, 동일 조건 C/PV 비교 |
 | D 장애 주입·재현 | 13/13 | 0 | 100.0% | — |
 | 제출물·사용 데이터 | 9/9 | 0 | 100.0% | — |
-| **전체** | **76/79** | **3** | **96.2%** | **잔여 3.8%** |
+| **전체** | **77/79** | **2** | **97.5%** | **잔여 2.5%** |
 
 ## 처음 남았던 8개 처리 결과
 
 | 항목 | 결과 | 근거 / 남은 일 |
 |---|---|---|
 | B1 로컬 DB | 완료 | SQLite 트랜잭션, JSON 이전, 중간 실패 롤백·복구 자동 검증 |
-| C3 VoiceOver | 실기기 대기 | 이름 없는 플레이어 컨테이너 수정, 설명·터치 영역 자동 감사 통과. 전체 경로 음성·초점 확인 필요 |
+| C3 VoiceOver | 완료 | iPhone 15 Pro에서 F10 샘플 전체 경로 PASS. 음성 안내·위치 조절·상세 복귀 확인 |
 | C4 다운로드 전력 | 실기기 대기 | FirebaseRelease 전용 Scheme와 전송·백그라운드 표식 준비. Power Profiler 기록 필요 |
 | C4 전후 비교 | 실기기 대기 | 같은 빌드 C/PV 자동 5왕복·시간/거리 표식 준비. 실제 표시 프레임 비교 필요 |
 | D 전체 자동 CI | 완료 | Core/재생/앱 UI 9개/네이티브 HLS 3개를 동일 커밋에서 원격 실행 |
@@ -112,7 +112,7 @@
 | C2-2 | 프로필/로그아웃에서 재생·prefetch·다운로드 무효화 | 완료 | [DurableAuthenticationLogoutTests.swift](../Packages/StreamLabCore/Tests/StreamLabPresentationTests/DurableAuthenticationLogoutTests.swift) · [REPORT.md](Measurements/Profile-Seek-2026-11-01/REPORT.md) |
 | C2-3 | 진단 URL·계정·시청 이력 최소화/마스킹 | 완료 | [REPORT.md](Measurements/Diagnostic-Privacy-2026-10-31/REPORT.md) · [SafeDiagnosticErrorTests.swift](../Packages/StreamLabCore/Tests/StreamLabPresentationTests/SafeDiagnosticErrorTests.swift) |
 | C2-4 | DRM 키·권한·갱신 Mock, 우회 없음 | 완료 | [PlaybackEntitlementTests.swift](../Packages/StreamLabCore/Tests/StreamLabPresentationTests/PlaybackEntitlementTests.swift) · [REPORT.md](Measurements/Runtime-Entitlement-2026-11-01/REPORT.md) |
-| C3-1 | VoiceOver 탐색→상세→재생→자막→중단 전체 독립 조작 | 실기기 검증 대기 | [PHASE1_MANUAL_QA.md](PHASE1_MANUAL_QA.md) · [ASSIGNMENT_PROGRESS.md](ASSIGNMENT_PROGRESS.md) · [FINAL_DEVICE_QA.md](FINAL_DEVICE_QA.md) |
+| C3-1 | VoiceOver 탐색→상세→재생→자막→중단 전체 독립 조작 | 완료 | [PHASE1_MANUAL_QA.md](PHASE1_MANUAL_QA.md) · [ASSIGNMENT_PROGRESS.md](ASSIGNMENT_PROGRESS.md) · [FINAL_DEVICE_QA.md](FINAL_DEVICE_QA.md) |
 | C3-2 | Dynamic Type·고대비/다크·Reduce Motion | 완료 | [ASSIGNMENT_PROGRESS.md](ASSIGNMENT_PROGRESS.md) · [PHASE1_MANUAL_QA.md](PHASE1_MANUAL_QA.md) |
 | C3-3 | 44pt 터치·focus order·접근성 label | 완료 | [ASSIGNMENT_PROGRESS.md](ASSIGNMENT_PROGRESS.md) · [PHASE2_REPORT.md](PHASE2_REPORT.md) |
 | C4-1 | 2,000 fixture 실제 표시 프레임 p50/p95 | 완료 | [REPORT.md](Measurements/C4-2026-10-31/REPORT.md) · [display-intervals.json](Measurements/C4-2026-10-31/display-intervals.json) |
