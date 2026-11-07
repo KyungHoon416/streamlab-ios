@@ -1,5 +1,7 @@
 # StreamLab
 
+[관리자 페이지 바로가기](https://streamlab-ios-eba4f.web.app) · **작품 관리**를 누르면 로그인 없이 작품을 등록·수정·삭제할 수 있습니다.
+
 프로필별 스트리밍·오프라인 재생과 오프라인 우선 데이터 동기화를 검증하는 iOS 과제 앱입니다. Swift 6 / iOS 18 이상이며 SwiftUI 화면과 UIKit·AVFoundation 플레이어를 사용합니다. 운영 인증·DRM은 Mock이고, Firebase 카탈로그는 선택 기능입니다.
 
 ## 처음 실행하기
