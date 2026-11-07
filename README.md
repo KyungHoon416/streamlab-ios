@@ -2,7 +2,7 @@
 
 [관리자 페이지 바로가기](https://streamlab-ios-eba4f.web.app) · **작품 관리**를 누르면 로그인 없이 작품을 등록·수정·삭제할 수 있습니다.
 
-프로필별 스트리밍·오프라인 재생과 오프라인 우선 데이터 동기화를 검증하는 iOS 과제 앱입니다. Swift 6 / iOS 18 이상이며 SwiftUI 화면과 UIKit·AVFoundation 플레이어를 사용합니다. 운영 인증·DRM은 Mock이고, Firebase 카탈로그는 선택 기능입니다.
+프로필별 스트리밍·오프라인 재생과 오프라인 우선 데이터 동기화를 검증하는 iOS 과제 앱입니다. Swift 6 / iOS 18 이상이며 SwiftUI 화면과 UIKit·AVFoundation 플레이어를 사용합니다. 운영 인증·DRM은 Mock이고, 기본 Scheme은 Firebase의 공개 작품을 표시합니다.
 
 ## 처음 실행하기
 
@@ -15,11 +15,11 @@ open StreamLab.xcodeproj
 ```
 
 1. Scheme **StreamLab**, 실행 대상 **iPhone Simulator**를 선택하고 ⌘R을 누릅니다.
-2. ‘데모 로그인’ → 성인 A 프로필 → 홈 작품 상세 → ‘데모 재생’을 선택합니다. 인터넷 없이 번들 테스트 영상과 데모 자막을 확인할 수 있습니다.
+2. ‘데모 로그인’ → 성인 A 프로필 → 공개 작품 상세에서 영상을 재생합니다. 첫 카탈로그 조회와 스트리밍에는 인터넷 연결이 필요합니다.
 3. 찜·검색·이어보기는 SQLite에 먼저 저장됩니다. 앱을 종료하고 같은 프로필로 다시 열어 기록을 확인합니다. 로그아웃은 해당 계정의 모든 프로필 기록을 지우므로 보존 확인 중에는 사용하지 않습니다.
-4. HLS·백그라운드 다운로드는 인터넷이 필요합니다. 아래 Apple 테스트 URL만 연결하며 외부 서버 실패를 앱 테스트 성공으로 처리하지 않습니다.
+4. 번들 테스트 영상과 2,000개 Mock 작품을 확인하려면 **StreamLab-Demo** Scheme을 선택합니다.
 
-실기기는 대상 iPhone을 고른 뒤 Signing & Capabilities에서 자신의 Team을 지정합니다. Firebase 카탈로그는 **StreamLab-Firebase** Scheme으로 실행합니다. 기본 StreamLab의 Mock 재현에는 관리자 계정이나 비공개 설정 파일이 필요 없습니다. 프로젝트가 예전 상태로 보이면 `git status --short`로 로컬 변경을 확인하고 `git pull --ff-only --no-rebase origin main`으로 갱신합니다. 로컬 변경을 강제로 지우지 마세요.
+실기기는 대상 iPhone을 고른 뒤 Signing & Capabilities에서 자신의 Team을 지정합니다. 기본 **StreamLab**과 **StreamLab-Firebase**는 같은 공개 카탈로그를 사용하며, 아이콘으로 다시 실행해도 이 설정이 유지됩니다. 프로젝트가 예전 상태로 보이면 `git status --short`로 로컬 변경을 확인하고 `git pull --ff-only --no-rebase origin main`으로 갱신합니다. 로컬 변경을 강제로 지우지 마세요.
 
 ## 테스트와 10분 재현 기록
 

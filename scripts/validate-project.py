@@ -84,10 +84,10 @@ for config_id in configs:
 scheme = ET.parse(root / "StreamLab.xcodeproj/xcshareddata/xcschemes/StreamLab.xcscheme")
 for reference in scheme.findall(".//BuildableReference"):
     assert reference.get("BlueprintIdentifier") in targets, reference.attrib
-# Both shared schemes must run the app, with Firebase opt-in only in the Firebase scheme.
+# Check the installed catalog, including launches outside Xcode.
 app_id = next(key for key, target in targets.items() if target is app_target)
 assert info["StreamLabCatalog"] == "$(STREAMLAB_CATALOG)"
-for name, use_firebase in (("StreamLab", False), ("StreamLab-Firebase", True)):
+for name, use_firebase in (("StreamLab", True), ("StreamLab-Firebase", True), ("StreamLab-Demo", False)):
     shared = ET.parse(root / f"StreamLab.xcodeproj/xcshareddata/xcschemes/{name}.xcscheme")
     for action, base in (("LaunchAction", "Debug"), ("ProfileAction", "Release"), ("ArchiveAction", "Release")):
         chosen = shared.find(action).get("buildConfiguration")
@@ -99,7 +99,7 @@ for name, use_firebase in (("StreamLab", False), ("StreamLab-Firebase", True)):
         assert ref is not None and ref.get("BlueprintIdentifier") == app_id, (name, action)
         args = shared.findall(f"{action}/CommandLineArguments/CommandLineArgument")
         enabled = {arg.get("argument") for arg in args if arg.get("isEnabled") == "YES"}
-        assert ("--firebase-catalog" in enabled) == use_firebase, (name, action, enabled)
+        assert ("--firebase-catalog" in enabled) == (name == "StreamLab-Firebase"), (name, action, enabled)
 # C4 aliases must pass identical diagnostic arguments to Run and Profile.
 measurement_schemes = {
     "StreamLab-C4-Scroll-C": ("Release", {"--trace-home-startup", "--measure-home-scroll", "--home-render-experiment=C"}),

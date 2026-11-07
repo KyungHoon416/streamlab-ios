@@ -79,6 +79,21 @@ schemes:
       targets:
         StreamLab: all
     run:
+      config: FirebaseDebug
+    profile:
+      config: FirebaseRelease
+    archive:
+      config: FirebaseRelease
+    test:
+      config: Debug
+      targets:
+        - StreamLabUITests
+
+  StreamLab-Demo:
+    build:
+      targets:
+        StreamLab: all
+    run:
       config: Debug
     test:
       config: Debug

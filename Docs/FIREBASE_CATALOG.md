@@ -52,15 +52,15 @@ MP4 URL 확장 검증: Core 266개, iOS 재생 경계 25개, 관리자 입력 4�
 
 ## 실기기 확인
 
-1. 최신 코드를 pull하고 `StreamLab.xcodeproj`를 다시 연다. Scheme에서 **StreamLab-Firebase**와 iPhone을 선택한다.
-2. Firebase Scheme은 FirebaseDebug 구성으로 앱을 설치한다. 이전 `--ui-test-*` 오류 주입 인수는 끈다. 일반 StreamLab Scheme은 기존 Mock 카탈로그다.
+1. 최신 코드를 pull하고 `StreamLab.xcodeproj`를 다시 연다. Scheme에서 **StreamLab**과 iPhone을 선택한다.
+2. Firebase Scheme은 FirebaseDebug 구성으로 앱을 설치한다. 이전 `--ui-test-*` 오류 주입 인수는 끈다. Mock 카탈로그는 StreamLab-Demo로 실행한다.
 3. 웹에서 작품 관리를 연다. 작품 ID·제목·장르·등급·시간과 이용 권한이 있는 HTTPS `.m3u8` 또는 `.mp4` 주소를 넣고 비공개로 저장한다. 포스터 URL은 생략 가능하다.
 4. 앱에서 데모 시작 → 프로필 선택. 비공개 작품은 보이지 않아야 한다. 아직 공개 작품이 없으면 빈 카탈로그 오류가 표시된다.
 5. 관리자에서 ‘앱에 공개’를 켜고 저장한다. 앱을 다시 실행해 홈·검색·상세에 작품이 나타나는지 확인한다.
 6. 홈과 상세의 ‘영상 재생’에서 등록한 영상·하단 시간·탐색·닫기를 확인한다. 이 테스트는 실제 Firestore/HLS 연결이며 실제 유료 권한/DRM 검증은 아니다.
 7. 비공개 전환 후 앱 재실행 시 사라지고, 새 재생 조회가 허용되지 않는지 확인한다. 이미 열린 재생의 즉시 중단은 범위 밖이다.
 
-Firebase Scheme으로 설치한 앱은 Xcode에서 실행을 중지한 뒤 iPhone 홈 화면 아이콘으로 열어도 같은 공개 카탈로그를 사용한다. Run은 FirebaseDebug, Profile과 Archive는 FirebaseRelease이며 완성된 앱의 Info.plist에 카탈로그 선택을 기록한다. 일반 StreamLab Scheme으로 다시 설치하면 데모 카탈로그가 기본값이다.
+Firebase Scheme으로 설치한 앱은 Xcode에서 실행을 중지한 뒤 iPhone 홈 화면 아이콘으로 열어도 같은 공개 카탈로그를 사용한다. Run은 FirebaseDebug, Profile과 Archive는 FirebaseRelease이며 완성된 앱의 Info.plist에 카탈로그 선택을 기록한다. 기본 StreamLab도 같은 Firebase 설정으로 설치된다.
 
 ## 재현 명령
 
