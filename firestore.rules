@@ -27,7 +27,8 @@ service cloud.firestore {
         && d.revision is int && d.updatedAt == request.time;
     }
     match /titles/{id} {
-      allow read: if admin() || resource.data.published == true;
+      // The web catalog includes drafts. published controls iOS catalog inclusion.
+      allow read: if true;
       allow create: if admin() && valid(id) && request.resource.data.revision == 1;
       allow update: if admin() && valid(id) && request.resource.data.revision == resource.data.revision + 1;
       // Preserve records and stable progress IDs; unpublish instead of deleting.

@@ -6,7 +6,7 @@
 
 ## 연결 범위
 
-관리자가 Google 로그인 → 작품 초안 저장 → 공개 설정 → iOS가 공개 작품을 REST로 조회 → 등록된 HTTPS HLS 또는 MP4 URL을 AVPlayer로 재생한다. 웹과 서버 규칙에서 검증된 `kkh9172@gmail.com` Google 계정만 쓰기를 허용한다. 이메일 대소문자는 같은 계정으로 처리한다. 일반 사용자는 공개 작품만 조회할 수 있다.
+관리자가 Google 로그인 → 작품 초안 저장 → 공개 설정 → iOS가 공개 작품을 REST로 조회 → 등록된 HTTPS HLS 또는 MP4 URL을 AVPlayer로 재생한다. 웹과 서버 규칙에서 검증된 `kkh9172@gmail.com` Google 계정만 쓰기를 허용한다. 이메일 대소문자는 같은 계정으로 처리한다. 웹에서는 로그인 없이 모든 작품 목록·정보·연결된 영상을 열 수 있다. 공개 상태는 iOS 앱 목록에 표시할지를 결정한다. 웹의 등록·수정·파일 업로드는 관리자 전용이다.
 
 ### MP4 URL 지원
 
@@ -28,7 +28,7 @@
 
 클라이언트는 확장자·MIME·MP4 ftyp 헤더를 확인한다. 이는 전체 영상 코덱 검증이나 악성코드 검사가 아니다. 서버 규칙은 승인된 Google 관리자만 생성·SDK 조회하도록 제한하며 크기·contentType·작품/업로더 메타데이터를 확인한다. 기존 파일 덮어쓰기와 클라이언트 삭제는 금지한다. 재업로드는 새 객체를 만든다.
 
-업로드 후 생성되는 Firebase download-token URL은 URL을 가진 사람이 재생할 수 있다. 비공개 작품은 Firestore에서 숨기지만, 이미 배포한 URL을 회수하지 않는다. 비공개 영상 보호·DRM 기능으로 간주하지 않는다. 업로드 후 작품을 저장하지 않거나 URL을 교체해도 파일은 Storage에 남는다. 관리자가 콘솔에서 사용 여부를 확인하고 정리해야 하며 자동 삭제는 하지 않는다. 전송 완료와 취소가 맞물리면 완료된 객체가 남을 수 있다.
+업로드 후 생성되는 Firebase download-token URL은 URL을 가진 사람이 재생할 수 있다. Firestore titles 문서는 앱 공개 상태와 관계없이 읽을 수 있다. 비공개 영상 보호·DRM 기능으로 간주하지 않는다. 업로드 후 작품을 저장하지 않거나 URL을 교체해도 파일은 Storage에 남는다. 관리자가 콘솔에서 사용 여부를 확인하고 정리해야 하며 자동 삭제는 하지 않는다. 전송 완료와 취소가 맞물리면 완료된 객체가 남을 수 있다.
 
 Storage 에뮬레이터: `firebase emulators:exec --only storage --project demo-streamlab-admin 'npm --prefix admin run test:storage'`. 배포: `firebase deploy --only storage,hosting --project streamlab-ios-eba4f`.
 

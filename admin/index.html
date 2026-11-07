@@ -3,24 +3,37 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>StreamLab · 콘텐츠 관리</title>
+    <title>StreamLab · 작품 카탈로그</title>
   </head>
   <body>
     <header>
-      <a class="brand" href="/">STREAMLAB <span>관리자</span></a>
+      <a class="brand" href="/">STREAMLAB <span>카탈로그</span></a>
       <div>
-        <span id="identity"></span><button id="logout" hidden>로그아웃</button>
+        <span id="identity"></span>
+        <span id="signin"><button id="login">관리자 로그인</button></span>
+        <button id="logout" hidden>로그아웃</button>
       </div>
     </header>
     <main>
-      <section id="signin">
-        <p class="eyebrow">CONTENT OPERATIONS</p>
-        <h1>작품을 등록하고,<br />앱에 공개하세요.</h1>
-        <p>승인된 관리자 Google 계정으로 로그인하세요.</p>
-        <button class="primary" id="login">Google 계정으로 로그인</button>
-        <p class="muted">
-          공개한 작품 정보와 영상 주소는 앱 사용자가 조회할 수 있습니다.
-        </p>
+      <section id="viewer" hidden>
+        <div class="heading">
+          <h1>작품 둘러보기</h1>
+          <button id="browse-refresh">새로고침</button>
+        </div>
+        <label for="browse-search">작품 검색
+          <input id="browse-search" type="search" placeholder="제목 또는 작품 ID" />
+        </label>
+        <p id="browse-status" role="status"></p>
+        <div class="layout">
+          <div id="browse-list" aria-label="작품 목록"></div>
+          <section id="browse-detail" class="editor" hidden>
+            <h2 id="browse-title" tabindex="-1"></h2>
+            <p id="browse-info"></p>
+            <p id="browse-synopsis"></p>
+            <video id="browse-player" controls playsinline preload="metadata" hidden></video>
+            <p id="browse-play-status" role="status"></p>
+          </section>
+        </div>
       </section>
       <p id="message" role="status" aria-live="polite"></p>
       <section id="workspace" hidden>
@@ -201,16 +214,14 @@
                 <small
                   >비공개 작품에는 업로드한 URL이 자동 저장됩니다. 공개 상태 변경은 아래 ‘저장’을 눌러 작품에
                   반영하세요. MP4를 HLS로 변환하지 않습니다. 업로드한 파일은
-                  저장하지 않거나 URL을 교체해도 Storage에 남습니다. 공개 후
-                  영상 URL을 가진 사람은 재생할 수 있습니다.</small
+                  저장하지 않거나 URL을 교체해도 Storage에 남습니다. 연결된 영상은 웹에서 로그인 없이 재생할 수 있습니다.</small
                 >
               </section>
               <label class="check"
                 ><input name="published" type="checkbox" /> 앱에 공개</label
               >
               <p class="muted">
-                비공개 전환은 새 목록 조회에 반영됩니다. 이미 제공한 영상 URL의
-                접근 권한을 회수하는 기능은 아닙니다.
+                체크하면 iOS 앱에도 표시됩니다. 웹에서는 앱 비공개 작품도 누구나 보고 재생할 수 있습니다.
               </p>
               <button id="save" type="submit" class="primary">저장</button>
               <span id="saved" class="muted"></span>

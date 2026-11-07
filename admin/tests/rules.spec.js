@@ -84,8 +84,11 @@ test("admin create, revision update, public query, unpublish and denied deletion
   await assertSucceeds(
     getDocs(query(collection(anon, "titles"), where("published", "==", true))),
   );
-  await assertFails(getDoc(doc(anon, "titles/draft")));
-  await assertFails(getDocs(collection(anon, "titles")));
+  await assertSucceeds(getDoc(doc(anon, "titles/draft")));
+  await assertSucceeds(getDocs(collection(anon, "titles")));
+  await assertFails(updateDoc(doc(anon, "titles/draft"), { published: true }));
+  await assertFails(deleteDoc(doc(anon, "titles/draft")));
+  await assertFails(getDoc(doc(anon, "users/owner")));
   await assertFails(setDoc(doc(anon, "titles/attack"), data("attack", true)));
   await assertFails(
     updateDoc(doc(admin, "titles/public"), {
@@ -100,7 +103,7 @@ test("admin create, revision update, public query, unpublish and denied deletion
       updatedAt: serverTimestamp(),
     }),
   );
-  await assertFails(getDoc(doc(anon, "titles/public")));
+  assert.equal((await getDoc(doc(anon, "titles/public"))).get("published"), false);
   await assertFails(deleteDoc(doc(admin, "titles/public")));
 });
 test("wrong email, unverified email and password provider cannot write", async () => {
@@ -155,11 +158,11 @@ test("a new file upload reserves a private ID before attaching the MP4 URL", asy
   const id = "new-file-draft";
   const draft = data(id);
   await persistTitle(db, draft, null, 0);
-  await assertFails(getDoc(doc(viewer, "titles", id)));
+  assert.equal((await getDoc(doc(viewer, "titles", id))).get("streamURL"), "");
   await assert.rejects(persistTitle(db, draft, null, 0), /EXISTS/);
   const ready = { ...draft, published: true, streamURL: "https://example.com/upload.mp4" };
   await attachDraftVideo(db, id, 1, ready.streamURL);
-  await assertFails(getDoc(doc(viewer, "titles", id)));
+  assert.equal((await getDoc(doc(viewer, "titles", id))).get("streamURL"), ready.streamURL);
   const reopened = (await getDoc(doc(db, "titles", id))).data();
   assert.equal(reopened.streamURL, ready.streamURL);
   await assert.rejects(attachDraftVideo(db, id, 1, ready.streamURL), /CONFLICT/);

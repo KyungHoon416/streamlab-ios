@@ -11,10 +11,11 @@
     "test:storage": "node --test tests/storage.spec.js"
   },
   "dependencies": {
-    "firebase": "^12.0.0"
+    "firebase": "^12.0.0",
+    "hls.js": "^1.7.4"
   },
   "devDependencies": {
-    "vite": "^7.0.0",
-    "@firebase/rules-unit-testing": "^5.0.0"
+    "@firebase/rules-unit-testing": "^5.0.0",
+    "vite": "^7.0.0"
   }
 }

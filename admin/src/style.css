@@ -168,10 +168,7 @@ textarea {
   background: #f0eee7;
   color: #736346;
 }
-#signin {
-  padding: 65px 0 95px;
-  max-width: 650px;
-}
+#browse-player { width: 100%; max-height: 60vh; background: black; }
 #message:not(:empty) {
   border-left: 3px solid #97743c;
   padding: 12px 18px;

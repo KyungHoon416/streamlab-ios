@@ -1,4 +1,5 @@
 import "./style.css";
+import { createViewer } from "./viewer.js";
 import { initializeApp } from "firebase/app";
 import {
   getAuth,
@@ -370,6 +371,7 @@ $("logout").onclick = () => {
   cancelUpload();
   signOut(auth).catch(error);
 };
+const viewer = createViewer(db);
 onAuthStateChanged(auth, async (user) => {
   cancelUpload();
   const ticket = ++epoch;
@@ -382,14 +384,17 @@ onAuthStateChanged(auth, async (user) => {
   $("logout").hidden = !user;
   $("identity").textContent = user?.email ?? "";
   message("");
-  if (!user) return;
+  viewer.close();
+  if (!user) {
+    await viewer.open();
+    return;
+  }
   try {
     const token = await user.getIdTokenResult();
     if (ticket !== epoch) return;
     if (!canManage(user, token.claims)) {
-      message(
-        "이 계정에는 관리자 권한이 없습니다. 승인된 Google 계정으로 로그인하세요.",
-      );
+      $("signin").hidden = true;
+      await viewer.open();
       return;
     }
     allowed = true;
