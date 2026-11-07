@@ -1,6 +1,8 @@
 # 아키텍처 PDF
 
-현재 문서는 [14쪽 통합본](streamlab-architecture-ko.pdf)이다. 제공받은 통합본의 페이지 순서·카드 배치·색상 체계를 유지하면서 연결선과 코드 관계를 교정했다. 한글 글꼴은 임베드된 Pretendard를 사용한다.
+[최종 제출 PDF](streamlab-architecture-ko.pdf)는 사용자가 선택한 `StreamLab_Architecture_Integrated_2026-11-06.pdf` 원본이다. A4 가로 14쪽이며 SHA-256은 `171c9486603dec1076f3c0066e800e66153cba2e066c4e264cda01724c70f5f3`이다. 제출 파일과 첨부 원본을 바이트 단위로 대조했다. 최신 실기기 결과는 [현재 점검표](../ASSIGNMENT_AUDIT_2026-11-06.md)에 기록한다.
+
+아래는 별도로 보존한 [11월 7일 교정본](streamlab-architecture-revision-2026-11-07.pdf)의 생성 기록과 구성이다.
 
 ## 기준과 검증
 

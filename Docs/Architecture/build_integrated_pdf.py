@@ -12,7 +12,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
 ROOT=Path(__file__).resolve().parents[2]
-OUT=ROOT/'Docs/Architecture/streamlab-architecture-ko.pdf'
+OUT=ROOT/'Docs/Architecture/streamlab-architecture-revision-2026-11-07.pdf'
 APP='9a4d39539bf7afaad759bacf8966d650b0477970'
 PROOF=json.loads((ROOT/'Docs/Measurements/Final-Gaps-2026-11-06/evidence.json').read_text())
 AUDIT=json.loads((ROOT/'Docs/Architecture/artifacts-2026-11-07.json').read_text())

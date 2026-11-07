@@ -1,0 +1,221 @@
+[
+  {
+    "label": "C1",
+    "run": 1,
+    "arguments": "--trace-home-startup --measure-home-scroll --home-render-experiment=C",
+    "device": "iPhone 15 Pro",
+    "os": "26.6.1 (23G83)",
+    "recorded": "2026-11-07T14:44:14.065+09:00",
+    "markers": [
+      [
+        4.895846625,
+        "C4ScrollWarmup"
+      ],
+      [
+        15.17817875,
+        "C4ControlledScroll"
+      ],
+      [
+        15.17818075,
+        "C4ScrollStart"
+      ],
+      [
+        45.200697833,
+        "C4ScrollEnd"
+      ],
+      [
+        45.200705875,
+        "C4ControlledScroll"
+      ]
+    ],
+    "thermal": [
+      [
+        0.0,
+        96.975890874,
+        "Nominal thermal state"
+      ]
+    ],
+    "logs": [],
+    "total_hitch_rows": 4,
+    "frames": {
+      "run": 1,
+      "window_s": [
+        15.17818075,
+        45.200697833
+      ],
+      "frames": 1793,
+      "intervals": 1792,
+      "first_s": 15.265611291,
+      "last_s": 45.184304999,
+      "p50_ms": 16.670125,
+      "p95_ms": 16.670167,
+      "max_ms": 33.34025,
+      "toc_sha256": "5bbbdda9ef1f7a24570c47ef62d1ae33418643d18abb532ea2e43be30027f62c",
+      "export_sha256": "3897dd08762dd6949f005092e4abaa46acf48e6d8fe04ed218861d841bfa58aa"
+    },
+    "hitches": {
+      "count": 2,
+      "p50_ms": 16.670166,
+      "p95_ms": 16.670166,
+      "max_ms": 16.670166,
+      "total_ms": 33.340332
+    },
+    "intervals_gt_25ms": 4,
+    "intervals_gt_50ms": 0
+  },
+  {
+    "label": "PV1",
+    "run": 1,
+    "arguments": "--trace-home-startup --measure-home-scroll --home-render-experiment=PV",
+    "device": "iPhone 15 Pro",
+    "os": "26.6.1 (23G83)",
+    "recorded": "2026-11-07T15:01:08.644+09:00",
+    "markers": [
+      [
+        5.701920791,
+        "C4ScrollWarmup"
+      ],
+      [
+        15.762391083,
+        "C4ControlledScroll"
+      ],
+      [
+        15.762392875,
+        "C4ScrollStart"
+      ],
+      [
+        45.771210333,
+        "C4ScrollEnd"
+      ],
+      [
+        45.771218291,
+        "C4ControlledScroll"
+      ]
+    ],
+    "thermal": [
+      [
+        0.0,
+        58.583487987,
+        "Nominal thermal state"
+      ]
+    ],
+    "logs": [],
+    "total_hitch_rows": 4,
+    "frames": {
+      "run": 1,
+      "window_s": [
+        15.762392875,
+        45.771210333
+      ],
+      "frames": 1795,
+      "intervals": 1794,
+      "first_s": 15.819488958,
+      "last_s": 45.75485275,
+      "p50_ms": 16.670125,
+      "p95_ms": 16.670167,
+      "max_ms": 33.34025,
+      "toc_sha256": "afa4397f6ca516a2af0513a071f9e1e1c0cadbb0243052d500b08f0ff460af14",
+      "export_sha256": "238aada3c36ebbada05ccf404d172cd7004d31ec1ebfb67372b487b11dbd6ccb"
+    },
+    "hitches": {
+      "count": 2,
+      "p50_ms": 16.670166,
+      "p95_ms": 16.670166,
+      "max_ms": 16.670166,
+      "total_ms": 33.340332
+    },
+    "intervals_gt_25ms": 12,
+    "intervals_gt_50ms": 0
+  },
+  {
+    "label": "PV2",
+    "run": 1,
+    "arguments": "--trace-home-startup --measure-home-scroll --home-render-experiment=PV",
+    "device": "iPhone 15 Pro",
+    "os": "26.6.1 (23G83)",
+    "recorded": "2026-11-07T15:09:57.924+09:00",
+    "markers": [
+      [
+        65.347149625,
+        "C4ScrollEnd"
+      ],
+      [
+        65.347788583,
+        "C4ControlledScroll"
+      ]
+    ],
+    "thermal": [
+      [
+        0.0,
+        115.47758913,
+        "Nominal thermal state"
+      ]
+    ],
+    "logs": [],
+    "total_hitch_rows": 5
+  },
+  {
+    "label": "C2",
+    "run": 1,
+    "arguments": "--trace-home-startup --measure-home-scroll --home-render-experiment=C",
+    "device": "iPhone 15 Pro",
+    "os": "26.6.1 (23G83)",
+    "recorded": "2026-11-07T15:20:34.550+09:00",
+    "markers": [
+      [
+        3.981892916,
+        "C4ScrollWarmup"
+      ],
+      [
+        14.625950625,
+        "C4ControlledScroll"
+      ],
+      [
+        14.625951416,
+        "C4ScrollStart"
+      ],
+      [
+        44.637467708,
+        "C4ScrollEnd"
+      ],
+      [
+        44.637486625,
+        "C4ControlledScroll"
+      ]
+    ],
+    "thermal": [
+      [
+        0.0,
+        56.933050155,
+        "Nominal thermal state"
+      ]
+    ],
+    "logs": [],
+    "total_hitch_rows": 5,
+    "frames": {
+      "run": 1,
+      "window_s": [
+        14.625951416,
+        44.637467708
+      ],
+      "frames": 1795,
+      "intervals": 1794,
+      "first_s": 14.685525207,
+      "last_s": 44.620888999,
+      "p50_ms": 16.670125,
+      "p95_ms": 16.670167,
+      "max_ms": 33.34025,
+      "toc_sha256": "8702ae4d491d4c41d314d829e3bc096c4998d9f07a923c55c4519ff2cd4e4b29",
+      "export_sha256": "9a9f313272d6928524d305fda0528c946ce14a46ad582873094cfd46480cfafa"
+    },
+    "hitches": {
+      "count": 2,
+      "p50_ms": 16.670166,
+      "p95_ms": 16.670166,
+      "max_ms": 16.670166,
+      "total_ms": 33.340332
+    },
+    "intervals_gt_25ms": 4,
+    "intervals_gt_50ms": 0
+  }
+]

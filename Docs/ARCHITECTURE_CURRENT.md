@@ -159,7 +159,7 @@ Docs/CHAOS_ACCEPTANCE.md · Docs/DOWNLOADS_QA.md
 저장소: github.com/KyungHoon416/streamlab-ios
 
 ---
-PDF만 `python3 Docs/Architecture/build_integrated_pdf.py`로 생성한다. Python reportlab과 Pretendard Regular/Bold 글꼴이 필요하다. 재생성 방법과 보존 요약본은 [PDF 안내](Architecture/README.md)를 참조한다. 이 Markdown은 생성기가 덮어쓰지 않는다. 전체 상태 전이는 [Player](States/PLAYER.md)와 [Download](States/DOWNLOAD.md)를 참조한다.
+11월 7일 보존 교정본은 `python3 Docs/Architecture/build_integrated_pdf.py`로 생성한다. Python reportlab과 Pretendard Regular/Bold 글꼴이 필요하다. 재생성 방법과 보존 요약본은 [PDF 안내](Architecture/README.md)를 참조한다. 이 Markdown은 생성기가 덮어쓰지 않는다. 전체 상태 전이는 [Player](States/PLAYER.md)와 [Download](States/DOWNLOAD.md)를 참조한다.
 
 ## 2026-11-06 아키텍처 다이어그램 교정 이력
 
